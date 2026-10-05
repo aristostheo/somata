@@ -1,3 +1,4 @@
+import { dayKey } from "@/utils/date";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -209,7 +210,7 @@ function labelGoal(mode?: string) {
 function getDateKey(daysAgo = 0) {
   const d = new Date();
   d.setDate(d.getDate() - daysAgo);
-  return d.toISOString().slice(0, 10);
+  return dayKey(d);
 }
 
 function createdAtMs(row: Workout) {
@@ -1394,7 +1395,7 @@ const styles = StyleSheet.create({
   secondaryText: { fontSize: 13, fontWeight: "400" },
   saveTemplateText: { fontSize: 12, fontWeight: "500", textAlign: "center", marginTop: 10 },
   swapScrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "flex-end",
   },

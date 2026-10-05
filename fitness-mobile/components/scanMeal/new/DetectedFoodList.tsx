@@ -214,9 +214,9 @@ function FoodCard({
         <BlurView
           intensity={isDark ? 18 : 28}
           tint={isDark ? "dark" : "light"}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
-        <View style={[StyleSheet.absoluteFillObject, s.cardGlass]} />
+        <View style={[StyleSheet.absoluteFill, s.cardGlass]} />
 
         {/* Header row */}
         <View style={s.rowTop}>
@@ -503,7 +503,7 @@ function makeStyles(colors: any, isDark: boolean) {
       justifyContent: "center",
       overflow: "hidden",
     },
-    leftIconGrad: { ...StyleSheet.absoluteFillObject },
+    leftIconGrad: { ...StyleSheet.absoluteFill },
 
     nameRow: { flexDirection: "row", alignItems: "center", gap: 8 },
     name: {
@@ -697,7 +697,7 @@ function makeStyles(colors: any, isDark: boolean) {
       paddingVertical: 12,
       paddingHorizontal: 12,
     },
-    emptyCTAGrad: { ...StyleSheet.absoluteFillObject },
+    emptyCTAGrad: { ...StyleSheet.absoluteFill },
     emptyCTAText: {
       color: "white",
       fontSize: 13.5,

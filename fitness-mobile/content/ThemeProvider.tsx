@@ -203,7 +203,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // system scheme tracking
   const [systemScheme, setSystemScheme] = useState<ColorSchemeName>(
-    Appearance.getColorScheme()
+    Appearance.getColorScheme() ?? "light"
   );
 
   useEffect(() => {

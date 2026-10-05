@@ -1,3 +1,4 @@
+import { dayKey } from "@/utils/date";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppState, Platform, type AppStateStatus } from "react-native";
 
@@ -399,7 +400,7 @@ function now() {
 }
 
 function ymd(ts = Date.now()) {
-  return new Date(ts).toISOString().slice(0, 10);
+  return dayKey(new Date(ts));
 }
 
 function clamp(n: number, min: number, max: number) {

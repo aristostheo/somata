@@ -1,10 +1,7 @@
 {
   "name": "fitness-app",
   "private": true,
-  "workspaces": [
-    "fitness-mobile",
-    "fitness-web"
-  ],
+  "packageManager": "pnpm@10.18.0",
   "scripts": {
     "install:all": "pnpm -w install",
     "dev:mobile": "pnpm --filter fitness-mobile start",

@@ -66,7 +66,7 @@ export function FriendsAddSheet({
       exiting={FadeOut.duration(140)}
       style={[styles.overlay, { backgroundColor: withAlpha(colors.textPrimary, isDark ? 0.5 : 0.16) }]}
     >
-      <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <Animated.View entering={FadeInDown.duration(260)} exiting={FadeOutDown.duration(220)}>
           <View
@@ -190,7 +190,7 @@ export function FriendsAddSheet({
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "flex-end",
     padding: 12,
   },

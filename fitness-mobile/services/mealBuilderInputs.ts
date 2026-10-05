@@ -294,7 +294,7 @@ type FdcItem = {
   };
 };
 
-const FDC_API_KEY = process.env.FDC_API_KEY as string | undefined;
+const FDC_API_KEY = Constants.expoConfig?.extra?.fdcApiKey as string | undefined;
 
 async function searchFDC(queryStr: string): Promise<FdcItem[]> {
   if (!FDC_API_KEY || !queryStr.trim()) return [];

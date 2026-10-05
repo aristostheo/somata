@@ -38,7 +38,7 @@ export default function MacroSummaryCard({ totals }: { totals: MacroTotals }) {
         ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
       <View style={styles.head}>
         <Ionicons name="bar-chart-outline" size={18} color={colors.muted} />

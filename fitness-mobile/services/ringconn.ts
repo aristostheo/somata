@@ -1,3 +1,4 @@
+import { dayKey } from "@/utils/date";
 import { Platform } from "react-native";
 
 import {
@@ -74,7 +75,7 @@ function addDays(date: Date, delta: number) {
 }
 
 function ymd(d: Date) {
-  return d.toISOString().slice(0, 10);
+  return dayKey(d);
 }
 
 function startOfDay(date: Date) {

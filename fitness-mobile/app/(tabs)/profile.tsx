@@ -1,1289 +1,273 @@
-// app/(tabs)/profile.tsx
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  RefreshControl,
-  Alert,
-  Pressable,
-} from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter, useNavigation, useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Image, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import * as ImagePicker from "expo-image-picker";
+import { useFocusEffect, useRouter, type Href } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 
-import { useTheme } from "@/content/ThemeProvider";
 import { useAuth } from "@/content/AuthContext";
-import { useEntitlements } from "@/content/useEntitlements";
-
+import { useTheme } from "@/content/ThemeProvider";
+import { ensureProfile, subscribeProfile, type Profile } from "@/services/profile";
 import {
-  ensureProfile,
-  subscribeProfile,
-  updateProfile,
-  type Profile,
-} from "@/services/profile";
-import { kgToLb, lbToKg } from "@/utils/units";
-
-import ThemeToggle from "@/components/ThemeToggle";
-
-import { PremiumProfileHeader } from "@/components/profile/premium/PremiumProfileHeader";
-import { MetricsCard } from "@/components/profile/premium/MetricsCard";
-import { LongTermProgressCard } from "@/components/profile/premium/TrendsCard";
-import { BadgesPreviewCard } from "@/components/profile/premium/BadgesPreviewReviewCard";
-import { FriendsPreviewCard } from "@/components/profile/premium/FriendsPreviewCard";
-import { GlassCard } from "@/components/profile/premium/GlassCard";
-import { EmptyState } from "@/components/profile/premium/EmptyState";
-import { withAlpha } from "@/components/profile/premium/ui";
-import MacroGoalsCard from "@/components/profile/MacroGoalsCard";
-import ProgressPhotosCard from "@/components/profile/ProgressPhotos";
-import WeeklyCheckinCard from "@/components/profile/WeeklyCheckin";
-
-import { AppearanceCard } from "@/components/profile/premium/AppearenceCard";
-import { loadUnlocksLocal, loadFeaturedLocal } from "@/services/badges/store";
-import type { UnlockMap } from "@/services/badges/types";
-import {
-  subscribeFriends,
-  subscribeFriendRequests,
-  type FriendEdge,
-} from "@/services/friends/friends";
-import { DietPreferencesCard } from "@/components/profile/cards/DietPreferencesCard";
-import {
-  connectedCount,
-  subscribeIntegrations,
-  syncHealth,
-  type IntegrationSnapshot,
-} from "@/services/integrations";
-import { buildGoalInputsFromProfile } from "@/services/macroCalculator";
-import { getPhotos, type ProgressPhoto } from "@/services/progressPhotos";
+  loadBodyMetrics,
+  loadBodyMetricsHistory,
+  type BodyMetrics,
+  type BodyMetricPoint,
+} from "@/services/profile/bodyMetrics";
 import { getThisWeeksCheckin, type WeeklyCheckin } from "@/services/weeklyCheckin";
+import { getPhotos } from "@/services/progressPhotos";
+import { loadUnlocksLocal } from "@/services/badges/store";
+import { subscribeFriends } from "@/services/friends/friends";
+import { subscribeIntegrations, type IntegrationSnapshot } from "@/services/integrations";
+import { summarizeDietPrefs, type DietPreferences } from "@/services/profile/dietPreferences";
+import { kgToLb, lbToKg } from "@/utils/units";
+import { recordedStepsForDate, recordedWeights, weightTrendPath } from "@/components/profile/overviewData";
 
-export type GoalUILabel = "maintain" | "cut" | "lean_bulk" | "bulk";
-export type ActivityLevel =
-  | "sedentary"
-  | "light"
-  | "moderate"
-  | "active"
-  | "athlete";
-
-const initialsFrom = (displayName?: string | null, email?: string | null) => {
-  const source = (displayName || email || "You").trim();
-  const parts = source
-    .replace(/@.*/, "")
-    .split(/\s|[._-]/)
-    .filter(Boolean);
-  return `${(parts[0]?.[0] || "Y").toUpperCase()}${(
-    parts[1]?.[0] ||
-    parts[0]?.[1] ||
-    "U"
-  ).toUpperCase()}`;
+type Palette = {
+  canvas: string;
+  card: string;
+  text: string;
+  secondary: string;
+  border: string;
+  primary: string;
+  accent: string;
+  soft: string;
+  dark: boolean;
 };
 
+const positive = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value) && value > 0;
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return (parts.length > 1 ? `${parts[0][0]}${parts[1][0]}` : parts[0]?.slice(0, 2) || "Y").toUpperCase();
+}
+
+function SectionTitle({ title, color }: { title: string; color: string }) {
+  return <Text accessibilityRole="header" style={{ color, fontSize: 20, fontWeight: "700", letterSpacing: -0.3, marginBottom: 12 }}>{title}</Text>;
+}
+
+function Card({ children, palette }: { children: React.ReactNode; palette: Palette }) {
+  return (
+    <View style={{ backgroundColor: palette.card, borderColor: palette.border, borderWidth: 1, borderRadius: 16, padding: 18, shadowColor: "#142033", shadowOpacity: palette.dark ? 0 : 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } }}>
+      {children}
+    </View>
+  );
+}
+
+function Action({ label, icon, onPress, palette, filled = false }: { label: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void; palette: Palette; filled?: boolean }) {
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => ({ minHeight: 48, paddingHorizontal: 15, borderRadius: 12, borderWidth: filled ? 0 : 1, borderColor: palette.border, backgroundColor: filled ? palette.primary : pressed ? palette.soft : palette.card, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, opacity: pressed ? 0.8 : 1 })}>
+      <Ionicons name={icon} size={18} color={filled ? (palette.dark ? "#111419" : "#FFFFFF") : palette.primary} />
+      <Text style={{ color: filled ? (palette.dark ? "#111419" : "#FFFFFF") : palette.primary, fontSize: 15, fontWeight: "600", flexShrink: 1, textAlign: "center" }}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function Row({ label, detail, icon, onPress, palette, last = false }: { label: string; detail: string; icon: keyof typeof Ionicons.glyphMap; onPress?: () => void; palette: Palette; last?: boolean }) {
+  return (
+    <Pressable accessibilityRole={onPress ? "button" : undefined} accessibilityLabel={`${label}, ${detail}`} onPress={onPress} disabled={!onPress} style={({ pressed }) => ({ minHeight: 60, paddingVertical: 10, borderBottomWidth: last ? 0 : 1, borderBottomColor: palette.border, flexDirection: "row", alignItems: "center", gap: 12, opacity: pressed ? 0.65 : 1 })}>
+      <Ionicons name={icon} size={21} color={palette.primary} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ color: palette.text, fontSize: 16, fontWeight: "600" }}>{label}</Text>
+        <Text style={{ color: palette.secondary, fontSize: 14, lineHeight: 19 }}>{detail}</Text>
+      </View>
+      {onPress ? <Ionicons name="chevron-forward" size={18} color={palette.secondary} /> : null}
+    </Pressable>
+  );
+}
+
+function Metric({ label, value, palette }: { label: string; value: string; palette: Palette }) {
+  return (
+    <View style={{ flex: 1, minWidth: 130, gap: 4 }}>
+      <Text style={{ color: palette.secondary, fontSize: 14 }}>{label}</Text>
+      <Text style={{ color: palette.text, fontSize: 22, fontWeight: "700", fontVariant: ["tabular-nums"] }}>{value}</Text>
+    </View>
+  );
+}
+
 export default function ProfileScreen() {
-  const { colors, isDark } = useTheme();
   const { user } = useAuth();
-  const { isPro } = useEntitlements();
+  const { isDark, themeAccents } = useTheme();
   const router = useRouter();
-  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-
+  const { fontScale } = useWindowDimensions();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [hydrated, setHydrated] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  // Core editable state
-  const [weightUnit, setWeightUnit] = useState<"kg" | "lb">("kg");
-  const [sex, setSex] = useState<"male" | "female">("male");
-  const [age, setAge] = useState("25");
-  const [heightCm, setHeightCm] = useState("175");
-  const [weightInput, setWeightInput] = useState("75");
-  const [targetWeightInput, setTargetWeightInput] = useState("70");
-  const [activityLevel, setActivityLevel] = useState<ActivityLevel>("moderate");
-  const [goalType, setGoalType] = useState<GoalUILabel>("maintain");
-
-  // Save / dirty
-  const [dirty, setDirty] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<null | "ok" | "err">(null);
-
-  const lastMetricsRef = useRef<{
-    weightUnit?: "kg" | "lb";
-    weightKg?: number;
-    targetWeightKg?: number;
-    heightCm?: number;
-    bodyFatPct?: number;
-    waistCm?: number;
-  } | null>(null);
-  const [badgePreviewIds, setBadgePreviewIds] = useState<string[]>([]);
-  const [badgeUnlockedCount, setBadgeUnlockedCount] = useState(0);
-  const [friendsPreview, setFriendsPreview] = useState<
-    Array<{ name?: string | null; email?: string | null }>
-  >([]);
-  const [friendsCount, setFriendsCount] = useState(0);
-  const [friendsPings, setFriendsPings] = useState(0);
-  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [body, setBody] = useState<BodyMetrics | null>(null);
+  const [history, setHistory] = useState<BodyMetricPoint[] | null | undefined>(undefined);
+  const [checkin, setCheckin] = useState<WeeklyCheckin | null | undefined>(undefined);
+  const [photoCount, setPhotoCount] = useState<number | null>(null);
+  const [badgeCount, setBadgeCount] = useState<number | null>(null);
+  const [friendCount, setFriendCount] = useState<number | null>(null);
   const [integrations, setIntegrations] = useState<IntegrationSnapshot | null>(null);
-  const [progressPhotos, setProgressPhotos] = useState<ProgressPhoto[]>([]);
-  const [weeklyCheckin, setWeeklyCheckin] = useState<WeeklyCheckin | null>(null);
+  const [hidden, setHidden] = useState(false);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerTitle: "Profile",
-      headerShadowVisible: false,
-    });
-  }, [navigation]);
-
-  const refreshBadgesPreview = useCallback(async () => {
-    const unlocks = (await loadUnlocksLocal()) as UnlockMap;
-    const featured = await loadFeaturedLocal();
-
-    const unlockedIds = Object.entries(unlocks)
-      .filter(([, v]) => !!v?.unlockedAt)
-      .sort((a, b) => (b[1]?.unlockedAt ?? 0) - (a[1]?.unlockedAt ?? 0))
-      .map(([id]) => id);
-
-    const preview = (featured?.length ? featured : unlockedIds).slice(0, 3);
-    setBadgePreviewIds(preview);
-    setBadgeUnlockedCount(Object.keys(unlocks || {}).length);
-  }, []);
+  const palette: Palette = useMemo(() => ({
+    canvas: isDark ? "#111419" : "#F7F8FA",
+    card: isDark ? "#1B2128" : "#FFFFFF",
+    text: isDark ? "#F4F6F8" : "#1B2430",
+    secondary: isDark ? "#AFBAC6" : "#596575",
+    border: isDark ? "#303842" : "#E4E9EF",
+    primary: (isDark ? themeAccents.dark.primary : themeAccents.light.primary) ?? (isDark ? "#A9C4FF" : "#315B9A"),
+    accent: (isDark ? themeAccents.dark.accent : themeAccents.light.accent) ?? (isDark ? "#79D7BF" : "#17786C"),
+    soft: isDark ? "#263442" : "#EDF3F8",
+    dark: isDark,
+  }), [isDark, themeAccents]);
 
   useEffect(() => {
-    refreshBadgesPreview().catch(() => {});
-  }, [refreshBadgesPreview]);
+    if (!user?.uid) { setProfile(null); setProfileLoaded(true); return; }
+    // Retain the existing safety creation for new accounts; editors own subsequent writes.
+    void ensureProfile(user.uid).catch(() => {});
+    setProfile(null);
+    setProfileLoaded(false);
+    return subscribeProfile(user.uid, (next) => { setProfile(next); setProfileLoaded(true); });
+  }, [user?.uid]);
 
-  const refreshProfileExtras = useCallback(async () => {
-    const [photos, checkin] = await Promise.all([getPhotos(), getThisWeeksCheckin()]);
-    setProgressPhotos(photos);
-    setWeeklyCheckin(checkin);
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      refreshBadgesPreview().catch(() => {});
-      refreshProfileExtras().catch(() => {});
-    }, [refreshBadgesPreview, refreshProfileExtras])
-  );
+  useEffect(() => {
+    if (!user?.uid) { setFriendCount(null); return; }
+    return subscribeFriends(user.uid, (rows) => setFriendCount(rows.length), ["accepted"]);
+  }, [user?.uid]);
 
   useEffect(() => subscribeIntegrations(setIntegrations), []);
 
-  useEffect(() => {
-    if (!user?.uid) {
-      setFriendsPreview([]);
-      setFriendsCount(0);
-      setFriendsPings(0);
-      return;
-    }
-
-    const unsubFriends = subscribeFriends(
-      user.uid,
-      (rows: FriendEdge[]) => {
-        const accepted = rows.filter((r) => r.status === "accepted");
-        setFriendsCount(accepted.length);
-        setFriendsPreview(
-          accepted.slice(0, 3).map((r) => ({
-            name: r.friendDisplayName,
-            email: r.friendEmail,
-          }))
-        );
-      },
-      ["accepted"]
-    );
-
-    const unsubRequests = subscribeFriendRequests(user.uid, (rows) => {
-      setFriendsPings(rows.length);
-    });
-
-    return () => {
-      unsubFriends?.();
-      unsubRequests?.();
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    const load = async () => {
+      const results = await Promise.allSettled([
+        loadBodyMetrics(), loadBodyMetricsHistory(), getThisWeeksCheckin(), getPhotos(), loadUnlocksLocal(),
+      ]);
+      if (!active) return;
+      setBody(results[0].status === "fulfilled" ? results[0].value : null);
+      setHistory(results[1].status === "fulfilled" ? results[1].value : null);
+      setCheckin(results[2].status === "fulfilled" ? results[2].value : undefined);
+      setPhotoCount(results[3].status === "fulfilled" ? results[3].value.length : null);
+      setBadgeCount(results[4].status === "fulfilled" ? Object.values(results[4].value).filter((item) => !!item?.unlockedAt).length : null);
     };
-  }, [user?.uid]);
+    void load();
+    return () => { active = false; };
+  }, []));
 
-  // ✅ Old behavior: ensureProfile safety
-  useEffect(() => {
-    if (!user?.uid) return;
-    ensureProfile(user.uid).catch(() => {});
-  }, [user?.uid]);
-
-  // Hydrate from backend
-  useEffect(() => {
-    if (!user?.uid) return;
-
-    return subscribeProfile(user.uid, (p) => {
-      setProfile(p);
-
-      if (!hydrated && p) {
-        const unit = p?.weightUnit === "lb" ? "lb" : "kg";
-        setWeightUnit(unit);
-
-        setSex((p?.sex as any) || "male");
-        setAge(String(p?.age ?? 25));
-        setHeightCm(String(p?.heightCm ?? 175));
-
-        const wkg = Number(p?.weightKg ?? 75);
-        const tkg = Number(p?.targetWeightKg ?? 70);
-
-        setWeightInput(
-          unit === "lb"
-            ? String(Math.round(kgToLb(wkg)))
-            : String(Math.round(wkg))
-        );
-        setTargetWeightInput(
-          unit === "lb"
-            ? String(Math.round(kgToLb(tkg)))
-            : String(Math.round(tkg))
-        );
-
-        setActivityLevel((p?.activityLevel as ActivityLevel) || "moderate");
-        setGoalType(
-          ((p as any)?.goalInputs?.mode as GoalUILabel) ||
-            ((p as any)?.goal as GoalUILabel) ||
-            "maintain"
-        );
-        setHydrated(true);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, hydrated]);
-
-  useEffect(() => {
-    if (!profile) return;
-
-    const next = {
-      weightUnit: profile.weightUnit,
-      weightKg: profile.weightKg,
-      targetWeightKg: profile.targetWeightKg,
-      heightCm: profile.heightCm,
-      bodyFatPct: (profile as any)?.bodyFatPct,
-      waistCm: (profile as any)?.waistCm,
-    };
-
-    const last = lastMetricsRef.current;
-    const changed =
-      !last ||
-      last.weightUnit !== next.weightUnit ||
-      last.weightKg !== next.weightKg ||
-      last.targetWeightKg !== next.targetWeightKg ||
-      last.heightCm !== next.heightCm ||
-      last.bodyFatPct !== next.bodyFatPct ||
-      last.waistCm !== next.waistCm;
-
-    if (!changed) return;
-    lastMetricsRef.current = next;
-
-    const nextUnit = next.weightUnit ?? weightUnit;
-    if (nextUnit !== weightUnit) setWeightUnit(nextUnit);
-
-    if (Number.isFinite(next.weightKg)) {
-      const w =
-        nextUnit === "lb"
-          ? Math.round(kgToLb(next.weightKg as number))
-          : Math.round(next.weightKg as number);
-      setWeightInput(String(w));
-    }
-
-    if (Number.isFinite(next.targetWeightKg)) {
-      const tw =
-        nextUnit === "lb"
-          ? Math.round(kgToLb(next.targetWeightKg as number))
-          : Math.round(next.targetWeightKg as number);
-      setTargetWeightInput(String(tw));
-    }
-
-    if (Number.isFinite(next.heightCm)) {
-      setHeightCm(String(Math.round(next.heightCm as number)));
-    }
-  }, [profile, weightUnit]);
-
-  useEffect(() => {
-    if (!profile) return;
-    const nextGoal =
-      ((profile as any)?.goalInputs?.mode as GoalUILabel) ||
-      ((profile as any)?.goal as GoalUILabel) ||
-      "maintain";
-    if (nextGoal !== goalType) setGoalType(nextGoal);
-    const nextActivity =
-      ((profile as any)?.goalInputs?.activityLevel as ActivityLevel) ||
-      ((profile as any)?.activityLevel as ActivityLevel) ||
-      "moderate";
-    if (nextActivity !== activityLevel) setActivityLevel(nextActivity);
-  }, [activityLevel, goalType, profile]);
-
-  const weightKg = useMemo(() => {
-    const n = Number(weightInput || 0);
-    return weightUnit === "lb" ? lbToKg(n) : n;
-  }, [weightInput, weightUnit]);
-
-  const targetWeightKg = useMemo(() => {
-    const n = Number(targetWeightInput || 0);
-    return weightUnit === "lb" ? lbToKg(n) : n;
-  }, [targetWeightInput, weightUnit]);
-
-  const initials = initialsFrom(
-    profile?.displayName || user?.displayName,
-    user?.email
-  );
-
-  const onToggleUnit = useCallback(async () => {
-    if (!user?.uid) return;
-
-    const nextUnit = weightUnit === "kg" ? "lb" : "kg";
-
-    const w = Number(weightInput || 0);
-    const tw = Number(targetWeightInput || 0);
-
-    const nextW =
-      nextUnit === "lb"
-        ? Math.round(kgToLb(weightUnit === "kg" ? w : lbToKg(w)))
-        : Math.round(lbToKg(weightUnit === "lb" ? w : kgToLb(w)));
-
-    const nextTW =
-      nextUnit === "lb"
-        ? Math.round(kgToLb(weightUnit === "kg" ? tw : lbToKg(tw)))
-        : Math.round(lbToKg(weightUnit === "lb" ? tw : kgToLb(tw)));
-
-    setWeightUnit(nextUnit);
-    setWeightInput(String(nextW));
-    setTargetWeightInput(String(nextTW));
-
-    setDirty(true);
-    Haptics.selectionAsync();
-
-    try {
-      await updateProfile(user.uid, { weightUnit: nextUnit });
-    } catch {}
-  }, [user?.uid, weightInput, targetWeightInput, weightUnit]);
-
-  const onChangeProfilePhoto = useCallback(async () => {
-    if (!user?.uid) return;
-    try {
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) {
-        Alert.alert("Photos access needed", "Allow photo access to choose a profile picture.");
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.82,
-      });
-      if (result.canceled || !result.assets?.[0]?.uri) return;
-      await updateProfile(user.uid, { photoURL: result.assets[0].uri });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
-      Alert.alert("Photo update failed", "Couldn’t update your profile photo right now.");
-    }
-  }, [user?.uid]);
-
-  // ✅ Save now includes the “old features” fields too
-  const onSave = useCallback(async () => {
-    if (!user?.uid) return;
-
-    setSaving(true);
-    setSaveStatus(null);
-
-    try {
-      await updateProfile(user.uid, {
-        // body basics
-        sex,
-        age: Number(age || 0),
-        heightCm: Number(heightCm || 0),
-        weightUnit,
-        weightKg: Number(weightKg || 0),
-        targetWeightKg: Number(targetWeightKg || 0),
-
-        // goal meta
-        goal: goalType,
-        activityLevel,
-
-        updatedAt: Date.now(),
-      } as any);
-
-      setSaveStatus("ok");
-      setDirty(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (e) {
-      setSaveStatus("err");
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    } finally {
-      setSaving(false);
-      setTimeout(() => setSaveStatus(null), 1200);
-    }
-  }, [
-    user?.uid,
-    sex,
-    age,
-    heightCm,
-    weightUnit,
-    weightKg,
-    targetWeightKg,
-    goalType,
-    activityLevel,
-  ]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    Haptics.selectionAsync();
-    setTimeout(() => setRefreshing(false), 650);
-  }, []);
-
-  // Trend series placeholder (same as before)
-  const trendSeries = useMemo(() => {
-    const w = Number(weightKg || 0);
-    if (!w) return [];
-    const base = w;
-    return Array.from({ length: 24 }).map((_, i) => {
-      const t = i / 23;
-      const wave = Math.sin(t * Math.PI * 2) * 0.6;
-      const drift = (t - 0.5) * 0.8;
-      return Number((base + wave + drift).toFixed(1));
-    });
-  }, [weightKg]);
-
-  if (!profile) {
-    return (
-      <View style={{ flex: 1 }}>
-        <LinearGradient
-          colors={[colors.background, colors.background]}
-          style={{ position: "absolute", inset: 0 }}
-        />
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <Text style={{ color: colors.muted, fontWeight: "800" }}>
-            Loading…
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  const gradient = [colors.background, colors.background, colors.background] as [string, string, string];
-
-  const savePill = (
-    <Pressable
-      onPress={() => {
-        if (!dirty) return;
-        onSave();
-      }}
-      style={({ pressed }: { pressed: boolean }) => ({
-        alignSelf: "flex-start",
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 999,
-        backgroundColor: dirty
-          ? withAlpha(colors.primary, pressed ? 0.22 : 0.18)
-          : withAlpha(colors.success, 0.16),
-        borderWidth: 1,
-        borderColor: dirty
-          ? withAlpha(colors.primary, 0.35)
-          : withAlpha(colors.success, 0.38),
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
-      })}
-      accessibilityRole="button"
-      accessibilityLabel={dirty ? "Save profile changes" : "No changes to save"}
-    >
-      {!dirty && saveStatus !== "err" ? (
-        <Ionicons name="checkmark-circle" size={14} color={colors.success} />
-      ) : null}
-      <Text
-        style={{
-          color: dirty ? colors.text : saveStatus === "err" ? colors.danger : colors.success,
-          fontWeight: "900",
-          fontSize: 12,
-        }}
-      >
-        {saving
-          ? "Saving…"
-          : saveStatus === "ok"
-          ? "Saved"
-          : saveStatus === "err"
-          ? "Try again"
-          : dirty
-          ? "Save changes"
-          : "Up to date"}
-      </Text>
-    </Pressable>
-  );
+  const open = (href: Href) => router.push(href);
+  const savedName = profile?.displayName?.trim() || user?.displayName?.trim();
+  const name = savedName || "Your profile";
+  const email = profile?.email || user?.email || "";
+  const photo = profile?.photoURL || user?.photoURL;
+  const unit = profile?.weightUnit === "lb" ? "lb" : "kg";
+  const weightKg = positive(profile?.weightKg) ? profile.weightKg : positive(body?.weightLb) ? lbToKg(body.weightLb) : null;
+  const weightText = weightKg == null ? "Not recorded" : `${(unit === "lb" ? kgToLb(weightKg) : weightKg).toFixed(1)} ${unit}`;
+  const stepsMap = (profile as Profile & { steps?: Record<string, unknown> } | null)?.steps;
+  const stepsToday = recordedStepsForDate(stepsMap, new Date());
+  const hasStepHistory = !!stepsMap && Object.values(stepsMap).some((v) => v != null && Number.isFinite(Number(v)) && Number(v) >= 0);
+  const recorded = useMemo(() => recordedWeights(history ?? []), [history]);
+  const trend = useMemo(() => weightTrendPath(recorded.slice(-30).map((point) => point.weightLb)), [recorded]);
+  const goalName = profile?.goal === "cut" ? "Weight loss" : profile?.goal === "lean_bulk" ? "Lean gain" : profile?.goal === "bulk" ? "Gain" : profile?.goal === "maintain" ? "Maintain" : null;
+  const hasGoals = !!(profile?.goalInputs || profile?.goalResult || goalName || positive(profile?.targetWeightKg) || positive(profile?.stepsGoal));
+  const targetWeight = positive(profile?.targetWeightKg) ? `${(unit === "lb" ? kgToLb(profile.targetWeightKg) : profile.targetWeightKg).toFixed(1)} ${unit}` : null;
+  const trainingDays = profile?.goalInputs?.trainingDaysPerWeek ?? profile?.trainingDaysPerWeek;
+  const dietPrefs = (profile as Profile & { dietPreferences?: DietPreferences } | null)?.dietPreferences;
+  const trainingDetail = positive(trainingDays) ? `${trainingDays} days per week` : "Not set";
+  const savedContext = [profile?.workoutPlace === "home" ? "Home" : profile?.workoutPlace === "gym" ? "Gym" : null, ...(profile?.equipment ?? [])].filter(Boolean).join(" · ");
+  const health = integrations?.connections.apple_health;
+  const ring = integrations?.connections.ringconn;
+  const visible = (value: string) => hidden ? "•••" : value;
+  const recordedValue = (value: string, hasRecord: boolean) => hasRecord ? visible(value) : value;
+  const count = (value: number | null, singular: string, plural: string) => value == null ? "Unavailable" : visible(`${value} ${value === 1 ? singular : plural}`);
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <LinearGradient
-        colors={gradient}
-        style={{ position: "absolute", inset: 0 }}
-      />
+    <ScrollView style={{ flex: 1, backgroundColor: palette.canvas }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: insets.top + 24, paddingBottom: 110 + insets.bottom, gap: 24 }}>
+      <View style={{ gap: 6 }}>
+        <Text accessibilityRole="header" style={{ color: palette.text, fontSize: 32, fontWeight: "700", letterSpacing: -0.7 }}>Profile</Text>
+        <Text style={{ color: palette.secondary, fontSize: 14 }}>Your personal record, at a glance.</Text>
+      </View>
 
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top + 12,
-          paddingBottom: insets.bottom + 120,
-          paddingHorizontal: 16,
-          gap: 14,
-        }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.muted}
-          />
-        }
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-      >
-        <PremiumProfileHeader
-          initials={initials}
-          name={profile.displayName || user?.displayName || "You"}
-          subtitle={user?.email || ""}
-          isPro={isPro}
-          weightKg={Number(weightKg || 0)}
-          targetWeightKg={Number(targetWeightKg || 0)}
-          unit={weightUnit}
-          goalType={goalType}
-          activityLevel={activityLevel}
-          onToggleUnit={onToggleUnit}
-          onPressSettings={() => router.push("(modals)/control-center")}
-          onPressAvatar={onChangeProfilePhoto}
-          onPressGoPro={() => router.push("/paywall")}
-          photoURL={(profile as any)?.photoURL || user?.photoURL || null}
-          rightSlot={savePill}
-        />
-
-        <QuickStatsRow
-          colors={colors}
-          isDark={isDark}
-          goalType={goalType}
-          targetWeightKg={Number(targetWeightKg || 0)}
-          weightKg={Number(weightKg || 0)}
-          unit={weightUnit}
-          proteinGoal={Number(
-            (profile as any)?.goalResult?.protein ??
-              profile?.proteinGoal ??
-              profile?.dailyProteinTarget ??
-              150
-          )}
-          onPressStreak={() => router.push("/profile/insights-progress")}
-          onPressGoal={() => router.push("/profile/goal-setup")}
-          onPressProtein={() => router.push("/profile/goal-setup")}
-        />
-
-        <InsightsEntryCard
-          colors={colors}
-          isDark={isDark}
-          values={trendSeries.slice(-7)}
-          onPress={() => {
-            Haptics.selectionAsync();
-            router.push("/profile/insights-progress");
-          }}
-        />
-
-        <IntegrationsEntryCard
-          colors={colors}
-          isDark={isDark}
-          snapshot={integrations}
-          onPress={() => {
-            Haptics.selectionAsync();
-            router.push("/profile/integrations");
-          }}
-        />
-
-        <StepsHistoryEntryCard
-          colors={colors}
-          isDark={isDark}
-          stepsMap={(((profile as any)?.steps ?? {}) as Record<string, number>) || {}}
-          stepsGoal={Number((profile as any)?.stepsGoal ?? 8000)}
-          onPress={() => {
-            Haptics.selectionAsync();
-            router.push("/profile/steps-history");
-          }}
-        />
-
-        <SectionLabel title="Your Stats" colors={colors} />
-
-        {/* <QuickActionsRow
-          onScanMeal={() => router.push("/scan-meal")}
-          onLogWorkout={() => router.push("/workouts")}
-          onAddCheckIn={() => {
-            Haptics.selectionAsync();
-            Alert.alert(
-              "Add a check-in",
-              "Wire this to your check-in flow (weight, photos, measurements).",
-              [{ text: "OK" }]
-            );
-          }}
-          onBadges={() => router.push("/badges")}
-          onFriends={() => router.push("/friends")}
-        /> */}
-
-        <MetricsCard
-          unit={weightUnit}
-          weightKg={Number(weightKg || 0)}
-          targetWeightKg={Number(targetWeightKg || 0)}
-          heightCm={Number(heightCm || 0)}
-          bodyFatPct={(profile as any)?.bodyFatPct}
-          lastUpdatedVia={(profile as any)?.healthLastUpdatedVia}
-          lastUpdatedAt={(profile as any)?.healthLastUpdatedAt}
-          onPressAdd={() => {
-            Haptics.selectionAsync();
-
-            router.push({
-              pathname: "/(modals)/body-metrics",
-              params: {
-                unit: weightUnit,
-                weightKg: String(weightKg ?? ""),
-                targetWeightKg: String(targetWeightKg ?? ""),
-                heightCm: String(heightCm ?? ""),
-                bodyFatPct: String((profile as any)?.bodyFatPct ?? ""),
-                waistCm: String((profile as any)?.waistCm ?? ""),
-              },
-            });
-          }}
-        />
-
-        <ProgressPhotosCard
-          photos={progressPhotos}
-          onOpen={() => {
-            Haptics.selectionAsync();
-            router.push("/(modals)/progress-photos");
-          }}
-          onAdd={() => {
-            Haptics.selectionAsync();
-            router.push("/(modals)/progress-photos");
-          }}
-        />
-
-        <WeeklyCheckinCard
-          checkin={weeklyCheckin}
-          onOpen={() => {
-            Haptics.selectionAsync();
-            router.push("/(modals)/weekly-checkin");
-          }}
-        />
-
-        <LongTermProgressCard
-          unit={weightUnit} // "lb" | "kg"
-          initialRange="6m"
-          showConfidence
-          onPressAddCheckIn={() => {
-            // push your body metrics editor/modal
-            router.push("/(modals)/long-term-progress");
-          }}
-        />
-
-        {/* ✅ Meal schedule (old feature, premium skin) */}
-        {/* <MealSchedulePremiumCard
-          mealsPerDay={mealsPerDay}
-          setMealsPerDay={(v) => {
-            setMealsPerDay(v);
-            setDirty(true);
-          }}
-          breakfastTime={breakfastTime}
-          setBreakfastTime={(v) => {
-            setBreakfastTime(v);
-            setDirty(true);
-          }}
-          lastMealTime={lastMealTime}
-          setLastMealTime={(v) => {
-            setLastMealTime(v);
-            setDirty(true);
-          }}
-        /> */}
-
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <View style={{ flex: 1 }}>
-            <BadgesPreviewCard
-              onPressAll={() => router.push("/badges")}
-              unlockedCount={badgeUnlockedCount}
-              previewIds={badgePreviewIds}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <FriendsPreviewCard
-              onPressAll={() => router.push("/friends")}
-              friendsCount={friendsCount}
-              streakPings={friendsPings}
-              previewFriends={friendsPreview}
-            />
-          </View>
-        </View>
-
-        <SectionLabel title="Settings" colors={colors} />
-
-        <AppearanceCard>
-          <ThemeToggle />
-        </AppearanceCard>
-
-        <GlassCard>
-          <Pressable
-            onPress={() => {
-              Haptics.selectionAsync();
-              router.push("/profile/friend-visibility");
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Open Friend Visibility settings"
-            style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 48 }}
-          >
-            <Ionicons name="eye-outline" size={18} color={colors.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}>
-                👁 What friends can see
-              </Text>
-              <Text style={{ color: colors.muted, marginTop: 4, fontSize: 12.5 }}>
-                Control what your friends can see
-              </Text>
+      <View>
+        <SectionTitle title="Identity" color={palette.text} />
+        <Card palette={palette}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 14, marginBottom: 18 }}>
+            {photo ? <Image source={{ uri: photo }} style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: palette.soft }} accessibilityLabel="Profile photo" /> : <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: palette.soft, alignItems: "center", justifyContent: "center" }}><Text style={{ color: palette.primary, fontSize: 20, fontWeight: "700" }}>{initials(name)}</Text></View>}
+            <View style={{ flex: 1, gap: 3 }}>
+              <Text style={{ color: palette.text, fontSize: 20, fontWeight: "700" }}>{name}</Text>
+              {!!email && <Text style={{ color: palette.secondary, fontSize: 14 }}>{email}</Text>}
+              {!profileLoaded && <Text style={{ color: palette.secondary, fontSize: 13 }}>Loading profile…</Text>}
+              {profileLoaded && !profile && <Text style={{ color: palette.secondary, fontSize: 13 }}>Saved profile unavailable</Text>}
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.muted} />
-          </Pressable>
-        </GlassCard>
+          </View>
+          <View style={{ flexDirection: fontScale >= 1.5 ? "column" : "row", gap: 10 }}>
+            <View style={{ flex: 1 }}><Action label="Account" icon="person-outline" onPress={() => open("/account")} palette={palette} /></View>
+            <View style={{ flex: 1 }}><Action label="Settings" icon="settings-outline" onPress={() => open("/(modals)/settings")} palette={palette} /></View>
+          </View>
+        </Card>
+      </View>
 
-        <DietPreferencesCard
-          value={(profile as any)?.dietPreferences}
-          onPress={() => {
-            Haptics.selectionAsync();
-            router.push("/(modals)/diet-preferences");
-          }}
-        />
+      <View>
+        <SectionTitle title="Plan" color={palette.text} />
+        <Card palette={palette}>
+          <Text style={{ color: palette.primary, fontSize: 14, fontWeight: "700", marginBottom: 6 }}>Your goals</Text>
+          {!profileLoaded ? <Text style={{ color: palette.secondary, fontSize: 15 }}>Loading goals…</Text> : !profile ? <Text style={{ color: palette.secondary, fontSize: 15 }}>Goals unavailable</Text> : !hasGoals ? <Text style={{ color: palette.secondary, fontSize: 15 }}>No goals set yet.</Text> : (
+            <View style={{ gap: 7 }}>
+              {!!goalName && <Text style={{ color: palette.text, fontSize: 18, fontWeight: "600" }}>{goalName}</Text>}
+              {positive(profile.goalResult?.dailyCalories) && <Text style={{ color: palette.secondary, fontSize: 15 }}>Daily energy · {visible(`${Math.round(profile.goalResult.dailyCalories).toLocaleString()} kcal`)}</Text>}
+              {positive(profile.goalResult?.protein) && <Text style={{ color: palette.secondary, fontSize: 15 }}>Protein · {visible(`${Math.round(profile.goalResult.protein)} g`)}</Text>}
+              {!!targetWeight && <Text style={{ color: palette.secondary, fontSize: 15 }}>Target weight · {visible(targetWeight)}</Text>}
+              {positive(profile.stepsGoal) && <Text style={{ color: palette.secondary, fontSize: 15 }}>Daily steps · {visible(profile.stepsGoal.toLocaleString())}</Text>}
+            </View>
+          )}
+          <View style={{ marginTop: 18 }}><Action label="Edit goals" icon="create-outline" onPress={() => open("/profile/goal-setup")} palette={palette} /></View>
+        </Card>
+      </View>
 
-        <MacroGoalsCard
-          inputs={buildGoalInputsFromProfile(profile ?? {})}
-          result={(profile as any)?.goalResult ?? null}
-          onPress={() => router.push("/profile/goal-setup")}
-        />
-
-        <GlassCard>
-          <Pressable
-            onPress={() => {
-              Haptics.selectionAsync();
-              setPrivacyOpen((v) => !v);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Toggle Privacy and Safety"
-            style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44 }}
-          >
-            <Text style={{ color: colors.text, fontWeight: "900", fontSize: 14, flex: 1 }}>
-              🔒 Privacy & Safety
-            </Text>
-            <Ionicons
-              name={privacyOpen ? "chevron-up" : "chevron-forward"}
-              size={18}
-              color={colors.muted}
-            />
-          </Pressable>
-          {privacyOpen ? (
-            <>
-              <Text style={{ color: colors.muted, marginTop: 6, lineHeight: 18 }}>
-                Your progress is yours. This page avoids shame language, hides
-                sensitive signals by default, and uses neutral, supportive copy.
-              </Text>
-
-              <View style={{ height: 10 }} />
-              <View style={{ gap: 10 }}>
-                <EmptyState
-                  title="Private by default"
-                  message="Friends see what you choose to share — never raw weight or calories unless you opt in."
-                  icon="lock-closed-outline"
-                />
-                <EmptyState
-                  title="Accessibility aware"
-                  message="Large touch targets, readable contrast, reduced motion friendly interactions."
-                  icon="eye-outline"
-                />
-                <EmptyState
-                  title="Emotionally safe"
-                  message="Trends are framed as information — not judgment. You’re in control."
-                  icon="heart-outline"
-                />
-              </View>
-            </>
-          ) : null}
-        </GlassCard>
-
-        <View style={{ height: 8 }} />
-      </ScrollView>
-
-      {/* Optional: “always visible” save prompt in premium style (keeps your save pill too) */}
-      {dirty ? (
-        <View
-          style={{
-            position: "absolute",
-            left: 16,
-            right: 16,
-            bottom: insets.bottom + 52,
-          }}
-          pointerEvents="box-none"
-        >
-          <Pressable
-            onPress={onSave}
-            style={({ pressed }: { pressed: boolean }) => ({
-              height: 52,
-              borderRadius: 18,
-              borderWidth: 1,
-              borderColor: withAlpha(colors.primary, 0.35),
-              backgroundColor: withAlpha(colors.primary, pressed ? 0.22 : 0.16),
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-            })}
-            accessibilityRole="button"
-            accessibilityLabel="Save changes"
-          >
-            <Text style={{ color: colors.text, fontWeight: "900" }}>
-              {saving
-                ? "Saving…"
-                : saveStatus === "ok"
-                ? "Saved"
-                : "Save changes"}
-            </Text>
+      <View>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <Text accessibilityRole="header" style={{ color: palette.text, fontSize: 20, fontWeight: "700", letterSpacing: -0.3 }}>Progress</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel={hidden ? "Show values" : "Hide values"} onPress={() => setHidden((value) => !value)} style={{ minHeight: 44, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 5 }}>
+            <Ionicons name={hidden ? "eye-outline" : "eye-off-outline"} size={18} color={palette.primary} />
+            <Text style={{ color: palette.primary, fontSize: 14, fontWeight: "600" }}>{hidden ? "Show values" : "Hide values"}</Text>
           </Pressable>
         </View>
-      ) : null}
-    </KeyboardAvoidingView>
-  );
-}
+        <Card palette={palette}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
+            <Metric label="Latest weight" value={recordedValue(weightText, weightKg != null)} palette={palette} />
+            <Metric label="Steps today" value={stepsToday == null ? "Not recorded" : visible(stepsToday.toLocaleString())} palette={palette} />
+          </View>
+          <View style={{ marginTop: 18, borderTopColor: palette.border, borderTopWidth: 1, paddingTop: 16 }}>
+            <Text style={{ color: palette.text, fontSize: 15, fontWeight: "600", marginBottom: 8 }}>Recorded weight trend</Text>
+            {history === undefined ? <Text style={{ color: palette.secondary, fontSize: 14 }}>Loading weight history…</Text> : history === null ? <Text style={{ color: palette.secondary, fontSize: 14 }}>Weight history unavailable.</Text> : !trend ? <Text style={{ color: palette.secondary, fontSize: 14 }}>Add measurements on two different days to see a trend.</Text> : hidden ? <Text style={{ color: palette.secondary, fontSize: 14 }}>Trend hidden</Text> : <Svg width="100%" height={72} viewBox="0 0 300 72" accessibilityLabel="Weight measurements over time"><Path d={trend} stroke={palette.accent} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>}
+          </View>
+          {(!!trend || hasStepHistory) && <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 16 }}>
+            {!!trend && <Action label="Insights" icon="analytics-outline" onPress={() => open("/profile/insights-progress")} palette={palette} />}
+            {hasStepHistory && <Action label="Steps history" icon="footsteps-outline" onPress={() => open("/profile/steps-history")} palette={palette} />}
+          </View>}
+        </Card>
+      </View>
 
-function SectionLabel({ title, colors }: { title: string; colors: any }) {
-  return (
-    <View style={{ paddingTop: 6, paddingHorizontal: 2 }}>
-      <Text
-        style={{
-          color: colors.muted,
-          fontSize: 12,
-          fontWeight: "900",
-          letterSpacing: 0.8,
-          textTransform: "uppercase",
-        }}
-      >
-        {title}
-      </Text>
-    </View>
-  );
-}
+      <View>
+        <SectionTitle title="Body and check-in" color={palette.text} />
+        <Card palette={palette}>
+          <Row label="Body measurements" detail={recordedValue([positive(profile?.bodyFatPct ?? body?.bodyFatPct) ? `${(profile?.bodyFatPct ?? body?.bodyFatPct)?.toFixed(1)}% body fat` : null, positive(profile?.waistCm ?? body?.waistCm) ? `${(profile?.waistCm ?? body?.waistCm)?.toFixed(1)} cm waist` : null, positive(profile?.heightCm ?? body?.heightCm) ? `${(profile?.heightCm ?? body?.heightCm)?.toFixed(0)} cm height` : null].filter(Boolean).join(" · ") || (weightKg != null ? weightText : "No measurements recorded"), positive(profile?.bodyFatPct ?? body?.bodyFatPct) || positive(profile?.waistCm ?? body?.waistCm) || positive(profile?.heightCm ?? body?.heightCm) || weightKg != null)} icon="body-outline" onPress={() => open("/(modals)/body-metrics")} palette={palette} />
+          <Row label="Weekly check-in" detail={checkin === undefined ? "Unavailable" : checkin ? `Completed this week` : "No check-in this week"} icon="calendar-outline" onPress={() => open("/(modals)/weekly-checkin")} palette={palette} last />
+        </Card>
+      </View>
 
-function QuickStatsRow({
-  colors,
-  isDark,
-  goalType,
-  targetWeightKg,
-  weightKg,
-  unit,
-  proteinGoal,
-  onPressStreak,
-  onPressGoal,
-  onPressProtein,
-}: {
-  colors: any;
-  isDark: boolean;
-  goalType: GoalUILabel;
-  targetWeightKg: number;
-  weightKg: number;
-  unit: "kg" | "lb";
-  proteinGoal: number;
-  onPressStreak: () => void;
-  onPressGoal: () => void;
-  onPressProtein: () => void;
-}) {
-  const remainingKg = Math.abs((weightKg || 0) - (targetWeightKg || 0));
-  const remaining =
-    unit === "kg" ? `${Math.round(remainingKg)} kg` : `${Math.round(kgToLb(remainingKg))} lb`;
-  const goalLabel =
-    goalType === "cut"
-      ? "Cut"
-      : goalType === "lean_bulk"
-      ? "Lean bulk"
-      : goalType === "bulk"
-      ? "Bulk"
-      : "Maintain";
-  return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 6 }}>
-      <StatChip colors={colors} isDark={isDark} icon="flame-outline" label="7 day streak" onPress={onPressStreak} />
-      <StatChip
-        colors={colors}
-        isDark={isDark}
-        icon="locate-outline"
-        label={`${goalLabel} · ${targetWeightKg && weightKg ? `${remaining} to go` : "set target"}`}
-        onPress={onPressGoal}
-      />
-      <StatChip
-        colors={colors}
-        isDark={isDark}
-        icon="flash-outline"
-        label={`${Math.round(proteinGoal || 185)}g protein goal`}
-        onPress={onPressProtein}
-      />
+      <View>
+        <SectionTitle title="Preferences" color={palette.text} />
+        <Card palette={palette}>
+          <Row label="Diet choices" detail={summarizeDietPrefs(dietPrefs)} icon="restaurant-outline" onPress={() => open("/(modals)/diet-preferences")} palette={palette} />
+          <Row label="Training days" detail={recordedValue(trainingDetail, positive(trainingDays))} icon="barbell-outline" onPress={() => open("/profile/goal-setup")} palette={palette} last={!savedContext} />
+          {!!savedContext && <Row label="Training context" detail={savedContext} icon="fitness-outline" palette={palette} last />}
+        </Card>
+      </View>
+
+      <View>
+        <SectionTitle title="Collection and connections" color={palette.text} />
+        <Card palette={palette}>
+          <Row label="Progress photos" detail={count(photoCount, "photo", "photos")} icon="images-outline" onPress={() => open("/(modals)/progress-photos")} palette={palette} />
+          <Row label="Badges" detail={count(badgeCount, "unlocked", "unlocked")} icon="ribbon-outline" onPress={() => open("/(modals)/badges")} palette={palette} />
+          <Row label="Friends" detail={count(friendCount, "friend", "friends")} icon="people-outline" onPress={() => open("/friends")} palette={palette} last={Platform.OS !== "ios"} />
+          {Platform.OS === "ios" && <Row label="Apple Health" detail={health?.connected ? (health.status === "warning" || health.status === "error" ? "Connected · needs attention" : "Connected") : "Not connected"} icon="heart-outline" onPress={() => open("/profile/integrations")} palette={palette} last={!ring?.connected} />}
+          {Platform.OS === "ios" && ring?.connected && <Row label="RingConn" detail={ring.status === "warning" || ring.status === "error" ? "Connected · needs attention" : "Connected"} icon="watch-outline" onPress={() => open("/profile/integrations")} palette={palette} last />}
+        </Card>
+      </View>
     </ScrollView>
-  );
-}
-
-function StatChip({
-  colors,
-  isDark,
-  icon,
-  label,
-  onPress,
-}: {
-  colors: any;
-  isDark: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={() => {
-        Haptics.selectionAsync();
-        onPress();
-      }}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={({ pressed }) => ({
-        minHeight: 32,
-        paddingHorizontal: 14,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.surface1,
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "row",
-        gap: 8,
-        opacity: pressed ? 0.85 : 1,
-      })}
-    >
-      <Ionicons name={icon} size={14} color={colors.textTertiary} />
-      <Text style={{ color: colors.textSecondary, fontWeight: "500", fontSize: 12 }}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function InsightsEntryCard({
-  colors,
-  isDark,
-  values,
-  onPress,
-}: {
-  colors: any;
-  isDark: boolean;
-  values: number[];
-  onPress: () => void;
-}) {
-  const safeValues = values.length ? values : [3, 5, 4, 6, 5, 7, 6];
-  const max = Math.max(...safeValues, 1);
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel="Open Insights and Progress"
-      style={({ pressed }) => ({
-        opacity: pressed ? 0.92 : 1,
-        transform: [{ scale: pressed ? 0.995 : 1 }],
-      })}
-    >
-      <LinearGradient
-        colors={[
-          withAlpha(colors.primary, isDark ? 0.28 : 0.16),
-          withAlpha(colors.accentMuted, isDark ? 0.18 : 0.1),
-          withAlpha(colors.accentDim, isDark ? 0.5 : 0.72),
-        ]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{
-          borderRadius: 22,
-          borderWidth: 1,
-          borderColor: colors.accentSubtle,
-          padding: 16,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 14,
-          shadowColor: colors.primary,
-          shadowOpacity: isDark ? 0.22 : 0.1,
-          shadowRadius: 18,
-          shadowOffset: { width: 0, height: 10 },
-          elevation: 3,
-        }}
-      >
-        <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ color: colors.text, fontWeight: "900", fontSize: 18 }}>
-            Insights & Progress
-          </Text>
-          <Text style={{ color: colors.muted, fontWeight: "800", fontSize: 12.5 }}>
-            Weekly trends, streaks, and nutrition patterns
-          </Text>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4, height: 42 }}>
-          {safeValues.map((v, idx) => (
-            <View
-              key={`${v}-${idx}`}
-              style={{
-                width: 6,
-                height: 10 + Math.round((v / max) * 28),
-                borderRadius: 999,
-                backgroundColor:
-                  idx === safeValues.length - 1
-                    ? colors.accent
-                    : colors.accentMuted,
-              }}
-            />
-          ))}
-        </View>
-        <Text style={{ color: colors.accentMuted, fontWeight: "500" }}>View →</Text>
-      </LinearGradient>
-    </Pressable>
-  );
-}
-
-function IntegrationsEntryCard({
-  colors,
-  isDark,
-  snapshot,
-  onPress,
-}: {
-  colors: any;
-  isDark: boolean;
-  snapshot: IntegrationSnapshot | null;
-  onPress: () => void;
-}) {
-  const count = snapshot ? connectedCount(snapshot) : 0;
-  const health = snapshot ? syncHealth(snapshot) : "none";
-  const chipColor =
-    health === "error" ? colors.danger : count > 0 ? colors.success : colors.muted;
-  const chipText = health === "error" ? "Sync error" : count > 0 ? `${count} connected` : "Not set up";
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel="Open Integrations"
-      style={({ pressed }) => ({
-        opacity: pressed ? 0.92 : 1,
-        transform: [{ scale: pressed ? 0.995 : 1 }],
-      })}
-    >
-      <View
-        style={{
-          borderRadius: 22,
-          borderWidth: 1,
-          borderColor: withAlpha(colors.primary, isDark ? 0.28 : 0.18),
-          backgroundColor: isDark ? "rgba(26,26,36,0.92)" : colors.surface,
-          padding: 15,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-        }}
-      >
-        <View
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 16,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: withAlpha(colors.primary, 0.18),
-            borderWidth: 1,
-            borderColor: withAlpha(colors.primary, 0.28),
-          }}
-        >
-          <Ionicons name="link-outline" size={22} color={colors.primary} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: "900", fontSize: 17 }}>
-            Integrations
-          </Text>
-          <Text style={{ color: colors.muted, fontWeight: "800", marginTop: 3 }}>
-            Connect health apps to auto-sync your data
-          </Text>
-        </View>
-        <View
-          style={{
-            borderRadius: 999,
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderWidth: 1,
-            borderColor: withAlpha(chipColor, 0.32),
-            backgroundColor: withAlpha(chipColor, 0.12),
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 6,
-          }}
-        >
-          {health === "error" ? (
-            <Ionicons name="warning-outline" size={12} color={chipColor} />
-          ) : null}
-          <Text style={{ color: chipColor, fontWeight: "500", fontSize: 11 }}>
-            {chipText}
-          </Text>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function StepsHistoryEntryCard({
-  colors,
-  isDark,
-  stepsMap,
-  stepsGoal,
-  onPress,
-}: {
-  colors: any;
-  isDark: boolean;
-  stepsMap: Record<string, number>;
-  stepsGoal: number;
-  onPress: () => void;
-}) {
-  const today = new Date();
-  const ymd = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-      d.getDate()
-    ).padStart(2, "0")}`;
-  const addDays = (d: Date, n: number) => {
-    const x = new Date(d);
-    x.setDate(x.getDate() + n);
-    return x;
-  };
-  const last7 = Array.from({ length: 7 }, (_, i) => ymd(addDays(today, -6 + i)));
-  const values = last7.map((d) => Number(stepsMap[d] || 0));
-  const max = Math.max(...values, stepsGoal || 1, 1);
-  const avg = values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
-  const todaySteps = values[values.length - 1] || 0;
-  const hitDays = values.filter((v) => v >= stepsGoal).length;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel="Open steps history"
-      style={({ pressed }) => ({
-        opacity: pressed ? 0.92 : 1,
-        transform: [{ scale: pressed ? 0.995 : 1 }],
-      })}
-    >
-      <View
-        style={{
-          borderRadius: 22,
-          borderWidth: 1,
-          borderColor: colors.border,
-          backgroundColor: colors.surface1,
-          padding: 16,
-          gap: 14,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 16,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: colors.surface3,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          >
-            <Ionicons name="footsteps-outline" size={22} color={colors.accentMuted} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontWeight: "900", fontSize: 18 }}>
-              Steps History
-            </Text>
-            <Text style={{ color: colors.muted, fontWeight: "800", marginTop: 3 }}>
-              Daily trend, goal hits, and your recent pace
-            </Text>
-          </View>
-          <Text style={{ color: colors.text, fontWeight: "900" }}>View →</Text>
-        </View>
-
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <MiniStatCard
-            colors={colors}
-            label="Today"
-            value={todaySteps.toLocaleString()}
-            tint={colors.accentMuted}
-          />
-          <MiniStatCard
-            colors={colors}
-            label="7-day avg"
-            value={avg.toLocaleString()}
-            tint={colors.primary}
-          />
-          <MiniStatCard
-            colors={colors}
-            label="Goal hits"
-            value={`${hitDays}/7`}
-            tint={colors.success}
-          />
-        </View>
-
-        <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, height: 70 }}>
-          {values.map((v, idx) => {
-            const h = 12 + Math.round((v / max) * 48);
-            const hit = v >= stepsGoal;
-            return (
-              <View key={`${last7[idx]}-${v}`} style={{ flex: 1, alignItems: "center", gap: 6 }}>
-                <View
-                  style={{
-                    width: "100%",
-                    maxWidth: 26,
-                    height: h,
-                    borderRadius: 999,
-                    backgroundColor: hit ? colors.accentMuted : colors.surface3,
-                  }}
-                />
-                <Text style={{ color: colors.muted, fontSize: 10, fontWeight: "800" }}>
-                  {new Date(`${last7[idx]}T12:00:00`).toLocaleDateString(undefined, {
-                    weekday: "narrow",
-                  })}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function MiniStatCard({
-  colors,
-  label,
-  value,
-  tint,
-}: {
-  colors: any;
-  label: string;
-  value: string;
-  tint: string;
-}) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        borderRadius: 16,
-        padding: 12,
-        backgroundColor: colors.surface2,
-        borderWidth: 1,
-        borderColor: colors.border,
-        gap: 4,
-      }}
-    >
-      <Text style={{ color: colors.muted, fontWeight: "800", fontSize: 11 }}>{label}</Text>
-      <Text style={{ color: colors.text, fontWeight: "900", fontSize: 16 }}>{value}</Text>
-    </View>
   );
 }

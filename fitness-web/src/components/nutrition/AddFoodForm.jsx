@@ -1,3 +1,4 @@
+import { dayKey } from "../../utils/date";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getAuth } from "firebase/auth";
 import { searchUsdaFoods } from "../../services/fooddb";
@@ -7,8 +8,7 @@ import { unscaleFromTotals } from "../../utils/nutritionMath";
 /* ---------- helpers ---------- */
 const AI_URL = process.env.REACT_APP_AI_PARSE_URL;
 const MEALS = ["breakfast", "lunch", "dinner", "snacks"];
-const pad = (n) => String(n).padStart(2, "0");
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => dayKey(new Date());
 
 function scaleNutrients(base, qty, unit) {
   const u = (unit || "").toLowerCase();

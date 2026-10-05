@@ -1532,7 +1532,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   goalLine: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     top: 28,
     bottom: 24,
     borderTopWidth: 1,

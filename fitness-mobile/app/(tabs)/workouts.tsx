@@ -3769,7 +3769,7 @@ const styles = StyleSheet.create({
 
   cardWrap: { borderRadius: 18, overflow: "hidden" },
   cardBorder: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     zIndex: 2,
@@ -4209,7 +4209,7 @@ const styles = StyleSheet.create({
   },
   toastBtnText: { fontWeight: "500", fontSize: 12 },
   deleteOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: "center",
     justifyContent: "center",
     zIndex: 30,

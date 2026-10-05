@@ -1,10 +1,11 @@
+import { dayKey } from "@/utils/date";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { loadNotificationSettings } from "./notificationSettings";
 import { sendImmediateNotification } from "./notifications";
 
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  return dayKey(new Date());
 }
 
 async function markIfFresh(key: string, cooldownMs = 18 * 60 * 60 * 1000) {

@@ -635,7 +635,7 @@ function makeStyles(colors: any, isDark: boolean) {
       paddingBottom: Platform.OS === "ios" ? 26 : 16,
     },
     bottomBarGlass: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: hair,
       backgroundColor: isDark ? "rgba(0,0,0,0.72)" : "rgba(255,255,255,0.85)",

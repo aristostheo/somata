@@ -2,7 +2,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
-  addWorkout,
   subscribeWorkouts,
   deleteWorkout,
   updateWorkout,
@@ -49,7 +48,7 @@ export default function Dashboard() {
 
   /* workouts state */
   const [workouts, setWorkouts] = useState([]);
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => dayKey(new Date()));
   const [exercise, setExercise] = useState("");
   const [sets, setSets] = useState("");
   const [reps, setReps] = useState("");
@@ -123,14 +122,17 @@ export default function Dashboard() {
   /* subscribe workouts/profile/presets */
   useEffect(() => {
     if (!user) return;
+    let active = true;
     const unsubs = [];
     unsubs.push(subscribeWorkouts(user.uid, setWorkouts, { from, to }));
     (async () => {
       await ensureProfile(user.uid);
+      if (!active) return;
       unsubs.push(subscribeProfile(user.uid, setProfile));
       unsubs.push(subscribeWorkoutPresets(user.uid, setWorkoutPresets));
-    })();
+    })().catch(console.error);
     return () => {
+      active = false;
       for (const u of unsubs) {
         try {
           typeof u === "function" && u();

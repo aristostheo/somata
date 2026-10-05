@@ -1,3 +1,4 @@
+import { dayKey } from "@/utils/date";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
@@ -298,7 +299,7 @@ export default function ScanMealV2Screen() {
   const [torch, setTorch] = useState(false);
 
   const dateStr =
-    (params.date as string) || new Date().toISOString().slice(0, 10);
+    (params.date as string) || dayKey(new Date());
   const initialMealKey = safeMealKey(params.meal);
   const returnTo = String(params.returnTo || "");
 
@@ -628,7 +629,7 @@ export default function ScanMealV2Screen() {
       style={{ flex: 1, backgroundColor: "#05070c" }}
     >
       <View style={{ flex: 1, backgroundColor: "#05070c" }}>
-        <View style={StyleSheet.absoluteFillObject}>
+        <View style={StyleSheet.absoluteFill}>
           {photoUri ? (
             <Image source={{ uri: photoUri }} style={styles.cameraFill} />
           ) : cameraPermission?.granted ? (
@@ -641,14 +642,14 @@ export default function ScanMealV2Screen() {
           ) : (
             <LinearGradient
               colors={["#05070c", "#0b1220", "#12172a"]}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
             />
           )}
 
           <LinearGradient
             colors={["rgba(3,6,12,0.92)", "rgba(3,6,12,0.28)", "rgba(3,6,12,0.78)"]}
             locations={[0, 0.28, 1]}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
         </View>
 
@@ -843,8 +844,8 @@ export default function ScanMealV2Screen() {
         </View>
 
         {showProcessing ? (
-          <View style={StyleSheet.absoluteFillObject}>
-            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <View style={StyleSheet.absoluteFill}>
+            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
             <View style={styles.processingWrap}>
               <LinearGradient
                 colors={["rgba(9,14,25,0.86)", "rgba(18,24,38,0.82)"]}
@@ -920,7 +921,7 @@ export default function ScanMealV2Screen() {
             ]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
 
           <View style={styles.handle} />
@@ -1201,7 +1202,7 @@ function confidenceTint(confidence: DetectedFood["confidence"]) {
 
 const styles = StyleSheet.create({
   cameraFill: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     width: "100%",
     height: "100%",
   },

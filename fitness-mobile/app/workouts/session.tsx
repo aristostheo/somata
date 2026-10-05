@@ -270,7 +270,7 @@ function makeStyles(p: Palette, isDark: boolean) {
       borderWidth: 0,
     },
     finishOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: withAlpha(p.shadowInk, isDark ? 0.35 : 0.2),
@@ -317,7 +317,7 @@ function makeStyles(p: Palette, isDark: boolean) {
 
     cardWrap: { borderRadius: 18, overflow: "hidden" },
     cardBorder: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       borderRadius: 18,
       borderWidth: hair,
       borderColor: withAlpha(p.text, isDark ? 0.14 : 0.12),

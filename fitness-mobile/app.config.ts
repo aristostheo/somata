@@ -9,16 +9,21 @@ const config: ExpoConfig = {
   orientation: "portrait",
   platforms: ["ios", "android"],
   icon: "./assets/images/icon.png",
-  splash: {
-    image: "./assets/images/icon.png",
-    resizeMode: "contain",
-    backgroundColor: "#0a0812",
-  },
+  userInterfaceStyle: "automatic",
 
   plugins: [
     "expo-dev-client",
     "expo-build-properties",
     "expo-font",
+    [
+      "expo-splash-screen",
+      {
+        image: "./assets/images/icon.png",
+        resizeMode: "contain",
+        backgroundColor: "#0a0812",
+      },
+    ],
+    "expo-apple-authentication",
     "expo-notifications",
     [
       "expo-image-picker",
@@ -45,6 +50,7 @@ const config: ExpoConfig = {
   ios: {
     icon: "./assets/images/icon.png",
     bundleIdentifier: "com.aristos.fitnessmobile",
+    usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSHealthShareUsageDescription:
@@ -66,7 +72,6 @@ const config: ExpoConfig = {
       foregroundImage: "./assets/images/icon.png",
       backgroundColor: "#0a0812",
     },
-    edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
   },
 
@@ -79,7 +84,7 @@ const config: ExpoConfig = {
   },
 
   extra: {
-    FDC_API_KEY: process.env.FDC_API_KEY,
+    fdcApiKey: process.env.FDC_API_KEY,
     eas: {
       projectId: "32f5a4f2-1672-4b2b-87d0-c97dc293f81d",
     },

@@ -27,7 +27,7 @@ export function useEntitlements(): Flags {
             setState({ isPro: false, isAdmin: false, isTester: false, loading: false });
           return;
         }
-        const token = await user.getIdTokenResult(true);
+        const token = await user.getIdTokenResult();
         const claims = token.claims || {};
         const isAdmin = !!claims.admin;
         const isTester = !!claims.tester;

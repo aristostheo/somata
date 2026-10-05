@@ -3077,7 +3077,7 @@ export default function AddMealModal() {
             <Pressable
               onPress={closeConfirm}
               style={[
-                StyleSheet.absoluteFillObject,
+                StyleSheet.absoluteFill,
                 {
                   backgroundColor: "rgba(0,0,0,0.35)",
                   zIndex: 0,
@@ -3160,7 +3160,7 @@ export default function AddMealModal() {
             <Pressable
               onPress={() => setPickOpen(false)}
               style={[
-                StyleSheet.absoluteFillObject,
+                StyleSheet.absoluteFill,
                 { backgroundColor: "rgba(0,0,0,0.35)" },
               ]}
             />

@@ -1,3 +1,4 @@
+import { dayKey } from "@/utils/date";
 // app/scan-meal.tsx
 // Premium Scan Meal UI ✅ wired to your existing backend logic:
 // - Uses AsyncStorage batch handoff: @pending_add_meal_batch_v1
@@ -280,7 +281,7 @@ export default function ScanMealScreen() {
   const { colors, isDark } = useTheme();
 
   const dateStr =
-    (params.date as string) || new Date().toISOString().slice(0, 10);
+    (params.date as string) || dayKey(new Date());
   const initialMealKey = safeMealKey(params.meal);
   const returnTo = String(params.returnTo || "");
 
@@ -1139,7 +1140,7 @@ const styles = StyleSheet.create({
   },
 
   overlayWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
-  overlayBlur: { ...StyleSheet.absoluteFillObject },
+  overlayBlur: { ...StyleSheet.absoluteFill },
   overlayCard: {
     width: "86%",
     borderRadius: 18,

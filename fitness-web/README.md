@@ -1,3 +1,22 @@
+# Fitness web app
+
+Run these commands from `fitness-app/fitness-web` to install and run only the web app:
+
+```sh
+pnpm --ignore-workspace install --frozen-lockfile
+pnpm dev
+```
+
+Checks:
+
+```sh
+CI=true pnpm build
+CI=true TZ=America/Toronto pnpm test --watchAll=false --runInBand
+pnpm exec eslint src --ext .js,.jsx
+```
+
+The automated tests mock Firebase; they do not modify live accounts or data.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

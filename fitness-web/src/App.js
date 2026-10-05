@@ -9,22 +9,26 @@ import Nutrition from "./pages/Nutrition";
 import Profile from "./pages/Profile";
 import Insights from "./pages/Insights";
 import AppShell from "./components/AppShell";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route element={<ProtectedLayout />}>
-          <Route element={<AppShell />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/nutrition" element={<Nutrition />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/insights" element={<Insights />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedLayout />}>
+            <Route element={<AppShell />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/nutrition" element={<Nutrition />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/insights" element={<Insights />} />
+            </Route>
           </Route>
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   );

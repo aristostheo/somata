@@ -1,3 +1,5 @@
+import Constants from "expo-constants";
+import { dayKey } from "@/utils/date";
 // app/(modals)/add-meal.tsx
 // Drop-in ✅
 // Premium Add Meal front page (Apple-inspired, glossy dark, calm gradients)
@@ -334,7 +336,7 @@ type FdcItem = {
   };
 };
 
-const FDC_API_KEY = process.env.FDC_API_KEY as string | undefined;
+const FDC_API_KEY = Constants.expoConfig?.extra?.fdcApiKey as string | undefined;
 
 async function searchFDC(queryStr: string): Promise<FdcItem[]> {
   if (!FDC_API_KEY || !queryStr.trim()) return [];
@@ -1254,7 +1256,7 @@ export default function AddMealModal() {
   const [meal, setMeal] = useState<MealKey>(
     (params.meal as MealKey) || defaultMealForTime(),
   );
-  const date = (params.date as string) || new Date().toISOString().slice(0, 10);
+  const date = (params.date as string) || dayKey(new Date());
 
   const initialTab = (params.initialTab as TabKey) || "recents";
   const returnTo = String(params.returnTo || "");
@@ -3167,7 +3169,7 @@ export default function AddMealModal() {
             <Pressable
               onPress={closeConfirm}
               style={[
-                StyleSheet.absoluteFillObject,
+                StyleSheet.absoluteFill,
                 {
                   backgroundColor: "rgba(0,0,0,0.35)",
                   zIndex: 0,
@@ -3250,7 +3252,7 @@ export default function AddMealModal() {
             <Pressable
               onPress={() => setPickOpen(false)}
               style={[
-                StyleSheet.absoluteFillObject,
+                StyleSheet.absoluteFill,
                 { backgroundColor: "rgba(0,0,0,0.35)" },
               ]}
             />

@@ -1207,7 +1207,7 @@ export default function FriendsPage() {
       {detailOpen && selected ? (
         <View style={[styles.overlay, { backgroundColor: withAlpha(colors.textPrimary, isDark ? 0.5 : 0.16) }]}>
           <Pressable
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             onPress={() => {
               setDetailOpen(false);
               setActiveModal(null);
@@ -1646,7 +1646,7 @@ export default function FriendsPage() {
       {pingPickerOpen && pendingPing ? (
         <View style={[styles.overlay, { backgroundColor: withAlpha(colors.textPrimary, isDark ? 0.5 : 0.16) }]}>
           <Pressable
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             onPress={() => setPingPickerOpen(false)}
           />
           <View style={[styles.modalCard, { backgroundColor: colors.surface2, borderColor: colors.borderElevated }]}>
@@ -1711,7 +1711,7 @@ export default function FriendsPage() {
       {nicknameEditorOpen && selected ? (
         <View style={[styles.overlay, { backgroundColor: withAlpha(colors.textPrimary, isDark ? 0.5 : 0.16) }]}>
           <Pressable
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             onPress={() => setNicknameEditorOpen(false)}
           />
           <View style={[styles.modalCard, { backgroundColor: colors.surface2, borderColor: colors.borderElevated }]}>
@@ -1825,7 +1825,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "flex-end",
     padding: 12,
   },

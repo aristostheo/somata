@@ -129,11 +129,11 @@ export default function DayDetailSheet({
         <Animated.View
           pointerEvents="none"
           style={[
-            StyleSheet.absoluteFillObject,
+            StyleSheet.absoluteFill,
             { backgroundColor: withAlpha(colors.background, isDark ? 0.7 : 0.45), opacity: backdrop },
           ]}
         />
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
         <Animated.View
           style={[

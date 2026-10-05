@@ -2026,7 +2026,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   pickerScrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.35)",
     justifyContent: "flex-end",
   },

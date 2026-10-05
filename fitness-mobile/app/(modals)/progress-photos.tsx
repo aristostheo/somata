@@ -243,7 +243,7 @@ export default function ProgressPhotosScreen() {
 
       <Modal visible={pickerOpen} transparent animationType="fade" onRequestClose={() => setPickerOpen(false)}>
         <View style={styles.modalOverlay}>
-          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setPickerOpen(false)} />
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setPickerOpen(false)} />
           <View style={[styles.sheet, { backgroundColor: colors.surface2, borderColor: colors.borderElevated }]}>
             <View style={[styles.handle, { backgroundColor: colors.surface3 }]} />
             <Pressable onPress={() => startAdd("camera")} style={[styles.sheetRow, { backgroundColor: colors.surface1, borderColor: colors.border }]}>

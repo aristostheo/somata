@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -17,7 +17,6 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useTheme } from "@/content/ThemeProvider";
 import { useGoogleLogin, signInWithApple } from "@/lib/authSocial";
-import { onAuthStateChanged } from "firebase/auth";
 
 export default function Register() {
   const { colors, isDark } = useTheme();
@@ -61,14 +60,6 @@ export default function Register() {
   const disabled = !email.trim() || pass.length < 6;
   const { request, signInWithGoogle } = useGoogleLogin();
 
-  // After successful auth, your app likely already navigates in a gate,
-  // but we can push to tabs here too:
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) router.replace("/(tabs)");
-    });
-    return unsub;
-  }, []);
   return (
     <LinearGradient
       colors={

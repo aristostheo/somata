@@ -2,7 +2,7 @@
 import "react-native-gesture-handler";
 import "react-native-reanimated";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   View,
@@ -107,7 +107,8 @@ function Gate() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const enforcedRef = useRef(false);
+  const sessionCheckedRef = useRef(false);
+  const [sessionReady, setSessionReady] = useState(false);
   const fade = useRef(new Animated.Value(1)).current;
 
   const inAuth =
@@ -116,43 +117,48 @@ function Gate() {
     pathname === "/register" ||
     pathname === "/reset";
 
-  // remember-me logic
+  // Apply the stored session preference once at startup, then guard every auth change.
   useEffect(() => {
-    if (initializing || enforcedRef.current) return;
+    if (initializing || sessionCheckedRef.current) return;
+    sessionCheckedRef.current = true;
+    const startupUid = user?.uid;
     (async () => {
-      const remember = (await AsyncStorage.getItem("@rememberMe")) === "1";
-      if (!user) {
-        if (!inAuth) router.replace("/(auth)/login");
-        enforcedRef.current = true;
-        return;
-      }
-      if (!remember) {
-        try {
+      try {
+        const remember = await AsyncStorage.getItem("@rememberMe");
+        if (remember === "0" && startupUid && auth.currentUser?.uid === startupUid) {
           await signOut(auth);
-        } finally {
-          router.replace("/(auth)/login");
-          enforcedRef.current = true;
         }
-      } else {
-        if (inAuth) router.replace("/(tabs)");
-        enforcedRef.current = true;
+      } catch (error) {
+        console.warn("[auth] session preference check failed", error);
+      } finally {
+        setSessionReady(true);
       }
     })();
-  }, [user, initializing, inAuth]);
+  }, [user, initializing]);
+
+  useEffect(() => {
+    if (initializing || !sessionReady) return;
+    if (!user && !inAuth) router.replace("/(auth)/login");
+    else if (user && inAuth) router.replace("/(tabs)");
+  }, [user, initializing, sessionReady, inAuth, router]);
 
   // ensure user doc
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) return;
-      const ref = doc(db, "users", u.uid);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        await setDoc(ref, {
-          email: u.email ?? null,
-          displayName: u.displayName ?? null,
-          photoURL: u.photoURL ?? null,
-          createdAt: serverTimestamp(),
-        });
+      try {
+        const ref = doc(db, "users", u.uid);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          await setDoc(ref, {
+            email: u.email ?? null,
+            displayName: u.displayName ?? null,
+            photoURL: u.photoURL ?? null,
+            createdAt: serverTimestamp(),
+          });
+        }
+      } catch (error) {
+        console.warn("[auth] user document check failed", error);
       }
     });
     return unsub;
@@ -206,7 +212,7 @@ function Gate() {
     return () => sub.remove();
   }, [router]);
 
-  if (initializing) {
+  if (initializing || !sessionReady) {
     return (
       <LinearGradient
         colors={
@@ -244,8 +250,6 @@ function Gate() {
       {/* Translucent so our header shows behind the system area */}
       <StatusBar
         style={isDark ? "light" : "dark"}
-        translucent
-        backgroundColor="transparent"
       />
 
       {/* Always-present glossy header spacer */}

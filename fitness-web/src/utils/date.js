@@ -17,5 +17,5 @@ export function endOfToday(date) {
   const d = new Date(date);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
-export const dayKey = (d) => d.toISOString().slice(0, 10);
+export const dayKey = fmt;
 export const labelDay = (iso) => iso.slice(5);

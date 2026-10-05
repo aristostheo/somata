@@ -723,7 +723,7 @@ export default function WorkoutRecapScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: surfaces.bg }]}>
-      <RNAnimated.View style={[StyleSheet.absoluteFillObject, { opacity: backgroundOpacity }]} />
+      <RNAnimated.View style={[StyleSheet.absoluteFill, { opacity: backgroundOpacity }]} />
       {showCelebration ? <CelebrationConfetti accent={surfaces.accent} gold={surfaces.warning} /> : null}
 
       <ScrollView
@@ -983,7 +983,7 @@ function CelebrationConfetti({ accent, gold }: { accent: string; gold: string })
   }));
 
   return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       {particles.map((p) => {
         const translateY = progress.interpolate({
           inputRange: [0, 1],

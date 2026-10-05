@@ -192,11 +192,11 @@ export default function PremiumModalSheet({
         <BlurView
           intensity={36}
           tint={isDark ? "dark" : "light"}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
         <Pressable
           onPress={onClose}
-          style={[StyleSheet.absoluteFillObject, { backgroundColor: "rgba(0,0,0,0.34)" }]}
+          style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.34)" }]}
         />
 
         <MotiView
@@ -247,7 +247,7 @@ export default function PremiumModalSheet({
                 ]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
               />
 
               <View

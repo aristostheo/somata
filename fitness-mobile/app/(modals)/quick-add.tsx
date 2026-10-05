@@ -1,3 +1,4 @@
+import { dayKey } from "@/utils/date";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -112,7 +113,7 @@ export default function QuickAddModal() {
   const [meal, setMeal] = useState<MealKey>(
     (params.meal as MealKey) || "snacks",
   );
-  const date = (params.date as string) || new Date().toISOString().slice(0, 10);
+  const date = (params.date as string) || dayKey(new Date());
   const returnTo = String(params.returnTo || "");
 
   const [query, setQuery] = useState("");

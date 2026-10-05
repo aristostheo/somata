@@ -51,7 +51,7 @@ export function FriendActionsSheet({
         { backgroundColor: withAlpha(colors.text, isDark ? 0.45 : 0.18) },
       ]}
     >
-      <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
       <Animated.View
         entering={FadeInDown.duration(260)}
@@ -70,7 +70,7 @@ export function FriendActionsSheet({
           <BlurView
             intensity={30}
             tint={isDark ? "dark" : "light"}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
 
           <View
@@ -204,7 +204,7 @@ export function FriendActionsSheet({
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "flex-end",
     padding: 12,
   },

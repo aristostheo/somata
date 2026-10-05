@@ -1497,7 +1497,7 @@ function LuxuryDialog({
   return (
     <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
       <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: withAlpha(colors.background, 0.6) }}>
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <Animated.View style={[styles.dialogSheet, {
           backgroundColor: colors.surface2,
           borderColor: colors.borderElevated,

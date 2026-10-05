@@ -1040,7 +1040,7 @@
 //     borderWidth: StyleSheet.hairlineWidth,
 //   },
 //   cardBorder: {
-//     ...StyleSheet.absoluteFillObject,
+//     ...StyleSheet.absoluteFill,
 //     borderRadius: 18,
 //     borderWidth: StyleSheet.hairlineWidth,
 //     zIndex: 2,
