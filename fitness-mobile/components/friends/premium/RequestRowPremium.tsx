@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 
 export function RequestRowPremium({
   name,
@@ -24,7 +24,7 @@ export function RequestRowPremium({
   onCancel?: () => void;
   onOpenActions?: () => void;
 }) {
-  const { colors, isDark } = useTheme() as any;
+  const { colors } = useProfileFlowTheme();
   const hue = Math.abs(
     accentSeed.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
   );
@@ -46,12 +46,7 @@ export function RequestRowPremium({
             {
               backgroundColor: colors.surface1,
               borderColor: colors.border,
-              shadowColor: colors.textPrimary,
-              shadowOpacity: isDark ? 0 : 0.05,
-              shadowRadius: isDark ? 0 : 8,
-              shadowOffset: { width: 0, height: 2 },
-              elevation: isDark ? 0 : 1,
-              transform: [{ scale: pressed ? 0.99 : 1 }],
+              opacity: pressed ? 0.7 : 1,
             },
           ]}
         >
@@ -122,7 +117,7 @@ export function RequestRowPremium({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 14,
-    borderWidth: 1,
+    borderWidth: 0,
     padding: 14,
     flexDirection: "row",
     alignItems: "center",

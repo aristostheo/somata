@@ -12,6 +12,7 @@ import {
 import { db } from "@/lib/firebase";
 import { type FoodEntry, getFoodsInRange } from "@/services/nutrition";
 import { type Profile } from "@/services/profile";
+import { nutritionTargets } from "@/services/nutritionTargets";
 import {
   getIntegrationSnapshot,
   type IntegrationSnapshot,
@@ -329,7 +330,7 @@ export async function getCalendarRangeData(
   profile: Profile | null
 ) {
   const stepsUpdatedAt = (profile as any)?.stepsUpdatedAt ?? 0;
-  const cacheKey = [uid, startDate, endDate, stepsUpdatedAt].join(":");
+  const cacheKey = [uid, startDate, endDate, stepsUpdatedAt, JSON.stringify(profile?.activeFitAdaptTargets)].join(":");
   const now = Date.now();
   const existing = cache.get(cacheKey);
   if (existing && existing.expiresAt > now) {
@@ -339,15 +340,13 @@ export async function getCalendarRangeData(
   const promise = (async () => {
     const dateKeys = buildDateKeys(startDate, endDate);
     const stepsMap = (((profile as any)?.steps ?? {}) as Record<string, number>) || {};
-    const calorieGoal = num(
-      profile?.goalResult?.dailyCalories ??
-        profile?.dailyCaloriesTarget ??
-        profile?.calorieGoal,
-      2400
-    );
-    const proteinGoal = num(profile?.goalResult?.protein ?? profile?.dailyProteinTarget ?? profile?.proteinGoal, 150);
-    const carbsGoal = num(profile?.goalResult?.carbs ?? profile?.carbGoal, 220);
-    const fatGoal = num(profile?.goalResult?.fat ?? profile?.fatGoal, 70);
+    const effective = nutritionTargets(profile, {
+      calories: num(profile?.goalResult?.dailyCalories ?? profile?.dailyCaloriesTarget ?? profile?.calorieGoal, 2400),
+      protein: num(profile?.goalResult?.protein ?? profile?.dailyProteinTarget ?? profile?.proteinGoal, 150),
+      carbs: num(profile?.goalResult?.carbs ?? profile?.carbGoal, 220),
+      fat: num(profile?.goalResult?.fat ?? profile?.fatGoal, 70),
+    });
+    const { calories: calorieGoal, protein: proteinGoal, carbs: carbsGoal, fat: fatGoal } = effective;
     const hydrationGoal = num(
       (profile as any)?.waterGoalMl ?? (profile as any)?.dailyWaterTargetMl ?? (profile as any)?.hydrationGoalMl,
       2400

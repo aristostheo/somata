@@ -1,3 +1,4 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -12,7 +13,7 @@ import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
 import { subscribeProfile, updateProfile, type Profile } from "@/services/profile";
 import {
@@ -116,7 +117,7 @@ function numberString(value: number) {
 }
 
 export default function GoalSetupScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useProfileFlowTheme();
   const { user } = useAuth();
   const router = useRouter();
 
@@ -359,11 +360,12 @@ export default function GoalSetupScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <FlowAtmosphere />
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView
         contentContainerStyle={{
-          paddingHorizontal: 16,
+          paddingHorizontal: 20,
           paddingTop: 20,
           paddingBottom: 40,
         }}
@@ -372,11 +374,11 @@ export default function GoalSetupScreen() {
           <Pressable
             onPress={() => router.back()}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
+              width: 44,
+              height: 44,
+              borderRadius: 14,
               backgroundColor: colors.surface3,
-              borderWidth: 1,
+              borderWidth: 0,
               borderColor: colors.border,
               alignItems: "center",
               justifyContent: "center",
@@ -384,7 +386,7 @@ export default function GoalSetupScreen() {
           >
             <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
           </Pressable>
-          <Text style={{ color: colors.textPrimary, fontSize: 24, fontWeight: "500" }}>
+          <Text style={{ color: colors.textPrimary, fontSize: 28, fontWeight: "700" }}>
             Goal setup
           </Text>
         </View>

@@ -5,7 +5,6 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withAlpha } from "@/lib/color";
-import { useSettingString } from "@/services/settings/settingsStore";
 
 export type ThemeMode = "system" | "dark" | "light";
 
@@ -20,10 +19,8 @@ export function ThemeModeSheet({
   colors: any;
   isDark: boolean;
 }) {
-  // Persist locally too (so it works even if ThemeProvider doesn't expose a setter)
-  const [stored, setStored] = useSettingString("settings.themeMode", value);
-
-  const current = (stored as ThemeMode) ?? value;
+  // Persistence belongs to ThemeProvider; this legacy sheet only reflects its value.
+  const current = value;
 
   const items: Array<{
     key: ThemeMode;
@@ -49,7 +46,6 @@ export function ThemeModeSheet({
           <Pressable
             key={it.key}
             onPress={() => {
-              setStored(it.key);
               onChange?.(it.key);
             }}
             style={({ pressed }) => [

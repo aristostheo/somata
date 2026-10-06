@@ -12,7 +12,8 @@ import {
   Platform,
 } from "react-native";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "@/content/ThemeProvider";
+import { useReducedMotion } from "react-native-reanimated";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 
 const ITEM_H = 44;
 const VISIBLE = 7; // odd number looks most "wheel-like"
@@ -51,7 +52,8 @@ export default function MetricPickerSheet({
   onClose,
   onChange,
 }: Props) {
-  const { colors, isDark } = useTheme();
+  const { colors, isDark } = useProfileFlowTheme();
+  const reduceMotion = useReducedMotion();
   const listRef = useRef<FlatList<number>>(null);
 
   const indexForValue = useMemo(() => {
@@ -141,7 +143,7 @@ export default function MetricPickerSheet({
     <Modal
       visible={open}
       transparent
-      animationType="fade"
+      animationType={reduceMotion ? "none" : "fade"}
       onRequestClose={onClose}
     >
       <Pressable style={styles.backdrop} onPress={onClose} />
@@ -150,10 +152,8 @@ export default function MetricPickerSheet({
         style={[
           styles.sheet,
           {
-            backgroundColor: isDark
-              ? "rgba(18,18,20,0.98)"
-              : "rgba(250,250,252,0.98)",
-            borderColor: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)",
+            backgroundColor: colors.surface1,
+            borderColor: colors.border,
           },
         ]}
       >
@@ -332,8 +332,8 @@ const styles = StyleSheet.create({
     left: 12,
     right: 12,
     bottom: 12,
-    borderRadius: 22,
-    borderWidth: 1,
+    borderRadius: 18,
+    borderWidth: 0,
     overflow: "hidden",
   },
   header: {
@@ -344,14 +344,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
   },
-  title: { fontSize: 18, fontWeight: "800" },
+  title: { fontSize: 18, fontWeight: "700" },
   subtitle: { fontSize: 12, marginTop: 3, lineHeight: 16 },
   doneBtn: {
+    minHeight: 44,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    justifyContent: "center",
     borderRadius: 12,
   },
-  doneText: { fontSize: 14, fontWeight: "800" },
+  doneText: { fontSize: 14, fontWeight: "600" },
 
   controls: {
     paddingHorizontal: 16,
@@ -362,12 +363,12 @@ const styles = StyleSheet.create({
   },
   stepBtn: {
     width: 46,
-    height: 40,
+    height: 44,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
-  stepTxt: { fontSize: 22, fontWeight: "900" },
+  stepTxt: { fontSize: 22, fontWeight: "600" },
   preview: { fontSize: 16, fontWeight: "800" },
   previewHint: { fontSize: 12, marginTop: 2 },
 

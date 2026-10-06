@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/content/AuthContext";
+import { nutritionTargets } from "@/services/nutritionTargets";
 import { useTheme } from "@/content/ThemeProvider";
 import { subscribeFoodsBetween, type FoodEntry } from "@/services/nutrition";
 import { subscribeWorkouts, type Workout } from "@/services/workouts";
@@ -77,7 +78,7 @@ export function useInsights() {
     const days = Object.keys(byDay);
     const total = days.reduce((s, d) => s + byDay[d], 0);
     const avg = days.length ? total / days.length : 0;
-    const target = Number((profile as any)?.dailyProteinTarget ?? 130);
+    const target = nutritionTargets(profile, { calories: 2400, protein: 130, carbs: 260, fat: 70 }).protein;
     const tip =
       avg >= target
         ? "Nice! You’re meeting your protein goal."

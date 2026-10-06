@@ -1,3 +1,5 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
+import { nutritionTargets } from "@/services/nutritionTargets";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -9,8 +11,8 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
+import { useReducedMotion } from "react-native-reanimated";
 import Svg, {
   Circle,
   Line,
@@ -23,7 +25,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 import { useAuth } from "@/content/AuthContext";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import {
   subscribeExerciseBetween,
   subscribeFoodsBetween,
@@ -60,7 +62,7 @@ type Goals = {
 };
 
 function useC() {
-  const { colors } = (useTheme as any)();
+  const { colors, isDark } = useProfileFlowTheme();
   return {
     bg: colors.background as string,
     card: colors.surface1 as string,
@@ -68,8 +70,8 @@ function useC() {
     text: colors.textPrimary as string,
     muted: colors.textTertiary as string,
     hairline: colors.border as string,
-    purple: colors.accent as string,
-    blue: colors.accent as string,
+    purple: colors.primary as string,
+    blue: isDark ? "#B9A4FA" : "#7051B5",
     teal: colors.accent as string,
     green: colors.success as string,
     amber: colors.warning as string,
@@ -227,10 +229,7 @@ export default function AdvancedMetricsScreen() {
 
   const goals: Goals = useMemo(
     () => ({
-      calories: n((profile as any)?.dailyCaloriesTarget ?? (profile as any)?.calorieGoal ?? 2400),
-      protein: n((profile as any)?.dailyProteinTarget ?? (profile as any)?.proteinGoal ?? 160),
-      carbs: n((profile as any)?.carbGoal ?? 260),
-      fat: n((profile as any)?.fatGoal ?? 80),
+      ...nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 80 }),
       waterMl: n((profile as any)?.waterGoalMl ?? 2400),
       workoutsPerWeek: n((profile as any)?.gymSessionsPerWeek ?? (profile as any)?.trainingDaysPerWeek ?? 4),
     }),
@@ -301,10 +300,11 @@ export default function AdvancedMetricsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <FlowAtmosphere />
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 18,
-          paddingHorizontal: 16,
+          paddingTop: 20,
+          paddingHorizontal: 20,
           paddingBottom: insets.bottom + 48,
           gap: 18,
         }}
@@ -461,7 +461,7 @@ export default function AdvancedMetricsScreen() {
             backgroundColor: alpha(C.purple, 0.18),
           }}
         >
-          <Text style={{ color: C.text, fontWeight: "900" }}>Export Data</Text>
+          <Text style={{ color: C.text, fontWeight: "600" }}>Export Data</Text>
         </Pressable>
       </ScrollView>
 
@@ -511,13 +511,13 @@ function Header({ title, subtitle, range, setRange, onBack }: { title: string; s
         <Ionicons name="chevron-back" size={20} color={C.text} />
       </Pressable>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: C.text, fontWeight: "900", fontSize: 26 }}>{title}</Text>
-        <Text style={{ color: C.muted, fontWeight: "800", marginTop: 2 }}>{subtitle}</Text>
+        <Text style={{ color: C.text, fontWeight: "600", fontSize: 26 }}>{title}</Text>
+        <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>{subtitle}</Text>
       </View>
-      <View style={{ flexDirection: "row", borderRadius: 999, padding: 3, backgroundColor: C.card, borderWidth: 1, borderColor: C.hairline }}>
+      <View style={{ flexDirection: "row", borderRadius: 999, padding: 3, backgroundColor: C.card, borderWidth: 0, borderColor: C.hairline }}>
         {RANGE_OPTIONS.map((r) => (
-          <Pressable key={r} onPress={() => setRange(r)} style={{ height: 31, paddingHorizontal: 9, borderRadius: 999, justifyContent: "center", backgroundColor: r === range ? alpha(C.purple, 0.34) : "transparent" }}>
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 12 }}>{r}D</Text>
+          <Pressable key={r} onPress={() => setRange(r)} style={{ minHeight: 44, paddingHorizontal: 9, borderRadius: 999, justifyContent: "center", backgroundColor: r === range ? alpha(C.purple, 0.34) : "transparent" }}>
+            <Text style={{ color: C.text, fontWeight: "600", fontSize: 12 }}>{r}D</Text>
           </Pressable>
         ))}
       </View>
@@ -531,7 +531,7 @@ function InfoCard({ text }: { text: string }) {
     <Card style={{ backgroundColor: alpha(C.purple, 0.14), borderColor: alpha(C.purple, 0.28) }}>
       <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
         <Ionicons name="sparkles" size={18} color={C.purple} />
-        <Text style={{ color: C.text, fontWeight: "900", flex: 1, lineHeight: 19 }}>{text}</Text>
+        <Text style={{ color: C.text, fontWeight: "600", flex: 1, lineHeight: 19 }}>{text}</Text>
       </View>
     </Card>
   );
@@ -543,8 +543,8 @@ function MetricSection({ id, title, open, setOpen, children }: { id: string; tit
   return (
     <AnimatedIn>
       <View style={{ gap: 10 }}>
-        <Pressable onPress={() => setOpen((p) => ({ ...p, [id]: !visible }))} style={{ flexDirection: "row", alignItems: "center", minHeight: 34 }}>
-          <Text style={{ color: C.muted, fontWeight: "900", fontSize: 12, letterSpacing: 0.8, textTransform: "uppercase", flex: 1 }}>{title}</Text>
+        <Pressable onPress={() => setOpen((p) => ({ ...p, [id]: !visible }))} style={{ flexDirection: "row", alignItems: "center", minHeight: 44 }}>
+          <Text style={{ color: C.muted, fontWeight: "600", fontSize: 12, letterSpacing: 0.8, textTransform: "uppercase", flex: 1 }}>{title}</Text>
           <Ionicons name={visible ? "chevron-up" : "chevron-down"} size={18} color={C.muted} />
         </Pressable>
         {visible ? <View style={{ gap: 12 }}>{children}</View> : null}
@@ -554,8 +554,10 @@ function MetricSection({ id, title, open, setOpen, children }: { id: string; tit
 }
 
 function AnimatedIn({ children }: { children: React.ReactNode }) {
+  const reduceMotion = useReducedMotion();
+  if (reduceMotion) return <>{children}</>;
   return (
-    <MotiView from={{ opacity: 0, translateY: 14 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: "timing", duration: 300 }}>
+    <MotiView from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: "timing", duration: 180 }}>
       {children}
     </MotiView>
   );
@@ -563,7 +565,7 @@ function AnimatedIn({ children }: { children: React.ReactNode }) {
 
 function Card({ children, style }: { children: React.ReactNode; style?: any }) {
   const C = useC();
-  return <View style={[{ borderRadius: 22, borderWidth: 1, borderColor: C.hairline, backgroundColor: C.card, padding: 14 }, style]}>{children}</View>;
+  return <View style={[{ borderRadius: 18, borderWidth: 0, borderColor: C.hairline, backgroundColor: C.card, padding: 14 }, style]}>{children}</View>;
 }
 
 function ChartCard({ title, children, onExpand }: { title: string; children: React.ReactNode; onExpand: () => void }) {
@@ -571,7 +573,7 @@ function ChartCard({ title, children, onExpand }: { title: string; children: Rea
   return (
     <Card style={{ gap: 10 }}>
       <Pressable onPress={onExpand} style={{ flexDirection: "row", alignItems: "center", gap: 10 }} accessibilityRole="button" accessibilityLabel={`Expand ${title}`}>
-        <Text style={{ color: C.text, fontWeight: "900", fontSize: 15, flex: 1 }}>{title}</Text>
+        <Text style={{ color: C.text, fontWeight: "600", fontSize: 15, flex: 1 }}>{title}</Text>
         <Ionicons name="expand-outline" size={17} color={C.muted} />
       </Pressable>
       {children}
@@ -584,14 +586,14 @@ function EmptyState({ text }: { text: string }) {
   return (
     <Card style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
       <Ionicons name="analytics-outline" size={18} color={C.muted} />
-      <Text style={{ color: C.muted, fontWeight: "800", flex: 1 }}>{text}</Text>
+      <Text style={{ color: C.muted, fontWeight: "500", flex: 1 }}>{text}</Text>
     </Card>
   );
 }
 
 function Insight({ text }: { text: string }) {
   const C = useC();
-  return <Text style={{ color: C.muted, fontWeight: "800", lineHeight: 18 }}>{text}</Text>;
+  return <Text style={{ color: C.muted, fontWeight: "500", lineHeight: 18 }}>{text}</Text>;
 }
 
 function DeltaBars({ values }: { values: number[] }) {
@@ -616,7 +618,7 @@ function MealHeatmap({ stats }: { stats: Record<MealKey, number>[] }) {
     <View style={{ gap: 7 }}>
       {MEALS.map((m) => (
         <View key={m} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Text style={{ color: C.muted, width: 62, fontSize: 10, fontWeight: "800", textTransform: "capitalize" }}>{m}</Text>
+          <Text style={{ color: C.muted, width: 62, fontSize: 10, fontWeight: "500", textTransform: "capitalize" }}>{m}</Text>
           {stats.map((d, i) => <View key={i} style={{ flex: 1, height: 22, borderRadius: 6, backgroundColor: alpha(C.purple, 0.08 + 0.62 * (d[m] / max)) }} />)}
         </View>
       ))}
@@ -667,7 +669,7 @@ function HorizontalMealBars({ values }: { values: Record<MealKey, number> }) {
   return <View style={{ gap: 9 }}>{MEALS.map((m) => {
     const v = values[m];
     const color = v >= 30 ? C.green : v >= 15 ? C.amber : C.red;
-    return <View key={m} style={{ gap: 4 }}><View style={{ flexDirection: "row" }}><Text style={{ color: C.text, fontWeight: "900", textTransform: "capitalize", flex: 1 }}>{m}</Text><Text style={{ color, fontWeight: "900" }}>{Math.round(v)}g</Text></View><View style={{ height: 8, borderRadius: 999, backgroundColor: C.gray }}><View style={{ width: `${Math.min(100, (v / max) * 100)}%`, height: "100%", borderRadius: 999, backgroundColor: color }} /></View></View>;
+    return <View key={m} style={{ gap: 4 }}><View style={{ flexDirection: "row" }}><Text style={{ color: C.text, fontWeight: "600", textTransform: "capitalize", flex: 1 }}>{m}</Text><Text style={{ color, fontWeight: "600" }}>{Math.round(v)}g</Text></View><View style={{ height: 8, borderRadius: 999, backgroundColor: C.gray }}><View style={{ width: `${Math.min(100, (v / max) * 100)}%`, height: "100%", borderRadius: 999, backgroundColor: color }} /></View></View>;
   })}</View>;
 }
 
@@ -704,7 +706,7 @@ function Radar({ values }: { values: number[] }) {
 function ScoreRing({ score }: { score: number }) {
   const C = useC();
   const c = 2 * Math.PI * 42;
-  return <View style={{ alignItems: "center" }}><Svg width={132} height={132} viewBox="0 0 120 120"><Circle cx={60} cy={60} r={42} stroke={C.gray} strokeWidth={12} fill="none" /><Circle cx={60} cy={60} r={42} stroke={C.purple} strokeWidth={12} fill="none" strokeDasharray={`${c * clamp01(score / 100)} ${c}`} strokeLinecap="round" transform="rotate(-90 60 60)" /><SvgText x={60} y={66} fill={C.text} fontSize="28" fontWeight="900" textAnchor="middle">{score}</SvgText></Svg><Text style={{ color: C.muted, fontWeight: "800" }}>Higher = more consistent eating patterns</Text></View>;
+  return <View style={{ alignItems: "center" }}><Svg width={132} height={132} viewBox="0 0 120 120"><Circle cx={60} cy={60} r={42} stroke={C.gray} strokeWidth={12} fill="none" /><Circle cx={60} cy={60} r={42} stroke={C.purple} strokeWidth={12} fill="none" strokeDasharray={`${c * clamp01(score / 100)} ${c}`} strokeLinecap="round" transform="rotate(-90 60 60)" /><SvgText x={60} y={66} fill={C.text} fontSize="28" fontWeight="900" textAnchor="middle">{score}</SvgText></Svg><Text style={{ color: C.muted, fontWeight: "500" }}>Higher = more consistent eating patterns</Text></View>;
 }
 
 function WeightNoise({ values }: { values: number[] }) {
@@ -730,7 +732,7 @@ function CompositionBars({ weight, bodyFat, target }: { weight: number; bodyFat:
   const lean = weight * (1 - bodyFat / 100);
   const fat = weight - lean;
   const goalFat = Math.max(0, target - lean);
-  return <View style={{ flexDirection: "row", gap: 16, height: 150, alignItems: "flex-end", justifyContent: "center" }}>{[{ label: "Current", lean, fat }, { label: "Goal", lean, fat: goalFat }].map((x) => <View key={x.label} style={{ alignItems: "center", gap: 6 }}><View style={{ width: 56, height: 120, borderRadius: 12, overflow: "hidden", justifyContent: "flex-end", backgroundColor: C.gray }}><View style={{ height: `${(x.fat / Math.max(1, x.lean + x.fat)) * 100}%`, backgroundColor: alpha(C.text, 0.28) }} /><View style={{ height: `${(x.lean / Math.max(1, x.lean + x.fat)) * 100}%`, backgroundColor: C.blue }} /></View><Text style={{ color: C.muted, fontWeight: "800" }}>{x.label}</Text></View>)}</View>;
+  return <View style={{ flexDirection: "row", gap: 16, height: 150, alignItems: "flex-end", justifyContent: "center" }}>{[{ label: "Current", lean, fat }, { label: "Goal", lean, fat: goalFat }].map((x) => <View key={x.label} style={{ alignItems: "center", gap: 6 }}><View style={{ width: 56, height: 120, borderRadius: 12, overflow: "hidden", justifyContent: "flex-end", backgroundColor: C.gray }}><View style={{ height: `${(x.fat / Math.max(1, x.lean + x.fat)) * 100}%`, backgroundColor: alpha(C.text, 0.28) }} /><View style={{ height: `${(x.lean / Math.max(1, x.lean + x.fat)) * 100}%`, backgroundColor: C.blue }} /></View><Text style={{ color: C.muted, fontWeight: "500" }}>{x.label}</Text></View>)}</View>;
 }
 
 function DotCalendar({ dates, hits }: { dates: string[]; hits: Set<string> }) {
@@ -770,14 +772,14 @@ function CompareColumns({ hydrated, dry, goals }: { hydrated: DayRow[]; dry: Day
 }
 function StatCol({ title, rows, goals }: { title: string; rows: DayRow[]; goals: Goals }) {
   const C = useC();
-  return <View style={{ flex: 1, gap: 6 }}><Text style={{ color: C.text, fontWeight: "900" }}>{title}</Text><Text style={{ color: C.muted, fontWeight: "800" }}>Protein {Math.round(avg(rows.map((r) => (r.protein / goals.protein) * 100)) || 0)}%</Text><Text style={{ color: C.muted, fontWeight: "800" }}>Calories {Math.round(avg(rows.map((r) => (r.calories / goals.calories) * 100)) || 0)}%</Text><Text style={{ color: C.muted, fontWeight: "800" }}>Steps {Math.round(avg(rows.map((r) => r.steps)) || 0).toLocaleString()}</Text></View>;
+  return <View style={{ flex: 1, gap: 6 }}><Text style={{ color: C.text, fontWeight: "600" }}>{title}</Text><Text style={{ color: C.muted, fontWeight: "500" }}>Protein {Math.round(avg(rows.map((r) => (r.protein / goals.protein) * 100)) || 0)}%</Text><Text style={{ color: C.muted, fontWeight: "500" }}>Calories {Math.round(avg(rows.map((r) => (r.calories / goals.calories) * 100)) || 0)}%</Text><Text style={{ color: C.muted, fontWeight: "500" }}>Steps {Math.round(avg(rows.map((r) => r.steps)) || 0).toLocaleString()}</Text></View>;
 }
 
 function HydrationStreak({ rows, goal }: { rows: DayRow[]; goal: number }) {
   const C = useC();
   let cur = 0, best = 0;
   rows.forEach((r) => { if (r.waterMl >= goal) { cur += 1; best = Math.max(best, cur); } else cur = 0; });
-  return <View style={{ gap: 12 }}><Text style={{ color: C.text, fontWeight: "900", fontSize: 28 }}>{cur} days</Text><Text style={{ color: C.muted, fontWeight: "800" }}>Best hydration streak: {best} days</Text><DotCalendar dates={rows.slice(-14).map((r) => r.date)} hits={new Set(rows.filter((r) => r.waterMl >= goal).map((r) => r.date))} /></View>;
+  return <View style={{ gap: 12 }}><Text style={{ color: C.text, fontWeight: "600", fontSize: 28 }}>{cur} days</Text><Text style={{ color: C.muted, fontWeight: "500" }}>Best hydration streak: {best} days</Text><DotCalendar dates={rows.slice(-14).map((r) => r.date)} hits={new Set(rows.filter((r) => r.waterMl >= goal).map((r) => r.date))} /></View>;
 }
 
 function WeeklyVolume({ rows, goal }: { rows: DayRow[]; goal: number }) {
@@ -801,7 +803,7 @@ function ActivityDonut({ active, total }: { active: number; total: number }) {
 function BarSimple({ values, labels, color, goal }: { values: number[]; labels: string[]; color: string; goal?: number }) {
   const C = useC();
   const max = Math.max(...values, goal || 0, 1);
-  return <View style={{ height: 142, flexDirection: "row", alignItems: "flex-end", gap: 8 }}>{values.map((v, i) => <View key={i} style={{ flex: 1, alignItems: "center", gap: 5 }}><View style={{ width: "100%", height: Math.max(6, (v / max) * 108), borderRadius: 9, backgroundColor: color }} /><Text style={{ color: C.muted, fontSize: 10, fontWeight: "900" }}>{labels[i]}</Text></View>)}</View>;
+  return <View style={{ height: 142, flexDirection: "row", alignItems: "flex-end", gap: 8 }}>{values.map((v, i) => <View key={i} style={{ flex: 1, alignItems: "center", gap: 5 }}><View style={{ width: "100%", height: Math.max(6, (v / max) * 108), borderRadius: 9, backgroundColor: color }} /><Text style={{ color: C.muted, fontSize: 10, fontWeight: "600" }}>{labels[i]}</Text></View>)}</View>;
 }
 function CompareBars({ left, right, leftLabel, rightLabel }: { left: number; right: number; leftLabel: string; rightLabel: string }) {
   const C = useC();
@@ -810,12 +812,12 @@ function CompareBars({ left, right, leftLabel, rightLabel }: { left: number; rig
 }
 function BarLine({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
   const C = useC();
-  return <View style={{ gap: 5 }}><View style={{ flexDirection: "row" }}><Text style={{ color: C.text, fontWeight: "900", flex: 1 }}>{label}</Text><Text style={{ color, fontWeight: "900" }}>{value}g</Text></View><View style={{ height: 9, borderRadius: 999, backgroundColor: C.gray }}><View style={{ width: `${(value / max) * 100}%`, height: "100%", borderRadius: 999, backgroundColor: color }} /></View></View>;
+  return <View style={{ gap: 5 }}><View style={{ flexDirection: "row" }}><Text style={{ color: C.text, fontWeight: "600", flex: 1 }}>{label}</Text><Text style={{ color, fontWeight: "600" }}>{value}g</Text></View><View style={{ height: 9, borderRadius: 999, backgroundColor: C.gray }}><View style={{ width: `${(value / max) * 100}%`, height: "100%", borderRadius: 999, backgroundColor: color }} /></View></View>;
 }
 
 function ProjectionCard({ rows, profile, onAdjust }: { rows: DayRow[]; profile: Profile | null; onAdjust: () => void }) {
   const C = useC();
-  const current = Math.round((avg(rows.map((r) => r.calories)) - n((profile as any)?.calorieGoal ?? 2400)) / 500 * 10) / 10;
+  const current = Math.round((avg(rows.map((r) => r.calories)) - nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 80 }).calories) / 500 * 10) / 10;
   const targetDate = (weeks: number) => new Date(Date.now() + weeks * 7 * 86400000).toLocaleDateString(undefined, { month: "short", year: "numeric" });
   const scenarios = [
     { tone: C.red, name: "Current pace", pace: `${current.toFixed(1)} lb/wk`, eta: targetDate(36), detail: "Keep current logging and nutrition averages." },
@@ -824,19 +826,19 @@ function ProjectionCard({ rows, profile, onAdjust }: { rows: DayRow[]; profile: 
   ];
   const [expanded, setExpanded] = useState<string | null>(null);
   return (
-    <LinearGradient colors={[alpha(C.purple, 0.22), alpha(C.blue, 0.08)]} style={{ borderRadius: 24, padding: 1 }}>
+    <View style={{ borderRadius: 18 }}>
       <Card style={{ gap: 12, borderColor: alpha(C.purple, 0.42), backgroundColor: alpha(C.card, 0.96) }}>
-        <Text style={{ color: C.text, fontWeight: "900", fontSize: 20 }}>Goal Projection</Text>
-        <Text style={{ color: C.muted, fontWeight: "800" }}>Based on your last 30 days of actual behavior</Text>
+        <Text style={{ color: C.text, fontWeight: "600", fontSize: 20 }}>Goal Projection</Text>
+        <Text style={{ color: C.muted, fontWeight: "500" }}>Based on your last 30 days of actual behavior</Text>
         {scenarios.map((s) => (
           <Pressable key={s.name} onPress={() => setExpanded(expanded === s.name ? null : s.name)} style={{ borderRadius: 16, backgroundColor: alpha(s.tone, 0.1), borderWidth: 1, borderColor: alpha(s.tone, 0.28), padding: 11, gap: 6 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{ width: 8, height: 8, borderRadius: 999, backgroundColor: s.tone }} />
-              <Text style={{ color: C.text, fontWeight: "900", flex: 1 }}>{s.name}</Text>
-              <Text style={{ color: s.tone, fontWeight: "900" }}>{s.pace}</Text>
-              <Text style={{ color: C.muted, fontWeight: "800" }}>{s.eta}</Text>
+              <Text style={{ color: C.text, fontWeight: "600", flex: 1 }}>{s.name}</Text>
+              <Text style={{ color: s.tone, fontWeight: "600" }}>{s.pace}</Text>
+              <Text style={{ color: C.muted, fontWeight: "500" }}>{s.eta}</Text>
             </View>
-            {expanded === s.name ? <Text style={{ color: C.muted, fontWeight: "800" }}>{s.detail}</Text> : null}
+            {expanded === s.name ? <Text style={{ color: C.muted, fontWeight: "500" }}>{s.detail}</Text> : null}
           </Pressable>
         ))}
         <View style={{ height: 26, justifyContent: "center" }}>
@@ -844,21 +846,21 @@ function ProjectionCard({ rows, profile, onAdjust }: { rows: DayRow[]; profile: 
           {scenarios.map((s, i) => <View key={s.name} style={{ position: "absolute", left: `${12 + i * 38}%`, width: 10, height: 10, borderRadius: 999, backgroundColor: s.tone }} />)}
         </View>
         <Pressable onPress={onAdjust} style={{ minHeight: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: alpha(C.purple, 0.24), borderWidth: 1, borderColor: alpha(C.purple, 0.38) }}>
-          <Text style={{ color: C.text, fontWeight: "900" }}>Adjust my goals →</Text>
+          <Text style={{ color: C.text, fontWeight: "600" }}>Adjust my goals →</Text>
         </Pressable>
       </Card>
-    </LinearGradient>
+    </View>
   );
 }
 
 function ExpandedModal({ title, onClose }: { title: string | null; onClose: () => void }) {
   const C = useC();
   if (!title) return null;
-  return <Modal visible transparent animationType="slide"><View style={{ flex: 1, backgroundColor: C.bg, justifyContent: "center", padding: 18 }}><Card style={{ gap: 12 }}><View style={{ flexDirection: "row", alignItems: "center" }}><Text style={{ color: C.text, fontWeight: "900", fontSize: 22, flex: 1 }}>{title}</Text><Pressable onPress={onClose}><Ionicons name="close" size={24} color={C.text} /></Pressable></View><Text style={{ color: C.muted, fontWeight: "800", lineHeight: 20 }}>Fullscreen detail view. The same metric is expanded here for closer inspection.</Text></Card></View></Modal>;
+  return <Modal visible transparent animationType="slide"><View style={{ flex: 1, backgroundColor: C.bg, justifyContent: "center", padding: 18 }}><Card style={{ gap: 12 }}><View style={{ flexDirection: "row", alignItems: "center" }}><Text style={{ color: C.text, fontWeight: "600", fontSize: 22, flex: 1 }}>{title}</Text><Pressable onPress={onClose}><Ionicons name="close" size={24} color={C.text} /></Pressable></View><Text style={{ color: C.muted, fontWeight: "500", lineHeight: 20 }}>Fullscreen detail view. The same metric is expanded here for closer inspection.</Text></Card></View></Modal>;
 }
 
 function iconBtn(C: ReturnType<typeof useC>) {
-  return { width: 42, height: 42, borderRadius: 15, alignItems: "center" as const, justifyContent: "center" as const, borderWidth: 1, borderColor: C.hairline, backgroundColor: C.card };
+  return { width: 44, height: 44, borderRadius: 14, alignItems: "center" as const, justifyContent: "center" as const, borderWidth: 0, borderColor: C.hairline, backgroundColor: C.card };
 }
 
 function proteinMealInsight(v: Record<MealKey, number>) {

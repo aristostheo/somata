@@ -1,13 +1,29 @@
 // src/services/profile.js
 import { doc, getDoc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { withAcceptedTargets } from "./targetProjection";
 
 // Subscribe to a user's profile
 export function subscribeProfile(uid, cb) {
-  const ref = doc(db, "profiles", uid); // adjust path if you store under /users/{uid}/profile
-  return onSnapshot(ref, (snap) => {
-    cb(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+  let legacy;
+  let mobile;
+  let legacyReady = false;
+  let mobileReady = false;
+  const publish = () => {
+    if (!legacyReady || !mobileReady) return;
+    cb(withAcceptedTargets(legacy, mobile));
+  };
+  const unsubscribeLegacy = onSnapshot(doc(db, "profiles", uid), (snap) => {
+    legacy = snap.exists() ? { id: snap.id, ...snap.data() } : null;
+    legacyReady = true;
+    publish();
   });
+  const unsubscribeMobile = onSnapshot(doc(db, "users", uid), (snap) => {
+    mobile = snap.exists() ? snap.data() : null;
+    mobileReady = true;
+    publish();
+  }, () => { mobile = null; mobileReady = true; publish(); });
+  return () => { unsubscribeLegacy(); unsubscribeMobile(); };
 }
 
 /**

@@ -12,7 +12,7 @@ import Animated, {
   FadeOutDown,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { withAlpha } from "@/lib/color";
 
 export type FriendAction = {
@@ -38,7 +38,7 @@ export function FriendActionsSheet({
   onClose: () => void;
   actions: FriendAction[];
 }) {
-  const { colors, isDark } = useTheme();
+  const { colors, isDark } = useProfileFlowTheme();
 
   if (!open) return null;
 

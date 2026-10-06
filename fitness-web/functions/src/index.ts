@@ -18,6 +18,7 @@
 
 // export { parseMeal };
 export { describe } from "./describe";
+export { evaluateFitAdapt, getFitAdaptPlan, acceptFitAdaptPlan, declineFitAdaptPlan } from "./fitadapt/function";
 
 // // Start writing functions
 // // https://firebase.google.com/docs/functions/typescript

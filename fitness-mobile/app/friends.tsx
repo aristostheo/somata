@@ -1,11 +1,11 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import React, { useEffect, useMemo, useState } from "react";
+import { nutritionTargets } from "@/services/nutritionTargets";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  Platform,
-  StatusBar,
   Pressable,
   Alert,
   RefreshControl,
@@ -16,7 +16,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
-import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
+import Animated, { FadeInDown, FadeIn, useReducedMotion } from "react-native-reanimated";
 import {
   collection,
   getDocs,
@@ -27,6 +27,7 @@ import {
 } from "firebase/firestore";
 
 import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
 import { db } from "@/lib/firebase";
 import { withAlpha } from "@/lib/color";
@@ -289,8 +290,8 @@ function sharedSummary(
   }
   if (
     visibility.nutrition?.macroBreakdown &&
-    profile?.proteinGoal &&
-    (intel?.proteinTotalToday || 0) >= Number(profile.proteinGoal || 0)
+    nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 70 }).protein &&
+    (intel?.proteinTotalToday || 0) >= nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 70 }).protein
   ) {
     return "Hit protein goal today";
   }
@@ -326,14 +327,14 @@ function buildFriendChips(
   });
   if (
     visibility.nutrition?.macroBreakdown &&
-    profile?.proteinGoal &&
+    nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 70 }).protein &&
     intel &&
     intel.proteinTotalToday > 0
   ) {
     chips.push({
       key: "protein",
       label:
-        intel.proteinTotalToday >= Number(profile.proteinGoal || 0)
+        intel.proteinTotalToday >= nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 70 }).protein
           ? "Protein goal hit"
           : `${Math.round(intel.proteinTotalToday)}g protein`,
       tone: "purple",
@@ -506,8 +507,8 @@ async function loadFriendIntel(
   const activityFeed: ActivityFeedItem[] = [];
   if (
     visibility.nutrition?.macroBreakdown &&
-    profile?.proteinGoal &&
-    todayProtein >= Number(profile.proteinGoal || 0)
+    nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 70 }).protein &&
+    todayProtein >= nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 70 }).protein
   ) {
     activityFeed.push({
       key: "protein",
@@ -598,7 +599,8 @@ function LockedCard({ text, action }: { text: string; action?: () => void }) {
 }
 
 export default function FriendsPage() {
-  const { colors, isDark } = useTheme() as any;
+  const { colors, isDark } = useProfileFlowTheme();
+  const reduceMotion = useReducedMotion();
   const { user } = useAuth();
   const router = useRouter();
 
@@ -623,7 +625,6 @@ export default function FriendsPage() {
   const [nicknameValue, setNicknameValue] = useState("");
   const [toast, setToast] = useState("");
 
-  const topInset = Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0;
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -981,6 +982,7 @@ export default function FriendsPage() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <FlowAtmosphere />
       <FlatList
         data={data}
         keyExtractor={(item) => item.id}
@@ -991,7 +993,7 @@ export default function FriendsPage() {
             tintColor={colors.muted}
           />
         }
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: topInset + 18, paddingBottom: 28 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 28 }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListHeaderComponent={
           <View style={{ gap: 14, paddingBottom: 14 }}>
@@ -1138,7 +1140,7 @@ export default function FriendsPage() {
                 ? "green"
                 : "gray";
             return (
-              <Animated.View entering={FadeInDown.duration(320).delay(index * 24)}>
+              <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(180).delay(index * 20)}>
                 <FriendRowPremium
                   displayName={item.name}
                   uidLabel={item.uidLabel}
@@ -1163,7 +1165,7 @@ export default function FriendsPage() {
 
           if (tab === "requests") {
             return (
-              <Animated.View entering={FadeInDown.duration(320).delay(index * 24)}>
+              <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(180).delay(index * 20)}>
                 <RequestRowPremium
                   name={item.name}
                   handle={item.uidLabel}
@@ -1178,7 +1180,7 @@ export default function FriendsPage() {
           }
 
           return (
-            <Animated.View entering={FadeInDown.duration(320).delay(index * 24)}>
+            <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(180).delay(index * 20)}>
               <RequestRowPremium
                 name={item.name}
                 handle={item.uidLabel}
@@ -1346,8 +1348,8 @@ export default function FriendsPage() {
                       label: "Protein",
                       value:
                         selectedVisibility.enabled && selectedVisibility.nutrition?.macroBreakdown
-                          ? selectedProfile?.proteinGoal &&
-                            (selectedIntel?.proteinTotalToday || 0) >= Number(selectedProfile?.proteinGoal || 0)
+                          ? nutritionTargets(selectedProfile, { calories: 2400, protein: 160, carbs: 260, fat: 70 }).protein &&
+                            (selectedIntel?.proteinTotalToday || 0) >= nutritionTargets(selectedProfile, { calories: 2400, protein: 160, carbs: 260, fat: 70 }).protein
                             ? "Goal hit today"
                             : `${Math.round(selectedIntel?.proteinTotalToday || 0)}g today`
                           : "Private",
@@ -1742,8 +1744,8 @@ export default function FriendsPage() {
 
 
       {toast ? (
-        <Animated.View entering={FadeIn.duration(180)} style={styles.toast}>
-          <Text style={{ color: colors.text, fontWeight: "900" }}>{toast}</Text>
+        <Animated.View entering={reduceMotion ? undefined : FadeIn.duration(140)} style={styles.toast}>
+          <Text style={{ color: colors.text, fontWeight: "600" }}>{toast}</Text>
         </Animated.View>
       ) : null}
     </View>
@@ -1758,19 +1760,19 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 30,
-    fontWeight: "900",
+    fontWeight: "700",
     letterSpacing: -0.4,
   },
   subtitle: {
     marginTop: 4,
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: "400",
   },
   addBtn: {
-    minHeight: 42,
+    minHeight: 44,
     paddingHorizontal: 16,
     borderRadius: 999,
-    borderWidth: 1,
+    borderWidth: 0,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1873,8 +1875,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   sectionCard: {
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 18,
+    borderWidth: 0,
     padding: 14,
     gap: 10,
   },
@@ -1897,13 +1899,13 @@ const styles = StyleSheet.create({
   statTile: {
     width: "48.5%",
     minHeight: 92,
-    borderRadius: 18,
-    borderWidth: 1,
+    borderRadius: 14,
+    borderWidth: 0,
     padding: 14,
   },
   actionsCard: {
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 18,
+    borderWidth: 0,
     padding: 14,
   },
   actionRow: {

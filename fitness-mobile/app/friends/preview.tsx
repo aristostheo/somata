@@ -1,15 +1,15 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
 import { subscribeProfile, type Profile } from "@/services/profile";
 import { friendTrendLabel, getFriendVisibility, isFriendSharingAnything } from "@/services/friends/visibility";
-import { withAlpha } from "@/lib/color";
 
 export default function FriendPreviewPage() {
-  const { colors } = useTheme() as any;
+  const { colors } = useProfileFlowTheme();
   const { user } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -22,14 +22,15 @@ export default function FriendPreviewPage() {
   const sharing = isFriendSharingAnything(profile);
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 24, gap: 14 }}>
-        <Pressable onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <FlowAtmosphere />
+      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 20, gap: 18 }}>
+        <Pressable onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44 }}>
           <Ionicons name="chevron-back" size={18} color={colors.muted} />
-          <Text style={{ color: colors.muted, fontWeight: "800" }}>Back</Text>
+          <Text style={{ color: colors.muted, fontWeight: "600" }}>Back</Text>
         </Pressable>
-        <Text style={{ color: colors.text, fontWeight: "900", fontSize: 28 }}>Friend Preview</Text>
-        <View style={{ borderRadius: 22, borderWidth: 1, borderColor: withAlpha(colors.text, 0.08), backgroundColor: colors.surface1, padding: 16, gap: 8 }}>
-          <Text style={{ color: colors.text, fontWeight: "900", fontSize: 18 }}>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: 28 }}>Friend Preview</Text>
+        <View style={{ borderRadius: 18, backgroundColor: colors.surface1, padding: 18, gap: 8 }}>
+          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 18 }}>
             {(profile?.displayName || user?.displayName || "You") as string}
           </Text>
           {!visibility.enabled || !sharing ? (

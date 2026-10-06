@@ -1,3 +1,4 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Linking,
@@ -14,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 import { useAuth } from "@/content/AuthContext";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import {
   connectedCount,
   describeSyncInterval,
@@ -39,16 +40,16 @@ import {
 } from "@/services/integrations";
 
 function useC() {
-  const { colors } = (useTheme as any)();
+  const { colors, isDark } = useProfileFlowTheme();
   return {
-    bg: colors.background as string,
-    card: colors.surface1 as string,
-    card2: colors.surface2 as string,
-    text: colors.textPrimary as string,
-    muted: colors.textTertiary as string,
-    hairline: colors.border as string,
-    purple: colors.accent as string,
-    blue: colors.accent as string,
+    bg: colors.background,
+    card: colors.surface1,
+    card2: colors.surface2,
+    text: colors.textPrimary,
+    muted: colors.textTertiary,
+    hairline: colors.border,
+    purple: colors.primary as string,
+    blue: isDark ? "#B9A4FA" : "#7051B5",
     green: colors.success as string,
     amber: colors.warning as string,
     red: colors.danger as string,
@@ -118,10 +119,11 @@ export default function IntegrationsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <FlowAtmosphere />
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 18,
-          paddingHorizontal: 16,
+          paddingTop: 20,
+          paddingHorizontal: 20,
           paddingBottom: insets.bottom + 44,
           gap: 16,
         }}
@@ -207,7 +209,7 @@ export default function IntegrationsScreen() {
           <Note text="New weigh-ins update Profile body metrics and feed Long-term Progress." />
         </Section>
 
-        <Text style={{ color: C.muted, fontWeight: "800", lineHeight: 18 }}>
+        <Text style={{ color: C.muted, fontWeight: "500", lineHeight: 18 }}>
           Connected sources update Home steps and burn, Recovery on Home and
           Workouts, Nutrition calorie adjustments, detected Workouts, Insights
           trends, and Profile auto-filled health fields through the sync layer.
@@ -243,13 +245,13 @@ function Header({
         <Ionicons name="chevron-back" size={20} color={C.text} />
       </Pressable>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: C.text, fontWeight: "900", fontSize: 30 }}>
+        <Text style={{ color: C.text, fontWeight: "700", fontSize: 30 }}>
           Integrations
         </Text>
         <Text
           style={{
             color: C.muted,
-            fontWeight: "800",
+            fontWeight: "400",
             marginTop: 3,
             lineHeight: 18,
           }}
@@ -308,7 +310,7 @@ function Header({
         <Text
           style={{
             color: C.text,
-            fontWeight: "900",
+            fontWeight: "600",
             fontSize: 11,
             flexShrink: 1,
           }}
@@ -336,7 +338,7 @@ function InfoBanner() {
       }}
     >
       <Text style={{ fontSize: 16 }}>ℹ️</Text>
-      <Text style={{ color: C.text, fontWeight: "800", flex: 1, lineHeight: 18 }}>
+      <Text style={{ color: C.text, fontWeight: "500", flex: 1, lineHeight: 18 }}>
         We only read data you approve. Nothing is shared without your
         permission.
       </Text>
@@ -363,7 +365,7 @@ function OnboardingCard({
         gap: 12,
       }}
     >
-      <Text style={{ color: C.text, fontWeight: "900", fontSize: 17 }}>
+      <Text style={{ color: C.text, fontWeight: "600", fontSize: 17 }}>
         Set up health sync
       </Text>
       {steps.map((s, i) => (
@@ -381,18 +383,18 @@ function OnboardingCard({
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: C.text, fontWeight: "900" }}>{i + 1}</Text>
+            <Text style={{ color: C.text, fontWeight: "600" }}>{i + 1}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: C.text, fontWeight: "900" }}>{s[0]}</Text>
-            <Text style={{ color: C.muted, fontWeight: "800", marginTop: 2 }}>
+            <Text style={{ color: C.text, fontWeight: "600" }}>{s[0]}</Text>
+            <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>
               {s[1]}
             </Text>
           </View>
         </View>
       ))}
       <Pressable onPress={onDone} style={primaryButton(C)}>
-        <Text style={{ color: C.text, fontWeight: "900" }}>
+        <Text style={{ color: C.text, fontWeight: "600" }}>
           Start choosing sources
         </Text>
       </Pressable>
@@ -413,7 +415,7 @@ function Section({
       <Text
         style={{
           color: C.muted,
-          fontWeight: "900",
+          fontWeight: "600",
           fontSize: 12,
           textTransform: "uppercase",
           letterSpacing: 0.8,
@@ -445,9 +447,9 @@ function SyncSettingsCard({
     <Section title="Sync Settings">
       <View
         style={{
-          borderRadius: 22,
+          borderRadius: 18,
           backgroundColor: C.card,
-          borderWidth: 1,
+          borderWidth: 0,
           borderColor: C.hairline,
           padding: 14,
           gap: 14,
@@ -455,10 +457,10 @@ function SyncSettingsCard({
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 18 }}>
+            <Text style={{ color: C.text, fontWeight: "600", fontSize: 18 }}>
               Auto Sync
             </Text>
-            <Text style={{ color: C.muted, fontWeight: "800", marginTop: 3 }}>
+            <Text style={{ color: C.muted, fontWeight: "500", marginTop: 3 }}>
               Keep your data fresh without lifting a finger
             </Text>
           </View>
@@ -516,10 +518,10 @@ function SyncSettingsCard({
             }}
           />
           <View style={{ flex: 1 }}>
-            <Text style={{ color: C.text, fontWeight: "900" }}>
+            <Text style={{ color: C.text, fontWeight: "600" }}>
               {syncState.text}
             </Text>
-            <Text style={{ color: C.muted, fontWeight: "800", marginTop: 2 }}>
+            <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>
               {snapshot.settings.autoSync
                 ? `Global interval: ${formatSyncInterval(snapshot.settings.frequency)}`
                 : "Manual sync only — tap 'Sync now' on any integration"}
@@ -538,7 +540,7 @@ function SyncSettingsCard({
             updateIntegrationSettings({ frequency: v as SyncFrequency })
           }
         />
-        <Text style={{ color: C.muted, fontWeight: "800" }}>
+        <Text style={{ color: C.muted, fontWeight: "500" }}>
           {describeSyncInterval(snapshot.settings.frequency)}
         </Text>
 
@@ -552,7 +554,7 @@ function SyncSettingsCard({
             alignItems: "center",
           }}
         >
-          <Text style={{ color: C.text, fontWeight: "900", flex: 1 }}>
+          <Text style={{ color: C.text, fontWeight: "600", flex: 1 }}>
             Battery & Performance
           </Text>
           <Ionicons
@@ -608,15 +610,15 @@ function SyncSettingsCard({
         />
 
         <View style={{ borderTopWidth: 1, borderTopColor: C.hairline, paddingTop: 12, gap: 10 }}>
-          <Text style={{ color: C.text, fontWeight: "900" }}>Last full sync</Text>
-          <Text style={{ color: C.muted, fontWeight: "800" }}>
+          <Text style={{ color: C.text, fontWeight: "600" }}>Last full sync</Text>
+          <Text style={{ color: C.muted, fontWeight: "500" }}>
             All sources last synced: {formatLastSync(snapshot.settings.lastFullSyncAt)}
           </Text>
           <Pressable
             onPress={() => runIntegrationSync(uid, { reason: "manual", force: true })}
             style={primaryButton(C)}
           >
-            <Text style={{ color: C.text, fontWeight: "900" }}>Sync now →</Text>
+            <Text style={{ color: C.text, fontWeight: "600" }}>Sync now →</Text>
           </Pressable>
           <Pressable
             onPress={onOpenHistory}
@@ -630,7 +632,7 @@ function SyncSettingsCard({
               borderColor: C.hairline,
             }}
           >
-            <Text style={{ color: C.text, fontWeight: "900" }}>Sync history →</Text>
+            <Text style={{ color: C.text, fontWeight: "600" }}>Sync history →</Text>
           </Pressable>
         </View>
       </View>
@@ -691,8 +693,8 @@ function IntegrationCard({
       accessibilityRole="button"
       accessibilityLabel={`Open ${item.name} details`}
       style={({ pressed }) => ({
-        borderRadius: 22,
-        borderWidth: 1,
+        borderRadius: 18,
+        borderWidth: 0,
         borderColor: status === "error" ? alpha(C.red, 0.35) : C.hairline,
         backgroundColor: pressed ? C.card2 : C.card,
         padding: 14,
@@ -715,14 +717,14 @@ function IntegrationCard({
         </View>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 15 }}>
+            <Text style={{ color: C.text, fontWeight: "600", fontSize: 15 }}>
               {item.name}
             </Text>
             {item.badge ? <Chip text={item.badge} color={C.purple} /> : null}
             {conn?.primary ? <Chip text="Primary source" color={C.purple} /> : null}
           </View>
           <Text
-            style={{ color: C.muted, fontWeight: "800", marginTop: 4 }}
+            style={{ color: C.muted, fontWeight: "500", marginTop: 4 }}
             numberOfLines={2}
           >
             {hiddenByPlatform
@@ -757,7 +759,7 @@ function IntegrationCard({
               ),
             }}
           >
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 11 }}>
+            <Text style={{ color: C.text, fontWeight: "600", fontSize: 11 }}>
               {ringStatusText}
             </Text>
           </View>
@@ -783,7 +785,7 @@ function IntegrationCard({
           <>
             <Chip text={ringStatusText} color={!healthDependencyConnected ? C.amber : ringDetected ? C.green : C.amber} />
             {ringDetected ? (
-              <Text style={{ color: C.muted, fontWeight: "800" }}>
+              <Text style={{ color: C.muted, fontWeight: "500" }}>
                 Last synced: {formatLastSync(conn?.lastSyncedAt)}
               </Text>
             ) : null}
@@ -798,7 +800,7 @@ function IntegrationCard({
                 borderColor: alpha(C.purple, 0.34),
               }}
             >
-              <Text style={{ color: C.text, fontWeight: "900" }}>
+              <Text style={{ color: C.text, fontWeight: "600" }}>
                 {healthDependencyConnected
                   ? "View setup →"
                   : `Connect ${ringConnPlatformLabel()} →`}
@@ -819,9 +821,9 @@ function IntegrationCard({
               }
               color={statusColor}
             />
-            <Text style={{ color: statusColor, fontWeight: "800" }}>{syncLabel}</Text>
+            <Text style={{ color: statusColor, fontWeight: "500" }}>{syncLabel}</Text>
             {typeof battery === "number" ? (
-              <Text style={{ color: C.muted, fontWeight: "800" }}>
+              <Text style={{ color: C.muted, fontWeight: "500" }}>
                 Ring battery: {Math.round(battery)}% 🔋
               </Text>
             ) : null}
@@ -839,7 +841,7 @@ function IntegrationCard({
               borderColor: alpha(C.purple, 0.34),
             }}
           >
-            <Text style={{ color: C.text, fontWeight: "900" }}>Connect →</Text>
+            <Text style={{ color: C.text, fontWeight: "600" }}>Connect →</Text>
           </Pressable>
         ) : (
           <Chip text="Coming soon" color={C.muted} />
@@ -904,10 +906,10 @@ function DetailSheet({
               <Ionicons name={item.icon as any} size={20} color="white" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: C.text, fontWeight: "900", fontSize: 20 }}>
+              <Text style={{ color: C.text, fontWeight: "600", fontSize: 20 }}>
                 {item.name}
               </Text>
-              <Text style={{ color: C.muted, fontWeight: "800", marginTop: 2 }}>
+              <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>
                 {item.description}
               </Text>
             </View>
@@ -927,15 +929,15 @@ function DetailSheet({
                 gap: 10,
               }}
             >
-              <Text style={{ color: C.text, fontWeight: "900" }}>
+              <Text style={{ color: C.text, fontWeight: "600" }}>
                 How this works
               </Text>
-              <Text style={{ color: C.muted, fontWeight: "800", lineHeight: 18 }}>
+              <Text style={{ color: C.muted, fontWeight: "500", lineHeight: 18 }}>
                 RingConn doesn&apos;t offer a direct API yet. We read your ring&apos;s
                 data through {ringConnPlatformLabel()}, which RingConn already
                 syncs to. This is the same data — just a different path.
               </Text>
-              <Text style={{ color: C.text, fontWeight: "900", marginTop: 4 }}>
+              <Text style={{ color: C.text, fontWeight: "600", marginTop: 4 }}>
                 Setup
               </Text>
               {[
@@ -956,19 +958,19 @@ function DetailSheet({
                       justifyContent: "center",
                     }}
                   >
-                    <Text style={{ color: C.text, fontWeight: "900", fontSize: 11 }}>
+                    <Text style={{ color: C.text, fontWeight: "600", fontSize: 11 }}>
                       {idx + 1}
                     </Text>
                   </View>
-                  <Text style={{ color: C.muted, fontWeight: "800", flex: 1 }}>
+                  <Text style={{ color: C.muted, fontWeight: "500", flex: 1 }}>
                     {step}
                   </Text>
                 </View>
               ))}
-              <Text style={{ color: C.text, fontWeight: "900", marginTop: 2 }}>
+              <Text style={{ color: C.text, fontWeight: "600", marginTop: 2 }}>
                 Metrics passed through
               </Text>
-              <Text style={{ color: C.muted, fontWeight: "800" }}>
+              <Text style={{ color: C.muted, fontWeight: "500" }}>
                 HR · HRV · SpO₂ · Steps · Sleep · Calories · Skin temperature
               </Text>
               <Pressable
@@ -977,7 +979,7 @@ function DetailSheet({
                 }
                 style={{ alignSelf: "flex-start", paddingVertical: 4 }}
               >
-                <Text style={{ color: C.muted, fontWeight: "900" }}>
+                <Text style={{ color: C.muted, fontWeight: "600" }}>
                   How to enable in RingConn app →
                 </Text>
               </Pressable>
@@ -995,17 +997,17 @@ function DetailSheet({
                 gap: 8,
               }}
             >
-              <Text style={{ color: C.text, fontWeight: "900" }}>
+              <Text style={{ color: C.text, fontWeight: "600" }}>
                 Latest sync
               </Text>
-              <Text style={{ color: C.muted, fontWeight: "800" }}>
+              <Text style={{ color: C.muted, fontWeight: "500" }}>
                 {getConnectionSyncLabel(snapshot, conn)}
               </Text>
               {item.id === "ringconn" ? <LatestValuesGrid values={latest} /> : null}
             </View>
           ) : null}
 
-          <Text style={{ color: C.text, fontWeight: "900" }}>Data fields read</Text>
+          <Text style={{ color: C.text, fontWeight: "600" }}>Data fields read</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {item.fields.map((f) => (
               <Chip key={f} text={f} color={item.id === "ringconn" ? C.teal : C.purple} />
@@ -1061,8 +1063,8 @@ function DetailSheet({
               gap: 8,
             }}
           >
-            <Text style={{ color: C.text, fontWeight: "900" }}>Data flow</Text>
-            <Text style={{ color: C.muted, fontWeight: "800", lineHeight: 18 }}>
+            <Text style={{ color: C.text, fontWeight: "600" }}>Data flow</Text>
+            <Text style={{ color: C.muted, fontWeight: "500", lineHeight: 18 }}>
               This app reads approved fields from {item.name}. It never writes
               back without your permission.
             </Text>
@@ -1074,7 +1076,7 @@ function DetailSheet({
                 onPress={() => markPrimaryIntegration(item.id)}
                 style={[primaryButton(C), { flex: 1 }]}
               >
-                <Text style={{ color: C.text, fontWeight: "900" }}>
+                <Text style={{ color: C.text, fontWeight: "600" }}>
                   Set as primary
                 </Text>
               </Pressable>
@@ -1102,7 +1104,7 @@ function DetailSheet({
                   },
                 ]}
               >
-                <Text style={{ color: C.text, fontWeight: "900" }}>Sync now</Text>
+                <Text style={{ color: C.text, fontWeight: "600" }}>Sync now</Text>
               </Pressable>
             ) : null}
             {isRingConn && !dependencyConnected ? (
@@ -1124,7 +1126,7 @@ function DetailSheet({
                   },
                 ]}
               >
-                <Text style={{ color: C.text, fontWeight: "900" }}>
+                <Text style={{ color: C.text, fontWeight: "600" }}>
                   Connect {ringConnPlatformLabel()} →
                 </Text>
               </Pressable>
@@ -1190,12 +1192,12 @@ function LatestValuesGrid({
             gap: 3,
           }}
         >
-          <Text style={{ color: C.muted, fontWeight: "800", fontSize: 11 }}>
+          <Text style={{ color: C.muted, fontWeight: "500", fontSize: 11 }}>
             {label}
           </Text>
-          <Text style={{ color: C.text, fontWeight: "900" }}>{value}</Text>
+          <Text style={{ color: C.text, fontWeight: "600" }}>{value}</Text>
           {note ? (
-            <Text style={{ color: C.muted, fontWeight: "800", fontSize: 11 }}>
+            <Text style={{ color: C.muted, fontWeight: "500", fontSize: 11 }}>
               {note}
             </Text>
           ) : null}
@@ -1234,7 +1236,7 @@ function Segmented({
               borderColor: active ? alpha(C.purple, 0.42) : C.hairline,
             }}
           >
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 12 }}>
+            <Text style={{ color: C.text, fontWeight: "600", fontSize: 12 }}>
               {o.label}
             </Text>
           </Pressable>
@@ -1254,9 +1256,9 @@ function SettingLabel({
   const C = useC();
   return (
     <View style={{ gap: 3 }}>
-      <Text style={{ color: C.text, fontWeight: "900" }}>{title}</Text>
+      <Text style={{ color: C.text, fontWeight: "600" }}>{title}</Text>
       {subtitle ? (
-        <Text style={{ color: C.muted, fontWeight: "800", lineHeight: 17 }}>
+        <Text style={{ color: C.muted, fontWeight: "500", lineHeight: 17 }}>
           {subtitle}
         </Text>
       ) : null}
@@ -1308,7 +1310,7 @@ function Chip({
       <Text
         style={{
           color: color === C.muted ? C.muted : C.text,
-          fontWeight: "900",
+          fontWeight: "600",
           fontSize: 11,
         }}
       >
@@ -1331,7 +1333,7 @@ function Note({
         borderColor: alpha(C.amber, 0.24),
       }}
     >
-      <Text style={{ color: C.text, fontWeight: "800", lineHeight: 18 }}>
+      <Text style={{ color: C.text, fontWeight: "500", lineHeight: 18 }}>
         {text}
       </Text>
     </View>
@@ -1340,12 +1342,12 @@ function Note({
 
 function iconButton(C: ReturnType<typeof useC>) {
   return {
-    width: 42,
-    height: 42,
-    borderRadius: 15,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: "center" as const,
     justifyContent: "center" as const,
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: C.hairline,
     backgroundColor: C.card2,
   };
@@ -1358,7 +1360,7 @@ function primaryButton(C: ReturnType<typeof useC>) {
     alignItems: "center" as const,
     justifyContent: "center" as const,
     backgroundColor: alpha(C.purple, 0.24),
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: alpha(C.purple, 0.38),
   };
 }

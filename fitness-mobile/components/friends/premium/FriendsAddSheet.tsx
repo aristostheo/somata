@@ -18,7 +18,7 @@ import Animated, {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import QRCode from "react-native-qrcode-svg";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { withAlpha } from "@/lib/color";
 
 export function FriendsAddSheet({
@@ -38,7 +38,7 @@ export function FriendsAddSheet({
   privacyNote?: string;
   myUid?: string;
 }) {
-  const { colors, isDark } = useTheme() as any;
+  const { colors, isDark } = useProfileFlowTheme();
   const [target, setTarget] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [showQr, setShowQr] = useState(false);
@@ -76,10 +76,10 @@ export function FriendsAddSheet({
                 backgroundColor: colors.surface2,
                 borderColor: colors.borderElevated,
                 shadowColor: colors.textPrimary,
-                shadowOpacity: isDark ? 0 : 0.08,
+                shadowOpacity: 0,
                 shadowRadius: isDark ? 0 : 18,
                 shadowOffset: { width: 0, height: 8 },
-                elevation: isDark ? 0 : 2,
+                elevation: 0,
               },
             ]}
           >

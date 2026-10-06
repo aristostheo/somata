@@ -1,3 +1,4 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,22 +7,22 @@ import { useRouter } from "expo-router";
 import Svg, { Line, Rect, Text as SvgText } from "react-native-svg";
 
 import { useAuth } from "@/content/AuthContext";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { subscribeProfile, type Profile } from "@/services/profile";
 
 type RangeKey = 7 | 30 | 90;
 
 function useC() {
-  const { colors } = (useTheme as any)();
+  const { colors, isDark } = useProfileFlowTheme();
   return {
-    bg: colors.background as string,
-    card: colors.surface1 as string,
-    card2: colors.surface2 as string,
-    text: colors.textPrimary as string,
-    muted: colors.textTertiary as string,
-    hairline: colors.border as string,
-    purple: colors.accent as string,
-    blue: colors.accent as string,
+    bg: colors.background,
+    card: colors.surface1,
+    card2: colors.surface2,
+    text: colors.textPrimary,
+    muted: colors.textTertiary,
+    hairline: colors.border,
+    purple: colors.primary as string,
+    blue: isDark ? "#B9A4FA" : "#7051B5",
     teal: colors.accent as string,
     green: colors.success as string,
     amber: colors.warning as string,
@@ -157,11 +158,12 @@ export default function StepsHistoryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <FlowAtmosphere />
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 18,
+          paddingTop: 20,
           paddingBottom: insets.bottom + 44,
-          paddingHorizontal: 16,
+          paddingHorizontal: 20,
           gap: 16,
         }}
         showsVerticalScrollIndicator={false}
@@ -176,8 +178,8 @@ export default function StepsHistoryScreen() {
             <Ionicons name="chevron-back" size={20} color={C.text} />
           </Pressable>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 30 }}>Steps</Text>
-            <Text style={{ color: C.muted, fontWeight: "800", marginTop: 3 }}>
+            <Text style={{ color: C.text, fontWeight: "700", fontSize: 30 }}>Steps</Text>
+            <Text style={{ color: C.muted, fontWeight: "400", marginTop: 3 }}>
               {rangeSubtitle(range, dates)}
             </Text>
           </View>
@@ -187,9 +189,9 @@ export default function StepsHistoryScreen() {
         <View style={{ borderRadius: 24 }}>
           <View
             style={{
-              borderRadius: 23,
+              borderRadius: 18,
               backgroundColor: C.card,
-              borderWidth: 1,
+              borderWidth: 0,
               borderColor: alpha(C.teal, 0.14),
               padding: 16,
               gap: 14,
@@ -198,21 +200,21 @@ export default function StepsHistoryScreen() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <View
                 style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 16,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
                   alignItems: "center",
                   justifyContent: "center",
                   backgroundColor: alpha(C.teal, 0.14),
                 }}
               >
-                <Ionicons name="footsteps-outline" size={22} color={C.teal} />
+                <Ionicons name="footsteps-outline" size={19} color={C.teal} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: C.text, fontWeight: "900", fontSize: 18 }}>
+                <Text style={{ color: C.text, fontWeight: "700", fontSize: 18 }}>
                   Walking rhythm
                 </Text>
-                <Text style={{ color: C.muted, fontWeight: "800", marginTop: 2, lineHeight: 18 }}>
+                <Text style={{ color: C.muted, fontWeight: "400", marginTop: 2, lineHeight: 18 }}>
                   {summary}
                 </Text>
               </View>
@@ -242,9 +244,9 @@ export default function StepsHistoryScreen() {
         <SectionLabel title="Trend" />
         <View
           style={{
-            borderRadius: 22,
+            borderRadius: 18,
             backgroundColor: C.card,
-            borderWidth: 1,
+            borderWidth: 0,
             borderColor: C.hairline,
             padding: 14,
             gap: 12,
@@ -290,13 +292,13 @@ export default function StepsHistoryScreen() {
           </Svg>
 
           <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
-            <Text style={{ color: C.muted, fontWeight: "800", fontSize: 12 }}>
+            <Text style={{ color: C.muted, fontWeight: "500", fontSize: 12 }}>
               {fmtWeekday(dates[0])}
             </Text>
-            <Text style={{ color: C.muted, fontWeight: "800", fontSize: 12 }}>
+            <Text style={{ color: C.muted, fontWeight: "500", fontSize: 12 }}>
               {fmtWeekday(dates[Math.floor((dates.length - 1) / 2)])}
             </Text>
-            <Text style={{ color: C.muted, fontWeight: "800", fontSize: 12 }}>
+            <Text style={{ color: C.muted, fontWeight: "500", fontSize: 12 }}>
               {fmtWeekday(dates[dates.length - 1])}
             </Text>
           </View>
@@ -305,9 +307,9 @@ export default function StepsHistoryScreen() {
         <SectionLabel title="Recent Days" />
         <View
           style={{
-            borderRadius: 22,
+            borderRadius: 18,
             backgroundColor: C.card,
-            borderWidth: 1,
+            borderWidth: 0,
             borderColor: C.hairline,
             overflow: "hidden",
           }}
@@ -342,14 +344,14 @@ export default function StepsHistoryScreen() {
                     }}
                   />
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: C.text, fontWeight: "900", fontSize: 15 }}>
+                    <Text style={{ color: C.text, fontWeight: "600", fontSize: 15 }}>
                       {new Date(`${row.date}T12:00:00`).toLocaleDateString(undefined, {
                         weekday: "long",
                         month: "short",
                         day: "numeric",
                       })}
                     </Text>
-                    <Text style={{ color: C.muted, fontWeight: "800", marginTop: 3 }}>
+                    <Text style={{ color: C.muted, fontWeight: "500", marginTop: 3 }}>
                       {row.steps >= stepsGoal
                         ? "Goal hit"
                         : row.steps > 0
@@ -358,10 +360,10 @@ export default function StepsHistoryScreen() {
                     </Text>
                   </View>
                   <View style={{ alignItems: "flex-end", minWidth: 74 }}>
-                    <Text style={{ color: C.text, fontWeight: "900", fontSize: 16 }}>
+                    <Text style={{ color: C.text, fontWeight: "600", fontSize: 16 }}>
                       {row.steps.toLocaleString()}
                     </Text>
-                    <Text style={{ color: C.muted, fontWeight: "800", marginTop: 2 }}>
+                    <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>
                       steps
                     </Text>
                   </View>
@@ -389,7 +391,7 @@ function RangePill({
         borderRadius: 999,
         padding: 3,
         backgroundColor: C.card2,
-        borderWidth: 1,
+        borderWidth: 0,
         borderColor: C.hairline,
       }}
     >
@@ -401,14 +403,14 @@ function RangePill({
             onPress={() => onChange(option)}
             style={{
               paddingHorizontal: 11,
-              minHeight: 34,
+              minHeight: 44,
               borderRadius: 999,
               alignItems: "center",
               justifyContent: "center",
               backgroundColor: active ? alpha(C.purple, 0.26) : "transparent",
             }}
           >
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 12 }}>
+            <Text style={{ color: C.text, fontWeight: "600", fontSize: 12 }}>
               {option === 7 ? "7D" : option === 30 ? "30D" : "90D"}
             </Text>
           </Pressable>
@@ -432,16 +434,16 @@ function StatCard({
     <View
       style={{
         flex: 1,
-        borderRadius: 18,
+        borderRadius: 14,
         padding: 12,
         backgroundColor: C.card2,
-        borderWidth: 1,
+        borderWidth: 0,
         borderColor: alpha(accent, 0.22),
         gap: 4,
       }}
     >
-      <Text style={{ color: C.muted, fontWeight: "800", fontSize: 11 }}>{label}</Text>
-      <Text style={{ color: C.text, fontWeight: "900", fontSize: 18 }}>{value}</Text>
+      <Text style={{ color: C.muted, fontWeight: "500", fontSize: 11 }}>{label}</Text>
+      <Text style={{ color: C.text, fontWeight: "600", fontSize: 18 }}>{value}</Text>
     </View>
   );
 }
@@ -452,7 +454,7 @@ function SectionLabel({ title }: { title: string }) {
     <Text
       style={{
         color: C.muted,
-        fontWeight: "900",
+        fontWeight: "600",
         fontSize: 12,
         textTransform: "uppercase",
         letterSpacing: 0.8,
@@ -465,12 +467,12 @@ function SectionLabel({ title }: { title: string }) {
 
 function iconButton(C: ReturnType<typeof useC>) {
   return {
-    width: 42,
-    height: 42,
-    borderRadius: 15,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: "center" as const,
     justifyContent: "center" as const,
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: C.hairline,
     backgroundColor: C.card2,
   };

@@ -1,3 +1,4 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
@@ -12,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { useAuth } from "@/content/AuthContext";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { subscribeProfile, updateProfile, type Profile } from "@/services/profile";
 import {
   DEFAULT_FRIEND_VISIBILITY,
@@ -90,7 +91,7 @@ function setNested(obj: any, path: string, value: boolean) {
 export default function FriendVisibilityPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { colors } = useTheme() as any;
+  const { colors } = useProfileFlowTheme();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [savedToast, setSavedToast] = useState("");
 
@@ -135,14 +136,15 @@ export default function FriendVisibilityPage() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 24, gap: 14, paddingBottom: 32 }}>
-        <Pressable onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <FlowAtmosphere />
+      <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 24, gap: 18, paddingBottom: 32 }}>
+        <Pressable onPress={() => router.back()} style={{ flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44 }}>
           <Ionicons name="chevron-back" size={18} color={colors.muted} />
-          <Text style={{ color: colors.muted, fontWeight: "800" }}>Back</Text>
+          <Text style={{ color: colors.muted, fontWeight: "600" }}>Back</Text>
         </Pressable>
 
         <View>
-          <Text style={{ color: colors.text, fontWeight: "900", fontSize: 30 }}>Friend Visibility</Text>
+          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 30 }}>Friend Visibility</Text>
           <Text style={{ color: colors.muted, marginTop: 4, lineHeight: 18 }}>
             Control what your friends can see. Changes apply immediately.
           </Text>
@@ -154,10 +156,10 @@ export default function FriendVisibilityPage() {
           </View>
         ) : null}
 
-        <View style={{ borderRadius: 22, borderWidth: 1, borderColor: withAlpha(colors.text, 0.08), backgroundColor: colors.surface1, padding: 16, gap: 12 }}>
+        <View style={{ borderRadius: 18, backgroundColor: colors.surface1, padding: 16, gap: 12 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text, fontWeight: "900", fontSize: 15 }}>Share activity with friends</Text>
+              <Text style={{ color: colors.text, fontWeight: "600", fontSize: 15 }}>Share activity with friends</Text>
               <Text style={{ color: colors.muted, marginTop: 4, lineHeight: 18 }}>
                 When off, friends see nothing while this is off.
               </Text>
@@ -174,22 +176,22 @@ export default function FriendVisibilityPage() {
         </View>
 
         {GROUPS.map((group) => (
-          <View key={group.title} style={{ borderRadius: 22, borderWidth: 1, borderColor: withAlpha(colors.text, 0.08), backgroundColor: colors.surface1, padding: 16, gap: 12 }}>
-            <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "900", letterSpacing: 0.8, textTransform: "uppercase" }}>
+          <View key={group.title} style={{ paddingVertical: 8, gap: 12 }}>
+            <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "600", letterSpacing: 1, textTransform: "uppercase" }}>
               {group.title}
             </Text>
             {group.rows.map((row) => {
               const [a, b] = row.path.split(".");
               const value = !!(visibility as any)?.[a]?.[b];
               return (
-                <View key={row.path} style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, opacity: visibility.enabled ? 1 : 0.45 }}>
+                <View key={row.path} style={{ flexDirection: "row", alignItems: "center", gap: 12, opacity: visibility.enabled ? 1 : 0.45, minHeight: 56, borderBottomWidth: 1, borderBottomColor: withAlpha(colors.text, 0.07) }}>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: colors.text, fontWeight: "900", fontSize: 14.5 }}>{row.label}</Text>
+                    <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14.5 }}>{row.label}</Text>
                     <Text style={{ color: colors.muted, marginTop: 4, lineHeight: 18 }}>{row.detail}</Text>
                   </View>
                   <Pressable
                     onPress={() => Alert.alert("Friend preview", row.detail)}
-                    style={{ width: 34, height: 34, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: withAlpha(colors.text, 0.05), borderWidth: 1, borderColor: withAlpha(colors.text, 0.08) }}
+                    style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}
                   >
                     <Ionicons name="eye-outline" size={16} color={colors.muted} />
                   </Pressable>
@@ -205,15 +207,13 @@ export default function FriendVisibilityPage() {
             onPress={() => router.push("/friends/preview" as any)}
             style={({ pressed }) => ({
               minHeight: 48,
-              borderRadius: 18,
-              borderWidth: 1,
-              borderColor: withAlpha(colors.primary, 0.32),
-              backgroundColor: withAlpha(colors.primary, pressed ? 0.18 : 0.12),
+              borderRadius: 14,
+              backgroundColor: withAlpha(colors.primary, pressed ? 0.16 : 0.1),
               alignItems: "center",
               justifyContent: "center",
             })}
           >
-            <Text style={{ color: colors.text, fontWeight: "900" }}>Preview my profile as a friend →</Text>
+            <Text style={{ color: colors.text, fontWeight: "600" }}>Preview my profile as a friend →</Text>
           </Pressable>
           <Pressable
             onPress={() => savePatch({ friendVisibility: DEFAULT_FRIEND_VISIBILITY })}

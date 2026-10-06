@@ -1,11 +1,9 @@
 // components/badges/BadgeCard.tsx
-import React, { useMemo } from "react";
+import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { withAlpha } from "@/lib/color";
-import BadgeMedallion from "./BadgeMedalion";
 
 type Props = {
   title: string;
@@ -26,17 +24,8 @@ export default function BadgeCard({
   rightMeta,
   onPress,
 }: Props) {
-  const { colors, isDark } = useTheme();
-
-  const cardBg = useMemo(() => {
-    if (isDark) return withAlpha("#0B1220", 0.62);
-    return withAlpha("#FFFFFF", 0.72);
-  }, [isDark]);
-
-  const border = useMemo(
-    () => withAlpha(colors.border, isDark ? 0.22 : 0.18),
-    [colors.border, isDark]
-  );
+  const { colors, isDark } = useProfileFlowTheme();
+  const tone = accent || colors.primary;
   const titleColor = unlocked
     ? colors.text
     : withAlpha(colors.text, isDark ? 0.7 : 0.6);
@@ -47,26 +36,18 @@ export default function BadgeCard({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={[title, subtitle, rightMeta].filter(Boolean).join(", ")}
       style={({ pressed }) => [
         styles.press,
-        pressed && { transform: [{ scale: 0.99 }], opacity: 0.96 },
+        pressed && { opacity: 0.65 },
       ]}
     >
-      <View style={[styles.card, { borderColor: border }]}>
-        <BlurView
-          intensity={isDark ? 16 : 24}
-          tint={isDark ? "dark" : "light"}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: cardBg }]} />
-
+      <View style={[styles.card, { borderBottomColor: colors.border }]}>
         <View style={styles.row}>
-          <BadgeMedallion
-            icon={icon}
-            unlocked={unlocked}
-            accent={accent}
-            size={46}
-          />
+          <View style={[styles.icon, { backgroundColor: unlocked ? withAlpha(tone, 0.12) : colors.surface2 }]}>
+            <Ionicons name={icon} size={21} color={unlocked ? tone : colors.textTertiary} />
+          </View>
 
           <View style={styles.textCol}>
             <Text
@@ -106,18 +87,18 @@ export default function BadgeCard({
 }
 
 const styles = StyleSheet.create({
-  press: { marginBottom: 10 },
+  press: {},
   card: {
-    borderWidth: 1,
-    borderRadius: 18,
-    overflow: "hidden",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    minHeight: 68,
+    paddingHorizontal: 2,
+    paddingVertical: 10,
   },
+  icon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   row: { flexDirection: "row", alignItems: "center", gap: 12 },
   textCol: { flex: 1, minWidth: 0 },
-  title: { fontSize: 16, fontWeight: "700" },
-  sub: { marginTop: 2, fontSize: 13, fontWeight: "600" },
+  title: { fontSize: 15, fontWeight: "600" },
+  sub: { marginTop: 2, fontSize: 13, fontWeight: "400" },
   right: { flexDirection: "row", alignItems: "center", gap: 8 },
-  meta: { fontSize: 12, fontWeight: "700" },
+  meta: { fontSize: 12, fontWeight: "500" },
 });

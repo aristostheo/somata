@@ -9,6 +9,7 @@ import {
   setDoc,
   updateDoc,
   increment,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -144,6 +145,8 @@ export type Profile = {
   };
   goalInputs?: GoalInputs;
   goalResult?: MacroResult;
+  /** Backend-derived projection; authoritative record lives in fitadaptPlans/{uid}. */
+  activeFitAdaptTargets?: { calories: number; protein: number; carbs: number; fat: number };
   goalUpdatedAt?: number;
   goalPace?: GoalInputs["pace"];
   proteinPriority?: GoalInputs["proteinPriority"];
@@ -239,6 +242,16 @@ export function subscribeProfile(uid: string, cb: (p: Profile | null) => void) {
 }
 
 export async function updateProfile(uid: string, patch: Partial<Profile>) {
+  const weight = patch.weightKg;
+  if (typeof weight === "number" && Number.isFinite(weight) && weight >= 30 && weight <= 300) {
+    const today = new Date();
+    const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    const batch = writeBatch(getFirestore() ?? db);
+    batch.update(ref(uid), sanitizeProfilePatch(patch) as any);
+    batch.set(doc(getFirestore() ?? db, "users", uid, "fitadaptWeightEntries", date), { date, weightKg: weight });
+    await batch.commit();
+    return;
+  }
   await updateDoc(ref(uid), sanitizeProfilePatch(patch) as any);
 }
 export async function setStepsForDate(

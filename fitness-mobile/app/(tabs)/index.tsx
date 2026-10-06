@@ -22,6 +22,7 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { nutritionTargets } from "@/services/nutritionTargets";
 import { BlurView } from "expo-blur";
 import { MotiView } from "moti";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -297,11 +298,11 @@ export default function HomeScreen() {
   );
 
   /* ───────────────── Derivations (copied from old logic) ───────────────── */
-  const kcalGoal =
-    profile?.dailyCaloriesTarget ?? (profile as any)?.calorieGoal ?? 2400;
-  const proteinGoal = profile?.dailyProteinTarget ?? 160;
-  const carbGoal = (profile as any)?.carbGoal ?? 260;
-  const fatGoal = (profile as any)?.fatGoal ?? 70;
+  const targetValues = nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 70 });
+  const kcalGoal = targetValues.calories;
+  const proteinGoal = targetValues.protein;
+  const carbGoal = targetValues.carbs;
+  const fatGoal = targetValues.fat;
 
   const totals = useMemo(() => {
     return foodsToday.reduce(

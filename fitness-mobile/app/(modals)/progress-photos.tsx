@@ -1,3 +1,4 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -12,10 +13,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useReducedMotion } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import {
   addPhoto,
   deletePhoto,
@@ -37,7 +39,8 @@ function wait(ms: number) {
 }
 
 export default function ProgressPhotosScreen() {
-  const { colors } = useTheme();
+  const { colors } = useProfileFlowTheme();
+  const reduceMotion = useReducedMotion();
   const router = useRouter();
   const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
   const [baselineId, setBaselineId] = useState<string | null>(null);
@@ -142,6 +145,7 @@ export default function ProgressPhotosScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <FlowAtmosphere />
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Pressable onPress={() => router.back()} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
           <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
@@ -156,7 +160,7 @@ export default function ProgressPhotosScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 32, gap: 18 }}
         showsVerticalScrollIndicator={false}
       >
         {current ? (
@@ -241,7 +245,7 @@ export default function ProgressPhotosScreen() {
         </ScrollView>
       </ScrollView>
 
-      <Modal visible={pickerOpen} transparent animationType="fade" onRequestClose={() => setPickerOpen(false)}>
+      <Modal visible={pickerOpen} transparent animationType={reduceMotion ? "none" : "fade"} onRequestClose={() => setPickerOpen(false)}>
         <View style={styles.modalOverlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setPickerOpen(false)} />
           <View style={[styles.sheet, { backgroundColor: colors.surface2, borderColor: colors.borderElevated }]}>
@@ -256,7 +260,7 @@ export default function ProgressPhotosScreen() {
         </View>
       </Modal>
 
-      <Modal visible={!!pendingUri} animationType="slide" onRequestClose={() => setPendingUri(null)}>
+      <Modal visible={!!pendingUri} animationType={reduceMotion ? "none" : "slide"} onRequestClose={() => setPendingUri(null)}>
         <View style={[styles.root, { backgroundColor: colors.background }]}>
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <Pressable onPress={() => setPendingUri(null)} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
@@ -288,7 +292,7 @@ export default function ProgressPhotosScreen() {
         </View>
       </Modal>
 
-      <Modal visible={privacyOpen} transparent animationType="fade" onRequestClose={() => setPrivacyOpen(false)}>
+      <Modal visible={privacyOpen} transparent animationType={reduceMotion ? "none" : "fade"} onRequestClose={() => setPrivacyOpen(false)}>
         <View style={styles.modalOverlay}>
           <View style={[styles.noticeCard, { backgroundColor: colors.surface2, borderColor: colors.borderElevated }]}>
             <Text style={[styles.noticeTitle, { color: colors.textPrimary }]}>Private by default</Text>
@@ -308,7 +312,7 @@ export default function ProgressPhotosScreen() {
         </View>
       </Modal>
 
-      <Modal visible={viewerIndex != null} transparent={false} animationType="fade" onRequestClose={() => setViewerIndex(null)}>
+      <Modal visible={viewerIndex != null} transparent={false} animationType={reduceMotion ? "none" : "fade"} onRequestClose={() => setViewerIndex(null)}>
         <View style={[styles.viewerRoot, { backgroundColor: colors.background }]}>
           <View style={styles.viewerHeader}>
             <Pressable onPress={() => setViewerIndex(null)} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
@@ -345,40 +349,40 @@ export default function ProgressPhotosScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   header: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 18,
     paddingBottom: 12,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    borderWidth: 0,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "500",
+    fontSize: 22,
+    fontWeight: "700",
   },
   addPill: {
     minWidth: 72,
-    height: 34,
+    height: 44,
     borderRadius: 999,
-    borderWidth: 1,
+    borderWidth: 0,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 14,
   },
-  addPillText: { fontSize: 12, fontWeight: "500" },
+  addPillText: { fontSize: 13, fontWeight: "600" },
   compareRow: { flexDirection: "row", gap: 12 },
   compareImage: { width: "100%", height: 200, borderRadius: 12 },
   labelChip: {
-    borderWidth: 1,
+    borderWidth: 0,
     borderRadius: 999,
     height: 28,
     alignItems: "center",
@@ -391,7 +395,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     height: 30,
     borderRadius: 999,
-    borderWidth: 1,
+    borderWidth: 0,
     paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",
@@ -410,7 +414,7 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    borderWidth: 1,
+    borderWidth: 0,
     padding: 16,
     gap: 12,
   },
@@ -424,7 +428,7 @@ const styles = StyleSheet.create({
   sheetRow: {
     height: 48,
     borderRadius: 14,
-    borderWidth: 1,
+    borderWidth: 0,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -462,7 +466,7 @@ const styles = StyleSheet.create({
   noticeCard: {
     margin: 24,
     borderRadius: 24,
-    borderWidth: 1,
+    borderWidth: 0,
     padding: 20,
     gap: 14,
     alignSelf: "center",

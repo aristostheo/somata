@@ -8,6 +8,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:rules": "node --test test/firestore-rules.emulator.cjs",
     "eject": "react-scripts eject",
     "dev": "react-scripts start"
   },

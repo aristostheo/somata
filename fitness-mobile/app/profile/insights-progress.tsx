@@ -1,3 +1,5 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
+import { nutritionTargets } from "@/services/nutritionTargets";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Modal,
@@ -10,6 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { MotiView } from "moti";
+import { useReducedMotion } from "react-native-reanimated";
 import Svg, {
   Circle,
   Line,
@@ -22,7 +25,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 import { useAuth } from "@/content/AuthContext";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import {
   subscribeFoodsBetween,
   subscribeExerciseBetween,
@@ -54,22 +57,22 @@ type DayRow = {
 };
 
 function useC() {
-  const { colors } = (useTheme as any)();
+  const { colors, isDark } = useProfileFlowTheme();
   return {
-    bg: colors.background as string,
-    card: colors.surface1 as string,
-    card2: colors.surface2 as string,
-    text: colors.textPrimary as string,
-    muted: colors.textTertiary as string,
-    hairline: colors.border as string,
-    purple: colors.accent as string,
-    blue: colors.accent as string,
+    bg: colors.background,
+    card: colors.surface1,
+    card2: colors.surface2,
+    text: colors.textPrimary,
+    muted: colors.textTertiary,
+    hairline: colors.border,
+    purple: colors.primary as string,
+    blue: isDark ? "#B9A4FA" : "#7051B5",
     teal: colors.accent as string,
     green: colors.success as string,
     amber: colors.warning as string,
     red: colors.danger as string,
-    gray: colors.surface3 as string,
-    whiteSoft: colors.textPrimary as string,
+    gray: colors.surface3,
+    whiteSoft: colors.textPrimary,
   };
 }
 
@@ -339,19 +342,7 @@ export default function InsightsProgressScreen() {
 
   const goals: Goals = useMemo(
     () => ({
-      calories: n(
-        (profile as any)?.dailyCaloriesTarget ??
-          (profile as any)?.calorieGoal ??
-          (profile as any)?.caloriesGoal ??
-          2400
-      ),
-      protein: n(
-        (profile as any)?.dailyProteinTarget ??
-          (profile as any)?.proteinGoal ??
-          160
-      ),
-      carbs: n((profile as any)?.carbGoal ?? (profile as any)?.carbsGoal ?? 260),
-      fat: n((profile as any)?.fatGoal ?? (profile as any)?.fatsGoal ?? 80),
+      ...nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 80 }),
       waterMl: n((profile as any)?.waterGoalMl ?? 2400),
     }),
     [profile]
@@ -535,10 +526,11 @@ export default function InsightsProgressScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <FlowAtmosphere />
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 18,
-          paddingHorizontal: 16,
+          paddingTop: 20,
+          paddingHorizontal: 20,
           paddingBottom: insets.bottom + 42,
           gap: 18,
         }}
@@ -658,11 +650,11 @@ export default function InsightsProgressScreen() {
           ) : (
             <EmptyCard title="No records yet" cta="Log data" />
           )}
-          <Text style={{ color: C.muted, fontWeight: "900", marginTop: 12 }}>
+          <Text style={{ color: C.muted, fontWeight: "600", marginTop: 12 }}>
             {unlockedBadges.length} earned · {lockedBadges.length} to go
           </Text>
           {unlockedBadges.length ? (
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 12, marginTop: 4 }}>Earned</Text>
+            <Text style={{ color: C.text, fontWeight: "600", fontSize: 12, marginTop: 4 }}>Earned</Text>
           ) : null}
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 8 }}>
             {unlockedBadges.slice(0, 9).map((b) => (
@@ -674,7 +666,7 @@ export default function InsightsProgressScreen() {
               />
             ))}
           </View>
-          <Text style={{ color: C.muted, fontWeight: "900", fontSize: 12, marginTop: 10 }}>Locked</Text>
+          <Text style={{ color: C.muted, fontWeight: "600", fontSize: 12, marginTop: 10 }}>Locked</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 8 }}>
             {lockedBadges.map((b) => (
               <BadgeCell
@@ -690,23 +682,19 @@ export default function InsightsProgressScreen() {
         <Section title="AI Weekly Summary">
           <View
             style={{
-              borderRadius: 24,
-              borderWidth: 1,
+              borderRadius: 18,
+              borderWidth: 0,
               borderColor: withAlpha(C.purple, 0.6),
               backgroundColor: withAlpha(C.purple, 0.14),
               padding: 16,
-              shadowColor: C.purple,
-              shadowOpacity: 0.35,
-              shadowRadius: 18,
-              shadowOffset: { width: 0, height: 8 },
               gap: 12,
             }}
           >
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 18 }}>
+              <Text style={{ color: C.text, fontWeight: "700", fontSize: 18 }}>
               ✦ Your week in review
             </Text>
             {weeklyBullets.map((b) => (
-              <Text key={b} style={{ color: C.whiteSoft, fontWeight: "800", lineHeight: 19 }}>
+              <Text key={b} style={{ color: C.whiteSoft, fontWeight: "500", lineHeight: 19 }}>
                 {b.startsWith("Hit") ? "✓ " : b.startsWith("Protein") ? "↑ " : b.startsWith("Hydration") ? "⚠ " : "→ "}
                 {b}
               </Text>
@@ -725,7 +713,7 @@ export default function InsightsProgressScreen() {
                 borderColor: withAlpha(C.purple, 0.48),
               })}
             >
-              <Text style={{ color: C.text, fontWeight: "900" }}>Share my week</Text>
+              <Text style={{ color: C.text, fontWeight: "600" }}>Share my week</Text>
             </Pressable>
           </View>
         </Section>
@@ -794,10 +782,10 @@ function AdvancedMetricsEntry({ onPress }: { onPress: () => void }) {
           <Ionicons name="analytics-outline" size={22} color={C.text} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: C.text, fontWeight: "900", fontSize: 17 }}>
+          <Text style={{ color: C.text, fontWeight: "600", fontSize: 17 }}>
             Advanced Metrics →
           </Text>
-          <Text style={{ color: C.muted, fontWeight: "800", marginTop: 3 }}>
+          <Text style={{ color: C.muted, fontWeight: "500", marginTop: 3 }}>
             Deep dive into your patterns
           </Text>
         </View>
@@ -839,10 +827,10 @@ function Header({
           <Ionicons name="chevron-back" size={20} color={C.text} />
         </Pressable>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: C.text, fontSize: 30, fontWeight: "900" }}>
+          <Text style={{ color: C.text, fontSize: 30, fontWeight: "600" }}>
             Insights
           </Text>
-          <Text style={{ color: C.muted, fontWeight: "800", marginTop: 2 }}>
+          <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>
             {titleRange}
           </Text>
         </View>
@@ -869,7 +857,7 @@ function Header({
                 backgroundColor: range === r ? withAlpha(C.purple, 0.32) : "transparent",
               }}
             >
-              <Text style={{ color: C.text, fontWeight: "900", fontSize: 12 }}>
+              <Text style={{ color: C.text, fontWeight: "600", fontSize: 12 }}>
                 {r}D
               </Text>
             </Pressable>
@@ -881,11 +869,13 @@ function Header({
 }
 
 function AnimatedIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const reduceMotion = useReducedMotion();
+  if (reduceMotion) return <>{children}</>;
   return (
     <MotiView
-      from={{ opacity: 0, translateY: 14 }}
+      from={{ opacity: 0, translateY: 6 }}
       animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: "timing", duration: 420, delay }}
+      transition={{ type: "timing", duration: 180, delay }}
     >
       {children}
     </MotiView>
@@ -900,7 +890,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         <Text
           style={{
             color: C.muted,
-            fontWeight: "900",
+            fontWeight: "600",
             fontSize: 12,
             letterSpacing: 0.8,
             textTransform: "uppercase",
@@ -920,8 +910,8 @@ function Card({ children, style }: { children: React.ReactNode; style?: any }) {
     <View
       style={[
         {
-          borderRadius: 22,
-          borderWidth: 1,
+          borderRadius: 18,
+          borderWidth: 0,
           borderColor: C.hairline,
           backgroundColor: C.card,
           padding: 14,
@@ -945,7 +935,7 @@ function InfoCard({ icon, text }: { icon: any; text: string }) {
     >
       <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
         <Ionicons name={icon} size={18} color={C.purple} />
-        <Text style={{ color: C.text, fontWeight: "900", flex: 1, lineHeight: 19 }}>
+        <Text style={{ color: C.text, fontWeight: "600", flex: 1, lineHeight: 19 }}>
           {text}
         </Text>
       </View>
@@ -956,7 +946,7 @@ function InfoCard({ icon, text }: { icon: any; text: string }) {
 function InfoLine({ text }: { text: string }) {
   const C = useC();
   return (
-    <Text style={{ color: C.muted, fontWeight: "800", lineHeight: 18 }}>{text}</Text>
+    <Text style={{ color: C.muted, fontWeight: "500", lineHeight: 18 }}>{text}</Text>
   );
 }
 
@@ -985,9 +975,9 @@ function ReportTile({
         padding: 14,
       }}
     >
-      <Text style={{ color: neutral ? C.muted : color, fontWeight: "900", fontSize: 26 }}>{value}</Text>
-      <Text style={{ color: C.text, fontWeight: "900", marginTop: 2 }}>{label}</Text>
-      <Text style={{ color: C.muted, fontWeight: "800", marginTop: 2 }}>{sub}</Text>
+      <Text style={{ color: neutral ? C.muted : color, fontWeight: "600", fontSize: 26 }}>{value}</Text>
+      <Text style={{ color: C.text, fontWeight: "600", marginTop: 2 }}>{label}</Text>
+      <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>{sub}</Text>
     </View>
   );
 }
@@ -1006,7 +996,7 @@ function Pill({ text, color }: { text: string; color: string }) {
         backgroundColor: withAlpha(color, 0.12),
       }}
     >
-      <Text style={{ color: C.text, fontWeight: "900", fontSize: 12 }}>{text}</Text>
+      <Text style={{ color: C.text, fontWeight: "600", fontSize: 12 }}>{text}</Text>
     </View>
   );
 }
@@ -1014,7 +1004,6 @@ function Pill({ text, color }: { text: string; color: string }) {
 function StreakPill({ streak }: { streak: number }) {
   const C = useC();
   const active = streak >= 1;
-  const glow = streak >= 7;
   return (
     <View
       style={{
@@ -1025,12 +1014,9 @@ function StreakPill({ streak }: { streak: number }) {
         borderWidth: 1,
         borderColor: withAlpha(active ? C.green : C.gray, active ? 0.34 : 1),
         backgroundColor: active ? withAlpha(C.green, 0.12) : withAlpha(C.gray, 0.82),
-        shadowColor: C.green,
-        shadowOpacity: glow ? 0.44 : 0,
-        shadowRadius: glow ? 14 : 0,
       }}
     >
-      <Text style={{ color: active ? C.text : C.muted, fontWeight: "900", fontSize: 12 }}>
+      <Text style={{ color: active ? C.text : C.muted, fontWeight: "600", fontSize: 12 }}>
         {active ? `${streak} day streak 🔥` : "No streak yet"}
       </Text>
     </View>
@@ -1052,7 +1038,7 @@ function Heatmap({ rows, goals }: { rows: DayRow[]; goals: Goals }) {
   return (
     <Card>
       {showHint ? (
-        <Text style={{ color: C.muted, fontWeight: "800", fontSize: 11, marginBottom: 8 }}>
+        <Text style={{ color: C.muted, fontWeight: "500", fontSize: 11, marginBottom: 8 }}>
           ← scroll for history
         </Text>
       ) : null}
@@ -1072,7 +1058,7 @@ function Heatmap({ rows, goals }: { rows: DayRow[]; goals: Goals }) {
                   position: "absolute",
                   left: i * 15,
                   color: C.muted,
-                  fontWeight: "900",
+                  fontWeight: "600",
                   fontSize: 10,
                 }}
               >
@@ -1212,7 +1198,7 @@ function ChartRow({
         style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}
       >
         <View style={{ flex: 1 }}>
-          <Text style={{ color: C.text, fontWeight: "900", fontSize: 15 }}>{title}</Text>
+          <Text style={{ color: C.text, fontWeight: "600", fontSize: 15 }}>{title}</Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <MiniSpark values={values} color={color} />
@@ -1245,7 +1231,7 @@ function EmptyCard({
   const C = useC();
   return (
     <Card style={{ alignItems: "center", gap: 10 }}>
-      <Text style={{ color: C.text, fontWeight: "900" }}>{title}</Text>
+      <Text style={{ color: C.text, fontWeight: "600" }}>{title}</Text>
       <Pressable
         onPress={onPress}
         style={{
@@ -1259,7 +1245,7 @@ function EmptyCard({
           borderColor: withAlpha(C.purple, 0.36),
         }}
       >
-        <Text style={{ color: C.text, fontWeight: "900" }}>{cta}</Text>
+        <Text style={{ color: C.text, fontWeight: "600" }}>{cta}</Text>
       </Pressable>
     </Card>
   );
@@ -1288,7 +1274,7 @@ function Segment({
             backgroundColor: value === x ? withAlpha(C.purple, 0.3) : "transparent",
           }}
         >
-          <Text style={{ color: C.text, fontWeight: "900", textTransform: "capitalize" }}>{x}</Text>
+          <Text style={{ color: C.text, fontWeight: "600", textTransform: "capitalize" }}>{x}</Text>
         </Pressable>
       ))}
     </View>
@@ -1312,12 +1298,12 @@ function DowBars({ rows, mode }: { rows: { label: string; value: number; pct: nu
                   backgroundColor: withAlpha(color, 0.82),
                 }}
               />
-              <Text style={{ color: C.muted, fontWeight: "900", fontSize: 10 }}>{r.label}</Text>
+              <Text style={{ color: C.muted, fontWeight: "600", fontSize: 10 }}>{r.label}</Text>
             </View>
           );
         })}
       </View>
-      <Text style={{ color: C.muted, fontWeight: "800", marginTop: 8 }}>
+      <Text style={{ color: C.muted, fontWeight: "500", marginTop: 8 }}>
         Average {mode} performance by weekday
       </Text>
     </Card>
@@ -1385,10 +1371,10 @@ function MacroGoalPill({
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <View style={{ width: 9, height: 9, borderRadius: 999, backgroundColor: color }} />
-        <Text style={{ color: C.text, fontWeight: "900", flex: 1 }}>
+        <Text style={{ color: C.text, fontWeight: "600", flex: 1 }}>
           {label}: avg {avg}g / goal {Math.round(goal)}g
         </Text>
-        <Text style={{ color, fontWeight: "900", fontSize: 12 }}>{Math.round(pct * 100)}%</Text>
+        <Text style={{ color, fontWeight: "600", fontSize: 12 }}>{Math.round(pct * 100)}%</Text>
       </View>
       <View style={{ height: 6, borderRadius: 999, overflow: "hidden", backgroundColor: C.hairline }}>
         <View style={{ width: `${Math.min(100, Math.round(pct * 100))}%`, height: "100%", backgroundColor: color, borderRadius: 999 }} />
@@ -1419,9 +1405,9 @@ function RecordCard(props: {
       }}
     >
       <Ionicons name={props.icon as any} size={20} color={props.color} />
-      <Text style={{ color: C.text, fontWeight: "900", fontSize: 12, lineHeight: 15 }} numberOfLines={2}>{props.title}</Text>
-      <Text style={{ color: C.text, fontWeight: "900", fontSize: 20 }}>{props.value}</Text>
-      <Text style={{ color: C.muted, fontWeight: "800", fontSize: 12 }}>{props.date}</Text>
+      <Text style={{ color: C.text, fontWeight: "600", fontSize: 12, lineHeight: 15 }} numberOfLines={2}>{props.title}</Text>
+      <Text style={{ color: C.text, fontWeight: "600", fontSize: 20 }}>{props.value}</Text>
+      <Text style={{ color: C.muted, fontWeight: "500", fontSize: 12 }}>{props.date}</Text>
     </View>
   );
 }
@@ -1464,7 +1450,7 @@ function BadgeCell({
         />
       </View>
       <Text
-        style={{ color: unlocked ? C.text : C.muted, fontWeight: "800", fontSize: 11, textAlign: "center" }}
+        style={{ color: unlocked ? C.text : C.muted, fontWeight: "500", fontSize: 11, textAlign: "center" }}
         numberOfLines={2}
       >
         {badge.title}
@@ -1497,7 +1483,7 @@ function ExpandedChart({
       <View style={{ flex: 1, backgroundColor: C.bg, padding: 18, justifyContent: "center" }}>
         <Card style={{ gap: 14 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 22, textTransform: "capitalize" }}>
+            <Text style={{ color: C.text, fontWeight: "600", fontSize: 22, textTransform: "capitalize" }}>
               {kind} detail
             </Text>
             <Pressable onPress={onClose} hitSlop={10}>
@@ -1533,9 +1519,9 @@ function BadgePopover({
       >
         <Card style={{ width: "100%", gap: 10 }}>
           <Ionicons name={badge.icon as any} size={28} color={badge.accent} />
-          <Text style={{ color: C.text, fontWeight: "900", fontSize: 18 }}>{badge.title}</Text>
-          <Text style={{ color: C.whiteSoft, fontWeight: "800", lineHeight: 18 }}>{badge.description}</Text>
-          <Text style={{ color: C.muted, fontWeight: "800" }}>
+          <Text style={{ color: C.text, fontWeight: "600", fontSize: 18 }}>{badge.title}</Text>
+          <Text style={{ color: C.whiteSoft, fontWeight: "500", lineHeight: 18 }}>{badge.description}</Text>
+          <Text style={{ color: C.muted, fontWeight: "500" }}>
             {unlockedAt
               ? `Earned ${new Date(unlockedAt).toLocaleDateString()}`
               : badge.criteriaText || "Keep logging to earn this."}
@@ -1578,16 +1564,12 @@ function ShareCardModal({
         <Pressable
           accessibilityRole="summary"
           style={{
-            borderRadius: 30,
-            borderWidth: 1,
+            borderRadius: 18,
+            borderWidth: 0,
             borderColor: withAlpha(C.purple, 0.68),
             backgroundColor: C.card,
             padding: 22,
             gap: 16,
-            shadowColor: C.purple,
-            shadowOpacity: 0.42,
-            shadowRadius: 28,
-            shadowOffset: { width: 0, height: 16 },
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -1604,10 +1586,10 @@ function ShareCardModal({
               <Ionicons name="sparkles" size={20} color={C.purple} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: C.text, fontWeight: "900", fontSize: 22 }}>
+              <Text style={{ color: C.text, fontWeight: "600", fontSize: 22 }}>
                 Weekly progress
               </Text>
-              <Text style={{ color: C.muted, fontWeight: "800", marginTop: 2 }}>
+              <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>
                 {rangeTitle}
               </Text>
             </View>
@@ -1620,13 +1602,13 @@ function ShareCardModal({
 
           <View style={{ gap: 10 }}>
             {bullets.slice(0, 4).map((b) => (
-              <Text key={b} style={{ color: C.whiteSoft, fontWeight: "800", lineHeight: 20 }}>
+              <Text key={b} style={{ color: C.whiteSoft, fontWeight: "500", lineHeight: 20 }}>
                 {b}
               </Text>
             ))}
           </View>
 
-          <Text style={{ color: C.muted, fontWeight: "800", textAlign: "center" }}>
+          <Text style={{ color: C.muted, fontWeight: "500", textAlign: "center" }}>
             Screenshot this card to share your week.
           </Text>
         </Pressable>
@@ -1648,8 +1630,8 @@ function InfoStat({ label, value, color }: { label: string; value: string; color
         backgroundColor: withAlpha(color, 0.12),
       }}
     >
-      <Text style={{ color, fontWeight: "900", fontSize: 24 }}>{value}</Text>
-      <Text style={{ color: C.muted, fontWeight: "800", marginTop: 2 }}>{label}</Text>
+      <Text style={{ color, fontWeight: "600", fontSize: 24 }}>{value}</Text>
+      <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>{label}</Text>
     </View>
   );
 }

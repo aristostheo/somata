@@ -1,10 +1,11 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import React, { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 
 import {
   clearSyncHistory,
@@ -16,7 +17,7 @@ import {
 } from "@/services/integrations";
 
 function useC() {
-  const { colors } = (useTheme as any)();
+  const { colors } = useProfileFlowTheme();
   return {
     bg: colors.background as string,
     card: colors.surface1 as string,
@@ -24,7 +25,7 @@ function useC() {
     text: colors.textPrimary as string,
     muted: colors.textTertiary as string,
     hairline: colors.border as string,
-    purple: colors.accent as string,
+    purple: colors.primary as string,
     green: colors.success as string,
     amber: colors.warning as string,
     red: colors.danger as string,
@@ -51,10 +52,11 @@ export default function SyncHistoryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <FlowAtmosphere />
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 18,
-          paddingHorizontal: 16,
+          paddingTop: 20,
+          paddingHorizontal: 20,
           paddingBottom: insets.bottom + 32,
           gap: 16,
         }}
@@ -64,12 +66,12 @@ export default function SyncHistoryScreen() {
           <Pressable
             onPress={() => router.back()}
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: 15,
+              width: 44,
+              height: 44,
+              borderRadius: 14,
               alignItems: "center",
               justifyContent: "center",
-              borderWidth: 1,
+              borderWidth: 0,
               borderColor: C.hairline,
               backgroundColor: C.card2,
             }}
@@ -77,10 +79,10 @@ export default function SyncHistoryScreen() {
             <Ionicons name="chevron-back" size={20} color={C.text} />
           </Pressable>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 28 }}>
+            <Text style={{ color: C.text, fontWeight: "600", fontSize: 28 }}>
               Sync history
             </Text>
-            <Text style={{ color: C.muted, fontWeight: "800", marginTop: 3 }}>
+            <Text style={{ color: C.muted, fontWeight: "500", marginTop: 3 }}>
               Recent sync events across all integrations
             </Text>
           </View>
@@ -94,9 +96,9 @@ export default function SyncHistoryScreen() {
                 <View
                   key={event.id}
                   style={{
-                    borderRadius: 20,
+                    borderRadius: 16,
                     backgroundColor: C.card,
-                    borderWidth: 1,
+                    borderWidth: 0,
                     borderColor: failed ? alpha(C.red, 0.26) : C.hairline,
                     padding: 14,
                     gap: 10,
@@ -111,14 +113,14 @@ export default function SyncHistoryScreen() {
                         backgroundColor: failed ? C.red : C.green,
                       }}
                     />
-                    <Text style={{ color: C.text, fontWeight: "900", flex: 1 }}>
+                    <Text style={{ color: C.text, fontWeight: "600", flex: 1 }}>
                       {event.reason.replace("_", " ")}
                     </Text>
-                    <Text style={{ color: C.muted, fontWeight: "800" }}>
+                    <Text style={{ color: C.muted, fontWeight: "500" }}>
                       {formatLastSync(event.finishedAt)}
                     </Text>
                   </View>
-                  <Text style={{ color: C.muted, fontWeight: "800" }}>
+                  <Text style={{ color: C.muted, fontWeight: "500" }}>
                     {event.integrations
                       .map((id) => INTEGRATIONS.find((x) => x.id === id)?.name || id)
                       .join(" · ")}
@@ -129,7 +131,7 @@ export default function SyncHistoryScreen() {
                     <Pill text={failed ? `${event.failed.length} failed` : "Successful"} tone={failed ? "error" : "success"} />
                   </View>
                   {failed ? (
-                    <Text style={{ color: C.red, fontWeight: "800" }}>
+                    <Text style={{ color: C.red, fontWeight: "500" }}>
                       Failed:{" "}
                       {event.failed
                         .map((id) => INTEGRATIONS.find((x) => x.id === id)?.name || id)
@@ -147,20 +149,20 @@ export default function SyncHistoryScreen() {
                 borderRadius: 14,
                 alignItems: "center",
                 justifyContent: "center",
-                borderWidth: 1,
+                borderWidth: 0,
                 borderColor: alpha(C.red, 0.28),
                 backgroundColor: alpha(C.red, 0.08),
               }}
             >
-              <Text style={{ color: C.red, fontWeight: "900" }}>Clear history</Text>
+              <Text style={{ color: C.red, fontWeight: "600" }}>Clear history</Text>
             </Pressable>
           </>
         ) : (
           <View
             style={{
-              borderRadius: 22,
+              borderRadius: 18,
               backgroundColor: C.card,
-              borderWidth: 1,
+              borderWidth: 0,
               borderColor: C.hairline,
               padding: 18,
               gap: 10,
@@ -168,10 +170,10 @@ export default function SyncHistoryScreen() {
             }}
           >
             <Ionicons name="sync-outline" size={28} color={C.muted} />
-            <Text style={{ color: C.text, fontWeight: "900", fontSize: 18 }}>
+            <Text style={{ color: C.text, fontWeight: "600", fontSize: 18 }}>
               No sync history yet
             </Text>
-            <Text style={{ color: C.muted, fontWeight: "800", textAlign: "center" }}>
+            <Text style={{ color: C.muted, fontWeight: "500", textAlign: "center" }}>
               Connect a source and run a sync to start logging integration
               history here.
             </Text>
@@ -198,11 +200,11 @@ function Pill({
         paddingHorizontal: 10,
         paddingVertical: 6,
         backgroundColor: alpha(color, 0.12),
-        borderWidth: 1,
+        borderWidth: 0,
         borderColor: alpha(color, 0.26),
       }}
     >
-      <Text style={{ color: C.text, fontWeight: "900", fontSize: 11 }}>{text}</Text>
+      <Text style={{ color: C.text, fontWeight: "600", fontSize: 11 }}>{text}</Text>
     </View>
   );
 }

@@ -1,3 +1,4 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -12,7 +13,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme as useTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
 import { subscribeProfile, type Profile } from "@/services/profile";
 import {
@@ -142,6 +143,7 @@ export default function WeeklyCheckinScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <FlowAtmosphere />
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={{ width: 40 }} />
         <View style={{ flex: 1, alignItems: "center", gap: 4 }}>
@@ -573,25 +575,25 @@ function HistoryCard({
 const styles = StyleSheet.create({
   root: { flex: 1 },
   header: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 18,
     paddingBottom: 12,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   iconCircle: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     borderRadius: 18,
-    borderWidth: 1,
+    borderWidth: 0,
     alignItems: "center",
     justifyContent: "center",
   },
   title: {
     fontSize: 22,
-    fontWeight: "500",
+    fontWeight: "700",
     textAlign: "center",
   },
   subtitle: {
@@ -616,8 +618,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   optionCard: {
-    borderWidth: 1,
-    borderRadius: 16,
+    borderWidth: 0,
+    borderRadius: 14,
     minHeight: 64,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -639,7 +641,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pill: {
-    minHeight: 34,
+    minHeight: 44,
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 14,
@@ -661,8 +663,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   statCard: {
-    borderWidth: 1,
-    borderRadius: 16,
+    borderWidth: 0,
+    borderRadius: 14,
     padding: 14,
     gap: 6,
   },
@@ -722,8 +724,8 @@ const styles = StyleSheet.create({
   },
   trendCard: {
     flex: 1,
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 14,
+    borderWidth: 0,
     padding: 14,
     gap: 12,
   },
@@ -742,8 +744,8 @@ const styles = StyleSheet.create({
     fontWeight: "300",
   },
   historyCard: {
-    borderWidth: 1,
-    borderRadius: 16,
+    borderWidth: 0,
+    borderRadius: 14,
     padding: 14,
     gap: 8,
   },

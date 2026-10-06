@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { withAlpha } from "@/lib/color";
 
 export type FriendsTabKey = "friends" | "requests" | "sent";
@@ -16,7 +16,7 @@ export function PremiumSegmented({
   onChange: (v: FriendsTabKey) => void;
   requestCount?: number;
 }) {
-  const { colors } = useTheme();
+  const { colors } = useProfileFlowTheme();
 
   const items: Array<{ key: FriendsTabKey; label: string }> = [
     { key: "friends", label: "Friends" },

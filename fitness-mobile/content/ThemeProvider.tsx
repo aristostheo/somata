@@ -8,6 +8,13 @@ import React, {
 } from "react";
 import { Appearance, ColorSchemeName } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  OCEAN,
+  THEME_KEYS,
+  persistThemeSnapshot,
+  readThemeSnapshot,
+  type ThemeSnapshot,
+} from "@/services/theme/themeState";
 
 type ThemeMode = "system" | "light" | "dark";
 export type GradientPairingStyle = "subtle" | "balanced" | "bold";
@@ -73,6 +80,10 @@ type ThemeContextShape = {
   isDark: boolean;
   modeSetting: ThemeMode;
   setModeSetting: (m: ThemeMode) => void;
+  themeReady: boolean;
+  themeLoadError: boolean;
+  refreshTheme: () => Promise<void>;
+  commitThemeDraft: (draft: ThemeSnapshot) => Promise<void>;
 
   // existing API (kept): sets BOTH light+dark
   setAccents: (primary?: string, accent?: string) => void;
@@ -101,8 +112,6 @@ export function useTheme() {
 }
 
 // defaults if user hasn't customized
-const DEFAULT_PRIMARY = "#7B6FFF";
-const DEFAULT_ACCENT = "#7B6FFF";
 const DEFAULT_STYLE: GradientPairingStyle = "balanced";
 
 function hexToHSL(hex: string): { h: number; s: number; l: number } {
@@ -178,25 +187,21 @@ function deriveAccentPalette(baseHex: string, isDark: boolean) {
 }
 
 const STORAGE_KEYS = {
-  MODE: "@theme:mode",
+  MODE: THEME_KEYS.mode,
 
   // legacy keys (keep reading for migration)
-  PRIMARY: "@theme:primary",
-  ACCENT: "@theme:accent",
+  PRIMARY: THEME_KEYS.legacyPrimary,
+  ACCENT: THEME_KEYS.legacyAccent,
 
   // per-mode keys (new)
-  LIGHT_PRIMARY: "@theme:light:primary",
-  LIGHT_ACCENT: "@theme:light:accent",
-  DARK_PRIMARY: "@theme:dark:primary",
-  DARK_ACCENT: "@theme:dark:accent",
+  LIGHT_PRIMARY: THEME_KEYS.lightPrimary,
+  LIGHT_ACCENT: THEME_KEYS.lightAccent,
+  DARK_PRIMARY: THEME_KEYS.darkPrimary,
+  DARK_ACCENT: THEME_KEYS.darkAccent,
 
-  LIGHT_STYLE: "@theme:light:gradientStyle",
-  DARK_STYLE: "@theme:dark:gradientStyle",
+  LIGHT_STYLE: THEME_KEYS.lightStyle,
+  DARK_STYLE: THEME_KEYS.darkStyle,
 };
-
-function isStyle(x: any): x is GradientPairingStyle {
-  return x === "subtle" || x === "balanced" || x === "bold";
-}
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [modeSetting, setModeSetting] = useState<ThemeMode>("system");
@@ -222,77 +227,34 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const isSystemDark = systemScheme === "dark";
 
   const [themeAccents, setThemeAccentsState] = useState<ThemeAccents>({
-    light: {
-      primary: undefined,
-      accent: undefined,
-      gradientStyle: DEFAULT_STYLE,
-    },
-    dark: {
-      primary: undefined,
-      accent: undefined,
-      gradientStyle: DEFAULT_STYLE,
-    },
+    light: { ...OCEAN.light },
+    dark: { ...OCEAN.dark },
   });
+  const [themeReady, setThemeReady] = useState(false);
+  const [themeLoadError, setThemeLoadError] = useState(false);
 
-  // hydrate once (with legacy migration)
-  useEffect(() => {
-    (async () => {
-      try {
-        const [m, legacyP, legacyA, lp, la, dp, da, ls, ds] = await Promise.all(
-          [
-            AsyncStorage.getItem(STORAGE_KEYS.MODE),
-            AsyncStorage.getItem(STORAGE_KEYS.PRIMARY),
-            AsyncStorage.getItem(STORAGE_KEYS.ACCENT),
-            AsyncStorage.getItem(STORAGE_KEYS.LIGHT_PRIMARY),
-            AsyncStorage.getItem(STORAGE_KEYS.LIGHT_ACCENT),
-            AsyncStorage.getItem(STORAGE_KEYS.DARK_PRIMARY),
-            AsyncStorage.getItem(STORAGE_KEYS.DARK_ACCENT),
-            AsyncStorage.getItem(STORAGE_KEYS.LIGHT_STYLE),
-            AsyncStorage.getItem(STORAGE_KEYS.DARK_STYLE),
-          ]
-        );
+  const refreshTheme = async () => {
+    setThemeReady(false);
+    try {
+      const saved = await readThemeSnapshot(AsyncStorage);
+      setModeSetting(saved.mode);
+      setThemeAccentsState({ light: saved.light, dark: saved.dark });
+      setThemeLoadError(false);
+    } catch {
+      setThemeLoadError(true);
+    } finally {
+      setThemeReady(true);
+    }
+  };
 
-        if (m === "system" || m === "light" || m === "dark") setModeSetting(m);
+  // Migration happens during provider hydration, before the picker can create a draft.
+  useEffect(() => { void refreshTheme(); }, []);
 
-        // If new per-mode exists, use it. Else migrate from legacy (apply to both).
-        const migratedPrimary = legacyP ?? undefined;
-        const migratedAccent = legacyA ?? undefined;
-
-        const next: ThemeAccents = {
-          light: {
-            primary: lp ?? migratedPrimary,
-            accent: la ?? migratedAccent,
-            gradientStyle: isStyle(ls) ? ls : DEFAULT_STYLE,
-          },
-          dark: {
-            primary: dp ?? migratedPrimary,
-            accent: da ?? migratedAccent,
-            gradientStyle: isStyle(ds) ? ds : DEFAULT_STYLE,
-          },
-        };
-
-        setThemeAccentsState(next);
-
-        // one-time migration persistence (non-destructive)
-        if (!lp && migratedPrimary)
-          await AsyncStorage.setItem(
-            STORAGE_KEYS.LIGHT_PRIMARY,
-            migratedPrimary
-          );
-        if (!la && migratedAccent)
-          await AsyncStorage.setItem(STORAGE_KEYS.LIGHT_ACCENT, migratedAccent);
-        if (!dp && migratedPrimary)
-          await AsyncStorage.setItem(
-            STORAGE_KEYS.DARK_PRIMARY,
-            migratedPrimary
-          );
-        if (!da && migratedAccent)
-          await AsyncStorage.setItem(STORAGE_KEYS.DARK_ACCENT, migratedAccent);
-
-        // Optional: keep legacy keys in sync for older screens (write active values later on save)
-      } catch {}
-    })();
-  }, []);
+  const commitThemeDraft = async (draft: ThemeSnapshot) => {
+    const saved = await persistThemeSnapshot(AsyncStorage, draft);
+    setModeSetting(saved.mode);
+    setThemeAccentsState({ light: saved.light, dark: saved.dark });
+  };
 
   const setModePersist = async (m: ThemeMode) => {
     setModeSetting(m);
@@ -406,8 +368,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const activeAccents = isDark ? themeAccents.dark : themeAccents.light;
 
-  const primary = activeAccents.primary ?? DEFAULT_PRIMARY;
-  const accent = activeAccents.accent ?? DEFAULT_ACCENT;
+  const primary = activeAccents.primary ?? (isDark ? OCEAN.dark.primary : OCEAN.light.primary);
+  const accent = activeAccents.accent ?? (isDark ? OCEAN.dark.accent : OCEAN.light.accent);
 
   const colors: ThemeColors = useMemo(() => {
     const accentPalette = deriveAccentPalette(accent, isDark);
@@ -507,6 +469,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     isDark,
     modeSetting,
     setModeSetting: setModePersist,
+    themeReady,
+    themeLoadError,
+    refreshTheme,
+    commitThemeDraft,
 
     setAccents,
     resetAccents,

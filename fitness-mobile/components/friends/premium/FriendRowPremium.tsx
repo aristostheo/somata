@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { withAlpha } from "@/lib/color";
 
 export type FriendCardChip = {
@@ -37,7 +37,7 @@ export function FriendRowPremium({
   onPress: () => void;
   onPing: () => void;
 }) {
-  const { colors, isDark } = useTheme() as any;
+  const { colors } = useProfileFlowTheme();
 
   const ringColor =
     streakRingTone === "gold"
@@ -57,12 +57,7 @@ export function FriendRowPremium({
             {
               backgroundColor: colors.surface1,
               borderColor: colors.border,
-              shadowColor: colors.textPrimary,
-              shadowOpacity: isDark ? 0 : 0.05,
-              shadowRadius: isDark ? 0 : 8,
-              shadowOffset: { width: 0, height: 2 },
-              elevation: isDark ? 0 : 1,
-              transform: [{ scale: pressed ? 0.99 : 1 }],
+              opacity: pressed ? 0.7 : 1,
             },
           ]}
         >
@@ -171,7 +166,7 @@ export function FriendRowPremium({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
-    borderWidth: 1,
+    borderWidth: 0,
     padding: 14,
     flexDirection: "row",
     gap: 12,
@@ -255,10 +250,10 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
   pingButton: {
-    width: 40,
-    minHeight: 40,
+    width: 44,
+    minHeight: 44,
     borderRadius: 10,
-    borderWidth: 1,
+    borderWidth: 0,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 4,

@@ -1,3 +1,4 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 // app/(modals)/body-metrics.tsx — Premium health dashboard redesign
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -16,6 +17,7 @@ import {
 import Svg, { Circle, Line, Path } from "react-native-svg";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useReducedMotion } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -27,7 +29,7 @@ import {
   buildGoalProfilePatch,
   shouldRecalculate,
 } from "@/services/macroCalculator";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme as useTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import MetricPickerSheet from "@/components/profile/premium/bodyMetrics/MetricPickerSheet";
 import { withAlpha } from "@/components/profile/premium/ui";
 import {
@@ -547,9 +549,10 @@ export default function BodyMetricsEditorScreen() {
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      <FlowAtmosphere />
         {/* ── Top bar ── */}
         <View style={[styles.topBar, {
-          paddingTop: insets.top + 6,
+          paddingTop: 12,
           borderBottomColor: colors.border,
           backgroundColor: colors.background,
         }]}>
@@ -1269,6 +1272,7 @@ function WeightTrendChart({
   isDark: boolean;
 }) {
   const { width: screenW } = useWindowDimensions();
+  const reduceMotion = useReducedMotion();
   const chartW = screenW - 32 - 32; // account for outer padding + card padding
   const chartH = 160;
   const PAD = { l: 42, r: 12, t: 12, b: 28 };
@@ -1277,8 +1281,8 @@ function WeightTrendChart({
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
-  }, [fadeAnim]);
+    Animated.timing(fadeAnim, { toValue: 1, duration: reduceMotion ? 0 : 180, useNativeDriver: true }).start();
+  }, [fadeAnim, reduceMotion]);
 
   const points = useMemo(() => {
     const now = Date.now();
@@ -1486,16 +1490,18 @@ function LuxuryDialog({
   primaryDanger?: boolean;
 }) {
   const translateY = useRef(new Animated.Value(300)).current;
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!visible) { translateY.setValue(300); return; }
+    if (reduceMotion) { translateY.setValue(0); return; }
     Animated.spring(translateY, { toValue: 0, damping: 18, mass: 0.9, stiffness: 180, useNativeDriver: true }).start();
-  }, [visible, translateY]);
+  }, [visible, translateY, reduceMotion]);
 
   if (!visible) return null;
 
   return (
-    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
+    <Modal transparent animationType={reduceMotion ? "none" : "fade"} visible={visible} onRequestClose={onClose}>
       <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: withAlpha(colors.background, 0.6) }}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <Animated.View style={[styles.dialogSheet, {
@@ -1536,25 +1542,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 12,
     paddingBottom: 10,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     gap: 10,
   },
   iconBtn: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     borderRadius: 14,
-    borderWidth: 1,
+    borderWidth: 0,
     alignItems: "center",
     justifyContent: "center",
   },
   navTitle: { flex: 1, textAlign: "center", fontSize: 16, fontWeight: "600" },
-  saveBtn: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999 },
+  saveBtn: { minHeight: 44, paddingHorizontal: 14, justifyContent: "center", borderRadius: 999 },
   saveText: { fontSize: 13, fontWeight: "600" },
 
   // Hero
   heroCard: {
-    borderRadius: 22,
-    borderWidth: 1,
+    borderRadius: 18,
+    borderWidth: 0,
     padding: 16,
     gap: 12,
   },
@@ -1574,13 +1580,13 @@ const styles = StyleSheet.create({
     padding: 3,
     gap: 3,
   },
-  segBtn: { flex: 1, paddingVertical: 9, borderRadius: 999, alignItems: "center" },
+  segBtn: { flex: 1, minHeight: 44, borderRadius: 999, alignItems: "center", justifyContent: "center" },
   segText: { fontSize: 12, fontWeight: "500" },
 
   // Sections
   sectionLabel: { fontSize: 10, fontWeight: "600", letterSpacing: 1.5, marginBottom: -6 },
   sectionSub: { fontSize: 12, fontWeight: "300", marginTop: -12, marginBottom: -4 },
-  sectionCard: { borderRadius: 18, borderWidth: 1, overflow: "hidden" },
+  sectionCard: { borderRadius: 16, borderWidth: 0, overflow: "hidden" },
   fieldError: { fontSize: 12, paddingHorizontal: 14, paddingBottom: 8, marginTop: -4 },
   navyNote: { fontSize: 11, fontStyle: "italic", paddingHorizontal: 14, paddingBottom: 12, marginTop: 2 },
 
@@ -1609,7 +1615,7 @@ const styles = StyleSheet.create({
   },
   sexLeft: { gap: 2 },
   sexBtns: { flexDirection: "row", gap: 8, marginTop: 6 },
-  sexBtn: { flex: 1, paddingVertical: 8, borderRadius: 10, borderWidth: 1, alignItems: "center" },
+  sexBtn: { flex: 1, minHeight: 44, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   sexBtnText: { fontSize: 12, fontWeight: "500" },
 
   // Vitals
@@ -1654,8 +1660,8 @@ const styles = StyleSheet.create({
   privacyCard: {
     flexDirection: "row",
     alignItems: "flex-start",
-    borderWidth: 1,
-    borderRadius: 16,
+    borderWidth: 0,
+    borderRadius: 14,
     padding: 14,
     gap: 10,
   },

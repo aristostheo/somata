@@ -10,7 +10,8 @@ import { Stack, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import {
   calculateMacros,
   getGoalSetupDraft,
@@ -40,7 +41,7 @@ function rebalanceRatios(
 }
 
 export default function GoalAdvancedScreen() {
-  const { colors } = useTheme();
+  const { colors } = useProfileFlowTheme();
   const router = useRouter();
   const [draft, setDraft] = useState<GoalInputs | null>(null);
   const [bodyFatInput, setBodyFatInput] = useState("");
@@ -77,11 +78,12 @@ export default function GoalAdvancedScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <FlowAtmosphere />
       <Stack.Screen options={{ headerShown: false }} />
 
       <View
         style={{
-          paddingHorizontal: 16,
+          paddingHorizontal: 20,
           paddingTop: 20,
           paddingBottom: 12,
           flexDirection: "row",
@@ -92,11 +94,11 @@ export default function GoalAdvancedScreen() {
         <Pressable
           onPress={() => router.back()}
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
+            width: 44,
+            height: 44,
+            borderRadius: 14,
             backgroundColor: colors.surface3,
-            borderWidth: 1,
+            borderWidth: 0,
             borderColor: colors.border,
             alignItems: "center",
             justifyContent: "center",
@@ -104,12 +106,12 @@ export default function GoalAdvancedScreen() {
         >
           <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
         </Pressable>
-        <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
+        <Text style={{ color: colors.textPrimary, fontSize: 24, fontWeight: "700" }}>
           Goal setup
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 20 }}>
+      <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
         <SectionLabel colors={colors} title="Advanced" />
 
         <Card colors={colors}>
@@ -348,9 +350,9 @@ function Card({ colors, children }: { colors: any; children: React.ReactNode }) 
     <View
       style={{
         backgroundColor: colors.surface1,
-        borderWidth: 1,
+        borderWidth: 0,
         borderColor: colors.border,
-        borderRadius: 16,
+        borderRadius: 20,
         padding: 16,
       }}
     >

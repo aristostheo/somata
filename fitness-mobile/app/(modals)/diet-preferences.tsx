@@ -5,6 +5,7 @@
 // Uses your ThemeProvider + profile service
 
 import React, { useCallback, useMemo, useRef, useState } from "react";
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
 import {
   View,
   Text,
@@ -16,12 +17,10 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
 import {
   ensureProfile,
@@ -107,10 +106,10 @@ function Section({
   subtitle?: string;
   children: React.ReactNode;
 }) {
-  const { colors } = useTheme();
+  const { colors } = useProfileFlowTheme();
   return (
     <View style={{ marginTop: 14, gap: 8 }}>
-      <Text style={{ color: colors.text, fontWeight: "900", fontSize: 13 }}>
+      <Text style={{ color: colors.text, fontWeight: "600", fontSize: 13 }}>
         {title}
       </Text>
       {subtitle ? (
@@ -134,7 +133,7 @@ function Chip({
   onPress: () => void;
   icon?: React.ReactNode;
 }) {
-  const { colors } = useTheme();
+  const { colors } = useProfileFlowTheme();
   return (
     <Pressable
       onPress={() => {
@@ -146,6 +145,7 @@ function Chip({
           flexDirection: "row",
           alignItems: "center",
           gap: 8,
+          minHeight: 44,
           paddingHorizontal: 12,
           paddingVertical: 9,
           borderRadius: 999,
@@ -168,7 +168,7 @@ function Chip({
       <Text
         style={{
           color: selected ? colors.text : colors.muted,
-          fontWeight: "900",
+          fontWeight: "600",
           fontSize: 12.5,
         }}
       >
@@ -197,7 +197,7 @@ function TokenInput({
   placeholder: string;
   onAdd: (token: string) => void;
 }) {
-  const { colors } = useTheme();
+  const { colors } = useProfileFlowTheme();
   const [text, setText] = useState("");
 
   const submit = () => {
@@ -231,7 +231,7 @@ function TokenInput({
         style={{
           flex: 1,
           color: colors.text,
-          fontWeight: "800",
+          fontWeight: "500",
           fontSize: 13,
           paddingVertical: 0,
         }}
@@ -242,14 +242,15 @@ function TokenInput({
         onPress={submit}
         style={({ pressed }) => ({
           paddingHorizontal: 10,
-          paddingVertical: 8,
+          minHeight: 44,
+          justifyContent: "center",
           borderRadius: 12,
           backgroundColor: withAlpha(colors.primary, pressed ? 0.22 : 0.16),
           borderWidth: 1,
           borderColor: withAlpha(colors.primary, 0.35),
         })}
       >
-        <Text style={{ color: colors.text, fontWeight: "900", fontSize: 12 }}>
+        <Text style={{ color: colors.text, fontWeight: "600", fontSize: 12 }}>
           Add
         </Text>
       </Pressable>
@@ -259,7 +260,7 @@ function TokenInput({
 
 export default function DietPreferencesModal() {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
+  const { colors, isDark } = useProfileFlowTheme();
   const { user } = useAuth();
 
   const [prefs, setPrefs] = useState<DietPreferences>(DEFAULT_DIET_PREFERENCES);
@@ -288,10 +289,6 @@ export default function DietPreferencesModal() {
   }, [user?.uid, hydrated]);
 
   const completion = useMemo(() => computeDietPrefsCompletion(prefs), [prefs]);
-
-  const gradient = isDark
-    ? (["#070A12", "#0B1020", "#070A12"] as [string, string, string])
-    : (["#EEF4FF", "#FFFFFF", "#EEF4FF"] as [string, string, string]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -334,15 +331,14 @@ export default function DietPreferencesModal() {
   }, [prefs, router, user?.uid]);
 
   const TopBar = (
-    <BlurView
-      intensity={22}
-      tint={isDark ? "dark" : "light"}
+    <View
       style={{
         paddingTop: 10,
         paddingBottom: 12,
-        paddingHorizontal: 14,
+        paddingHorizontal: 20,
         borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: withAlpha(colors.border, 0.6),
+        backgroundColor: colors.background,
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -352,13 +348,13 @@ export default function DietPreferencesModal() {
             router.back();
           }}
           style={({ pressed }) => ({
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             borderRadius: 14,
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: pressed ? colors.surface2 : colors.surface,
-            borderWidth: 1,
+            borderWidth: 0,
             borderColor: withAlpha(colors.border, 0.55),
           })}
           accessibilityRole="button"
@@ -368,7 +364,7 @@ export default function DietPreferencesModal() {
         </Pressable>
 
         <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text, fontWeight: "900", fontSize: 16 }}>
+          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 20 }}>
             Diet Preferences
           </Text>
           <Text style={{ color: colors.muted, fontSize: 12.5 }}>
@@ -384,14 +380,14 @@ export default function DietPreferencesModal() {
             paddingVertical: 10,
             borderRadius: 14,
             backgroundColor: withAlpha(colors.primary, pressed ? 0.24 : 0.18),
-            borderWidth: 1,
+            borderWidth: 0,
             borderColor: withAlpha(colors.primary, 0.35),
             opacity: saving ? 0.75 : 1,
           })}
           accessibilityRole="button"
           accessibilityLabel="Save diet preferences"
         >
-          <Text style={{ color: colors.text, fontWeight: "900", fontSize: 13 }}>
+          <Text style={{ color: colors.text, fontWeight: "600", fontSize: 13 }}>
             {saving ? "Saving…" : "Save"}
           </Text>
         </Pressable>
@@ -421,7 +417,7 @@ export default function DietPreferencesModal() {
             style={{
               flex: 1,
               color: colors.text,
-              fontWeight: "800",
+              fontWeight: "500",
               fontSize: 13,
               paddingVertical: 0,
             }}
@@ -433,6 +429,7 @@ export default function DietPreferencesModal() {
                 Haptics.selectionAsync();
                 setQuery("");
               }}
+              hitSlop={5}
               style={({ pressed }) => ({
                 width: 34,
                 height: 34,
@@ -460,7 +457,7 @@ export default function DietPreferencesModal() {
             : "Set. Recommendations can match you more closely."}
         </Text>
       </View>
-    </BlurView>
+    </View>
   );
 
   const renderSearchResults = filtered && filtered.length > 0;
@@ -486,7 +483,7 @@ export default function DietPreferencesModal() {
             padding: 12,
           }}
         >
-          <Text style={{ color: colors.text, fontWeight: "900", fontSize: 13 }}>
+          <Text style={{ color: colors.text, fontWeight: "600", fontSize: 13 }}>
             Search results
           </Text>
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }}>
@@ -557,7 +554,7 @@ export default function DietPreferencesModal() {
                         style={{
                           color: colors.muted,
                           fontSize: 10,
-                          fontWeight: "900",
+                          fontWeight: "600",
                         }}
                       >
                         {x.group[0]}
@@ -738,7 +735,7 @@ export default function DietPreferencesModal() {
             placeholderTextColor={withAlpha(colors.muted, 0.7)}
             style={{
               color: colors.text,
-              fontWeight: "800",
+              fontWeight: "500",
               fontSize: 13,
               minHeight: 44,
               paddingVertical: 0,
@@ -766,7 +763,7 @@ export default function DietPreferencesModal() {
         accessibilityRole="button"
         accessibilityLabel="Reset preferences"
       >
-        <Text style={{ color: colors.muted, fontWeight: "900" }}>
+        <Text style={{ color: colors.muted, fontWeight: "600" }}>
           Reset to empty
         </Text>
       </Pressable>
@@ -790,10 +787,7 @@ export default function DietPreferencesModal() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <LinearGradient
-        colors={gradient}
-        style={{ position: "absolute", inset: 0 }}
-      />
+      <FlowAtmosphere />
       {TopBar}
       {Body}
     </KeyboardAvoidingView>

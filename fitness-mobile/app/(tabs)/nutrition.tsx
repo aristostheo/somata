@@ -34,6 +34,7 @@ import EditFoodSheet from "@/components/nutrition/uiNew/EditFoodSheet";
 // ✅ NEW: subscribe to backend profile goals
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { nutritionTargets } from "@/services/nutritionTargets";
 
 import { reconcileBadgesFromSnapshot } from "@/services/badges/reconcile";
 import { useBadgesLocal } from "@/services/badges/useBadgesLocal";
@@ -339,12 +340,16 @@ export default function NutritionScreen() {
         const carbs =
           p.carbGoal ?? p.carbsGoal ?? p.dailyCarbsTarget ?? p.cGoal;
         const fat = p.fatGoal ?? p.fatsGoal ?? p.dailyFatTarget ?? p.fGoal;
+        const active = nutritionTargets(p, {
+          calories: toNum(calories, 2400), protein: toNum(protein, 170),
+          carbs: toNum(carbs, 260), fat: toNum(fat, 80),
+        });
 
         setGoals({
-          calories: toNum(calories, 2400),
-          protein: toNum(protein, 170),
-          carbs: toNum(carbs, 260),
-          fat: toNum(fat, 80),
+          calories: active.calories,
+          protein: active.protein,
+          carbs: active.carbs,
+          fat: active.fat,
 
           fiber: toNum(p.fiberGoal ?? p.dailyFiberTarget ?? p.fiber_target, 30),
           sugarTotal: toNum(
