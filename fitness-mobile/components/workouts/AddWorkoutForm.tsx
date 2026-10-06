@@ -679,7 +679,7 @@
 //               withAlpha(colors.primary, 0.08),
 //               withAlpha(colors.primary, 0.14),
 //             ]}
-//             style={StyleSheet.absoluteFillObject}
+//             style={StyleSheet.absoluteFill}
 //           />
 
 //           {content}
@@ -1705,7 +1705,7 @@
 //               withAlpha(colors.primary, 0.08),
 //               withAlpha(colors.primary, 0.14),
 //             ]}
-//             style={StyleSheet.absoluteFillObject}
+//             style={StyleSheet.absoluteFill}
 //           />
 
 //           {content}
@@ -2786,7 +2786,7 @@ function GlassPanel({ children }: React.PropsWithChildren) {
               withAlpha(colors.primary, isDark ? 0.09 : 0.06),
               withAlpha(colors.text, 0.03),
             ]}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
           {content}
         </BlurView>
@@ -3175,7 +3175,7 @@ function BottomSheet({
       <Pressable style={{ flex: 1 }} onPress={close}>
         <Animated.View
           style={{
-            ...StyleSheet.absoluteFillObject,
+            ...StyleSheet.absoluteFill,
             backgroundColor: "rgba(0,0,0,0.35)",
             opacity: backdropOpacity as any,
           }}
@@ -3217,7 +3217,7 @@ function BottomSheet({
                 ]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
               />
 
               <View style={{ paddingTop: 10, paddingBottom: 10 }}>

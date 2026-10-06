@@ -141,7 +141,7 @@ export function ProfileHero({
           <LinearGradient
             colors={[
               "transparent",
-              withAlpha("#FFFFFF", isDark ? 0.06 : 0.22),
+              colors.surface2,
               "transparent",
             ]}
             start={{ x: 0.2, y: 0 }}

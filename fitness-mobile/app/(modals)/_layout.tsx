@@ -12,7 +12,10 @@ export default function ModalLayout() {
         headerShown: false,
       }}
     >
+      <Stack.Screen name="coach-spark" />
       <Stack.Screen name="full-calendar" />
+      <Stack.Screen name="progress-photos" />
+      <Stack.Screen name="weekly-checkin" />
     </Stack>
   );
 }

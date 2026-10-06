@@ -4,12 +4,19 @@
     "jsx": "react-jsx",
     "strict": true,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
     },
     "types": ["node", "react", "react-native", "expo-router"]
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "dist", "build"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "app/old",
+    "components/scanMeal/old",
+    "components/nutrition/new(ALL NOT USED)",
+    "**/*(old)*"
+  ]
 }

@@ -235,6 +235,22 @@ export async function pingFriend(uid: string, friendUid: string) {
   );
 }
 
+export async function updateFriendNickname(
+  uid: string,
+  friendUid: string,
+  friendDisplayName: string | null
+) {
+  const ref = getFirestore() ?? db;
+  await setDoc(
+    doc(ref, "users", uid, "friends", friendUid),
+    {
+      friendDisplayName: friendDisplayName?.trim() || null,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
 /**
  * ✅ Cancel an outgoing pending request.
  * Safe-guard: only cancels if YOUR edge is pending+outgoing (so you can't delete accepted).

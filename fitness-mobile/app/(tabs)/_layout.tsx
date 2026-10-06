@@ -1,6 +1,6 @@
 // app/(tabs)/_layout.tsx
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Platform, View, BackHandler } from "react-native";
+import { Platform, View, BackHandler } from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/content/ThemeProvider";
@@ -8,11 +8,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/content/AuthContext";
 import { subscribeUnreadCount } from "@/services/notifications";
 import { withAlpha } from "@/components/workouts/utils/withAlpha";
-
-let BlurView: any = null;
-try {
-  BlurView = require("expo-blur").BlurView;
-} catch {}
 
 export default function TabsLayout() {
   const { colors, isDark } = useTheme();
@@ -57,9 +52,14 @@ export default function TabsLayout() {
           backgroundColor: colors.background,
           paddingBottom: scenePaddingBottom,
         },
-        tabBarActiveTintColor: withAlpha(colors.primary, 0.9),
-        tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: { fontWeight: "700" },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.placeholder,
+        tabBarLabelStyle: {
+          fontWeight: "400",
+          fontSize: 10,
+          letterSpacing: 0.4,
+          marginTop: 2,
+        },
 
         tabBarStyle: {
           position: "absolute",
@@ -71,27 +71,11 @@ export default function TabsLayout() {
           paddingBottom: tabBarPadBottom,
           borderTopWidth: 1,
           borderTopColor: colors.border,
-          backgroundColor: "transparent",
+          backgroundColor: colors.surface,
           ...Platform.select({ android: { elevation: 5 } }),
         },
         tabBarHideOnKeyboard: true,
-        tabBarBackground: () =>
-          BlurView ? (
-            <BlurView
-              intensity={22}
-              tint={isDark ? "dark" : "light"}
-              style={[
-                StyleSheet.absoluteFillObject,
-                {
-                  backgroundColor: isDark
-                    ? "rgba(12,14,20,0.55)"
-                    : "rgba(245,248,255,0.55)",
-                },
-              ]}
-            />
-          ) : undefined,
-
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ color, size, focused }) => {
           const name =
             route.name === "home"
               ? "home-outline"
@@ -104,8 +88,17 @@ export default function TabsLayout() {
               : "person-outline";
           const showBadge = route.name === "notifications" && unreadCount > 0;
           return (
-            <View style={{ position: "relative" }}>
+            <View style={{ position: "relative", alignItems: "center" }}>
               <Ionicons name={name as any} color={color} size={size} />
+              <View
+                style={{
+                  marginTop: 6,
+                  width: 4,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: focused ? colors.primary : "transparent",
+                }}
+              />
               {showBadge ? (
                 <View
                   style={{
@@ -115,7 +108,7 @@ export default function TabsLayout() {
                     minWidth: 10,
                     height: 10,
                     borderRadius: 6,
-                    backgroundColor: colors.primary,
+                    backgroundColor: colors.danger,
                     borderWidth: 1,
                     borderColor: colors.background,
                   }}

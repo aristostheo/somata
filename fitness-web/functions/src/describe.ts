@@ -1001,7 +1001,13 @@ export const describe = onRequest(
         if (qCount >= 25) {
           const fallback = heuristicMealTotals(text, body.context);
           res.set("Cache-Control", "no-store");
-          res.status(200).json(withMealV1Mirror(fallback));
+          res.status(200).json(
+            withMealV1Mirror(fallback, {
+              fallback: true,
+              source: "heuristic",
+              fallbackReason: "quota",
+            })
+          );
           return;
         }
 
@@ -1043,7 +1049,13 @@ export const describe = onRequest(
           } catch {}
 
           res.set("Cache-Control", "no-store");
-          res.status(200).json(withMealV1Mirror(fallback));
+          res.status(200).json(
+            withMealV1Mirror(fallback, {
+              fallback: true,
+              source: "heuristic",
+              fallbackReason: msg.slice(0, 220),
+            })
+          );
           return;
         }
       }
@@ -2569,7 +2581,7 @@ async function enforceMinInterval(args: {
   }
 }
 
-function withMealV1Mirror(v2: MealV2) {
+function withMealV1Mirror(v2: MealV2, meta: Record<string, any> = {}) {
   const v1Mirror: MealResultV1 = {
     items: [
       {
@@ -2587,7 +2599,7 @@ function withMealV1Mirror(v2: MealV2) {
     ],
     rationale: undefined,
   };
-  return { ...v2, ...v1Mirror };
+  return { ...v2, ...v1Mirror, ...meta };
 }
 
 function heuristicMealTotals(text: string, _context?: any): MealV2 {

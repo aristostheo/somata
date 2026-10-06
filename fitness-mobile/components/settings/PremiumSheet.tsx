@@ -122,7 +122,7 @@ export function PremiumSheet({
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.55)",
   },
   wrap: { flex: 1, justifyContent: "flex-end" },

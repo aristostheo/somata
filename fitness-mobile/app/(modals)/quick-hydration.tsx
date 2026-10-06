@@ -64,6 +64,14 @@ export default function QuickHydrationModal() {
 
   const key = (u: string) => `hydration:quickLogs:${u}`;
 
+  function close() {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace("/(tabs)/nutrition");
+  }
+
   function showToast(msg: string) {
     if (timer.current) clearTimeout(timer.current);
     setToast(msg);
@@ -86,7 +94,7 @@ export default function QuickHydrationModal() {
     setBusy(false);
 
     // close quickly after “success”
-    setTimeout(() => router.back(), 420);
+    setTimeout(close, 420);
   }
 
   return (
@@ -108,7 +116,7 @@ export default function QuickHydrationModal() {
       <View style={{ paddingTop: topPad, paddingHorizontal: 16 }}>
         <View style={styles.headerRow}>
           <Pressable
-            onPress={() => router.back()}
+            onPress={close}
             style={({ pressed }) => [
               styles.iconBtn,
               pressed && { opacity: 0.8 },
@@ -204,7 +212,7 @@ const styles = StyleSheet.create({
 
   cardWrap: { borderRadius: 18, overflow: "hidden" },
   cardBorder: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: withAlpha("#FFFFFF", 0.14),

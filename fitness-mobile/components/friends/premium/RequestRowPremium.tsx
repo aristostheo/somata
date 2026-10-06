@@ -1,31 +1,7 @@
-// components/friends/premium/RequestRowPremium.tsx
-// Drop-in ✅ incoming + sent request rows
-
-import React, { useMemo } from "react";
+import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { BlurView } from "expo-blur";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "@/content/ThemeProvider";
-import { withAlpha } from "@/lib/color";
-
-type GradientTuple = readonly [string, string, ...string[]];
-
-function pickAccent(seed: string): GradientTuple {
-  const palettes: readonly GradientTuple[] = [
-    ["rgba(110,231,255,0.45)", "rgba(167,139,250,0.18)"] as const,
-    ["rgba(52,211,153,0.45)", "rgba(96,165,250,0.18)"] as const,
-    ["rgba(251,191,36,0.45)", "rgba(244,114,182,0.18)"] as const,
-    ["rgba(248,113,113,0.45)", "rgba(251,146,60,0.18)"] as const,
-    ["rgba(148,163,184,0.40)", "rgba(99,102,241,0.16)"] as const,
-  ];
-
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++)
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  return palettes[hash % palettes.length];
-}
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 
 export function RequestRowPremium({
   name,
@@ -48,149 +24,90 @@ export function RequestRowPremium({
   onCancel?: () => void;
   onOpenActions?: () => void;
 }) {
-  const { colors, isDark } = useTheme();
-  const accent = useMemo(() => pickAccent(accentSeed), [accentSeed]);
+  const { colors } = useProfileFlowTheme();
+  const hue = Math.abs(
+    accentSeed.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+  );
+  const avatarPalette = [
+    colors.accent,
+    colors.info || colors.accent,
+    colors.success || colors.accent,
+    colors.warning || colors.accent,
+    colors.danger || colors.accent,
+  ].filter(Boolean);
+  const avatar = avatarPalette[hue % avatarPalette.length] || colors.accent;
 
   return (
-    <Pressable
-      onPress={() => {
-        Haptics.selectionAsync();
-        onOpenActions?.();
-      }}
-      onLongPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onOpenActions?.();
-      }}
-    >
+    <Pressable onPress={onOpenActions}>
       {({ pressed }) => (
         <View
           style={[
             styles.card,
             {
-              borderColor: colors.glassBorder,
-              backgroundColor: pressed ? colors.surface2 : colors.glass,
+              backgroundColor: colors.surface1,
+              borderColor: colors.border,
+              opacity: pressed ? 0.7 : 1,
             },
           ]}
         >
-          <BlurView
-            intensity={20}
-            tint={isDark ? "dark" : "light"}
-            style={StyleSheet.absoluteFillObject}
-          />
-          <LinearGradient
-            colors={accent}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.accentGlow}
-          />
+          <View style={[styles.avatar, { backgroundColor: avatar }]}>
+            <Text style={[styles.avatarText, { color: colors.surface1 }]}>
+              {(name || "?")[0]?.toUpperCase() || "?"}
+            </Text>
+          </View>
 
-          <View style={styles.row}>
-            <View style={styles.avatar}>
-              <LinearGradient
-                colors={
-                  [
-                    withAlpha(accent[0], 0.9),
-                    withAlpha(accent[1], 0.9),
-                  ] as const
-                }
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFillObject}
-              />
-
-              <Text style={[styles.avatarText, { color: colors.text }]}>
-                {(name?.trim()?.[0] || "F").toUpperCase()}
+          <View style={styles.content}>
+            <Text style={[styles.name, { color: colors.textPrimary }]} numberOfLines={1}>
+              {name}
+            </Text>
+            {handle ? (
+              <Text style={[styles.handle, { color: colors.textTertiary }]} numberOfLines={1}>
+                {handle}
               </Text>
-            </View>
+            ) : null}
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={1}>
+              {subtitle}
+            </Text>
+          </View>
 
-            <View style={{ flex: 1 }}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+          {mode === "incoming" ? (
+            <View style={styles.actions}>
+              <Pressable
+                onPress={() => {
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  onAccept?.();
+                }}
+                style={[
+                  styles.pillButton,
+                  { borderColor: colors.success, backgroundColor: colors.surface2 },
+                ]}
               >
-                <Text
-                  style={[styles.name, { color: colors.text }]}
-                  numberOfLines={1}
-                >
-                  {name}
-                </Text>
-                {handle ? (
-                  <Text
-                    style={[styles.handle, { color: colors.muted }]}
-                    numberOfLines={1}
-                  >
-                    {handle}
-                  </Text>
-                ) : null}
-              </View>
-              <Text
-                style={[styles.subtitle, { color: colors.muted }]}
-                numberOfLines={1}
-              >
-                {subtitle ||
-                  (mode === "incoming"
-                    ? "Incoming request"
-                    : "Pending approval")}
-              </Text>
-            </View>
-
-            {mode === "incoming" ? (
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                <Pressable
-                  onPress={() => {
-                    Haptics.notificationAsync(
-                      Haptics.NotificationFeedbackType.Success
-                    );
-                    onAccept?.();
-                  }}
-                  style={({ pressed: p }) => [
-                    styles.smallBtn,
-                    {
-                      backgroundColor: withAlpha(colors.success, p ? 0.24 : 0.18),
-                      borderColor: withAlpha(colors.success, 0.3),
-                    },
-                  ]}
-                >
-                  <Ionicons name="checkmark" size={18} color={colors.text} />
-                </Pressable>
-
-                <Pressable
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    onDecline?.();
-                  }}
-                  style={({ pressed: p }) => [
-                    styles.smallBtn,
-                    {
-                      backgroundColor: withAlpha(colors.text, p ? 0.12 : 0.08),
-                      borderColor: colors.glassBorder,
-                    },
-                  ]}
-                >
-                  <Ionicons name="close" size={18} color={colors.text} />
-                </Pressable>
-              </View>
-            ) : (
+                <Text style={[styles.pillText, { color: colors.success }]}>Accept</Text>
+              </Pressable>
               <Pressable
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  onCancel?.();
+                  onDecline?.();
                 }}
-                style={({ pressed: p }) => [
-                  styles.cancelBtn,
-                  {
-                    backgroundColor: withAlpha(colors.danger, p ? 0.2 : 0.14),
-                    borderColor: withAlpha(colors.danger, 0.24),
-                  },
+                style={[
+                  styles.pillButton,
+                  { borderColor: colors.danger, backgroundColor: colors.surface2 },
                 ]}
               >
-                <Ionicons
-                  name="close-circle-outline"
-                  size={18}
-                  color={colors.text}
-                />
+                <Text style={[styles.pillText, { color: colors.danger }]}>Decline</Text>
               </Pressable>
-            )}
-          </View>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                onCancel?.();
+              }}
+              style={styles.cancelWrap}
+            >
+              <Text style={[styles.cancelText, { color: colors.danger }]}>Cancel →</Text>
+            </Pressable>
+          )}
         </View>
       )}
     </Pressable>
@@ -199,69 +116,65 @@ export function RequestRowPremium({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: "hidden",
-  },
-  accentGlow: {
-    position: "absolute",
-    right: -80,
-    top: -60,
-    width: 200,
-    height: 200,
-    borderRadius: 999,
-    opacity: 0.65,
-  },
-  row: {
+    borderRadius: 14,
+    borderWidth: 0,
+    padding: 14,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    overflow: "hidden",
+    width: 40,
+    height: 40,
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
-    color: "rgba(0,0,0,0.80)",
-    fontWeight: "900",
     fontSize: 16,
+    fontWeight: "500",
+  },
+  content: {
+    flex: 1,
+    minWidth: 0,
   },
   name: {
-    fontSize: 14.5,
-    fontWeight: "900",
-    letterSpacing: -0.25,
-    maxWidth: 170,
+    fontSize: 15,
+    fontWeight: "500",
   },
   handle: {
-    fontSize: 12.5,
-    fontWeight: "700",
+    marginTop: 4,
+    fontSize: 11,
+    fontWeight: "300",
+    letterSpacing: 0.3,
   },
   subtitle: {
-    marginTop: 2,
-    fontSize: 12.5,
-    fontWeight: "600",
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: "300",
   },
-  smallBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
+  actions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  pillButton: {
+    minHeight: 32,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
   },
-  cancelBtn: {
-    width: 44,
-    height: 40,
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: "center",
+  pillText: {
+    fontSize: 11,
+    fontWeight: "500",
+  },
+  cancelWrap: {
     justifyContent: "center",
+    minHeight: 32,
+  },
+  cancelText: {
+    fontSize: 12,
+    fontWeight: "400",
   },
 });

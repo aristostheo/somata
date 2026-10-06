@@ -1,3 +1,5 @@
+import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
+import { nutritionTargets } from "@/services/nutritionTargets";
 // app/badges/index.tsx
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
@@ -6,13 +8,12 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Platform,
   StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
 import { withAlpha } from "@/lib/color";
 
@@ -104,7 +105,7 @@ function categoryLabel(c: string) {
 /* ───────────────── screen ───────────────── */
 export default function BadgesScreen() {
   const router = useRouter();
-  const { colors, isDark } = useTheme() as any;
+  const { colors, isDark } = useProfileFlowTheme();
   const { user } = useAuth() as any;
 
   const [unlocks, setUnlocks] = useState<Record<string, BadgeUnlockState>>({});
@@ -236,7 +237,7 @@ export default function BadgesScreen() {
     }
 
     // nutrition: protein/fiber days this week
-    const proteinGoal = Number((profile as any)?.dailyProteinTarget ?? 160);
+    const proteinGoal = nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 70 }).protein;
     const fiberMin = Number((profile as any)?.fiberGoal ?? 25);
 
     const proteinByDay: Record<string, number> = {};
@@ -376,18 +377,13 @@ export default function BadgesScreen() {
   const selected = selectedId ? BADGES.find((b) => b.id === selectedId) : null;
   const selectedUnlock = selected ? unlocks[selected.id] : null;
 
-  const headerBg = useMemo(
-    () => (isDark ? withAlpha("#081226", 0.55) : withAlpha("#FFFFFF", 0.6)),
-    [isDark]
-  );
+  const headerBg = colors.surface1;
 
-  const topBarBg = useMemo(
-    () => (isDark ? withAlpha("#050A14", 0.55) : withAlpha("#FFFFFF", 0.6)),
-    [isDark]
-  );
+  const topBarBg = colors.background;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <FlowAtmosphere />
       <StatusBar
         barStyle={isDark ? "light-content" : "dark-content"}
         translucent
@@ -397,11 +393,11 @@ export default function BadgesScreen() {
       {/* Top header with back */}
       <View
         style={{
-          paddingTop: Platform.OS === "ios" ? 56 : 18,
-          paddingHorizontal: 14,
+          paddingTop: 18,
+          paddingHorizontal: 20,
           paddingBottom: 10,
           backgroundColor: topBarBg,
-          borderBottomWidth: 1,
+          borderBottomWidth: StyleSheet.hairlineWidth,
           borderBottomColor: withAlpha(colors.border, isDark ? 0.18 : 0.12),
         }}
       >
@@ -424,14 +420,14 @@ export default function BadgesScreen() {
             >
               <Ionicons name="chevron-back" size={20} color={colors.text} />
               <Text
-                style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}
+                style={{ color: colors.text, fontWeight: "600", fontSize: 14 }}
               >
                 Back
               </Text>
             </View>
           </Pressable>
 
-          <Text style={{ color: colors.text, fontWeight: "900", fontSize: 18 }}>
+          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 20 }}>
             Badges
           </Text>
 
@@ -555,19 +551,19 @@ export default function BadgesScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  content: { padding: 14, paddingBottom: 28 },
+  content: { padding: 20, paddingBottom: 28 },
   header: {
-    borderWidth: 1,
-    borderRadius: 22,
-    padding: 14,
+    borderWidth: 0,
+    borderRadius: 18,
+    padding: 16,
   },
-  hTitle: { fontSize: 22, fontWeight: "900" },
-  hSub: { marginTop: 6, fontSize: 13, fontWeight: "700" },
+  hTitle: { fontSize: 22, fontWeight: "700" },
+  hSub: { marginTop: 6, fontSize: 13, fontWeight: "400" },
   groupHeader: {
     flexDirection: "row",
     alignItems: "baseline",
     justifyContent: "space-between",
   },
-  groupTitle: { fontSize: 13, fontWeight: "900", letterSpacing: 0.2 },
-  groupMeta: { fontSize: 12, fontWeight: "800" },
+  groupTitle: { fontSize: 13, fontWeight: "600", letterSpacing: 0.8, textTransform: "uppercase" },
+  groupMeta: { fontSize: 12, fontWeight: "500" },
 });

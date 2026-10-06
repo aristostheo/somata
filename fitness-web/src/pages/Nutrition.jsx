@@ -1,5 +1,6 @@
+import { dayKey } from "../utils/date";
 // src/pages/Nutrition.jsx
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
   addFood,
@@ -20,7 +21,7 @@ import { useNutritionStreams } from "../hooks/useNutritionStreams";
 import { unscaleFromTotals } from "../utils/nutritionMath";
 
 const MEALS = ["breakfast", "lunch", "dinner", "snacks"];
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => dayKey(new Date());
 
 export default function Nutrition() {
   const { user } = useAuth();

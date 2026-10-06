@@ -16,11 +16,13 @@ import {
   Platform,
   StatusBar,
   AccessibilityInfo,
+  Modal,
   useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { nutritionTargets } from "@/services/nutritionTargets";
 import { BlurView } from "expo-blur";
 import { MotiView } from "moti";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -66,10 +68,19 @@ import { TextInput, KeyboardAvoidingView } from "react-native";
 import * as Haptics from "expo-haptics"; // optional
 import { setStepsForDate, addStepsForDate } from "@/services/profile";
 import ActivityLogSheet from "@/components/activity/ActivityLogSheet";
+import {
+  connectedCount,
+  formatLastSync,
+  getActivityMetrics,
+  getRecoveryMetrics,
+  INTEGRATIONS,
+  subscribeIntegrations,
+  syncHealth,
+  type IntegrationSnapshot,
+} from "@/services/integrations";
+import { notifyGoalHit } from "@/services/notificationTriggers";
 
 import { useFocusEffect } from "expo-router";
-import BadgeMedallion from "@/components/badges/new/BadgeMedalion";
-import { BADGE_BY_ID, BADGES } from "@/services/badges/registry";
 import { useBadgesLocal } from "@/services/badges/useBadgesLocal";
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -141,39 +152,39 @@ type HomeTokens = {
 };
 
 function makeTokens(isDark: boolean): HomeTokens {
-  const tint = "#64D2FF";
+  const tint = isDark ? "#7B6FFF" : "#6355E8";
   return isDark
     ? {
-        bg0: "#06070A",
-        bg1: "#0B1020",
-        card: "rgba(255,255,255,0.08)",
-        card2: "rgba(255,255,255,0.06)",
-        text: "#F4F6FF",
-        muted: "rgba(244,246,255,0.70)",
-        hairline: "rgba(255,255,255,0.12)",
-        shadow: "rgba(0,0,0,0.45)",
+        bg0: "#08080F",
+        bg1: "#08080F",
+        card: "#0F0F1A",
+        card2: "#141422",
+        text: "#F0F0FF",
+        muted: "#8888AA",
+        hairline: "#FFFFFF08",
+        shadow: "rgba(0,0,0,0.26)",
         tint,
-        ringA: "#64D2FF",
-        ringB: "#A78BFA",
-        good: "#7CFFB2",
-        warn: "#FFD37C",
-        bad: "#FF7C7C",
+        ringA: tint,
+        ringB: tint,
+        good: "#4ADE80",
+        warn: "#F59E0B",
+        bad: "#F87171",
       }
     : {
-        bg0: "#F6F7FB",
-        bg1: "#FFFFFF",
-        card: "rgba(255,255,255,0.72)",
-        card2: "rgba(255,255,255,0.56)",
-        text: "#0B1020",
-        muted: "rgba(11,16,32,0.62)",
-        hairline: "rgba(11,16,32,0.10)",
-        shadow: "rgba(11,16,32,0.12)",
+        bg0: "#F8F8FC",
+        bg1: "#F8F8FC",
+        card: "#FFFFFF",
+        card2: "#F2F2F8",
+        text: "#0A0A1A",
+        muted: "#666688",
+        hairline: "#00000008",
+        shadow: "rgba(11,16,32,0.06)",
         tint,
-        ringA: "#00B7FF",
-        ringB: "#7C5CFF",
-        good: "#15C47E",
-        warn: "#D9822B",
-        bad: "#D64545",
+        ringA: tint,
+        ringB: tint,
+        good: "#22C55E",
+        warn: "#D97706",
+        bad: "#E65C5C",
       };
 }
 
@@ -196,6 +207,11 @@ export default function HomeScreen() {
 
   // Date key is exactly like old page (string YYYY-MM-DD)
   const [todayStr] = useState(ymd(new Date()));
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
   const today = useMemo(() => {
     // keep “today” consistent with todayStr
     const [y, m, d] = todayStr.split("-").map(Number);
@@ -212,8 +228,9 @@ export default function HomeScreen() {
   const [editingActivity, setEditingActivity] = useState<CardioEntry | null>(
     null
   );
-  const { badgeUnlocks, featuredBadges, refreshBadgesLocal } =
-    useBadgesLocal(true);
+  const [integrations, setIntegrations] = useState<IntegrationSnapshot | null>(null);
+  const [syncSheetOpen, setSyncSheetOpen] = useState(false);
+  const { badgeUnlocks, refreshBadgesLocal } = useBadgesLocal(true);
 
   const unlockedBadgeCount = useMemo(
     () => Object.keys(badgeUnlocks || {}).length,
@@ -225,26 +242,6 @@ export default function HomeScreen() {
       (s) => s && s.seen === false
     ).length;
   }, [badgeUnlocks]);
-
-  const featuredBadgeIdsForRow = useMemo(() => {
-    // Prefer featured, and prefer unlocked ones first
-    const featured = (featuredBadges || []).filter((id) => !!BADGE_BY_ID[id]);
-
-    const unlockedFeatured = featured.filter((id) => !!badgeUnlocks?.[id]);
-    const lockedFeatured = featured.filter((id) => !badgeUnlocks?.[id]);
-
-    // Fallback fill: use any unlocked badges if user hasn’t featured 3 yet
-    const unlockedAny = BADGES.map((b) => b.id).filter(
-      (id) => !!badgeUnlocks?.[id]
-    );
-    const fill = unlockedAny.filter((id) => !featured.includes(id));
-
-    const finalIds = [...unlockedFeatured, ...lockedFeatured, ...fill].slice(
-      0,
-      3
-    );
-    return finalIds;
-  }, [featuredBadges, badgeUnlocks]);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -292,6 +289,8 @@ export default function HomeScreen() {
     };
   }, [user?.uid, user?.email, todayStr]);
 
+  useEffect(() => subscribeIntegrations(setIntegrations), []);
+
   useFocusEffect(
     React.useCallback(() => {
       refreshBadgesLocal();
@@ -299,11 +298,11 @@ export default function HomeScreen() {
   );
 
   /* ───────────────── Derivations (copied from old logic) ───────────────── */
-  const kcalGoal =
-    profile?.dailyCaloriesTarget ?? (profile as any)?.calorieGoal ?? 2400;
-  const proteinGoal = profile?.dailyProteinTarget ?? 160;
-  const carbGoal = (profile as any)?.carbGoal ?? 260;
-  const fatGoal = (profile as any)?.fatGoal ?? 70;
+  const targetValues = nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 70 });
+  const kcalGoal = targetValues.calories;
+  const proteinGoal = targetValues.protein;
+  const carbGoal = targetValues.carbs;
+  const fatGoal = targetValues.fat;
 
   const totals = useMemo(() => {
     return foodsToday.reduce(
@@ -335,6 +334,14 @@ export default function HomeScreen() {
       (((profile as any)?.steps ?? {}) as Record<string, number>) || {};
     return Number(map?.[todayStr] ?? 0);
   }, [profile, todayStr]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    if (stepsGoal > 0 && stepsToday >= stepsGoal) {
+      // NOTIFICATION TRIGGER
+      notifyGoalHit("steps").catch(() => {});
+    }
+  }, [stepsGoal, stepsToday, user?.uid]);
 
   const goalModeRaw =
     (profile as any)?.macroEngineMode ?? profile?.goal ?? "maintain";
@@ -474,6 +481,15 @@ export default function HomeScreen() {
     }
   }
 
+  const recoveryMetrics = useMemo(
+    () => getRecoveryMetrics(integrations),
+    [integrations]
+  );
+  const integrationActivity = useMemo(
+    () => getActivityMetrics(integrations),
+    [integrations]
+  );
+
   const burnToday = useMemo(() => {
     const workoutsBurn = exerciseToday.reduce(
       (sum, ex) => sum + Number(ex.calories || 0),
@@ -485,8 +501,9 @@ export default function HomeScreen() {
       0
     );
 
-    return workoutsBurn + activityBurn;
-  }, [exerciseToday, activityEntries]);
+    const nativeBurn = integrationActivity?.activeCalories || 0;
+    return Math.max(workoutsBurn + activityBurn, nativeBurn);
+  }, [exerciseToday, activityEntries, integrationActivity?.activeCalories]);
 
   const weeklyProteinHits = useMemo(() => {
     if (!proteinGoal) return 0;
@@ -519,41 +536,112 @@ export default function HomeScreen() {
     return Math.round(sum / days.length);
   }, [profile]);
 
+  const topMacroDeficit = useMemo(() => {
+    const gaps = [
+      { key: "protein", label: "protein", value: proteinRemaining, color: t.ringB },
+      { key: "carbs", label: "carbs", value: carbsRemaining, color: t.tint },
+      { key: "fat", label: "fat", value: fatRemaining, color: t.warn },
+    ]
+      .filter((x) => x.value > 0)
+      .sort((a, b) => b.value - a.value);
+    return gaps[0] ?? { key: "done", label: "macros", value: 0, color: t.good };
+  }, [proteinRemaining, carbsRemaining, fatRemaining, t.ringB, t.tint, t.warn, t.good]);
+
+  const weekBars = useMemo(() => {
+    const start = addDays(today, -6);
+    const caloriesByDate: Record<string, number> = {};
+    const proteinByDate: Record<string, number> = {};
+    foodsRange.forEach((f) => {
+      const d = f.date?.slice(0, 10);
+      if (!d) return;
+      caloriesByDate[d] = (caloriesByDate[d] || 0) + Number(f.calories || 0);
+      proteinByDate[d] = (proteinByDate[d] || 0) + Number(f.protein || 0);
+    });
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = ymd(addDays(start, i));
+      const calories = caloriesByDate[date] || 0;
+      const protein = proteinByDate[date] || 0;
+      const hit =
+        calories >= kcalGoal * 0.8 ||
+        protein >= proteinGoal * 0.8 ||
+        (date === todayStr && foodsToday.length > 0);
+      return {
+        date,
+        calories,
+        protein,
+        hit,
+        pct: clamp01(kcalGoal ? calories / kcalGoal : 0),
+      };
+    });
+  }, [foodsRange, today, kcalGoal, proteinGoal, todayStr, foodsToday.length]);
+
   /* ───────────────── UI data mapping ───────────────── */
   const ringData = useMemo(
-    () => [
-      {
-        label: "Calories",
-        value: totals.calories,
-        goal: kcalGoal,
-        unit: "kcal",
-        tone: "tint" as const,
-        sublabel: `${caloriesRemaining.toLocaleString()} left`,
-        onPress: () => router.push("/(tabs)/nutrition"),
-      },
-      {
-        label: "Protein",
-        value: totals.protein,
-        goal: proteinGoal,
-        unit: "g",
-        tone: "violet" as const,
-        sublabel: `${proteinRemaining}g to goal`,
-        onPress: () => router.push("/(tabs)/nutrition"),
-      },
-      {
-        label: "Steps",
-        value: stepsToday,
-        goal: stepsGoal,
-        unit: "",
-        tone: "mint" as const,
-        sublabel: `${Math.max(
-          0,
-          stepsGoal - stepsToday
-        ).toLocaleString()} to go`,
-        onPress: () => router.push("/(tabs)/workouts"),
-      },
-    ],
+    () =>
+      ([
+        recoveryMetrics?.recoveryScore != null
+          ? {
+              label: "Recovery",
+              value: recoveryMetrics.recoveryScore,
+              goal: 100,
+              unit: "%",
+              tone:
+                recoveryMetrics.recoveryScore >= 80
+                  ? ("mint" as const)
+                  : recoveryMetrics.recoveryScore >= 50
+                  ? ("tint" as const)
+                  : ("violet" as const),
+              sublabel:
+                recoveryMetrics.sourceName === "RingConn"
+                  ? "Estimated from your RingConn data"
+                  : recoveryMetrics.hrvMs != null
+                  ? `HRV ${Math.round(recoveryMetrics.hrvMs)}ms`
+                  : "Daily readiness",
+              onPress: () => router.push("/profile/integrations"),
+            }
+          : null,
+        {
+          label: "Calories",
+          value: totals.calories,
+          goal: kcalGoal,
+          unit: "kcal",
+          tone: "tint" as const,
+          sublabel: `${caloriesRemaining.toLocaleString()} left`,
+          onPress: () => router.push("/(tabs)/nutrition"),
+        },
+        {
+          label: "Protein",
+          value: totals.protein,
+          goal: proteinGoal,
+          unit: "g",
+          tone: "violet" as const,
+          sublabel: `${proteinRemaining}g to goal`,
+          onPress: () => router.push("/(tabs)/nutrition"),
+        },
+        {
+          label: "Steps",
+          value: stepsToday,
+          goal: stepsGoal,
+          unit: "",
+          tone: "mint" as const,
+          sublabel: `${Math.max(
+            0,
+            stepsGoal - stepsToday
+          ).toLocaleString()} to go`,
+          onPress: () => router.push("/(tabs)/workouts"),
+        },
+      ].filter(Boolean) as Array<{
+        label: string;
+        value: number;
+        goal: number;
+        unit: string;
+        tone: "mint" | "tint" | "violet";
+        sublabel: string;
+        onPress: () => void;
+      }>),
     [
+      recoveryMetrics?.recoveryScore,
+      recoveryMetrics?.hrvMs,
       totals.calories,
       totals.protein,
       kcalGoal,
@@ -596,19 +684,19 @@ export default function HomeScreen() {
       },
       {
         key: "water",
-        label: "Water",
+        label: "Log Water",
         icon: toIoniconName("water"),
         hint: "Log hydration",
-        onPress: () => router.push("/(tabs)/nutrition"),
+        onPress: () => router.push("/(modals)/quick-hydration" as any),
         color: "#4FD1FF",
       },
       {
         key: "workout",
-        label: "Workout",
+        label: "Log Workout",
         icon: toIoniconName("barbell"),
         hint: "Log a workout",
         onPress: () => router.push("/(modals)/quick-workout" as any),
-        color: t.good,
+        color: "#A78BFA",
       },
       {
         key: "ai",
@@ -667,6 +755,23 @@ export default function HomeScreen() {
         icon: toIoniconName("checkmark-circle"),
         actionLabel: "Balance the day",
         onAction: () => router.push("/(tabs)/nutrition"),
+      });
+    }
+
+    if (
+      (recoveryMetrics?.recoveryScore || 0) > 0 &&
+      (recoveryMetrics?.recoveryScore || 0) < 50
+    ) {
+      addSuggestion(99, {
+        id: "ai-recovery-low",
+        title: "Recovery is low today",
+        body: `${recoveryMetrics?.sourceName || "Your wearable"} shows ${Math.round(
+          recoveryMetrics?.recoveryScore || 0
+        )}% recovery. Consider lighter movement and a strong protein-first day.`,
+        pill: `${Math.round(recoveryMetrics?.recoveryScore || 0)}% recovery`,
+        icon: toIoniconName("moon"),
+        actionLabel: "View workout plan",
+        onAction: () => router.push("/(tabs)/workouts"),
       });
     }
 
@@ -871,6 +976,8 @@ export default function HomeScreen() {
     fatPct,
     goalMode,
     goalLabel,
+    recoveryMetrics?.recoveryScore,
+    recoveryMetrics?.sourceName,
     weightKg,
     targetWeightKg,
     weightDeltaAbs,
@@ -896,6 +1003,19 @@ export default function HomeScreen() {
     todayStr,
     foodsRange,
   ]);
+
+  const todayFocus = useMemo(() => {
+    if (proteinRemaining >= 15) {
+      return `Priority today: hit protein goal (${proteinRemaining}g left)`;
+    }
+    if (stepsToday <= 0) return "Priority today: start moving with a 10 min walk";
+    if (caloriesRemaining > 350) {
+      return `Priority today: fuel the day (${caloriesRemaining} kcal left)`;
+    }
+    return aiSuggestions[0]?.title
+      ? `Priority today: ${aiSuggestions[0].title.toLowerCase()}`
+      : "Priority today: keep the streak alive";
+  }, [aiSuggestions, proteinRemaining, stepsToday, caloriesRemaining]);
 
   const softShadow = useMemo(
     () =>
@@ -939,265 +1059,221 @@ export default function HomeScreen() {
       >
         {/* Header */}
         <View style={{ paddingHorizontal: 16 }}>
-          <LinearGradient
-            colors={
-              isDark ? lg("#0B1020", "#06070A") : lg("#FFFFFF", "#F6F7FB")
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+          <View
             style={{
-              borderRadius: 22,
-              overflow: "hidden",
+              borderRadius: 20,
               borderWidth: 1,
               borderColor: t.hairline,
+              backgroundColor: t.card,
+              padding: 20,
+              gap: 16,
               ...softShadow,
             }}
           >
-            <BlurView
-              intensity={isDark ? 18 : 28}
-              tint={isDark ? "dark" : "light"}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
             >
-              <View style={{ padding: 16, gap: 10 }}>
-                <View
+              <View style={{ flex: 1 }}>
+                <Text
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
+                    color: t.muted,
+                    fontSize: 11,
+                    fontWeight: "300",
+                    letterSpacing: 0.6,
                   }}
                 >
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        color: t.muted,
-                        fontSize: 12,
-                        fontWeight: "800",
-                        letterSpacing: 0.4,
-                      }}
-                    >
-                      {formatDateLong(today).toUpperCase()}
-                    </Text>
+                  {formatDateLong(today).toUpperCase()}
+                </Text>
 
-                    <Text
-                      style={{
-                        color: t.text,
-                        fontSize: 26,
-                        fontWeight: "900",
-                        marginTop: 4,
-                        letterSpacing: -0.2,
-                      }}
-                      accessibilityRole="header"
-                    >
-                      {getGreeting(today)}
-                    </Text>
-                  </View>
-
-                  <Pressable
-                    onPress={() => router.push("/(tabs)/profile")}
-                    accessibilityRole="button"
-                    accessibilityLabel="Open profile"
-                    accessibilityHint="Opens your profile and settings"
-                    hitSlop={12}
-                    style={({ pressed }) => ({
-                      transform: [{ scale: pressed ? 0.98 : 1 }],
-                      opacity: pressed ? 0.9 : 1,
-                    })}
-                  >
-                    <View
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 14,
-                        backgroundColor: withAlpha(
-                          isDark ? "#FFFFFF" : "#0B1020",
-                          isDark ? 0.08 : 0.06
-                        ),
-                        borderWidth: 1,
-                        borderColor: t.hairline,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Ionicons name="person-circle" size={26} color={t.text} />
-                    </View>
-                  </Pressable>
-                </View>
-
-                {/* Streak */}
-                <View
+                <Text
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
+                    color: t.text,
+                    fontSize: 36,
+                    fontWeight: "200",
+                    marginTop: 4,
+                    letterSpacing: -1,
                   }}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.88}
+                  accessibilityRole="header"
                 >
-                  <View
-                    style={{
-                      paddingHorizontal: 10,
-                      paddingVertical: 7,
-                      borderRadius: 999,
-                      backgroundColor: withAlpha(t.tint, isDark ? 0.14 : 0.12),
-                      borderWidth: 1,
-                      borderColor: withAlpha(t.tint, isDark ? 0.26 : 0.22),
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 7,
-                    }}
-                    accessibilityRole="text"
-                    accessibilityLabel={`Streak ${streakDays} days`}
-                  >
-                    <Ionicons name="flame" size={14} color={t.tint} />
-                    <Text
-                      style={{ color: t.text, fontWeight: "900", fontSize: 12 }}
-                    >
-                      {streakDays} day streak
-                    </Text>
-                  </View>
+                  {getGreeting(now)}
+                </Text>
+              </View>
 
-                  <Text
-                    style={{
-                      color: t.muted,
-                      fontSize: 13,
-                      fontWeight: "600",
-                      flex: 1,
-                    }}
-                  >
-                    Calm progress. One log at a time.
-                  </Text>
-                </View>
-                {/* Badges (quiet recognition) */}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <SyncIndicator
+                  snapshot={integrations}
+                  tokens={t}
+                  onPress={() => setSyncSheetOpen(true)}
+                />
                 <Pressable
-                  onPress={() =>
-                    router.push({
-                      pathname: "/(modals)/badges",
-                      params: { source: "home" },
-                    } as any)
-                  }
+                  onPress={() => router.push("/(tabs)/profile")}
                   accessibilityRole="button"
-                  accessibilityLabel="Open badges"
-                  accessibilityHint="Shows your unlocked badges and progress"
-                  hitSlop={10}
+                  accessibilityLabel="Open profile"
+                  hitSlop={12}
                   style={({ pressed }) => ({
-                    opacity: pressed ? 0.92 : 1,
-                    transform: [{ scale: pressed ? 0.995 : 1 }],
+                    transform: [{ scale: pressed ? 0.98 : 1 }],
+                    opacity: pressed ? 0.9 : 1,
                   })}
                 >
                   <View
                     style={{
-                      marginTop: 6,
-                      paddingVertical: 10,
-                      paddingHorizontal: 12,
-                      borderRadius: 18,
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      backgroundColor: t.card2,
                       borderWidth: 1,
-                      borderColor: withAlpha(t.hairline, 1),
-                      backgroundColor: withAlpha(
-                        isDark ? "#FFFFFF" : "#0B1020",
-                        isDark ? 0.06 : 0.04
-                      ),
-                      flexDirection: "row",
+                      borderColor: t.hairline,
                       alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
+                      justifyContent: "center",
                     }}
                   >
-                    {/* Left: label + count */}
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 8,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: t.text,
-                            fontWeight: "900",
-                            fontSize: 14,
-                            letterSpacing: -0.1,
-                          }}
-                          numberOfLines={1}
-                        >
-                          Badges
-                        </Text>
-
-                        {/* tiny “new” dot */}
-                        {unseenBadgeCount > 0 ? (
-                          <View
-                            style={{
-                              width: 7,
-                              height: 7,
-                              borderRadius: 99,
-                              backgroundColor: t.tint,
-                              opacity: 0.95,
-                            }}
-                          />
-                        ) : null}
-                      </View>
-
-                      <Text
-                        style={{
-                          marginTop: 2,
-                          color: t.muted,
-                          fontWeight: "700",
-                          fontSize: 12,
-                        }}
-                        numberOfLines={1}
-                      >
-                        {unlockedBadgeCount} unlocked
-                        {unseenBadgeCount > 0
-                          ? ` • ${unseenBadgeCount} new`
-                          : ""}
-                      </Text>
-                    </View>
-
-                    {/* Right: medallions */}
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      {featuredBadgeIdsForRow.map((id) => {
-                        const def = BADGE_BY_ID[id];
-                        if (!def) return null;
-                        const unlocked = !!badgeUnlocks?.[id];
-                        return (
-                          <BadgeMedallion
-                            key={id}
-                            icon={toIoniconName(def.icon)}
-                            unlocked={unlocked}
-                            accent={def.accent}
-                            size={34}
-                          />
-                        );
-                      })}
-
-                      <Ionicons
-                        name="chevron-forward"
-                        size={16}
-                        color={withAlpha(t.text, isDark ? 0.55 : 0.4)}
-                      />
-                    </View>
+                    <Ionicons name="person-outline" size={20} color={t.muted} />
                   </View>
                 </Pressable>
               </View>
-            </BlurView>
-          </LinearGradient>
+            </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <View
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: withAlpha(t.tint, 0.3),
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 7,
+                }}
+              >
+                <Ionicons name="flame-outline" size={14} color={t.tint} />
+                <Text
+                  style={{
+                    color: t.tint,
+                    fontWeight: "500",
+                    fontSize: 11,
+                    letterSpacing: 1,
+                  }}
+                >
+                  {`${streakDays} DAY STREAK`}
+                </Text>
+              </View>
+
+              <Text
+                style={{
+                  color: t.muted,
+                  fontSize: 12,
+                  fontWeight: "300",
+                  flex: 1,
+                  letterSpacing: 0.3,
+                }}
+              >
+                Calm progress. One log at a time.
+              </Text>
+            </View>
+
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: "/(modals)/badges",
+                  params: { source: "home" },
+                } as any)
+              }
+              accessibilityRole="button"
+              accessibilityLabel="Open badges"
+              hitSlop={10}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.92 : 1,
+                transform: [{ scale: pressed ? 0.995 : 1 }],
+              })}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  style={{
+                    color: t.tint,
+                    fontWeight: "400",
+                    fontSize: 13,
+                  }}
+                  numberOfLines={1}
+                >
+                  {unseenBadgeCount > 0
+                    ? `${unseenBadgeCount} badges ready`
+                    : `${unlockedBadgeCount} badges unlocked`}
+                </Text>
+
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={withAlpha(t.tint, 0.8)}
+                />
+              </View>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Today's focus */}
+        <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
+          <View
+            style={{
+              minHeight: 28,
+              paddingHorizontal: 2,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <Ionicons name="sparkles-outline" size={14} color={t.ringB} />
+            <Text
+              style={{
+                color: t.ringB,
+                fontWeight: "400",
+                fontSize: 12,
+                flex: 1,
+                letterSpacing: 0.3,
+              }}
+              numberOfLines={1}
+            >
+              {todayFocus}
+            </Text>
+          </View>
         </View>
 
         {/* Rings */}
         <View
           style={{
             flexDirection: "row",
-            gap: 12,
+            flexWrap: "wrap",
+            gap: 8,
             paddingHorizontal: 16,
             marginTop: 14,
+            justifyContent: "space-between",
           }}
         >
           {ringData.map((r) => (
-            <View key={r.label} style={{ flex: 1 }}>
+            <View
+              key={r.label}
+              style={{ width: "48%", minWidth: 160 }}
+            >
               <MetricRing
                 tone={r.tone}
                 label={r.label}
@@ -1209,6 +1285,9 @@ export default function HomeScreen() {
                 tokens={t}
                 style={softShadow as any}
                 onPress={r.onPress}
+                size={88}
+                minHeight={160}
+                valueFontSize={24}
               />
             </View>
           ))}
@@ -1219,9 +1298,9 @@ export default function HomeScreen() {
           <Text
             style={{
               color: t.muted,
-              fontWeight: "900",
-              fontSize: 12,
-              letterSpacing: 0.6,
+              fontWeight: "500",
+              fontSize: 11,
+              letterSpacing: 1,
               marginBottom: 10,
             }}
           >
@@ -1363,84 +1442,72 @@ export default function HomeScreen() {
                   </Pressable>
                 </View>
 
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  {[
-                    {
-                      k: "Protein",
-                      v: `${Math.round(totals.protein)}g`,
-                      c: t.good,
-                      sub: `Goal ${Math.round(proteinGoal)}g`,
-                    },
-                    {
-                      k: "Carbs",
-                      v: `${Math.round(totals.carbs)}g`,
-                      c: t.tint,
-                      sub: `Goal ${Math.round(carbGoal)}g`,
-                    },
-                    {
-                      k: "Fat",
-                      v: `${Math.round(totals.fat)}g`,
-                      c: t.warn,
-                      sub: `Goal ${Math.round(fatGoal)}g`,
-                    },
-                  ].map((m) => (
+                <Pressable
+                  onPress={() => router.push("/(tabs)/nutrition")}
+                  accessibilityRole="button"
+                  accessibilityLabel="Open nutrition fuel bar"
+                  style={({ pressed }) => ({
+                    opacity: pressed ? 0.9 : 1,
+                    transform: [{ scale: pressed ? 0.995 : 1 }],
+                  })}
+                >
+                  <View
+                    style={{
+                      borderRadius: 18,
+                      padding: 12,
+                      borderWidth: 1,
+                      borderColor: withAlpha(t.ringB, isDark ? 0.28 : 0.2),
+                      backgroundColor: withAlpha(t.ringB, isDark ? 0.1 : 0.07),
+                      gap: 10,
+                    }}
+                  >
                     <View
-                      key={m.k}
                       style={{
-                        flex: 1,
-                        borderRadius: 16,
-                        paddingVertical: 10,
-                        paddingHorizontal: 12,
-                        borderWidth: 1,
-                        borderColor: withAlpha(m.c, isDark ? 0.28 : 0.2),
-                        backgroundColor: withAlpha(m.c, isDark ? 0.12 : 0.1),
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "baseline",
+                        gap: 10,
                       }}
-                      accessibilityRole="text"
-                      accessibilityLabel={`${m.k} ${m.v}`}
                     >
                       <Text
-                        style={{
-                          color: t.muted,
-                          fontWeight: "900",
-                          fontSize: 11,
-                          letterSpacing: 0.4,
-                        }}
+                        style={{ color: t.text, fontWeight: "900", fontSize: 18 }}
                       >
-                        {m.k.toUpperCase()}
+                        {Math.round(totals.calories).toLocaleString()} /{" "}
+                        {Math.round(kcalGoal).toLocaleString()} kcal
                       </Text>
                       <Text
                         style={{
-                          color: t.text,
+                          color: topMacroDeficit.color,
                           fontWeight: "900",
-                          fontSize: 16,
-                          marginTop: 4,
+                          fontSize: 12,
                         }}
                       >
-                        {m.v}
-                      </Text>
-                      <Text
-                        style={{
-                          color: t.muted,
-                          fontWeight: "800",
-                          fontSize: 11,
-                          marginTop: 2,
-                        }}
-                      >
-                        {m.sub}
+                        {topMacroDeficit.value > 0
+                          ? `${topMacroDeficit.value}g ${topMacroDeficit.label} gap`
+                          : "Macros on track"}
                       </Text>
                     </View>
-                  ))}
-                </View>
 
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
-                  }}
-                >
-                  <View style={{ flex: 1 }}>
+                    <View
+                      style={{
+                        height: 12,
+                        borderRadius: 999,
+                        backgroundColor: withAlpha(t.muted, 0.14),
+                        overflow: "hidden",
+                        borderWidth: 1,
+                        borderColor: withAlpha(t.muted, 0.12),
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: `${Math.round(clamp01(caloriesPct) * 100)}%`,
+                          height: "100%",
+                          borderRadius: 999,
+                          backgroundColor: withAlpha(t.ringB, 0.9),
+                        }}
+                      />
+                    </View>
+
                     <Text
                       style={{
                         color: t.muted,
@@ -1448,31 +1515,14 @@ export default function HomeScreen() {
                         fontSize: 12,
                       }}
                     >
-                      Calories
-                    </Text>
-                    <Text
-                      style={{
-                        color: t.text,
-                        fontWeight: "900",
-                        fontSize: 16,
-                        marginTop: 2,
-                      }}
-                    >
-                      {Math.round(totals.calories).toLocaleString()} /{" "}
-                      {Math.round(kcalGoal).toLocaleString()} kcal
-                    </Text>
-                    <Text
-                      style={{
-                        color: t.muted,
-                        fontWeight: "800",
-                        fontSize: 12,
-                        marginTop: 2,
-                      }}
-                    >
-                      {caloriesRemaining.toLocaleString()} left
+                      {caloriesOver > 0
+                        ? `${caloriesOver.toLocaleString()} kcal over target`
+                        : `${caloriesRemaining.toLocaleString()} kcal left today`}
                     </Text>
                   </View>
+                </Pressable>
 
+                <View style={{ alignItems: "flex-end" }}>
                   <Pressable
                     onPress={() =>
                       router.push(`/(modals)/add-meal?date=${todayStr}` as any)
@@ -1719,12 +1769,13 @@ export default function HomeScreen() {
                   delay: 70 + i * 60,
                 }}
               >
-                <AISuggestionCard
-                  tokens={t as any}
-                  reduceMotion={reduceMotion}
-                  suggestion={s}
-                  style={softShadow as any}
-                />
+	                <AISuggestionCard
+	                  tokens={t as any}
+	                  reduceMotion={reduceMotion}
+	                  suggestion={s}
+	                  priority={i === 0 ? "urgent" : "secondary"}
+	                  style={softShadow as any}
+	                />
               </MotiView>
             ))}
           </View>
@@ -1776,55 +1827,89 @@ export default function HomeScreen() {
                   <Ionicons name="stats-chart" size={18} color={t.muted} />
                 </View>
 
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  {[
-                    {
-                      k: "Protein hits",
-                      v: `${weeklyProteinHits}/7`,
-                      c: t.ringB,
-                    },
-                    {
-                      k: "Steps avg",
-                      v: `${stepsAvg.toLocaleString()}/day`,
-                      c: t.tint,
-                    },
-                    { k: "Streak", v: `${streakDays} days`, c: t.good },
-                  ].map((m) => (
-                    <View
-                      key={m.k}
-                      style={{
-                        flex: 1,
-                        borderRadius: 16,
-                        paddingVertical: 10,
-                        paddingHorizontal: 12,
-                        borderWidth: 1,
-                        borderColor: withAlpha(m.c, isDark ? 0.28 : 0.2),
-                        backgroundColor: withAlpha(m.c, isDark ? 0.12 : 0.1),
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: t.muted,
-                          fontWeight: "900",
-                          fontSize: 11,
-                          letterSpacing: 0.4,
-                        }}
-                      >
-                        {m.k.toUpperCase()}
-                      </Text>
-                      <Text
-                        style={{
-                          color: t.text,
-                          fontWeight: "900",
-                          fontSize: 16,
-                          marginTop: 4,
-                        }}
-                      >
-                        {m.v}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
+	                <View
+	                  style={{
+	                    borderRadius: 18,
+	                    borderWidth: 1,
+	                    borderColor: t.hairline,
+	                    backgroundColor: withAlpha(isDark ? "#FFFFFF" : "#0B1020", isDark ? 0.05 : 0.035),
+	                    padding: 12,
+	                    gap: 10,
+	                  }}
+	                >
+	                  <View
+	                    style={{
+	                      height: 74,
+	                      flexDirection: "row",
+	                      alignItems: "flex-end",
+	                      justifyContent: "space-between",
+	                      gap: 8,
+	                    }}
+	                  >
+	                    {weekBars.map((d) => {
+	                      const day = new Date(d.date + "T12:00:00");
+	                      const todayHit = d.date === todayStr;
+	                      return (
+	                        <View
+	                          key={d.date}
+	                          style={{
+	                            flex: 1,
+	                            alignItems: "center",
+	                            gap: 6,
+	                          }}
+	                        >
+	                          <View
+	                            style={{
+	                              width: "100%",
+	                              height: 48,
+	                              borderRadius: 10,
+	                              justifyContent: "flex-end",
+	                              backgroundColor: withAlpha(t.muted, 0.1),
+	                              overflow: "hidden",
+	                              borderWidth: todayHit ? 1 : 0,
+	                              borderColor: withAlpha(t.ringB, 0.55),
+	                            }}
+	                          >
+	                            <View
+	                              style={{
+	                                height: `${Math.max(10, Math.round(d.pct * 100))}%`,
+	                                borderRadius: 9,
+	                                backgroundColor: todayHit
+	                                  ? withAlpha(t.ringB, 0.95)
+	                                  : d.hit
+	                                  ? withAlpha(t.good, 0.9)
+	                                  : withAlpha(t.bad, 0.82),
+	                              }}
+	                            />
+	                          </View>
+	                          <Text
+	                            style={{
+	                              color: todayHit ? t.text : t.muted,
+	                              fontWeight: "900",
+	                              fontSize: 10,
+	                            }}
+	                          >
+	                            {day.toLocaleDateString(undefined, { weekday: "narrow" })}
+	                          </Text>
+	                        </View>
+	                      );
+	                    })}
+	                  </View>
+	                  <View
+	                    style={{
+	                      flexDirection: "row",
+	                      justifyContent: "space-between",
+	                      gap: 10,
+	                    }}
+	                  >
+	                    <Text style={{ color: t.muted, fontWeight: "800", fontSize: 12 }}>
+	                      Green = goals hit • Red = missed
+	                    </Text>
+	                    <Text style={{ color: t.text, fontWeight: "900", fontSize: 12 }}>
+	                      {weeklyProteinHits}/7 protein
+	                    </Text>
+	                  </View>
+	                </View>
               </View>
             </BlurView>
           </LinearGradient>
@@ -1861,6 +1946,13 @@ export default function HomeScreen() {
             label: "Stretch 10",
           },
         ]}
+      />
+
+      <SyncStatusSheet
+        visible={syncSheetOpen}
+        snapshot={integrations}
+        tokens={t}
+        onClose={() => setSyncSheetOpen(false)}
       />
 
       {/* Steps bottom sheet */}
@@ -2154,5 +2246,118 @@ export default function HomeScreen() {
         </View>
       ) : null}
     </View>
+  );
+}
+
+function SyncIndicator({
+  snapshot,
+  tokens,
+  onPress,
+}: {
+  snapshot: IntegrationSnapshot | null;
+  tokens: HomeTokens;
+  onPress: () => void;
+}) {
+  const health = snapshot ? syncHealth(snapshot) : "none";
+  if (health !== "error") return null;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="Open sync status"
+      style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+    >
+      <View
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 14,
+          backgroundColor: withAlpha("#FFFFFF", 0.08),
+          borderWidth: 1,
+          borderColor: tokens.hairline,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name="sync-outline" size={20} color={tokens.text} />
+        <MotiView
+          animate={{ opacity: 1 }}
+          transition={{ type: "timing", duration: 200 }}
+          style={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            width: 8,
+            height: 8,
+            borderRadius: 999,
+            backgroundColor: tokens.bad,
+          }}
+        />
+      </View>
+    </Pressable>
+  );
+}
+
+function SyncStatusSheet({
+  visible,
+  snapshot,
+  tokens,
+  onClose,
+}: {
+  visible: boolean;
+  snapshot: IntegrationSnapshot | null;
+  tokens: HomeTokens;
+  onClose: () => void;
+}) {
+  const connected = snapshot
+    ? Object.values(snapshot.connections).filter((c) => c.connected)
+    : [];
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" }}>
+        <Pressable onPress={onClose} style={{ flex: 1 }} />
+        <View
+          style={{
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            backgroundColor: withAlpha("#10131F", 0.98),
+            borderWidth: 1,
+            borderColor: tokens.hairline,
+            padding: 18,
+            gap: 12,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={{ color: tokens.text, fontWeight: "900", fontSize: 20, flex: 1 }}>
+              Sync status
+            </Text>
+            <Pressable onPress={onClose} hitSlop={10}>
+              <Ionicons name="close" size={22} color={tokens.text} />
+            </Pressable>
+          </View>
+          {connected.length ? (
+            connected.map((c) => {
+              const def = INTEGRATIONS.find((x) => x.id === c.id);
+              const color = c.status === "error" ? tokens.bad : c.status === "syncing" ? tokens.good : tokens.muted;
+              return (
+                <View key={c.id} style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 36 }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 999, backgroundColor: color }} />
+                  <Text style={{ color: tokens.text, fontWeight: "900", flex: 1 }}>
+                    {def?.name || c.id}
+                  </Text>
+                  <Text style={{ color: tokens.muted, fontWeight: "800" }}>
+                    {formatLastSync(c.lastSyncedAt)}
+                  </Text>
+                </View>
+              );
+            })
+          ) : (
+            <Text style={{ color: tokens.muted, fontWeight: "800", lineHeight: 18 }}>
+              No integrations connected. Open Profile → Integrations to connect a health app.
+            </Text>
+          )}
+        </View>
+      </View>
+    </Modal>
   );
 }

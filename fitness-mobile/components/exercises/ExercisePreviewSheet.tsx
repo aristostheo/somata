@@ -324,7 +324,7 @@ export function ExercisePreviewSheet({
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.35)",
   },
   sheetWrap: { position: "absolute", left: 12, right: 12, bottom: 12 },

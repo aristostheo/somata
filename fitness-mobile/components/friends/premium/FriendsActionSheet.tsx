@@ -12,7 +12,7 @@ import Animated, {
   FadeOutDown,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { withAlpha } from "@/lib/color";
 
 export type FriendAction = {
@@ -21,6 +21,7 @@ export type FriendAction = {
   subtitle?: string;
   icon: keyof typeof Ionicons.glyphMap;
   destructive?: boolean;
+  disabled?: boolean;
   onPress: () => void;
 };
 
@@ -37,7 +38,7 @@ export function FriendActionsSheet({
   onClose: () => void;
   actions: FriendAction[];
 }) {
-  const { colors, isDark } = useTheme();
+  const { colors, isDark } = useProfileFlowTheme();
 
   if (!open) return null;
 
@@ -50,7 +51,7 @@ export function FriendActionsSheet({
         { backgroundColor: withAlpha(colors.text, isDark ? 0.45 : 0.18) },
       ]}
     >
-      <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
       <Animated.View
         entering={FadeInDown.duration(260)}
@@ -69,7 +70,7 @@ export function FriendActionsSheet({
           <BlurView
             intensity={30}
             tint={isDark ? "dark" : "light"}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
 
           <View
@@ -125,15 +126,17 @@ export function FriendActionsSheet({
 
           <ScrollView contentContainerStyle={{ paddingBottom: 6 }}>
             {actions.map((a) => (
-              <Pressable
+                <Pressable
                 key={a.key}
                 onPress={() => {
+                  if (a.disabled) return;
                   Haptics.selectionAsync();
                   a.onPress();
                 }}
                 style={({ pressed }) => [
                   styles.action,
                   {
+                    opacity: a.disabled ? 0.45 : 1,
                     backgroundColor: withAlpha(colors.text, pressed ? 0.1 : 0.06),
                     borderColor: colors.glassBorder,
                   },
@@ -146,13 +149,13 @@ export function FriendActionsSheet({
                       backgroundColor: withAlpha(
                         a.destructive
                           ? colors.danger
-                          : colors.primary || "#6ee7ff",
+                          : colors.primary,
                         0.18
                       ),
                       borderColor: withAlpha(
                         a.destructive
                           ? colors.danger
-                          : colors.primary || "#6ee7ff",
+                          : colors.primary,
                         0.24
                       ),
                     },
@@ -161,7 +164,7 @@ export function FriendActionsSheet({
                   <Ionicons
                     name={a.icon}
                     size={18}
-                    color={a.destructive ? colors.danger : colors.text}
+                    color={a.destructive ? colors.danger : a.disabled ? colors.muted : colors.text}
                   />
                 </View>
 
@@ -169,7 +172,7 @@ export function FriendActionsSheet({
                   <Text
                     style={[
                       styles.actionTitle,
-                      { color: a.destructive ? colors.danger : colors.text },
+                      { color: a.destructive ? colors.danger : a.disabled ? colors.muted : colors.text },
                     ]}
                   >
                     {a.title}
@@ -201,10 +204,9 @@ export function FriendActionsSheet({
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "flex-end",
     padding: 12,
-    backgroundColor: "rgba(0,0,0,0.35)",
   },
   sheetWrap: { width: "100%" },
   sheet: {
@@ -218,7 +220,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 5,
     borderRadius: 99,
-    backgroundColor: "rgba(255,255,255,0.18)",
     marginBottom: 10,
   },
   headerRow: { flexDirection: "row", alignItems: "flex-start", gap: 12 },

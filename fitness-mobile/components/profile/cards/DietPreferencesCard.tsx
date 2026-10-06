@@ -28,21 +28,21 @@ function Pill({
 
   const bg =
     tone === "good"
-      ? withAlpha(colors.primary, 0.16)
+      ? colors.accentDim
       : tone === "warn"
-      ? withAlpha("#F5C451", 0.16)
+      ? withAlpha(colors.warning, 0.16)
       : withAlpha(colors.border, 0.22);
 
   const border =
     tone === "good"
-      ? withAlpha(colors.primary, 0.35)
+      ? colors.accentSubtle
       : tone === "warn"
-      ? withAlpha("#F5C451", 0.35)
+      ? withAlpha(colors.warning, 0.35)
       : withAlpha(colors.border, 0.55);
 
   const text =
     tone === "good"
-      ? colors.text
+      ? colors.accentMuted
       : tone === "warn"
       ? colors.text
       : colors.muted;
@@ -57,8 +57,8 @@ function Pill({
         borderWidth: 1,
         borderColor: border,
       }}
-    >
-      <Text style={{ color: text, fontWeight: "900", fontSize: 12 }}>
+      >
+      <Text style={{ color: text, fontWeight: "500", fontSize: 12 }}>
         {label}
       </Text>
     </View>
@@ -103,14 +103,14 @@ export function DietPreferencesCard({
               width: 42,
               height: 42,
               borderRadius: 14,
-              backgroundColor: withAlpha(colors.primary, 0.14),
+              backgroundColor: colors.surface3,
               borderWidth: 1,
-              borderColor: withAlpha(colors.primary, 0.22),
+              borderColor: colors.border,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Ionicons name="leaf-outline" size={20} color={colors.text} />
+            <Ionicons name="leaf-outline" size={20} color={colors.accentMuted} />
           </View>
 
           <View style={{ flex: 1, gap: 3 }}>

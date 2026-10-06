@@ -52,7 +52,7 @@ export default function InsightCard({
           colors={[pal.a + "22", pal.b + "22"]}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
-          style={StyleSheet.absoluteFillObject} // ✅ portable
+          style={StyleSheet.absoluteFill} // ✅ portable
         />
         <View style={{ padding: 14, gap: 8 }}>{children}</View>
       </BlurView>

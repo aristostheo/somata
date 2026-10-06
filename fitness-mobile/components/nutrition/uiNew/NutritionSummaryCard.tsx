@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassCard } from "./GlassCard";
-import { AnimatedRing } from "@/components/nutrition/ui/AnimatedRing";
+import { AnimatedRing } from "./AnimatedRing";
 
 function withAlpha(color: string, alpha = 0.2) {
   if (!color) return `rgba(0,0,0,${alpha})`;

@@ -1,9 +1,6 @@
-// components/home/AISuggestionCard.tsx
 import React, { useMemo } from "react";
 import { View, Text, Pressable, ViewStyle } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 
 function clamp01(v: number) {
   return Math.max(0, Math.min(1, v));
@@ -30,164 +27,139 @@ export type AISuggestion = {
 export function AISuggestionCard({
   tokens,
   suggestion,
-  reduceMotion,
   style,
+  priority = "normal",
 }: {
   tokens: {
     card: string;
-    card2: string;
     text: string;
     muted: string;
     hairline: string;
     tint: string;
     ringB: string;
+    surface2?: string;
   };
   suggestion: AISuggestion;
   reduceMotion: boolean;
   style?: ViewStyle;
+  priority?: "urgent" | "normal" | "secondary";
 }) {
-  const icon = suggestion.icon || "sparkles";
-  const accent = useMemo(() => tokens.tint, [tokens.tint]);
+  const icon = suggestion.icon || "sparkles-outline";
+  const accent = useMemo(
+    () => (priority === "urgent" ? tokens.ringB : tokens.tint),
+    [priority, tokens.ringB, tokens.tint]
+  );
+  const isAccentCard = priority !== "secondary";
 
   return (
-    <LinearGradient
-      colors={[withAlpha(tokens.card, 1), withAlpha(tokens.card2, 1)]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={{
-        borderRadius: 22,
-        overflow: "hidden",
-        borderWidth: 1,
-        borderColor: tokens.hairline,
-        ...(style as any),
-      }}
+    <View
+      style={[
+        {
+          borderRadius: isAccentCard ? 24 : 20,
+          borderWidth: 1,
+          borderColor: isAccentCard ? withAlpha(accent, 0.2) : tokens.hairline,
+          backgroundColor: isAccentCard ? withAlpha(accent, 0.08) : tokens.card,
+          padding: 18,
+          gap: 12,
+        },
+        style,
+      ]}
     >
-      <BlurView intensity={18} tint="default">
-        <View style={{ padding: 14, gap: 10 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, flex: 1 }}>
           <View
             style={{
-              flexDirection: "row",
+              width: 36,
+              height: 36,
+              borderRadius: 12,
               alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
+              justifyContent: "center",
+              backgroundColor: tokens.surface2 || withAlpha(accent, 0.08),
+              borderWidth: 1,
+              borderColor: isAccentCard ? withAlpha(accent, 0.18) : tokens.hairline,
             }}
+          >
+            <Ionicons name={icon} size={18} color={accent} />
+          </View>
+
+          <View style={{ flex: 1, gap: 8 }}>
+            <Text style={{ color: tokens.text, fontWeight: "500", fontSize: 16 }}>
+              {suggestion.title}
+            </Text>
+            {suggestion.pill ? (
+              <View
+                style={{
+                  alignSelf: "flex-start",
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: withAlpha(accent, 0.24),
+                }}
+              >
+                <Text
+                  style={{
+                    color: accent,
+                    fontWeight: "500",
+                    fontSize: 11,
+                    letterSpacing: 1,
+                  }}
+                >
+                  {suggestion.pill.toUpperCase()}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+
+        {suggestion.onAction && suggestion.actionLabel ? (
+          <Pressable
+            onPress={suggestion.onAction}
+            accessibilityRole="button"
+            accessibilityLabel={suggestion.actionLabel}
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.88 : 1,
+              transform: [{ scale: pressed ? 0.98 : 1 }],
+            })}
           >
             <View
               style={{
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                borderRadius: 999,
+                borderWidth: 1,
+                borderColor: withAlpha(accent, 0.18),
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 10,
-                flex: 1,
+                gap: 6,
               }}
             >
-              <View
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 14,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: withAlpha(accent, 0.14),
-                  borderWidth: 1,
-                  borderColor: withAlpha(accent, 0.22),
-                }}
-              >
-                <Ionicons name={icon} size={18} color={accent} />
-              </View>
-
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    color: tokens.text,
-                    fontWeight: "900",
-                    fontSize: 15,
-                  }}
-                >
-                  {suggestion.title}
-                </Text>
-                {suggestion.pill ? (
-                  <View
-                    style={{
-                      marginTop: 6,
-                      alignSelf: "flex-start",
-                      paddingHorizontal: 10,
-                      paddingVertical: 6,
-                      borderRadius: 999,
-                      backgroundColor: withAlpha(tokens.ringB, 0.12),
-                      borderWidth: 1,
-                      borderColor: withAlpha(tokens.ringB, 0.18),
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: tokens.text,
-                        fontWeight: "900",
-                        fontSize: 12,
-                      }}
-                    >
-                      {suggestion.pill}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
+              <Text style={{ color: accent, fontWeight: "600", fontSize: 12 }}>
+                {suggestion.actionLabel}
+              </Text>
+              <Ionicons name="chevron-forward" size={14} color={accent} />
             </View>
+          </Pressable>
+        ) : null}
+      </View>
 
-            {suggestion.onAction && suggestion.actionLabel ? (
-              <Pressable
-                onPress={suggestion.onAction}
-                accessibilityRole="button"
-                accessibilityLabel={suggestion.actionLabel}
-                accessibilityHint="Applies the AI suggestion"
-                hitSlop={10}
-                style={({ pressed }) => ({
-                  opacity: pressed ? 0.85 : 1,
-                  transform: [{ scale: pressed ? 0.99 : 1 }],
-                })}
-              >
-                <View
-                  style={{
-                    paddingHorizontal: 12,
-                    paddingVertical: 10,
-                    borderRadius: 16,
-                    backgroundColor: withAlpha(accent, 0.14),
-                    borderWidth: 1,
-                    borderColor: withAlpha(accent, 0.2),
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: tokens.text,
-                      fontWeight: "900",
-                      fontSize: 12,
-                    }}
-                  >
-                    {suggestion.actionLabel}
-                  </Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={14}
-                    color={tokens.text}
-                  />
-                </View>
-              </Pressable>
-            ) : null}
-          </View>
-
-          <Text
-            style={{
-              color: tokens.muted,
-              fontWeight: "700",
-              fontSize: 13,
-              lineHeight: 18,
-            }}
-          >
-            {suggestion.body}
-          </Text>
-        </View>
-      </BlurView>
-    </LinearGradient>
+      <Text
+        style={{
+          color: tokens.muted,
+          fontWeight: "400",
+          fontSize: 14,
+          lineHeight: 21,
+        }}
+      >
+        {suggestion.body}
+      </Text>
+    </View>
   );
 }

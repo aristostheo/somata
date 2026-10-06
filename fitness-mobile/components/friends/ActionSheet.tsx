@@ -45,7 +45,7 @@ export function ActionSheet({
       onRequestClose={onClose}
     >
       <View style={styles.root}>
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
         <MotiView
           from={{ translateY: 30, opacity: 0 }}

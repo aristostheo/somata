@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { GlassCard } from "./GlassCard";
 
 function withAlpha(color: string, alpha = 0.2) {
   if (!color) return `rgba(0,0,0,${alpha})`;
@@ -20,7 +19,6 @@ function withAlpha(color: string, alpha = 0.2) {
 
 export function DayStrip({
   colors,
-  isDark,
   days,
   activeISO,
   goals,
@@ -37,131 +35,109 @@ export function DayStrip({
   onPressDay: (iso: string) => void;
   onToggleMode: () => void;
 }) {
-  const label = mode === "week" ? "2 weeks" : "Month";
-
-  const items = useMemo(() => {
-    // Keep stable order; hooks usually returns descending; we want left->right older->newer.
-    const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
-    return sorted;
-  }, [days]);
+  const items = useMemo(
+    () => [...days].sort((a, b) => a.date.localeCompare(b.date)),
+    [days]
+  );
+  const today = new Date();
+  const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   return (
-    <View style={{ paddingHorizontal: 16 }}>
-      <GlassCard colors={colors} isDark={isDark} pad={12} radius={22}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 10,
-          }}
+    <View style={{ paddingHorizontal: 16, gap: 12 }}>
+      <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+        <Pressable
+          onPress={onToggleMode}
+          hitSlop={10}
+          style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1, flexDirection: "row", alignItems: "center", gap: 6 })}
         >
-          <View style={{ gap: 2 }}>
-            <Text
-              style={{ color: colors.muted, fontWeight: "900", fontSize: 12 }}
-            >
-              History
-            </Text>
-            <Text
-              style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}
-            >
-              Pick a day
-            </Text>
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Toggle history range. Currently ${label}`}
-            onPress={onToggleMode}
-            hitSlop={10}
+          <Ionicons name="calendar-outline" size={14} color={colors.primary} />
+          <Text
             style={{
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              borderRadius: 999,
-              borderWidth: 1,
-              borderColor: colors.border,
-              backgroundColor: withAlpha(colors.card, 0.35),
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
+              color: colors.primary,
+              fontSize: 12,
+              fontWeight: "300",
             }}
           >
-            <Ionicons name="calendar-outline" size={16} color={colors.text} />
-            <Text
-              style={{ color: colors.text, fontWeight: "900", fontSize: 12 }}
+            {mode === "week" ? "Month" : "2 weeks"} →
+          </Text>
+        </Pressable>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 16 }}>
+        {items.map((d) => {
+          const active = d.date === activeISO;
+          const isToday = d.date === todayIso;
+          const pct = goals.calories > 0 ? (d.calories || 0) / goals.calories : 0;
+          const barColor =
+            d.calories <= 0
+              ? colors.inputBg
+              : pct >= 0.9
+              ? colors.success
+              : pct >= 0.6
+              ? colors.warning
+              : colors.danger;
+          const dayObj = new Date(`${d.date}T12:00:00`);
+          const barHeight = Math.max(6, Math.round(Math.min(1, pct || 0) * 28));
+
+          return (
+            <Pressable
+              key={d.date}
+              onPress={() => onPressDay(d.date)}
+              style={({ pressed }) => ({
+                width: 52,
+                height: 72,
+                borderRadius: 14,
+                borderWidth: active || isToday ? 1.5 : 1,
+                borderColor: active || isToday ? colors.primary : colors.border,
+                backgroundColor: active ? withAlpha(colors.primary, 0.12) : colors.card,
+                padding: 8,
+                alignItems: "center",
+                justifyContent: "space-between",
+                opacity: pressed ? 0.88 : 1,
+              })}
             >
-              {mode === "week" ? "Month" : "2 weeks"}
-            </Text>
-          </Pressable>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 10, paddingRight: 8 }}
-        >
-          {items.map((d) => {
-            const active = d.date === activeISO;
-            const hit = d.calories >= goals.calories * 0.9;
-            const dayObj = new Date(d.date + "T12:00:00");
-
-            return (
-              <Pressable
-                key={d.date}
-                accessibilityRole="button"
-                accessibilityLabel={`Select ${dayObj.toDateString()}, ${Math.round(
-                  d.calories
-                )} calories`}
-                onPress={() => onPressDay(d.date)}
+              <Text
                 style={{
-                  width: mode === "week" ? 56 : 50,
-                  paddingVertical: 10,
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: active
-                    ? withAlpha(colors.primary, 0.45)
-                    : withAlpha(colors.border, 0.75),
-                  backgroundColor: active
-                    ? withAlpha(colors.primary, 0.16)
-                    : hit
-                    ? withAlpha("#22c55e", 0.12)
-                    : withAlpha(colors.card, 0.25),
-                  alignItems: "center",
+                  color: colors.placeholder ?? colors.muted,
+                  fontSize: 10,
+                  fontWeight: "500",
+                  letterSpacing: 1,
                 }}
               >
-                <Text
+                {dayObj.toLocaleDateString(undefined, { weekday: "narrow" }).toUpperCase()}
+              </Text>
+              <Text
+                style={{
+                  color: isToday ? colors.primary : colors.text,
+                  fontSize: 15,
+                  fontWeight: "500",
+                }}
+              >
+                {Number(d.date.slice(-2))}
+              </Text>
+              <View
+                style={{
+                  width: 4,
+                  height: 28,
+                  borderRadius: 100,
+                  backgroundColor: colors.inputBg,
+                  justifyContent: "flex-end",
+                  overflow: "hidden",
+                }}
+              >
+                <View
                   style={{
-                    color: colors.muted,
-                    fontWeight: "900",
-                    fontSize: 10,
+                    width: 4,
+                    height: barHeight,
+                    borderRadius: 100,
+                    backgroundColor: barColor,
                   }}
-                >
-                  {dayObj.toLocaleDateString(undefined, { weekday: "narrow" })}
-                </Text>
-                <Text
-                  style={{
-                    color: colors.text,
-                    fontWeight: "900",
-                    marginTop: 2,
-                  }}
-                >
-                  {Number(d.date.slice(-2))}
-                </Text>
-                <Text
-                  style={{
-                    color: colors.muted,
-                    fontWeight: "900",
-                    fontSize: 10,
-                    marginTop: 2,
-                  }}
-                >
-                  {Math.round(d.calories)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </GlassCard>
+                />
+              </View>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }

@@ -1,16 +1,10 @@
-// services/ai/macroCompletion.ts
-// Drop-in ✅
-// Calls your existing HTTPS Cloud Function: describe (onRequest)
-// Requires: firebase/auth for ID token
-
-import { getAuth } from "firebase/auth";
+import { callOpenAIJson } from "@/services/openai";
 
 export type MacroTotals = {
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
-  // optional secondaries (safe to omit)
   sugarTotal?: number;
   fiber?: number;
   sodiumMg?: number;
@@ -30,10 +24,10 @@ export type DietPreferencesShape = {
 
 export type MacroCompletionSuggestion = {
   id: string;
-  label: string; // "1 meal + 1 snack"
-  foods: string[]; // no recipes
+  label: string;
+  foods: string[];
   macros: { calories: number; protein: number; carbs: number; fat: number };
-  tags: string[]; // "high_protein", "higher_fiber", ...
+  tags: string[];
   notes?: string;
 };
 
@@ -48,18 +42,8 @@ export type MacroCompletionResponse = {
   rationale: string;
 };
 
-function getDescribeUrl() {
-  // ✅ set one of these in your app env
-  const fromEnv =
-    process.env.AI_DESCRIBE_URL || process.env.FUNCTIONS_DESCRIBE_URL;
-
-  if (fromEnv) return String(fromEnv);
-
-  // If you already have your own helper, replace this function entirely.
-  // This fallback forces you to define an env var so you don't accidentally call a wrong URL.
-  throw new Error(
-    "Missing DESCRIBE_URL. Set it to your Cloud Function URL for describe.",
-  );
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
 }
 
 export async function fetchMacroCompletion(args: {
@@ -67,49 +51,88 @@ export async function fetchMacroCompletion(args: {
   totals: MacroTotals;
   goals: MacroTotals;
   dietPreferences?: DietPreferencesShape | null;
-  count?: number; // 2..4
+  count?: number;
   seed?: string | number;
   nonce?: string | number;
   forceNew?: boolean;
-  lockedSuggestionIds?: string[]; // keep these
-  swapIndex?: number | null; // swap just one slot
+  lockedSuggestionIds?: string[];
+  swapIndex?: number | null;
 }): Promise<MacroCompletionResponse> {
-  const auth = getAuth();
-  const u = auth.currentUser;
-  if (!u) throw new Error("not-signed-in");
-
-  const token = await u.getIdToken();
-
-  const body: Record<string, any> = {
-    mode: "macro_completion:v1",
-    date: args.dateISO,
-    goals: args.goals,
-    totals: args.totals,
-    dietPreferences: args.dietPreferences ?? null,
-    count: args.count ?? 3,
-    forceNew: !!args.forceNew,
-    lockedSuggestionIds: args.lockedSuggestionIds ?? [],
-    swapIndex:
-      typeof args.swapIndex === "number" ? Math.max(0, args.swapIndex) : null,
+  const remaining = {
+    calories: Math.max(0, Math.round((args.goals?.calories || 0) - (args.totals?.calories || 0))),
+    protein: Math.max(0, Math.round((args.goals?.protein || 0) - (args.totals?.protein || 0))),
+    carbs: Math.max(0, Math.round((args.goals?.carbs || 0) - (args.totals?.carbs || 0))),
+    fat: Math.max(0, Math.round((args.goals?.fat || 0) - (args.totals?.fat || 0))),
   };
-  const seed = args.seed != null ? String(args.seed) : "";
-  if (seed) body.seed = seed;
-  const nonce = args.nonce != null ? String(args.nonce) : "";
-  if (nonce) body.nonce = nonce;
 
-  const rsp = await fetch(getDescribeUrl(), {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const requestedCount = clamp(Number(args.count || 3), 2, 4);
+  const system = `You generate macro completion meal suggestions for a fitness app.
+Respond with JSON only.
+Format:
+{
+  "v": 1,
+  "date": "YYYY-MM-DD",
+  "remaining": { "calories": 0, "protein": 0, "carbs": 0, "fat": 0 },
+  "suggestions": [
+    {
+      "id": "short-id",
+      "label": "1 meal + 1 snack",
+      "foods": ["food one", "food two"],
+      "macros": { "calories": 0, "protein": 0, "carbs": 0, "fat": 0 },
+      "tags": ["high_protein"],
+      "notes": "optional"
+    }
+  ],
+  "rationale": "short explanation"
+}`;
 
-  const text = await rsp.text();
-  if (!rsp.ok)
-    throw new Error(`describe_http_${rsp.status}:${text.slice(0, 220)}`);
+  const user = `Build ${requestedCount} macro-completion suggestions for ${args.dateISO}.
+Goals: ${JSON.stringify(args.goals)}
+Totals so far: ${JSON.stringify(args.totals)}
+Remaining: ${JSON.stringify(remaining)}
+Diet preferences: ${JSON.stringify(args.dietPreferences || null)}
+Keep suggestions practical and food-based, not recipes. Prioritize protein when protein remaining is high.
+Avoid markdown. JSON only.`;
 
-  const json = JSON.parse(text);
-  return json as MacroCompletionResponse;
+  const out = await callOpenAIJson<Partial<MacroCompletionResponse>>(
+    [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+    {
+      model: "gpt-4o-mini",
+      maxTokens: 900,
+      temperature: args.forceNew ? 0.8 : 0.45,
+      retryTemperature: 0.25,
+    }
+  );
+
+  const suggestions = Array.isArray(out?.suggestions)
+    ? out.suggestions
+        .slice(0, requestedCount)
+        .map((item, index) => ({
+          id: String(item?.id || `spark-${index + 1}`),
+          label: String(item?.label || "Suggested meal"),
+          foods: Array.isArray(item?.foods) ? item.foods.map(String) : [],
+          macros: {
+            calories: Math.max(0, Math.round(Number(item?.macros?.calories || 0))),
+            protein: Math.max(0, Math.round(Number(item?.macros?.protein || 0))),
+            carbs: Math.max(0, Math.round(Number(item?.macros?.carbs || 0))),
+            fat: Math.max(0, Math.round(Number(item?.macros?.fat || 0))),
+          },
+          tags: Array.isArray(item?.tags) ? item.tags.map(String) : [],
+          notes: item?.notes ? String(item.notes) : undefined,
+        }))
+    : [];
+
+  return {
+    v: 1,
+    date: args.dateISO,
+    remaining,
+    preferencesUsed: args.dietPreferences ?? undefined,
+    quotaUsed: suggestions.length,
+    quotaLimit: requestedCount,
+    suggestions,
+    rationale: String(out?.rationale || "Suggestions tuned to your remaining targets."),
+  };
 }

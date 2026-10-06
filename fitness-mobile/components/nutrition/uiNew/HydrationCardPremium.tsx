@@ -1,27 +1,8 @@
 import React, { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  ViewStyle,
-  TextInput,
-  Alert,
-  Platform,
-} from "react-native";
+import { View, Text, Pressable, ViewStyle, TextInput, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
-
-import { GlassCard } from "./GlassCard";
-import { withAlpha } from "@/lib/color";
-
-// ✅ Replace old gauge
 import { PremiumHydrationBottle } from "./PremiumHydrationBottle";
+import { withAlpha } from "@/lib/color";
 
 type Props = {
   colors: any;
@@ -31,15 +12,13 @@ type Props = {
   onAdd: (ml: number) => void;
   onClear: () => void;
   style?: ViewStyle | any;
-  unit?: "ml" | "oz"; // optional display only
+  unit?: "ml" | "oz";
+  streakDays?: number;
+  showReminder?: boolean;
 };
 
 function mlToOz(ml: number) {
   return ml / 29.5735295625;
-}
-
-function formatInt(n: number) {
-  return Math.round(n).toLocaleString();
 }
 
 export function HydrationCardPremium({
@@ -51,558 +30,224 @@ export function HydrationCardPremium({
   onClear,
   style,
   unit = "ml",
+  showReminder = false,
 }: Props) {
   const [showCustom, setShowCustom] = useState(false);
-  const [customValue, setCustomValue] = useState<string>("");
-
-  // ✅ Pour trigger wiring
+  const [customValue, setCustomValue] = useState("");
   const [logTick, setLogTick] = useState(0);
-  const [lastDeltaMl, setLastDeltaMl] = useState(250);
-
   const safeGoal = Math.max(0, goalMl || 0);
   const safeNow = Math.max(0, currentMl || 0);
-
-  const pct = useMemo(() => {
-    if (!safeGoal) return 0;
-    return Math.max(0, Math.min(999, Math.round((safeNow / safeGoal) * 100)));
-  }, [safeNow, safeGoal]);
-
-  const remaining = useMemo(() => {
-    if (!safeGoal) return 0;
-    return Math.max(0, safeGoal - safeNow);
-  }, [safeNow, safeGoal]);
-
-  const over = useMemo(() => {
-    if (!safeGoal) return 0;
-    return Math.max(0, safeNow - safeGoal);
-  }, [safeNow, safeGoal]);
-
+  const pct = safeGoal > 0 ? Math.round((safeNow / safeGoal) * 100) : 0;
+  const remaining = Math.max(0, safeGoal - safeNow);
   const displayNow = unit === "oz" ? mlToOz(safeNow) : safeNow;
   const displayGoal = unit === "oz" ? mlToOz(safeGoal) : safeGoal;
   const displayRemaining = unit === "oz" ? mlToOz(remaining) : remaining;
-  const displayOver = unit === "oz" ? mlToOz(over) : over;
 
-  const headline = useMemo(() => {
-    if (!safeGoal) return `${formatInt(displayNow)} ${unit}`;
-    return `${formatInt(displayNow)} / ${formatInt(displayGoal)} ${unit}`;
-  }, [safeGoal, displayNow, displayGoal, unit]);
-
-  const subline = useMemo(() => {
-    if (!safeGoal) return "Set a hydration goal to track progress";
-    if (over > 0) return `Goal reached • +${formatInt(displayOver)} ${unit}`;
-    return `${pct}% • ${formatInt(displayRemaining)} ${unit} to goal`;
-  }, [safeGoal, over, pct, displayRemaining, displayOver, unit]);
-
-  const cardPress = useSharedValue(1);
-  const cardAnim = useAnimatedStyle(() => ({
-    transform: [{ scale: cardPress.value }],
-  }));
-
-  function bump() {
-    cardPress.value = withSpring(0.99, { damping: 18, stiffness: 280 });
-    requestAnimationFrame(() => {
-      cardPress.value = withSpring(1, { damping: 18, stiffness: 280 });
-    });
-  }
-
-  function handleAdd(ml: number) {
-    if (!ml || ml <= 0) return;
-    Haptics.selectionAsync().catch(() => {});
-    bump();
-
-    // ✅ trigger pour animation
-    setLastDeltaMl(ml);
-    setLogTick((t) => t + 1);
-
-    onAdd(ml);
-  }
-
-  function handleClear() {
-    Alert.alert(
-      "Clear hydration?",
-      "This will reset today’s water intake to 0.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Clear",
-          style: "destructive",
-          onPress: () => {
-            Haptics.notificationAsync(
-              Haptics.NotificationFeedbackType.Warning
-            ).catch(() => {});
-            onClear();
-          },
-        },
-      ]
-    );
-  }
-
-  const quickAdds = [100, 250, 500];
-
-  // ✅ Bottle palette derived from your theme
   const bottleColors = useMemo(
     () => ({
       glass: withAlpha("#ffffff", isDark ? 0.16 : 0.12),
       glassInner: withAlpha("#ffffff", isDark ? 0.09 : 0.07),
       highlight: withAlpha("#ffffff", isDark ? 0.18 : 0.16),
-      waterTop: withAlpha(colors.primary ?? "#7dd3fc", isDark ? 0.52 : 0.46),
-      waterMid: withAlpha(colors.primary ?? "#7dd3fc", isDark ? 0.44 : 0.38),
-      waterBottom: withAlpha(
-        colors.primaryDeep ?? colors.primary ?? "#38bdf8",
-        isDark ? 0.52 : 0.44
-      ),
-      glow: withAlpha(colors.primary ?? "#7dd3fc", isDark ? 0.22 : 0.18),
+      waterTop: withAlpha("#06B6D4", isDark ? 0.52 : 0.46),
+      waterMid: withAlpha("#06B6D4", isDark ? 0.44 : 0.38),
+      waterBottom: withAlpha("#0891B2", isDark ? 0.52 : 0.44),
+      glow: withAlpha("#06B6D4", isDark ? 0.18 : 0.14),
     }),
-    [colors, isDark]
+    [isDark]
   );
 
+  function addAmount(ml: number) {
+    setLogTick((t) => t + 1);
+    onAdd(ml);
+  }
+
   return (
-    <Animated.View style={cardAnim}>
-      <GlassCard colors={colors} isDark={isDark} style={[styles.card, style]}>
-        {/* Top */}
-        <View style={styles.topRow}>
-          <View style={{ gap: 4, minWidth: 0 }}>
-            <Text
-              style={[styles.title, { color: colors.text }]}
-              numberOfLines={1}
-            >
-              Hydration
-            </Text>
-            <Text
-              style={[
-                styles.sub,
-                {
-                  color: withAlpha(
-                    colors.muted ?? colors.text,
-                    isDark ? 0.72 : 0.78
-                  ),
-                },
-              ]}
-              numberOfLines={1}
-            >
-              {headline} • {pct}%
-            </Text>
-          </View>
-
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <View
-              style={[
-                styles.unitPill,
-                {
-                  borderColor: withAlpha(colors.border ?? colors.text, 0.22),
-                  backgroundColor: withAlpha(
-                    colors.card ?? "#000",
-                    isDark ? 0.25 : 0.12
-                  ),
-                },
-              ]}
-              accessibilityLabel={`Display unit ${unit}`}
-            >
-              <Ionicons
-                name="water-outline"
-                size={14}
-                color={withAlpha(colors.text, 0.9)}
-              />
-              <Text style={[styles.unitText, { color: colors.text }]}>
-                {unit.toUpperCase()}
-              </Text>
-            </View>
-
-            <Pressable
-              onPress={handleClear}
-              hitSlop={10}
-              accessibilityRole="button"
-              accessibilityLabel="Clear hydration"
-              style={({ pressed }) => [
-                styles.clearBtn,
-                {
-                  borderColor: withAlpha("#ef4444", 0.25),
-                  backgroundColor: withAlpha("#ef4444", pressed ? 0.18 : 0.12),
-                },
-              ]}
-            >
-              <Ionicons name="trash-outline" size={16} color={colors.text} />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Middle */}
-        <View style={styles.middleRow}>
-          <View style={styles.bottleWrap}>
-            <PremiumHydrationBottle
-              width={128}
-              height={196}
-              currentMl={safeNow}
-              goalMl={safeGoal}
-              logTick={logTick}
-              lastDeltaMl={lastDeltaMl}
-              colors={bottleColors}
-            />
-          </View>
-
-          <View style={{ flex: 1, minWidth: 0, gap: 10 }}>
-            <View style={{ gap: 6 }}>
-              <Text style={[styles.headline, { color: colors.text }]}>
-                {headline}
-              </Text>
-              <Text
-                style={[
-                  styles.detail,
-                  {
-                    color: withAlpha(
-                      colors.muted ?? colors.text,
-                      isDark ? 0.72 : 0.78
-                    ),
-                  },
-                ]}
-                numberOfLines={2}
-              >
-                {subline}
-              </Text>
-            </View>
-
-            {/* Mini progress bar */}
-            <View
-              accessible
-              accessibilityRole="progressbar"
-              accessibilityLabel="Hydration progress"
-              accessibilityValue={{
-                min: 0,
-                max: safeGoal || 1,
-                now: safeNow,
-              }}
-              style={[
-                styles.progressTrack,
-                {
-                  backgroundColor: withAlpha(
-                    colors.border ?? colors.text,
-                    isDark ? 0.38 : 0.28
-                  ),
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${
-                      safeGoal ? Math.min(1, safeNow / safeGoal) * 100 : 0
-                    }%`,
-                    backgroundColor: withAlpha(
-                      colors.primary ?? "#7dd3fc",
-                      isDark ? 0.92 : 0.85
-                    ),
-                  },
-                ]}
-              />
-              <View
-                pointerEvents="none"
-                style={[
-                  styles.progressSheen,
-                  {
-                    backgroundColor: withAlpha("#ffffff", isDark ? 0.1 : 0.14),
-                  },
-                ]}
-              />
-            </View>
-
-            {/* Quick adds */}
-            <View style={styles.quickRow}>
-              {quickAdds.map((ml) => (
-                <QuickAddChip
-                  key={ml}
-                  colors={colors}
-                  label={`+${ml}`}
-                  subtitle="ml"
-                  onPress={() => handleAdd(ml)}
-                />
-              ))}
-
-              <QuickAddChip
-                colors={colors}
-                label="Custom"
-                subtitle=""
-                icon="create-outline"
-                onPress={() => {
-                  Haptics.selectionAsync().catch(() => {});
-                  setShowCustom((v) => !v);
-                }}
-              />
-            </View>
-
-            {/* Custom input */}
-            {showCustom && (
-              <View
-                style={[
-                  styles.customRow,
-                  {
-                    borderColor: withAlpha(colors.border ?? colors.text, 0.2),
-                    backgroundColor: withAlpha(
-                      colors.card ?? "#000",
-                      isDark ? 0.24 : 0.12
-                    ),
-                  },
-                ]}
-              >
-                <Ionicons
-                  name="water-outline"
-                  size={16}
-                  color={withAlpha(colors.text, 0.85)}
-                />
-                <TextInput
-                  value={customValue}
-                  onChangeText={(t) => setCustomValue(t.replace(/[^\d]/g, ""))}
-                  placeholder={`Enter ${unit === "oz" ? "oz" : "ml"}`}
-                  placeholderTextColor={withAlpha(colors.text, 0.35)}
-                  keyboardType={Platform.select({
-                    ios: "number-pad",
-                    android: "numeric",
-                  })}
-                  style={[styles.input, { color: colors.text }]}
-                  accessibilityLabel="Custom water amount"
-                  returnKeyType="done"
-                  onSubmitEditing={() => {
-                    const raw = parseInt(customValue || "0", 10);
-                    if (!raw) return;
-                    const ml =
-                      unit === "oz" ? Math.round(raw * 29.5735295625) : raw;
-                    handleAdd(ml);
-                    setCustomValue("");
-                    setShowCustom(false);
-                  }}
-                />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Add custom amount"
-                  onPress={() => {
-                    const raw = parseInt(customValue || "0", 10);
-                    if (!raw) return;
-                    const ml =
-                      unit === "oz" ? Math.round(raw * 29.5735295625) : raw;
-                    handleAdd(ml);
-                    setCustomValue("");
-                    setShowCustom(false);
-                  }}
-                  style={({ pressed }) => [
-                    styles.addBtn,
-                    {
-                      borderColor: withAlpha(colors.primary ?? "#7dd3fc", 0.28),
-                      backgroundColor: withAlpha(
-                        colors.primary ?? "#7dd3fc",
-                        pressed ? 0.22 : 0.16
-                      ),
-                    },
-                  ]}
-                >
-                  <Ionicons name="add" size={16} color={colors.text} />
-                  <Text style={[styles.addText, { color: colors.text }]}>
-                    Add
-                  </Text>
-                </Pressable>
-              </View>
-            )}
-          </View>
-        </View>
-      </GlassCard>
-    </Animated.View>
-  );
-}
-
-function QuickAddChip({
-  colors,
-  label,
-  subtitle,
-  icon,
-  onPress,
-}: {
-  colors: any;
-  label: string;
-  subtitle?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${label} ${subtitle || ""}`.trim()}
-      style={({ pressed }) => [
-        styles.chip,
+    <View
+      style={[
         {
-          borderColor: withAlpha(
-            colors.primary ?? "#7dd3fc",
-            pressed ? 0.34 : 0.26
-          ),
-          backgroundColor: withAlpha(
-            colors.card ?? "#000",
-            pressed ? 0.3 : 0.22
-          ),
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+          borderWidth: 1,
+          borderRadius: 20,
+          paddingHorizontal: 20,
+          paddingVertical: 18,
+          gap: 16,
         },
-        pressed && { transform: [{ scale: 0.985 }] },
+        style,
       ]}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Ionicons
-          name={icon ?? "add-circle-outline"}
-          size={16}
-          color={withAlpha(colors.text, 0.9)}
-        />
-        <View style={{ gap: 1 }}>
-          <Text style={[styles.chipLabel, { color: colors.text }]}>
-            {label}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <View>
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: "500" }}>
+            Hydration
           </Text>
-          {!!subtitle && (
-            <Text
-              style={[
-                styles.chipSub,
-                { color: withAlpha(colors.muted ?? colors.text, 0.65) },
-              ]}
-            >
-              {subtitle}
+          <Text style={{ color: colors.placeholder ?? colors.muted, fontSize: 12, fontWeight: "300", marginTop: 4 }}>
+            {`${Math.round(displayNow).toLocaleString()} / ${Math.round(displayGoal).toLocaleString()} ${unit}`}
+          </Text>
+        </View>
+
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View
+            style={{
+              height: 28,
+              paddingHorizontal: 12,
+              borderRadius: 999,
+              borderWidth: 1,
+              borderColor: colors.border,
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: colors.muted, fontSize: 11, fontWeight: "500", letterSpacing: 1 }}>
+              ML
             </Text>
-          )}
+          </View>
+          <Pressable
+            onPress={() =>
+              Alert.alert("Clear hydration?", "Reset today’s water intake?", [
+                { text: "Cancel", style: "cancel" },
+                { text: "Clear", style: "destructive", onPress: onClear },
+              ])
+            }
+            style={{ width: 28, height: 28, alignItems: "center", justifyContent: "center" }}
+          >
+            <Ionicons name="trash-outline" size={16} color={colors.placeholder ?? colors.muted} />
+          </Pressable>
         </View>
       </View>
-    </Pressable>
+
+      {showReminder ? (
+        <View
+          style={{
+            minHeight: 36,
+            borderRadius: 999,
+            borderWidth: 1,
+            borderColor: "#F59E0B40",
+            backgroundColor: "#F59E0B15",
+            paddingHorizontal: 12,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <Ionicons name="notifications-outline" size={15} color="#F59E0B" />
+          <Text style={{ color: "#F59E0B", fontSize: 12, fontWeight: "300" }} numberOfLines={1}>
+            No water logged yet · Start with 250ml
+          </Text>
+        </View>
+      ) : null}
+
+      <View style={{ flexDirection: "row", gap: 20, alignItems: "center" }}>
+        <PremiumHydrationBottle
+          width={120}
+          height={180}
+          currentMl={safeNow}
+          goalMl={safeGoal}
+          logTick={logTick}
+          lastDeltaMl={250}
+          colors={bottleColors}
+        />
+
+        <View style={{ flex: 1, gap: 12 }}>
+          <Text style={{ color: colors.text, fontSize: 28, fontWeight: "200", letterSpacing: -0.8 }}>
+            {`${Math.round(displayNow).toLocaleString()} / ${Math.round(displayGoal).toLocaleString()} ${unit}`}
+          </Text>
+          <Text style={{ color: colors.placeholder ?? colors.muted, fontSize: 12, fontWeight: "300" }}>
+            {`${pct}% · ${Math.round(displayRemaining).toLocaleString()} ${unit} to goal`}
+          </Text>
+
+          <View style={{ height: 4, borderRadius: 100, backgroundColor: colors.inputBg, overflow: "hidden" }}>
+            <View style={{ width: `${Math.max(0, Math.min(100, pct))}%`, height: 4, backgroundColor: "#06B6D4", borderRadius: 100 }} />
+          </View>
+
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {[100, 250, 500].map((ml) => (
+              <Pressable
+                key={ml}
+                onPress={() => addAmount(ml)}
+                style={({ pressed }) => ({
+                  height: 44,
+                  paddingHorizontal: 14,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: pressed ? colors.primary : colors.border,
+                  backgroundColor: colors.surface2,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
+                })}
+              >
+                <Ionicons name="add-circle-outline" size={14} color={colors.placeholder ?? colors.muted} />
+                <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "500" }}>
+                  +{ml} ml
+                </Text>
+              </Pressable>
+            ))}
+            <Pressable
+              onPress={() => setShowCustom((v) => !v)}
+              style={({ pressed }) => ({
+                height: 44,
+                paddingHorizontal: 16,
+                borderRadius: 999,
+                borderWidth: 1,
+                borderColor: colors.border,
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "row",
+                gap: 6,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              <Ionicons name="create-outline" size={14} color={colors.placeholder ?? colors.muted} />
+              <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "500" }}>
+                Custom
+              </Text>
+            </Pressable>
+          </View>
+
+          {showCustom ? (
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 8,
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderRadius: 12,
+                backgroundColor: colors.surface2,
+                padding: 8,
+              }}
+            >
+              <TextInput
+                value={customValue}
+                onChangeText={(t) => setCustomValue(t.replace(/[^\d]/g, ""))}
+                placeholder="Enter ml"
+                placeholderTextColor={colors.placeholder ?? colors.muted}
+                keyboardType="number-pad"
+                style={{ flex: 1, color: colors.text, paddingHorizontal: 8 }}
+              />
+              <Pressable
+                onPress={() => {
+                  const ml = Number(customValue || 0);
+                  if (ml > 0) addAmount(ml);
+                  setCustomValue("");
+                  setShowCustom(false);
+                }}
+                style={{
+                  height: 40,
+                  paddingHorizontal: 14,
+                  borderRadius: 10,
+                  backgroundColor: colors.primary,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "500" }}>
+                  Add
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
+      </View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    padding: 14,
-  },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-    gap: 12,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: 0.2,
-  },
-  sub: {
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  unitPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  unitText: {
-    fontSize: 12,
-    fontWeight: "900",
-    letterSpacing: 0.2,
-  },
-  clearBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 999,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  middleRow: {
-    flexDirection: "row",
-    gap: 14,
-    alignItems: "center",
-  },
-  bottleWrap: {
-    width: 128,
-    height: 196,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  headline: {
-    fontSize: 18,
-    fontWeight: "900",
-    letterSpacing: 0.2,
-  },
-  detail: {
-    fontSize: 12,
-    fontWeight: "800",
-    lineHeight: 16,
-  },
-
-  progressTrack: {
-    height: 10,
-    borderRadius: 999,
-    overflow: "hidden",
-    position: "relative",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 999,
-  },
-  progressSheen: {
-    position: "absolute",
-    top: 1,
-    left: 10,
-    right: 10,
-    height: 3,
-    borderRadius: 99,
-  },
-
-  quickRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  chip: {
-    minWidth: 118,
-    flexGrow: 1,
-    height: 46,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  chipLabel: {
-    fontSize: 12,
-    fontWeight: "900",
-  },
-  chipSub: {
-    fontSize: 10,
-    fontWeight: "900",
-  },
-
-  customRow: {
-    marginTop: 2,
-    height: 48,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: "900",
-    paddingVertical: 0,
-  },
-  addBtn: {
-    height: 34,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  addText: {
-    fontSize: 12,
-    fontWeight: "900",
-  },
-});

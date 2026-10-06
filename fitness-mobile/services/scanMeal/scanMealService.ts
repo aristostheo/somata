@@ -1,11 +1,6 @@
 // services/scanMeal/mockScanService.ts
-import { getAuth } from "firebase/auth";
 import type { ScanMealResult } from "@/services/scanMeal/types";
-import * as ImageManipulator from "expo-image-manipulator";
-
-const AI_URL =
-  process.env.AI_DESCRIBE_URL ||
-  "https://us-central1-fitness-tracker-25254.cloudfunctions.net/describe";
+import { callOpenAIImageJson } from "@/services/openai";
 
 /** Backend expects portion.unit in: g | oz | cups | tbsp | piece */
 const VALID_PORTION_UNITS = ["g", "oz", "cups", "tbsp", "piece"] as const;
@@ -13,24 +8,6 @@ type ValidPortionUnit = (typeof VALID_PORTION_UNITS)[number];
 
 const VALID_CONFIDENCE = ["high", "medium", "low", "manual"] as const;
 type ValidConfidence = (typeof VALID_CONFIDENCE)[number];
-
-async function uriToBase64(uri: string): Promise<string> {
-  // ✅ IMPORTANT:
-  // Photos from iOS camera roll are often HEIC.
-  // Convert ANY input to JPEG + base64 so OpenAI accepts it.
-  const out = await ImageManipulator.manipulateAsync(
-    uri,
-    [{ resize: { width: 1280 } }], // optional but recommended (keeps aspect ratio)
-    {
-      compress: 0.85,
-      format: ImageManipulator.SaveFormat.JPEG,
-      base64: true,
-    },
-  );
-
-  if (!out.base64) throw new Error("Failed to convert image to base64");
-  return out.base64; // raw base64 (jpeg bytes)
-}
 
 function clampConfidence(v: any): ValidConfidence {
   const s = String(v || "").toLowerCase();
@@ -64,39 +41,36 @@ function normalizePortion(p: any): {
 export async function mockScanMealFromImage(
   uri: string,
 ): Promise<ScanMealResult> {
-  const user = getAuth().currentUser;
-  const token = user ? await user.getIdToken(true) : "";
-
-  const base64 = await uriToBase64(uri);
-
-  const payload = {
-    mode: "scan_meal:v1", // ✅ MUST match backend (underscore)
-    imageBase64: `data:image/jpeg;base64,${base64}`,
-  };
-
-  const res = await fetch(AI_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(payload),
+  const parsed = await callOpenAIImageJson<any>({
+    imageUri: uri,
+    systemPrompt:
+      "You are a nutrition analysis assistant. Identify foods from the meal image and respond with valid JSON only.",
+    userPrompt: `Analyze this meal photo and return JSON only in this shape:
+{
+  "foods": [
+    {
+      "id": "stable short id",
+      "name": "food name",
+      "confidence": "high" | "medium" | "low" | "manual",
+      "portion": { "amount": number, "unit": "g" | "oz" | "cups" | "tbsp" | "piece", "multiplier": number },
+      "macros": {
+        "calories": number,
+        "protein": number,
+        "carbs": number,
+        "fat": number,
+        "fiber": number,
+        "sugar": number,
+        "sodiumMg": number,
+        "satFat": number
+      },
+      "suggestions": ["optional", "short", "alternatives"]
+    }
+  ]
+}
+Use conservative nutrition estimates. Return 1-6 foods. No markdown.`,
+    maxTokens: 1800,
+    temperature: 0.2,
   });
-
-  const raw = await res.text();
-
-  // If the function errors, it may return plain text / HTML.
-  if (!res.ok) {
-    throw new Error(raw || `Scan failed (${res.status})`);
-  }
-
-  let parsed: any;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    throw new Error(raw || "Scan failed (non-JSON response)");
-  }
 
   return {
     foods: (Array.isArray(parsed?.foods) ? parsed.foods : []).map(

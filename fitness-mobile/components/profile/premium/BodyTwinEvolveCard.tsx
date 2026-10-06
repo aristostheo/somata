@@ -3,6 +3,7 @@ import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import Svg, { Circle } from "react-native-svg";
 
 import { useTheme } from "@/content/ThemeProvider";
 import { GlassCard } from "./GlassCard";
@@ -19,12 +20,14 @@ import { withAlpha, clamp, fmt } from "./ui";
 export function BodyTwinEvolveCard(props: {
   isDark: boolean;
   weightKg: number;
+  targetWeightKg: number;
+  unit: "kg" | "lb";
   heightCm: number;
   goalType: "cut" | "maintain" | "lean_bulk" | "bulk";
   trendHint: number; // negative means trending down
   onPressCustomize: () => void;
 }) {
-  const { colors, isDark } = useTheme();
+  const { colors, isDark } = useTheme() as any;
 
   const energy = useMemo(() => {
     // a stable, not-too-reactive evolution scalar
@@ -43,11 +46,22 @@ export function BodyTwinEvolveCard(props: {
     if (props.goalType === "bulk") return "Stronger form";
     return "Balanced form";
   }, [props.goalType]);
+  const progressPct = Math.round(energy * 100);
+  const goalLabel = useMemo(() => {
+    if (!props.targetWeightKg) return "Not set";
+    return props.unit === "kg"
+      ? `${fmt.num1(props.targetWeightKg)} kg`
+      : `${fmt.num1(props.targetWeightKg * 2.20462)} lb`;
+  }, [props.targetWeightKg, props.unit]);
+  const ringSize = 118;
+  const ringStroke = 4;
+  const ringRadius = (ringSize - ringStroke) / 2;
+  const ringCirc = 2 * Math.PI * ringRadius;
 
   return (
     <GlassCard>
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}>
+        <Text style={{ color: colors.textPrimary, fontWeight: "500", fontSize: 16 }}>
           Body Twin
         </Text>
 
@@ -60,21 +74,21 @@ export function BodyTwinEvolveCard(props: {
             styles.btn,
             {
               marginLeft: "auto",
-              backgroundColor: withAlpha(
-                colors.card,
-                isDark ? (pressed ? 0.22 : 0.18) : pressed ? 0.7 : 0.55
-              ),
-              borderColor: withAlpha(colors.border, 0.7),
+              backgroundColor: colors.surface3,
+              borderColor: colors.border,
             },
           ]}
           accessibilityRole="button"
           accessibilityLabel="Customize Body Twin"
         >
-          <Ionicons name="options-outline" size={16} color={colors.text} />
+          <Ionicons name="options-outline" size={16} color={colors.textTertiary} />
         </Pressable>
       </View>
 
-      <Text style={{ color: colors.muted, marginTop: 6 }}>{mood}</Text>
+      <Text style={{ color: colors.textTertiary, marginTop: 6, fontWeight: "300" }}>{mood}</Text>
+      <Text style={{ color: colors.textTertiary, marginTop: 6, fontSize: 12, fontWeight: "300", fontStyle: "italic" }}>
+        Updates as you log — not a daily critic.
+      </Text>
 
       <View style={{ height: 12 }} />
 
@@ -84,23 +98,42 @@ export function BodyTwinEvolveCard(props: {
           { backgroundColor: withAlpha(colors.border, isDark ? 0.12 : 0.2) },
         ]}
       >
-        <View
-          style={[
-            styles.ringOuter,
-            { borderColor: withAlpha(colors.primary, isDark ? 0.35 : 0.22) },
-          ]}
-        >
+        <View style={styles.ringOuter}>
+          <Svg width={ringSize} height={ringSize} style={StyleSheet.absoluteFill}>
+            <Circle
+              cx={ringSize / 2}
+              cy={ringSize / 2}
+              r={ringRadius}
+              stroke={withAlpha(colors.accent, isDark ? 0.2 : 0.14)}
+              strokeWidth={ringStroke}
+              fill="transparent"
+            />
+            <Circle
+              cx={ringSize / 2}
+              cy={ringSize / 2}
+              r={ringRadius}
+              stroke={colors.accent}
+              strokeWidth={ringStroke}
+              fill="transparent"
+              strokeDasharray={`${ringCirc} ${ringCirc}`}
+              strokeDashoffset={ringCirc * (1 - energy)}
+              strokeLinecap="round"
+              rotation="-90"
+              originX={ringSize / 2}
+              originY={ringSize / 2}
+            />
+          </Svg>
           <View
             style={[
               styles.ringMid,
-              { borderColor: withAlpha(colors.primary, isDark ? 0.28 : 0.18) },
+              { borderColor: withAlpha(colors.accent, isDark ? 0.28 : 0.18) },
             ]}
           >
             <View
               style={[
                 styles.ringInner,
                 {
-                  borderColor: withAlpha(colors.primary, isDark ? 0.22 : 0.14),
+                  borderColor: withAlpha(colors.accent, isDark ? 0.22 : 0.14),
                 },
               ]}
             >
@@ -111,15 +144,12 @@ export function BodyTwinEvolveCard(props: {
                     width: 62 + energy * 16,
                     height: 62 + energy * 16,
                     borderRadius: 22 + energy * 6,
-                    backgroundColor: withAlpha(
-                      colors.text,
-                      isDark ? 0.08 : 0.06
-                    ),
+                    backgroundColor: colors.surface3,
                     borderColor: withAlpha(colors.border, 0.7),
                   },
                 ]}
               >
-                <Ionicons name="person-outline" size={22} color={colors.text} />
+                <Ionicons name="person-outline" size={22} color={colors.textPrimary} />
               </View>
             </View>
           </View>
@@ -128,37 +158,36 @@ export function BodyTwinEvolveCard(props: {
 
       <View style={{ height: 12 }} />
 
-      <View style={{ flexDirection: "row", gap: 10 }}>
-        <Chip label="Evolves" value={`${Math.round(energy * 100)}%`} />
-        <Chip label="Weight" value={`${fmt.num1(props.weightKg)} kg`} />
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        <Chip
+          label="Progress"
+          value={`${progressPct}%`}
+          subLabel="How close to your goal physique"
+        />
+        <Chip label="Goal" value={`Goal · ${goalLabel}`} />
       </View>
-
-      <Text
-        style={{
-          color: colors.muted,
-          fontSize: 12,
-          marginTop: 12,
-          lineHeight: 16,
-        }}
-      >
-        A visual companion — not a critic. It changes slowly so you don’t feel
-        “watched.”
-      </Text>
     </GlassCard>
   );
 }
 
-function Chip({ label, value }: { label: string; value: string }) {
-  const { colors } = useTheme();
+function Chip({ label, value, subLabel }: { label: string; value: string; subLabel?: string }) {
+  const { colors } = useTheme() as any;
   return (
     <View style={styles.chip}>
-      <Text style={{ color: colors.muted, fontSize: 12 }}>{label}</Text>
+      <Text style={{ color: colors.textTertiary, fontSize: 9, fontWeight: "400" }} numberOfLines={1}>
+        {label}
+      </Text>
       <Text
-        style={{ color: colors.text, fontWeight: "900", marginTop: 4 }}
+        style={{ color: colors.textPrimary, fontSize: 14, fontWeight: "600", marginTop: 3 }}
         numberOfLines={1}
       >
         {value}
       </Text>
+      {subLabel ? (
+        <Text style={{ color: colors.textTertiary, fontSize: 9, marginTop: 3, lineHeight: 12, fontWeight: "300" }} numberOfLines={2}>
+          {subLabel}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -180,10 +209,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   ringOuter: {
-    width: 112,
-    height: 112,
+    width: 118,
+    height: 118,
     borderRadius: 999,
-    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -206,8 +234,8 @@ const styles = StyleSheet.create({
   core: { borderWidth: 1, alignItems: "center", justifyContent: "center" },
   chip: {
     flex: 1,
-    borderRadius: 16,
-    padding: 10,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    minWidth: 0,
+    borderRadius: 14,
+    padding: 8,
   },
 });

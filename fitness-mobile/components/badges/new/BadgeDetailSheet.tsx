@@ -1,5 +1,5 @@
 // components/badges/BadgeDetailSheet.tsx
-import React, { useMemo } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -9,13 +9,12 @@ import {
   Modal,
   Platform,
 } from "react-native";
-import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
+import { useReducedMotion } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 
-import { useTheme } from "@/content/ThemeProvider";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { withAlpha } from "@/lib/color";
-import BadgeMedallion from "./BadgeMedalion";
 
 type Props = {
   visible: boolean;
@@ -40,16 +39,9 @@ type Props = {
 };
 
 export default function BadgeDetailSheet(props: Props) {
-  const { colors, isDark } = useTheme();
-
-  const bg = useMemo(
-    () => (isDark ? withAlpha("#060B14", 0.72) : withAlpha("#FFFFFF", 0.82)),
-    [isDark]
-  );
-  const border = useMemo(
-    () => withAlpha(colors.border, isDark ? 0.22 : 0.18),
-    [colors.border, isDark]
-  );
+  const { colors, isDark } = useProfileFlowTheme();
+  const reduceMotion = useReducedMotion();
+  const border = colors.border;
 
   const unlockedDate = props.unlockedAt ? new Date(props.unlockedAt) : null;
   const unlockedText = unlockedDate
@@ -60,7 +52,7 @@ export default function BadgeDetailSheet(props: Props) {
     <Modal
       visible={props.visible}
       transparent
-      animationType="fade"
+      animationType={reduceMotion ? "none" : "fade"}
       onRequestClose={props.onClose}
     >
       <Pressable style={styles.backdrop} onPress={props.onClose}>
@@ -68,24 +60,15 @@ export default function BadgeDetailSheet(props: Props) {
       </Pressable>
 
       <View style={styles.wrap}>
-        <View style={[styles.card, { borderColor: border }]}>
-          <BlurView
-            intensity={isDark ? 18 : 28}
-            tint={isDark ? "dark" : "light"}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: bg }]} />
+        <View style={[styles.card, { backgroundColor: colors.surface1 }]}>
 
           <View style={styles.headerRow}>
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
             >
-              <BadgeMedallion
-                icon={props.icon}
-                accent={props.accent}
-                unlocked={!!props.unlocked}
-                size={56}
-              />
+              <View style={[styles.icon, { backgroundColor: props.unlocked ? withAlpha(props.accent || colors.primary, 0.12) : colors.surface2 }]}>
+                <Ionicons name={props.icon} size={24} color={props.unlocked ? props.accent || colors.primary : colors.textTertiary} />
+              </View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text
                   style={[styles.title, { color: colors.text }]}
@@ -113,7 +96,7 @@ export default function BadgeDetailSheet(props: Props) {
                 props.onClose();
               }}
               hitSlop={12}
-              style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+              style={({ pressed }) => [{ width: 44, height: 44, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.7 : 1 }]}
             >
               <Ionicons
                 name="close"
@@ -303,7 +286,7 @@ export default function BadgeDetailSheet(props: Props) {
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.35)",
   },
   wrap: {
@@ -312,21 +295,22 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   card: {
-    borderWidth: 1,
-    borderRadius: 24,
+    borderWidth: 0,
+    borderRadius: 18,
     overflow: "hidden",
     padding: 14,
     maxHeight: "82%",
   },
+  icon: { width: 48, height: 48, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 12,
   },
-  title: { fontSize: 18, fontWeight: "800" },
-  sub: { marginTop: 3, fontSize: 13, fontWeight: "700" },
-  desc: { fontSize: 14, fontWeight: "600", lineHeight: 20, marginBottom: 12 },
+  title: { fontSize: 18, fontWeight: "700" },
+  sub: { marginTop: 3, fontSize: 13, fontWeight: "400" },
+  desc: { fontSize: 14, fontWeight: "400", lineHeight: 20, marginBottom: 12 },
   pillsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -337,16 +321,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    borderWidth: 1,
+    borderWidth: 0,
   },
-  pillText: { fontSize: 12, fontWeight: "800" },
-  section: { borderWidth: 1, borderRadius: 18, padding: 12 },
-  sectionTitle: { fontSize: 13, fontWeight: "900" },
-  bullet: { flex: 1, fontSize: 13, fontWeight: "700", lineHeight: 18 },
+  pillText: { fontSize: 12, fontWeight: "500" },
+  section: { borderWidth: 0, borderRadius: 14, padding: 12 },
+  sectionTitle: { fontSize: 13, fontWeight: "600" },
+  bullet: { flex: 1, fontSize: 13, fontWeight: "400", lineHeight: 18 },
   featureBtn: {
     marginTop: 12,
-    borderWidth: 1,
-    borderRadius: 16,
+    borderWidth: 0,
+    borderRadius: 14,
+    minHeight: 44,
     paddingVertical: 12,
     paddingHorizontal: 12,
     flexDirection: "row",
@@ -354,5 +339,5 @@ const styles = StyleSheet.create({
     gap: 10,
     justifyContent: "center",
   },
-  featureText: { fontSize: 13, fontWeight: "900" },
+  featureText: { fontSize: 13, fontWeight: "600" },
 });

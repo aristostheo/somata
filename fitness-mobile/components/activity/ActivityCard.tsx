@@ -21,7 +21,6 @@ import type {
   ActivityType,
 } from "./activityTypes";
 import {
-  emojiForType,
   formatTime,
   intensityLabel,
   labelForType,
@@ -72,8 +71,49 @@ export default function ActivityCard({
   const progress = goalMinutes > 0 ? Math.min(1, minutes / goalMinutes) : 0;
 
   const recent = useMemo(() => {
-    return [...entries].sort((a, b) => b.timestamp - a.timestamp).slice(0, 3);
+    return [...entries]
+      .filter((entry) => (entry.minutes || 0) > 0 || (entry.steps || 0) > 0)
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 3);
   }, [entries]);
+
+  const quickPresets =
+    presets && presets.length
+      ? presets
+      : [
+          {
+            type: "walk" as const,
+            minutes: 10,
+            intensity: "easy" as const,
+            label: "Walk 10",
+          },
+          {
+            type: "run" as const,
+            minutes: 20,
+            intensity: "moderate" as const,
+            label: "Run 20",
+          },
+          {
+            type: "bike" as const,
+            minutes: 20,
+            intensity: "moderate" as const,
+            label: "Bike 20",
+          },
+        ];
+
+  const estimateKcal = (type: ActivityType, minutes: number) => {
+    const rate =
+      type === "walk"
+        ? 4
+        : type === "run"
+          ? 10
+          : type === "bike"
+            ? 8
+            : type === "swim"
+              ? 8
+              : 11;
+    return Math.round(minutes * rate);
+  };
 
   function hapticLight() {
     if (Platform.OS !== "web") Haptics.selectionAsync().catch(() => {});
@@ -100,11 +140,11 @@ export default function ActivityCard({
         >
           <View style={{ gap: 2 }}>
             <Text
-              style={{ color: colors.text, fontSize: 16, fontWeight: "900" }}
+              style={{ color: colors.text, fontSize: 16, fontWeight: "500" }}
             >
               {title}
             </Text>
-            <Text style={{ color: colors.muted, fontSize: 12 }}>
+            <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "300" }}>
               {subtitle}
             </Text>
           </View>
@@ -116,12 +156,11 @@ export default function ActivityCard({
               setSheetOpen(true);
             }}
             style={{
-              paddingVertical: 10,
+              height: 32,
               paddingHorizontal: 12,
               borderRadius: 999,
-              backgroundColor: withAlpha(colors.primary, isDark ? 0.2 : 0.14),
               borderWidth: 1,
-              borderColor: withAlpha(colors.primary, isDark ? 0.28 : 0.22),
+              borderColor: withAlpha(colors.primary, isDark ? 0.32 : 0.26),
               flexDirection: "row",
               alignItems: "center",
               gap: 8,
@@ -129,9 +168,9 @@ export default function ActivityCard({
             accessibilityRole="button"
             accessibilityLabel="Log activity"
           >
-            <Ionicons name="add" size={18} color={colors.text} />
+            <Ionicons name="add" size={18} color={colors.primary} />
             <Text
-              style={{ color: colors.text, fontWeight: "900", fontSize: 13 }}
+              style={{ color: colors.primary, fontWeight: "500", fontSize: 13 }}
             >
               Log
             </Text>
@@ -151,12 +190,12 @@ export default function ActivityCard({
               style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}
             >
               <Text
-                style={{ color: colors.text, fontSize: 28, fontWeight: "900" }}
+                style={{ color: colors.text, fontSize: 28, fontWeight: "200" }}
               >
                 {minutes}
               </Text>
               <Text
-                style={{ color: colors.muted, fontSize: 12, fontWeight: "800" }}
+                style={{ color: colors.muted, fontSize: 12, fontWeight: "300" }}
               >
                 min today
               </Text>
@@ -164,16 +203,16 @@ export default function ActivityCard({
 
             <View style={{ flexDirection: "row", gap: 10 }}>
               <View style={{ alignItems: "flex-end" }}>
-                <Text style={{ color: colors.text, fontWeight: "900" }}>
-                  {calories || "—"}
+                <Text style={{ color: colors.text, fontWeight: "200", fontSize: 28 }}>
+                  {calories || 0}
                 </Text>
-                <Text style={{ color: colors.muted, fontSize: 11 }}>cals</Text>
+                <Text style={{ color: colors.muted, fontSize: 11, fontWeight: "300" }}>cals</Text>
               </View>
               <View style={{ alignItems: "flex-end" }}>
-                <Text style={{ color: colors.text, fontWeight: "900" }}>
-                  {steps || "—"}
+                <Text style={{ color: colors.text, fontWeight: "200", fontSize: 28 }}>
+                  {steps || 0}
                 </Text>
-                <Text style={{ color: colors.muted, fontSize: 11 }}>steps</Text>
+                <Text style={{ color: colors.muted, fontSize: 11, fontWeight: "300" }}>steps</Text>
               </View>
             </View>
           </View>
@@ -207,10 +246,7 @@ export default function ActivityCard({
                   style={{
                     height: "100%",
                     borderRadius: 999,
-                    backgroundColor: withAlpha(
-                      colors.primary,
-                      isDark ? 0.32 : 0.22
-                    ),
+                backgroundColor: colors.info,
                   }}
                 />
               </View>
@@ -225,26 +261,7 @@ export default function ActivityCard({
 
         {/* Quick actions (gentle + optional) */}
         <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
-          {[
-            {
-              type: "walk" as const,
-              minutes: 10,
-              intensity: "easy" as const,
-              label: "Walk 10",
-            },
-            {
-              type: "run" as const,
-              minutes: 20,
-              intensity: "moderate" as const,
-              label: "Run 20",
-            },
-            {
-              type: "bike" as const,
-              minutes: 20,
-              intensity: "moderate" as const,
-              label: "Bike 20",
-            },
-          ].map((p) => (
+          {quickPresets.map((p) => (
             <Pressable
               key={p.label}
               onPress={() => {
@@ -259,27 +276,28 @@ export default function ActivityCard({
                   timestamp: Date.now(),
                 });
               }}
-              style={{
+            style={{
                 flex: 1,
-                paddingVertical: 10,
-                borderRadius: 16,
-                backgroundColor: withAlpha(colors.card, isDark ? 0.22 : 0.72),
+                minHeight: 52,
+                borderRadius: 12,
+                backgroundColor: colors.card,
                 borderWidth: 1,
                 borderColor: withAlpha(colors.border, isDark ? 0.22 : 0.55),
                 alignItems: "center",
                 gap: 3,
+                justifyContent: "center",
+                paddingHorizontal: 8,
               }}
               accessibilityRole="button"
               accessibilityLabel={`Quick add ${p.label}`}
             >
-              <Text style={{ fontSize: 16 }}>{emojiForType(p.type)}</Text>
               <Text
-                style={{ color: colors.text, fontWeight: "900", fontSize: 12 }}
+                style={{ color: colors.text, fontWeight: "500", fontSize: 12 }}
               >
-                {p.label}
+                {p.label || `${labelForType(p.type)} ${p.minutes}`}
               </Text>
-              <Text style={{ color: colors.muted, fontSize: 11 }}>
-                {intensityLabel(p.intensity)}
+              <Text style={{ color: colors.muted, fontSize: 11, fontWeight: "300" }}>
+                ~{estimateKcal(p.type, p.minutes)} kcal
               </Text>
             </Pressable>
           ))}
@@ -348,13 +366,10 @@ export default function ActivityCard({
                       ]
                     );
                   }}
-                  style={{
+              style={{
                     padding: 12,
-                    borderRadius: 16,
-                    backgroundColor: withAlpha(
-                      colors.card,
-                      isDark ? 0.2 : 0.72
-                    ),
+                    borderRadius: 12,
+                    backgroundColor: colors.surface2,
                     borderWidth: 1,
                     borderColor: withAlpha(colors.border, isDark ? 0.22 : 0.55),
                     flexDirection: "row",
@@ -373,12 +388,12 @@ export default function ActivityCard({
                       gap: 10,
                     }}
                   >
-                    <Text style={{ fontSize: 16 }}>{emojiForType(e.type)}</Text>
+                    <Ionicons name="pulse-outline" size={16} color={colors.muted} />
                     <View style={{ gap: 2 }}>
-                      <Text style={{ color: colors.text, fontWeight: "900" }}>
+                      <Text style={{ color: colors.text, fontWeight: "500" }}>
                         {labelForType(e.type)} • {e.minutes} min
                       </Text>
-                      <Text style={{ color: colors.muted, fontSize: 12 }}>
+                      <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "300" }}>
                         {intensityLabel(e.intensity)} •{" "}
                         {formatTime(e.timestamp)}
                       </Text>

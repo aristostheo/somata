@@ -3,7 +3,6 @@ import React from "react";
 import { View, StyleSheet, ViewStyle } from "react-native";
 import { BlurView } from "expo-blur";
 import { useTheme } from "@/content/ThemeProvider";
-import { withAlpha } from "./ui";
 
 export function GlassCard({
   children,
@@ -24,11 +23,8 @@ export function GlassCard({
         style={[
           styles.card,
           {
-            backgroundColor: withAlpha(
-              isDark ? "#0A1020" : "#FFFFFF",
-              isDark ? 0.22 : 0.55
-            ),
-            borderColor: withAlpha(colors.border, isDark ? 0.35 : 0.7),
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
           },
         ]}
       >
@@ -39,10 +35,10 @@ export function GlassCard({
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderRadius: 22, overflow: "hidden" },
+  wrap: { borderRadius: 20, overflow: "hidden" },
   card: {
-    borderRadius: 22,
-    padding: 14,
+    borderRadius: 20,
+    padding: 18,
     borderWidth: 1,
   },
 });

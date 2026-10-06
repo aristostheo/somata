@@ -2,6 +2,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/content/ThemeProvider";
 
 export default function ScanMealHeader({
@@ -15,18 +16,23 @@ export default function ScanMealHeader({
   onClose: () => void;
   onExplain: () => void;
 }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme() as any;
 
   return (
-    <View style={[styles.wrap, { borderBottomColor: colors.border }]}>
+    <LinearGradient
+      colors={[
+        "rgba(0,0,0,0.68)",
+        isDark ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.02)",
+      ]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.wrap}
+    >
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Close"
         onPress={onClose}
-        style={[
-          styles.iconBtn,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-        ]}
+        style={[styles.iconBtn, { backgroundColor: "rgba(255,255,255,0.08)" }]}
       >
         <Ionicons name="close" size={18} color={colors.text} />
       </Pressable>
@@ -36,7 +42,7 @@ export default function ScanMealHeader({
           {title}
         </Text>
         {!!subtitle ? (
-          <Text style={[styles.sub, { color: colors.muted }]} numberOfLines={1}>
+          <Text style={[styles.sub, { color: "rgba(255,255,255,0.68)" }]} numberOfLines={1}>
             {subtitle}
           </Text>
         ) : null}
@@ -46,10 +52,7 @@ export default function ScanMealHeader({
         accessibilityRole="button"
         accessibilityLabel="How it works"
         onPress={onExplain}
-        style={[
-          styles.iconBtn,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-        ]}
+        style={[styles.iconBtn, { backgroundColor: "rgba(255,255,255,0.08)" }]}
       >
         <Ionicons
           name="information-circle-outline"
@@ -57,7 +60,7 @@ export default function ScanMealHeader({
           color={colors.text}
         />
       </Pressable>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -65,19 +68,17 @@ const styles = StyleSheet.create({
   wrap: {
     paddingHorizontal: 14,
     paddingTop: 8,
-    paddingBottom: 10,
+    paddingBottom: 14,
     flexDirection: "row",
     alignItems: "center",
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  title: { fontSize: 16.5, fontWeight: "800" },
-  sub: { marginTop: 1, fontSize: 12.5, fontWeight: "600" },
+  title: { fontSize: 17, fontWeight: "900" },
+  sub: { marginTop: 2, fontSize: 12.5, fontWeight: "700" },
   iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: StyleSheet.hairlineWidth,
   },
 });

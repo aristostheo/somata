@@ -14,15 +14,19 @@ export function useNutritionStreams(
   const [exercise, setExercise] = useState<ExerciseEntry[]>([]);
 
   useEffect(() => {
-    if (!user?.uid) {
-      setFoods([]);
-      setExercise([]);
-      return;
-    }
+    setFoods([]);
+    setExercise([]);
+    if (!user?.uid) return;
+    let active = true;
     const unsubs: Array<() => void> = [];
-    unsubs.push(subscribeFoodsByDate(user.uid, date, setFoods));
-    unsubs.push(subscribeExerciseByDate(user.uid, date, setExercise));
+    unsubs.push(subscribeFoodsByDate(user.uid, date, (rows) => {
+      if (active) setFoods(rows);
+    }));
+    unsubs.push(subscribeExerciseByDate(user.uid, date, (rows) => {
+      if (active) setExercise(rows);
+    }));
     return () => {
+      active = false;
       unsubs.forEach((u) => {
         try {
           u();

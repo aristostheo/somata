@@ -332,7 +332,7 @@ export default function FriendsPage() {
         }
         start={{ x: 0.1, y: 0 }}
         end={{ x: 0.9, y: 1 }}
-        style={[StyleSheet.absoluteFillObject]}
+        style={[StyleSheet.absoluteFill]}
       />
 
       <View style={{ paddingTop: topInset + 14, paddingHorizontal: 16 }}>

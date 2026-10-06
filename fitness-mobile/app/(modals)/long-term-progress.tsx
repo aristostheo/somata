@@ -5,6 +5,7 @@
 // Uses your ThemeProvider: { colors, isDark }
 
 import React, { useEffect, useMemo, useState } from "react";
+import { nutritionTargets } from "@/services/nutritionTargets";
 import {
   View,
   Text,
@@ -694,8 +695,7 @@ export default function LongTermProgressModal() {
       return;
     }
     const unsub = subscribeProfile(user.uid, (p) => {
-      const goal =
-        Number(p?.calorieGoal ?? p?.dailyCaloriesTarget ?? 2200) || 2200;
+      const goal = nutritionTargets(p, { calories: 2200, protein: 160, carbs: 260, fat: 70 }).calories;
       setCalorieGoal(goal);
     });
     return () => {

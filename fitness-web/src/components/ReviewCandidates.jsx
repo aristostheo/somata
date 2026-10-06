@@ -1,4 +1,6 @@
-function ReviewCandidates({ open, onClose, candidates = [], onConfirm }) {
+import React from "react";
+
+export default function ReviewCandidates({ open, onClose, candidates = [], onConfirm }) {
   const [selected, setSelected] = React.useState([]);
 
   React.useEffect(() => {

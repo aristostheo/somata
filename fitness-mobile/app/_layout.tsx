@@ -2,7 +2,7 @@
 import "react-native-gesture-handler";
 import "react-native-reanimated";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   View,
@@ -16,6 +16,7 @@ import {
 import { Stack, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Notifications from "expo-notifications";
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -25,6 +26,15 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "@/content/AuthContext";
 import { ThemeProvider, useTheme } from "@/content/ThemeProvider";
 import { SettingsProvider } from "@/content/SettingsContext";
+import { startIntegrationAutoSync } from "@/services/integrations";
+import { SomataIcon } from "@/components/brand/SomataIcon";
+import {
+  registerForPushNotifications,
+} from "@/services/notifications";
+import {
+  loadNotificationSettings,
+  syncScheduledNotifications,
+} from "@/services/notificationSettings";
 
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -97,7 +107,8 @@ function Gate() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const enforcedRef = useRef(false);
+  const sessionCheckedRef = useRef(false);
+  const [sessionReady, setSessionReady] = useState(false);
   const fade = useRef(new Animated.Value(1)).current;
 
   const inAuth =
@@ -106,43 +117,48 @@ function Gate() {
     pathname === "/register" ||
     pathname === "/reset";
 
-  // remember-me logic
+  // Apply the stored session preference once at startup, then guard every auth change.
   useEffect(() => {
-    if (initializing || enforcedRef.current) return;
+    if (initializing || sessionCheckedRef.current) return;
+    sessionCheckedRef.current = true;
+    const startupUid = user?.uid;
     (async () => {
-      const remember = (await AsyncStorage.getItem("@rememberMe")) === "1";
-      if (!user) {
-        if (!inAuth) router.replace("/(auth)/login");
-        enforcedRef.current = true;
-        return;
-      }
-      if (!remember) {
-        try {
+      try {
+        const remember = await AsyncStorage.getItem("@rememberMe");
+        if (remember === "0" && startupUid && auth.currentUser?.uid === startupUid) {
           await signOut(auth);
-        } finally {
-          router.replace("/(auth)/login");
-          enforcedRef.current = true;
         }
-      } else {
-        if (inAuth) router.replace("/(tabs)");
-        enforcedRef.current = true;
+      } catch (error) {
+        console.warn("[auth] session preference check failed", error);
+      } finally {
+        setSessionReady(true);
       }
     })();
-  }, [user, initializing, inAuth]);
+  }, [user, initializing]);
+
+  useEffect(() => {
+    if (initializing || !sessionReady) return;
+    if (!user && !inAuth) router.replace("/(auth)/login");
+    else if (user && inAuth) router.replace("/(tabs)");
+  }, [user, initializing, sessionReady, inAuth, router]);
 
   // ensure user doc
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
       if (!u) return;
-      const ref = doc(db, "users", u.uid);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        await setDoc(ref, {
-          email: u.email ?? null,
-          displayName: u.displayName ?? null,
-          photoURL: u.photoURL ?? null,
-          createdAt: serverTimestamp(),
-        });
+      try {
+        const ref = doc(db, "users", u.uid);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          await setDoc(ref, {
+            email: u.email ?? null,
+            displayName: u.displayName ?? null,
+            photoURL: u.photoURL ?? null,
+            createdAt: serverTimestamp(),
+          });
+        }
+      } catch (error) {
+        console.warn("[auth] user document check failed", error);
       }
     });
     return unsub;
@@ -159,7 +175,44 @@ function Gate() {
     }).start();
   }, [pathname, user]);
 
-  if (initializing) {
+  useEffect(() => {
+    const stop = startIntegrationAutoSync(() => user?.uid);
+    return () => {
+      stop?.();
+    };
+  }, [user?.uid]);
+
+  useEffect(() => {
+    registerForPushNotifications().catch(() => {});
+    loadNotificationSettings().then(syncScheduledNotifications).catch(() => {});
+
+    const sub = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const data: any = response.notification.request.content.data || {};
+        if (!data?.type) return;
+        switch (data.type) {
+          case "friend_ping":
+            router.push("/(tabs)/notifications");
+            break;
+          case "pr":
+            router.push("/(tabs)/workouts");
+            break;
+          case "badge":
+            router.push("/(tabs)/profile");
+            break;
+          case "weekly_checkin":
+            router.push("/(modals)/weekly-checkin");
+            break;
+          default:
+            break;
+        }
+      }
+    );
+
+    return () => sub.remove();
+  }, [router]);
+
+  if (initializing || !sessionReady) {
     return (
       <LinearGradient
         colors={
@@ -176,52 +229,11 @@ function Gate() {
             gap: 14,
           }}
         >
-          <View
-            style={{
-              width: 78,
-              height: 78,
-              borderRadius: 20,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "#fff",
-              borderWidth: 1,
-              borderColor: isDark
-                ? "rgba(255,255,255,0.06)"
-                : "rgba(0,0,0,0.03)",
-              shadowColor: "#000",
-              shadowOpacity: 0.12,
-              shadowRadius: 16,
-              shadowOffset: { width: 0, height: 10 },
-              elevation: 8,
-            }}
-          >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                backgroundColor: colors.primary,
-                alignItems: "center",
-                justifyContent: "center",
-                transform: [{ rotate: "-8deg" }],
-              }}
-            >
-              <Text
-                style={{
-                  color: "#fff",
-                  fontWeight: "800",
-                  fontSize: 18,
-                  letterSpacing: 0.6,
-                }}
-              >
-                Fit
-              </Text>
-            </View>
-          </View>
+          <SomataIcon size={120} />
           <View style={{ alignItems: "center", gap: 4 }}>
             <ActivityIndicator color={colors.primary} />
             <Text style={{ color: colors.muted, fontSize: 14 }}>
-              Loading your plan…
+              Loading Somata…
             </Text>
           </View>
         </View>
@@ -238,8 +250,6 @@ function Gate() {
       {/* Translucent so our header shows behind the system area */}
       <StatusBar
         style={isDark ? "light" : "dark"}
-        translucent
-        backgroundColor="transparent"
       />
 
       {/* Always-present glossy header spacer */}

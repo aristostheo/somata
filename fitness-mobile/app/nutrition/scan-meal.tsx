@@ -1,3 +1,4 @@
+import { dayKey } from "@/utils/date";
 // app/scan-meal.tsx
 // Premium Scan Meal UI ✅ wired to your existing backend logic:
 // - Uses AsyncStorage batch handoff: @pending_add_meal_batch_v1
@@ -29,11 +30,12 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { PENDING_MEAL_BUILDER_ADDITIONS_KEY } from "@/services/mealBuilder";
 import { BlurView } from "expo-blur";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { getAuth } from "firebase/auth";
 
 import { useTheme } from "@/content/ThemeProvider";
+import { callOpenAIJson } from "@/services/openai";
 
 import {
   type DetectedFood,
@@ -118,10 +120,6 @@ function guessCategoryByTime(): MealCategory {
 function round1(n: number) {
   return Math.round(n * 10) / 10;
 }
-
-const AI_DESCRIBE_URL =
-  process.env.AI_DESCRIBE_URL ||
-  "https://us-central1-fitness-tracker-25254.cloudfunctions.net/describe";
 
 function safeJsonParse(raw: string): any | null {
   try {
@@ -234,30 +232,32 @@ async function reanalyzeFoodMacros(food: DetectedFood) {
   const unit = String(food.portion?.unit ?? "serving");
   const query = `${amount} ${unit} ${food.name}`.trim();
 
-  const token = await getAuth().currentUser?.getIdToken(true);
-  const payload = {
-    mode: "meal:v2",
-    query,
-    rawText: query,
-    context: { source: "scan-edit" },
-  };
+  const parsed = await callOpenAIJson<any>(
+    [
+      {
+        role: "system",
+        content:
+          "You estimate meal macros for the Somata app. Return valid JSON only.",
+      },
+      {
+        role: "user",
+        content: `Estimate macros for this single food. Return JSON only:
+${query}
 
-  const res = await fetch(AI_DESCRIBE_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const raw = await res.text();
-  if (!res.ok) {
-    throw new Error(raw || `Describe failed (${res.status})`);
-  }
-
-  const parsed = safeJsonParse(raw) ?? extractJsonFromText(raw);
+{
+  "calories": number,
+  "protein": number,
+  "carbs": number,
+  "fat": number,
+  "fiber": number | null,
+  "sugar": number | null,
+  "sodiumMg": number | null,
+  "satFat": number | null
+}`,
+      },
+    ],
+    { maxTokens: 700, temperature: 0.3 }
+  );
   if (!parsed) return null;
 
   const macros = normalizeDescribeMacros(parsed);
@@ -273,12 +273,17 @@ async function reanalyzeFoodMacros(food: DetectedFood) {
 
 export default function ScanMealScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ meal?: string; date?: string }>();
+  const params = useLocalSearchParams<{
+    meal?: string;
+    date?: string;
+    returnTo?: string;
+  }>();
   const { colors, isDark } = useTheme();
 
   const dateStr =
-    (params.date as string) || new Date().toISOString().slice(0, 10);
+    (params.date as string) || dayKey(new Date());
   const initialMealKey = safeMealKey(params.meal);
+  const returnTo = String(params.returnTo || "");
 
   const [state, setState] = useState<ScanState>("idle");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -384,7 +389,7 @@ export default function ScanMealScreen() {
 
     await Haptics.selectionAsync().catch(() => {});
     const res = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       quality: 0.9,
       allowsEditing: true,
       aspect: [4, 3],
@@ -407,7 +412,7 @@ export default function ScanMealScreen() {
 
     await Haptics.selectionAsync().catch(() => {});
     const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       quality: 0.9,
       allowsEditing: true,
       aspect: [4, 3],
@@ -726,8 +731,13 @@ export default function ScanMealScreen() {
         };
       });
 
+      const targetKey =
+        returnTo === "meal-builder"
+          ? PENDING_MEAL_BUILDER_ADDITIONS_KEY
+          : PENDING_BATCH_KEY;
+
       await AsyncStorage.setItem(
-        PENDING_BATCH_KEY,
+        targetKey,
         JSON.stringify({ date: dateStr, meal: chosenMeal, items }),
       );
 
@@ -1130,7 +1140,7 @@ const styles = StyleSheet.create({
   },
 
   overlayWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
-  overlayBlur: { ...StyleSheet.absoluteFillObject },
+  overlayBlur: { ...StyleSheet.absoluteFill },
   overlayCard: {
     width: "86%",
     borderRadius: 18,

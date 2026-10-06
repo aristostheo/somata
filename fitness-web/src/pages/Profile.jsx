@@ -88,9 +88,11 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) return;
+    let active = true;
     let unsub;
     (async () => {
       await ensureProfile(user.uid, { email: user.email });
+      if (!active) return;
       unsub = subscribeProfile(user.uid, (p) => {
         setProfile(p);
         // hydrate local state
@@ -111,8 +113,11 @@ export default function Profile() {
         setCarbPct(p?.carbPct ?? 0.4);
         setFatPct(p?.fatPct ?? 0.3);
       });
-    })();
-    return () => unsub && unsub();
+    })().catch(console.error);
+    return () => {
+      active = false;
+      if (unsub) unsub();
+    };
   }, [user]);
 
   const weightKg = useMemo(

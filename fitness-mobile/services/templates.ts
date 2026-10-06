@@ -34,6 +34,7 @@ export type WorkoutTemplate = {
   updatedAt?: any;
   lastUsedAt?: any;
   pinned?: boolean;
+  archived?: boolean;
 };
 
 export type MealTemplateItem = {
@@ -103,6 +104,7 @@ export function subscribeWorkoutTemplates(
           updatedAt: x.updatedAt ?? null,
           lastUsedAt: x.lastUsedAt ?? null,
           pinned: !!x.pinned,
+          archived: !!x.archived,
         });
       });
       cb(rows);

@@ -967,12 +967,12 @@ export default function WorkoutSessionScreen() {
               ]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
             />
             <BlurView
               tint={isDark ? "dark" : "light"}
               intensity={isDark ? 16 : 12}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
             />
             <View style={{ padding: 12 }}>
               <Row between>
@@ -1415,12 +1415,12 @@ function GlassCard({ children }: React.PropsWithChildren) {
         ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
       <BlurView
         tint={isDark ? "dark" : "light"}
         intensity={isDark ? 22 : 16}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
       <View style={{ padding: 14 }}>{children}</View>
     </View>
@@ -1573,12 +1573,12 @@ function ExerciseTimelineCard({
         ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
       <BlurView
         tint={isDark ? "dark" : "light"}
         intensity={isDark ? 16 : 12}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       {/* Header */}

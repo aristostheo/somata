@@ -14,27 +14,15 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "@/content/ThemeProvider";
 import { withAlpha } from "@/lib/color";
+import { SKIN_TONE_COLORS } from "@/lib/skinTones";
 import type {
   ShapeParams,
   BodyTwinStyle,
 } from "@/services/profile/bodyTwin/new/types";
 
 function toneColor(tone: BodyTwinStyle["skinTone"]) {
-  // Subtle tints; no “beauty” implication—just personalization.
-  switch (tone) {
-    case "porcelain":
-      return "#F7E9E2";
-    case "light":
-      return "#F1D7C7";
-    case "medium":
-      return "#D8B194";
-    case "tan":
-      return "#B98660";
-    case "deep":
-      return "#7A4F3A";
-    default:
-      return "#D8B194";
-  }
+  // Subtle tints; no "beauty" implication-just personalization.
+  return SKIN_TONE_COLORS[tone as string] ?? SKIN_TONE_COLORS.default;
 }
 
 export function AvatarStage({
@@ -45,7 +33,7 @@ export function AvatarStage({
 }: {
   shape: ShapeParams;
   style: BodyTwinStyle;
-  futureShape?: ShapeParams; // if provided, show “ghost outline”
+  futureShape?: ShapeParams; // if provided, show "ghost outline"
   modeLabel?: string; // "Now", "Then", "Future"
 }) {
   const { colors, isDark } = useTheme();
@@ -84,9 +72,9 @@ export function AvatarStage({
     return { size, waist, shoulder };
   }, [futureShape]);
 
-  const accent = colors.accent ?? "#D7B36A";
+  const accent = colors.accent;
   const cardBg = withAlpha(
-    colors.card ?? (isDark ? "#121520" : "#FFFFFF"),
+    colors.card,
     isDark ? 0.25 : 0.65
   );
 
@@ -182,7 +170,7 @@ export function AvatarStage({
               },
             ]}
           >
-            {/* “person” (simple iconic silhouette) */}
+            {/* "person" (simple iconic silhouette) */}
             <View style={styles.silhouetteWrap}>
               <View
                 style={[
@@ -197,7 +185,7 @@ export function AvatarStage({
                 style={[
                   styles.torso,
                   {
-                    backgroundColor: withAlpha("#0B0E14", isDark ? 0.2 : 0.1),
+                    backgroundColor: isDark ? "rgba(11,14,20,0.2)" : "rgba(11,14,20,0.1)",
                     borderColor: withAlpha(colors.text, isDark ? 0.08 : 0.1),
                     transform: [
                       { scaleX: avatar.shoulder },
@@ -217,8 +205,8 @@ export function AvatarStage({
           {/* bottom soft gradient */}
           <LinearGradient
             colors={[
-              withAlpha("#000", 0.0),
-              withAlpha("#000", isDark ? 0.22 : 0.1),
+              "transparent",
+              isDark ? "rgba(0,0,0,0.22)" : "rgba(0,0,0,0.1)",
             ]}
             style={[styles.fadeBottom]}
           />
@@ -228,7 +216,7 @@ export function AvatarStage({
         <Text
           style={[styles.safeCopy, { color: withAlpha(colors.text, 0.74) }]}
         >
-          A visual companion — not a critic. It changes slowly so you don’t feel
+          A visual companion - not a critic. It changes slowly so you don't feel
           watched.
         </Text>
       </BlurView>

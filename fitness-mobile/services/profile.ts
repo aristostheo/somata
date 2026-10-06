@@ -1,18 +1,22 @@
 // services/profile.ts
+import type { GoalInputs, MacroResult } from "./macroCalculator";
 import {
   doc,
+  deleteField,
   getDoc,
   getFirestore,
   onSnapshot,
   setDoc,
   updateDoc,
   increment,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export type Profile = {
   email?: string;
   displayName?: string | null;
+  photoURL?: string | null;
 
   weightUnit?: "kg" | "lb";
   calorieGoal?: number;
@@ -22,12 +26,19 @@ export type Profile = {
   dailyProteinTarget?: number;
 
   // profile fields
-  sex?: "male" | "female";
+  sex?: "male" | "female" | "other";
   age?: number;
   heightCm?: number;
   weightKg?: number;
-  activityLevel?: "sedentary" | "light" | "moderate" | "active" | "athlete";
-  goal?: "cut" | "maintain" | "bulk";
+  activityLevel?:
+    | "sedentary"
+    | "light"
+    | "moderate"
+    | "active"
+    | "athlete"
+    | "very_active"
+    | "extra_active";
+  goal?: "cut" | "maintain" | "lean_bulk" | "bulk";
 
   // targets
   targetMode?: "proteinPerKg" | "percent";
@@ -91,7 +102,15 @@ export type Profile = {
   proteinFocus?: number;
   trackingAccurate?: boolean;
   bodyFatPct?: number;
+  restingHeartRateBpm?: number;
+  hrvMs?: number;
+  recoveryScore?: number;
+  bloodOxygenPct?: number;
   waistCm?: number;
+  neckCm?: number;
+  hipCm?: number;
+  healthLastUpdatedVia?: string;
+  healthLastUpdatedAt?: number;
   macroEngineMode?: "cut" | "maintain" | "lean_bulk" | "bulk";
   macroEngineSimple?: boolean;
 
@@ -99,9 +118,75 @@ export type Profile = {
   gymSessionsPerWeek?: number;
   sportSessionsPerWeek?: number;
   jobActivity?: "sedentary" | "light" | "active";
+  friendVisibility?: {
+    enabled?: boolean;
+    nutrition?: {
+      mealsLoggedToday?: boolean;
+      dailyCaloriesTotal?: boolean;
+      macroBreakdown?: boolean;
+      streakStatus?: boolean;
+    };
+    workouts?: {
+      workoutsLogged?: boolean;
+      workoutDetails?: boolean;
+      personalRecords?: boolean;
+      weeklyVolume?: boolean;
+    };
+    progress?: {
+      consistencyStreak?: boolean;
+      badgeCollection?: boolean;
+      weeklyReportCard?: boolean;
+      weightTrend?: boolean;
+    };
+    activity?: {
+      stepCount?: boolean;
+      cardioSessions?: boolean;
+    };
+  };
+  goalInputs?: GoalInputs;
+  goalResult?: MacroResult;
+  /** Backend-derived projection; authoritative record lives in fitadaptPlans/{uid}. */
+  activeFitAdaptTargets?: { calories: number; protein: number; carbs: number; fat: number };
+  goalUpdatedAt?: number;
+  goalPace?: GoalInputs["pace"];
+  proteinPriority?: GoalInputs["proteinPriority"];
+  cardioMinutesPerWeek?: number;
+  cyclingEnabled?: boolean;
+  manualTDEEOverride?: number | null;
+  manualMacroRatios?: GoalInputs["manualMacroRatios"];
+  bmrFormula?: GoalInputs["bmrFormula"];
 };
 
 const ref = (uid: string) => doc(getFirestore() ?? db, "users", uid);
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function sanitizeNested(value: unknown): unknown {
+  if (value === undefined) return undefined;
+  if (Array.isArray(value)) return value;
+  if (!isPlainObject(value)) return value;
+  const next: Record<string, unknown> = {};
+  for (const [key, inner] of Object.entries(value)) {
+    const sanitized = sanitizeNested(inner);
+    if (sanitized !== undefined) next[key] = sanitized;
+  }
+  return next;
+}
+
+function sanitizeProfilePatch(patch: Partial<Profile>) {
+  const next: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) {
+      next[key] = deleteField();
+      continue;
+    }
+    next[key] = sanitizeNested(value);
+  }
+  next.updatedAt = Date.now();
+  return next;
+}
 
 /**
  * Create the user doc if missing (with sensible defaults) and optionally
@@ -157,7 +242,17 @@ export function subscribeProfile(uid: string, cb: (p: Profile | null) => void) {
 }
 
 export async function updateProfile(uid: string, patch: Partial<Profile>) {
-  await updateDoc(ref(uid), { ...patch, updatedAt: Date.now() });
+  const weight = patch.weightKg;
+  if (typeof weight === "number" && Number.isFinite(weight) && weight >= 30 && weight <= 300) {
+    const today = new Date();
+    const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    const batch = writeBatch(getFirestore() ?? db);
+    batch.update(ref(uid), sanitizeProfilePatch(patch) as any);
+    batch.set(doc(getFirestore() ?? db, "users", uid, "fitadaptWeightEntries", date), { date, weightKg: weight });
+    await batch.commit();
+    return;
+  }
+  await updateDoc(ref(uid), sanitizeProfilePatch(patch) as any);
 }
 export async function setStepsForDate(
   uid: string,

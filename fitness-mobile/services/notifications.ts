@@ -1,7 +1,12 @@
 // services/notifications.ts
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
+import * as Device from "expo-device";
+import * as ExpoNotifications from "expo-notifications";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   getFirestore,
@@ -14,6 +19,7 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
+import { Platform } from "react-native";
 import { db } from "@/lib/firebase";
 
 export type NotificationType =
@@ -38,6 +44,159 @@ export type AppNotification = {
 
 const col = (uid: string) =>
   collection(getFirestore() ?? db, "users", uid, "notifications");
+
+const SCHEDULED_KEY = "scheduled_notification_ids_v1";
+
+ExpoNotifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
+async function readScheduledMap(): Promise<Record<string, string>> {
+  try {
+    const raw = await AsyncStorage.getItem(SCHEDULED_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+async function writeScheduledMap(next: Record<string, string>) {
+  await AsyncStorage.setItem(SCHEDULED_KEY, JSON.stringify(next));
+}
+
+async function rememberScheduledId(logicalId: string, scheduledId: string) {
+  const current = await readScheduledMap();
+  current[logicalId] = scheduledId;
+  await writeScheduledMap(current);
+}
+
+export async function registerForPushNotifications(): Promise<string | null> {
+  if (!Device.isDevice) return null;
+
+  const { status: existing } = await ExpoNotifications.getPermissionsAsync();
+  let finalStatus = existing;
+
+  if (existing !== "granted") {
+    const { status } = await ExpoNotifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== "granted") return null;
+
+  if (Platform.OS === "android") {
+    await ExpoNotifications.setNotificationChannelAsync("default", {
+      name: "Default",
+      importance: ExpoNotifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+    });
+    await ExpoNotifications.setNotificationChannelAsync("reminders", {
+      name: "Reminders",
+      importance: ExpoNotifications.AndroidImportance.DEFAULT,
+    });
+    await ExpoNotifications.setNotificationChannelAsync("goals", {
+      name: "Goals",
+      importance: ExpoNotifications.AndroidImportance.DEFAULT,
+    });
+  }
+
+  const projectId =
+    (Constants.expoConfig?.extra as any)?.eas?.projectId ||
+    (Constants.easConfig as any)?.projectId;
+  const token = await ExpoNotifications.getExpoPushTokenAsync(
+    projectId ? { projectId } : undefined
+  );
+  return token.data ?? null;
+}
+
+export async function scheduleDailyReminder(params: {
+  id: string;
+  title: string;
+  body: string;
+  hour: number;
+  minute: number;
+  channelId?: string;
+}): Promise<void> {
+  await cancelNotification(params.id);
+  const scheduledId = await ExpoNotifications.scheduleNotificationAsync({
+    content: {
+      title: params.title,
+      body: params.body,
+      data: { id: params.id },
+      ...(Platform.OS === "android" && {
+        channelId: params.channelId ?? "reminders",
+      }),
+    },
+    trigger: {
+      type: ExpoNotifications.SchedulableTriggerInputTypes.DAILY,
+      hour: params.hour,
+      minute: params.minute,
+    },
+  });
+  await rememberScheduledId(params.id, scheduledId);
+}
+
+export async function scheduleOneTimeNotification(params: {
+  id: string;
+  title: string;
+  body: string;
+  delaySeconds: number;
+}): Promise<void> {
+  await cancelNotification(params.id);
+  const scheduledId = await ExpoNotifications.scheduleNotificationAsync({
+    content: {
+      title: params.title,
+      body: params.body,
+      data: { id: params.id },
+    },
+    trigger: {
+      type: ExpoNotifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: Math.max(1, params.delaySeconds),
+    },
+  });
+  await rememberScheduledId(params.id, scheduledId);
+}
+
+export async function sendImmediateNotification(params: {
+  title: string;
+  body: string;
+  data?: Record<string, unknown>;
+}): Promise<void> {
+  await ExpoNotifications.scheduleNotificationAsync({
+    content: { title: params.title, body: params.body, data: params.data },
+    trigger: null,
+  });
+}
+
+export async function cancelNotification(id: string): Promise<void> {
+  const current = await readScheduledMap();
+  const scheduledId = current[id];
+  if (scheduledId) {
+    await ExpoNotifications.cancelScheduledNotificationAsync(scheduledId).catch(
+      () => {}
+    );
+    delete current[id];
+    await writeScheduledMap(current);
+    return;
+  }
+  await ExpoNotifications.cancelScheduledNotificationAsync(id).catch(() => {});
+}
+
+export async function cancelAllNotifications(): Promise<void> {
+  await ExpoNotifications.cancelAllScheduledNotificationsAsync();
+  await AsyncStorage.removeItem(SCHEDULED_KEY);
+}
+
+export async function getScheduledNotifications() {
+  return ExpoNotifications.getAllScheduledNotificationsAsync();
+}
 
 export async function addNotification(
   uid: string,
@@ -123,6 +282,10 @@ export async function markNotificationRead(uid: string, id: string) {
   await updateDoc(doc(col(uid), id), { readAt: serverTimestamp() });
 }
 
+export async function deleteNotification(uid: string, id: string) {
+  await deleteDoc(doc(col(uid), id));
+}
+
 export async function markAllNotificationsRead(uid: string) {
   const ref = getFirestore() ?? db;
   const unread = await getDocs(
@@ -166,14 +329,15 @@ export async function notifyFriendAccepted(
 
 export async function notifyPing(
   toUid: string,
-  from: { uid: string; displayName?: string | null }
+  from: { uid: string; displayName?: string | null },
+  opts: { message?: string } = {}
 ) {
   await addNotification(toUid, {
     type: "ping",
     title: from.displayName
       ? `${from.displayName} pinged you`
       : "You were pinged",
-    body: "Log a meal to keep your streak alive.",
+    body: opts.message || "Log a meal to keep your streak alive.",
     data: { fromUid: from.uid },
   });
 }
@@ -280,7 +444,7 @@ async function hasRecentSimilar(
 export async function notifyPingSafe(
   toUid: string,
   from: { uid: string; displayName?: string | null },
-  opts: { cooldownHours?: number } = {}
+  opts: { cooldownHours?: number; message?: string } = {}
 ) {
   const cooldownMs = (opts.cooldownHours ?? 6) * 60 * 60 * 1000;
 
@@ -298,7 +462,7 @@ export async function notifyPingSafe(
 
   if (exists) return; // silently ignore to feel respectful
 
-  await notifyPing(toUid, from);
+  await notifyPing(toUid, from, { message: opts.message });
 }
 
 export async function notifyFriendRequestSafe(

@@ -1,11 +1,24 @@
 // components/profile/premium/MetricsCard.tsx
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/content/ThemeProvider";
 import { GlassCard } from "./GlassCard";
-import { withAlpha, fmt } from "./ui";
+
+function bmiDescriptor(bmi: number): string {
+  if (bmi < 18.5) return "Underweight";
+  if (bmi < 25) return "Healthy";
+  if (bmi < 30) return "Overweight";
+  return "Obese";
+}
+
+function fmtTime(ms: number) {
+  return new Date(ms).toLocaleString(undefined, {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 export function MetricsCard(props: {
   unit: "kg" | "lb";
@@ -13,111 +26,123 @@ export function MetricsCard(props: {
   targetWeightKg: number;
   heightCm: number;
   bodyFatPct?: number;
-  waistCm?: number;
+  lastUpdatedVia?: string;
+  lastUpdatedAt?: number;
   onPressAdd: () => void;
 }) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   const bmi = useMemo(() => {
     if (!props.weightKg || !props.heightCm) return null;
     const h = props.heightCm / 100;
-    const v = props.weightKg / (h * h);
-    return Math.round(v * 10) / 10;
+    return Math.round((props.weightKg / (h * h)) * 10) / 10;
   }, [props.weightKg, props.heightCm]);
 
   const weightLabel = useMemo(() => {
-    if (!props.weightKg) return "--";
+    if (!props.weightKg) return "—";
     return props.unit === "kg"
-      ? `${fmt.num1(props.weightKg)} kg`
-      : `${fmt.num1(props.weightKg * 2.20462)} lb`;
+      ? `${Math.round(props.weightKg * 10) / 10} kg`
+      : `${Math.round(props.weightKg * 2.20462)} lb`;
   }, [props.unit, props.weightKg]);
 
   const targetLabel = useMemo(() => {
-    if (!props.targetWeightKg) return "--";
+    if (!props.targetWeightKg) return "—";
     return props.unit === "kg"
-      ? `${fmt.num1(props.targetWeightKg)} kg`
-      : `${fmt.num1(props.targetWeightKg * 2.20462)} lb`;
+      ? `${Math.round(props.targetWeightKg * 10) / 10} kg`
+      : `${Math.round(props.targetWeightKg * 2.20462)} lb`;
   }, [props.unit, props.targetWeightKg]);
+
+  const heightLabel = useMemo(() => {
+    if (!props.heightCm) return "—";
+    if (props.unit === "lb") {
+      const totalIn = Math.round(props.heightCm * 0.393701);
+      return `${Math.floor(totalIn / 12)}'${totalIn % 12}"`;
+    }
+    return `${Math.round(props.heightCm)} cm`;
+  }, [props.unit, props.heightCm]);
+
+  const bodyFatLabel = useMemo(() => {
+    const v = props.bodyFatPct;
+    if (v == null || v <= 0) return null;
+    return `${Math.round(v * 10) / 10}%`;
+  }, [props.bodyFatPct]);
 
   return (
     <GlassCard>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}>
+      {/* Header */}
+      <View style={styles.headerRow}>
+        <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
           Body metrics
         </Text>
-
-        <Pressable
-          onPress={() => {
-            Haptics.selectionAsync();
-            props.onPressAdd();
-          }}
-          style={({ pressed }) => [
-            styles.addBtn,
-            {
-              marginLeft: "auto",
-              backgroundColor: withAlpha(
-                colors.card,
-                isDark ? (pressed ? 0.22 : 0.18) : pressed ? 0.7 : 0.55
-              ),
-              borderColor: withAlpha(colors.border, 0.7),
-            },
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Add or edit measurements"
-        >
-          <Ionicons name="add-outline" size={16} color={colors.text} />
-        </Pressable>
       </View>
 
-      <View style={{ height: 12 }} />
-
-      <View style={{ gap: 10 }}>
-        <Row label="Weight" value={weightLabel} />
-        <Row label="Target" value={targetLabel} />
-        <Row label="Height" value={`${fmt.num0(props.heightCm)} cm`} />
-        <Row
-          label="BMI"
-          value={bmi ? `${bmi}` : "—"}
-          subtleNote="Not a health verdict."
-        />
-        <Row
+      <View style={styles.rows}>
+        <MetricRow label="Weight" value={weightLabel} colors={colors} />
+        <MetricRow label="Target" value={targetLabel} colors={colors} />
+        <MetricRow label="Height" value={heightLabel} colors={colors} />
+        <View>
+          <MetricRow
+            label="BMI"
+            value={bmi != null ? `${bmi}` : "—"}
+            colors={colors}
+          />
+          {bmi != null && (
+            <Text style={[styles.bmiNote, { color: colors.textTertiary }]}>
+              {bmiDescriptor(bmi)} · not a verdict
+            </Text>
+          )}
+        </View>
+        <MetricRow
           label="Body fat"
-          value={
-            props.bodyFatPct != null ? `${fmt.num1(props.bodyFatPct)}%` : "—"
-          }
-        />
-        <Row
-          label="Waist"
-          value={props.waistCm != null ? `${fmt.num0(props.waistCm)} cm` : "—"}
+          value={bodyFatLabel ?? "—"}
+          subValue={bodyFatLabel == null ? "Not set" : undefined}
+          colors={colors}
         />
       </View>
 
-      <Text
-        style={{
-          color: colors.muted,
-          fontSize: 12,
-          marginTop: 12,
-          lineHeight: 16,
-        }}
+      <Pressable
+        onPress={() => { Haptics.selectionAsync(); props.onPressAdd(); }}
+        style={styles.editLink}
+        accessibilityRole="button"
+        accessibilityLabel="Edit metrics"
       >
-        Measurements are optional. This app doesn’t punish you for missing data.
-      </Text>
+        <Text style={[styles.editText, { color: colors.accent }]}>
+          Edit metrics →
+        </Text>
+      </Pressable>
+
+      {props.lastUpdatedVia && props.lastUpdatedAt ? (
+        <Text style={[styles.sourceNote, { color: colors.textTertiary }]} numberOfLines={2}>
+          via {props.lastUpdatedVia} · {fmtTime(props.lastUpdatedAt)}
+        </Text>
+      ) : null}
     </GlassCard>
   );
 }
 
-function Row(props: { label: string; value: string; subtleNote?: string }) {
-  const { colors } = useTheme();
+function MetricRow({
+  label,
+  value,
+  subValue,
+  colors,
+}: {
+  label: string;
+  value: string;
+  subValue?: string;
+  colors: ReturnType<typeof useTheme>["colors"];
+}) {
   return (
     <View style={styles.row}>
-      <Text style={{ color: colors.muted }}>{props.label}</Text>
-      <View style={{ marginLeft: "auto", alignItems: "flex-end" }}>
-        <Text style={{ color: colors.text, fontWeight: "900" }}>
-          {props.value}
+      <Text style={[styles.rowLabel, { color: colors.textTertiary }]} numberOfLines={1}>
+        {label}
+      </Text>
+      <View style={styles.rowRight}>
+        <Text style={[styles.rowValue, { color: colors.textPrimary }]} numberOfLines={1}>
+          {value}
         </Text>
-        {props.subtleNote ? (
-          <Text style={{ color: colors.muted, fontSize: 11, marginTop: 2 }}>
-            {props.subtleNote}
+        {subValue ? (
+          <Text style={[styles.rowSub, { color: colors.textTertiary }]} numberOfLines={1}>
+            {subValue}
           </Text>
         ) : null}
       </View>
@@ -126,13 +151,33 @@ function Row(props: { label: string; value: string; subtleNote?: string }) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center" },
-  addBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 14,
-    borderWidth: 1,
+  headerRow: { marginBottom: 10 },
+  cardTitle: { fontSize: 13, fontWeight: "600" },
+  rows: { gap: 7 },
+  row: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+  },
+  rowLabel: { fontSize: 11, fontWeight: "400", flexShrink: 1, marginRight: 6 },
+  rowRight: { alignItems: "flex-end", flexShrink: 0 },
+  rowValue: { fontSize: 12, fontWeight: "600" },
+  rowSub: { fontSize: 10, fontWeight: "300", marginTop: 1 },
+  bmiNote: {
+    fontSize: 9,
+    fontWeight: "300",
+    fontStyle: "italic",
+    textAlign: "right",
+    marginTop: 1,
+    marginBottom: 2,
+  },
+  editLink: { marginTop: 12, alignSelf: "flex-start" },
+  editText: { fontSize: 11, fontWeight: "500" },
+  sourceNote: {
+    fontSize: 9,
+    fontWeight: "300",
+    fontStyle: "italic",
+    marginTop: 6,
+    lineHeight: 13,
   },
 });

@@ -2,6 +2,7 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Pressable, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/content/ThemeProvider";
 import type { ScanState } from "@/components/scanMeal/new/types";
 
@@ -18,7 +19,7 @@ export default function PhotoCard({
   onPickLibrary: () => void;
   onScan: () => void;
 }) {
-  const { colors, isDark } = useTheme();
+  const { colors, isDark } = useTheme() as any;
 
   const helper = useMemo(() => {
     if (!photoUri) return "Take a clear photo with the full plate in frame.";
@@ -29,12 +30,17 @@ export default function PhotoCard({
   }, [photoUri, state]);
 
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.surface, borderColor: colors.border },
-      ]}
-    >
+    <View style={[styles.card, { backgroundColor: withAlpha(colors.card, 0.44) }]}>
+      <LinearGradient
+        colors={[
+          withAlpha(colors.primary, isDark ? 0.14 : 0.08),
+          withAlpha("#38bdf8", isDark ? 0.06 : 0.03),
+          withAlpha(colors.card, 0.88),
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.topRow}>
         <View
           style={[
@@ -57,7 +63,7 @@ export default function PhotoCard({
         </Text>
       </View>
 
-      <View style={[styles.preview, { borderColor: colors.border }]}>
+      <View style={[styles.preview]}>
         {photoUri ? (
           <Image source={{ uri: photoUri }} style={styles.image} />
         ) : (
@@ -73,7 +79,13 @@ export default function PhotoCard({
       <View style={styles.actions}>
         <Pressable
           onPress={onTakePhoto}
-          style={[styles.btn, { borderColor: colors.border }]}
+          style={({ pressed }) => [
+            styles.btn,
+            {
+              backgroundColor: withAlpha(colors.card, 0.42),
+              opacity: pressed ? 0.84 : 1,
+            },
+          ]}
           accessibilityRole="button"
           accessibilityLabel="Take photo"
         >
@@ -83,7 +95,13 @@ export default function PhotoCard({
 
         <Pressable
           onPress={onPickLibrary}
-          style={[styles.btn, { borderColor: colors.border }]}
+          style={({ pressed }) => [
+            styles.btn,
+            {
+              backgroundColor: withAlpha(colors.card, 0.42),
+              opacity: pressed ? 0.84 : 1,
+            },
+          ]}
           accessibilityRole="button"
           accessibilityLabel="Choose from library"
         >
@@ -94,18 +112,29 @@ export default function PhotoCard({
         <Pressable
           onPress={onScan}
           disabled={!photoUri || state === "analyzing" || state === "saving"}
-          style={[
+          style={({ pressed }) => [
             styles.primaryBtn,
             {
-              backgroundColor: photoUri ? colors.primary : colors.border,
-              opacity: !photoUri ? 0.6 : 1,
+              opacity: !photoUri ? 0.6 : pressed ? 0.9 : 1,
+              transform: [{ scale: pressed ? 0.985 : 1 }],
             },
           ]}
           accessibilityRole="button"
           accessibilityLabel="Scan with AI"
         >
-          <Ionicons name="sparkles" size={16} color={"white"} />
-          <Text style={[styles.primaryText]}>Scan</Text>
+          <LinearGradient
+            colors={
+              photoUri
+                ? ["rgba(56,189,248,0.98)", colors.primary]
+                : [colors.border, colors.border]
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.primaryFill}
+          >
+            <Ionicons name="sparkles" size={16} color={"white"} />
+            <Text style={[styles.primaryText]}>Scan</Text>
+          </LinearGradient>
         </Pressable>
       </View>
     </View>
@@ -115,9 +144,14 @@ export default function PhotoCard({
 const styles = StyleSheet.create({
   card: {
     marginTop: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 18,
+    borderRadius: 22,
     padding: 12,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
   topRow: {
     flexDirection: "row",
@@ -142,8 +176,7 @@ const styles = StyleSheet.create({
 
   preview: {
     marginTop: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 16,
+    borderRadius: 18,
     overflow: "hidden",
     height: 210,
   },
@@ -154,7 +187,6 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", gap: 8, marginTop: 10 },
   btn: {
     flex: 1,
-    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 14,
     paddingVertical: 10,
     alignItems: "center",
@@ -167,6 +199,9 @@ const styles = StyleSheet.create({
   primaryBtn: {
     flex: 1,
     borderRadius: 14,
+    overflow: "hidden",
+  },
+  primaryFill: {
     paddingVertical: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -175,3 +210,18 @@ const styles = StyleSheet.create({
   },
   primaryText: { fontSize: 13, fontWeight: "900", color: "white" },
 });
+
+function withAlpha(color: string, alpha = 0.2) {
+  if (!color) return `rgba(0,0,0,${alpha})`;
+  if (color.startsWith("rgb")) {
+    const body = color.replace(/^rgba?\(|\)$/g, "");
+    const [r, g, b] = body.split(",").map((s) => s.trim());
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  const m = color.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+  if (!m) return color;
+  return `rgba(${parseInt(m[1], 16)}, ${parseInt(m[2], 16)}, ${parseInt(
+    m[3],
+    16
+  )}, ${alpha})`;
+}

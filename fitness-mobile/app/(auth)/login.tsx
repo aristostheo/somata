@@ -14,7 +14,7 @@ import { Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useTheme } from "@/content/ThemeProvider";
 import { useGoogleLogin, signInWithApple } from "@/lib/authSocial";
@@ -60,14 +60,6 @@ export default function Login() {
   const disabled = !email.trim() || !pass;
 
   const { request, signInWithGoogle } = useGoogleLogin();
-
-  // If user already authenticated, go to app
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) router.replace("/(tabs)");
-    });
-    return unsub;
-  }, []);
 
   return (
     <LinearGradient

@@ -15,11 +15,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "@/content/ThemeProvider";
-import { auth } from "@/lib/firebase";
 import { useEntitlements } from "@/content/useEntitlements";
-
-// 🔑 Your Cloud Run / HTTPS function URL (Expo public env)
-const DESCRIBE_URL = process.env.AI_DESCRIBE_URL;
+import { callOpenAIJson } from "@/services/openai";
 
 // ---- Types ----
 type MealIdea = {
@@ -36,46 +33,6 @@ type MealIdea = {
   notes?: string;
 };
 type MealIdeasResponse = { meals: MealIdea[]; rationale?: string };
-
-// ---- Helper: call describe with Firebase ID token ----
-async function callDescribe(payload: any) {
-  if (!DESCRIBE_URL) {
-    throw new Error("Missing AI_DESCRIBE_URL");
-  }
-  const user = auth.currentUser;
-  const idToken = await user?.getIdToken(true); // force refresh to be safe
-
-  const res = await fetch(`${DESCRIBE_URL}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      // If your function expects the path `/describe` append it above,
-      // but your provided URL looks like a direct endpoint already.
-      Authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const text = await res.text();
-  let json: any = null;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    // no-op
-  }
-
-  // Debug logs (you can keep or remove)
-  console.log("describe status:", res.status);
-  console.log("describe body:", text);
-
-  if (!res.ok) {
-    const msg = json?.error
-      ? `${json.error}${json.detail ? ` • ${json.detail}` : ""}`
-      : `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-  return json;
-}
 
 export default function AiMealSuggestions() {
   const { colors, isDark } = useTheme() as any;
@@ -165,20 +122,44 @@ export default function AiMealSuggestions() {
     try {
       setLoading(true);
 
-      const payload = {
-        mode: "meal_suggest:v1",
-        meal: (meal as any) || undefined,
-        goals: safeGoals,
-        totals: safeTotals,
-        notes: (notes || "").trim().slice(0, 200),
-        count: 5, // ask for 5; server clamps to 3–5
-        forceNew: true, // ✅ always bypass server cache for fresh ideas
-        regenToken: `${Date.now()}_${Math.random()}`, // ✅ unique on every press (proxy/cache buster + server-side seed)
-      };
+      const data: MealIdeasResponse = await callOpenAIJson<MealIdeasResponse>(
+        [
+          {
+            role: "system",
+            content:
+              "You generate Somata meal ideas. Return valid JSON only and keep suggestions practical.",
+          },
+          {
+            role: "user",
+            content: `Generate 5 meal ideas as JSON only.
+Meal target: ${(meal as any) || "any"}
+Goals: ${JSON.stringify(safeGoals)}
+Totals so far: ${JSON.stringify(safeTotals)}
+Notes: ${(notes || "").trim().slice(0, 200) || "none"}
 
-      console.log("REQ meal_suggest:", payload);
-
-      const data: MealIdeasResponse = await callDescribe(payload);
+Return:
+{
+  "meals": [
+    {
+      "name": string,
+      "calories": number,
+      "protein": number,
+      "carbs": number,
+      "fat": number,
+      "sugar": number | null,
+      "fiber": number | null,
+      "meal": "breakfast" | "lunch" | "dinner" | "snacks",
+      "prep_min": number | null,
+      "difficulty": "easy" | "moderate" | "advanced",
+      "notes": string | null
+    }
+  ],
+  "rationale": string
+}`,
+          },
+        ],
+        { maxTokens: 1400, temperature: 0.55 }
+      );
 
       const meals = Array.isArray((data as any)?.meals)
         ? (data as any).meals

@@ -11,6 +11,7 @@ export type WorkoutSessionDraftItem = {
   sets: number;
   reps: number;
   weightKg: number;
+  primaryMuscle?: string;
   notes?: string;
   createdAt: number;
 

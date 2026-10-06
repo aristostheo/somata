@@ -2,6 +2,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/content/ThemeProvider";
 import type { MacroTotals } from "@/components/scanMeal/new/types";
 
@@ -28,12 +29,17 @@ export default function MacroSummaryCard({ totals }: { totals: MacroTotals }) {
   const { colors } = useTheme();
 
   return (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.surface, borderColor: colors.border },
-      ]}
-    >
+    <View style={[styles.card, { backgroundColor: "rgba(255,255,255,0.02)" }]}>
+      <LinearGradient
+        colors={[
+          "rgba(56,189,248,0.14)",
+          "rgba(14,165,233,0.08)",
+          "rgba(255,255,255,0.02)",
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.head}>
         <Ionicons name="bar-chart-outline" size={18} color={colors.muted} />
         <Text style={[styles.title, { color: colors.text }]}>
@@ -56,9 +62,9 @@ export default function MacroSummaryCard({ totals }: { totals: MacroTotals }) {
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 12,
+    overflow: "hidden",
   },
   head: {
     flexDirection: "row",

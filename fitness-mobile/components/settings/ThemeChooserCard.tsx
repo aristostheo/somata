@@ -34,12 +34,27 @@ export default function ThemeChooserCard({
   const dark = themeAccents.dark;
 
   const preview = useMemo(() => {
-    const active = isDark ? dark : light;
-    const p = active.primary ?? colors.primary;
-    const a = active.accent ?? colors.accent;
-    const st = active.gradientStyle ?? "balanced";
-    return { p, a, st };
-  }, [isDark, dark, light, colors.primary, colors.accent]);
+    const st = (isDark ? dark : light).gradientStyle ?? "balanced";
+    return {
+      p: colors.primary,
+      a: colors.accent,
+      st,
+      muted: colors.accentMuted,
+      subtle: colors.accentSubtle,
+      dim: colors.accentDim,
+      foreground: colors.accentForeground,
+    };
+  }, [
+    isDark,
+    dark,
+    light,
+    colors.primary,
+    colors.accent,
+    colors.accentMuted,
+    colors.accentSubtle,
+    colors.accentDim,
+    colors.accentForeground,
+  ]);
 
   return (
     <Pressable
@@ -90,30 +105,28 @@ export default function ThemeChooserCard({
             style={styles.preview}
           >
             <View style={styles.previewTop}>
-              <Text style={styles.previewLabel}>Live palette preview</Text>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color="rgba(255,255,255,0.85)"
-              />
-            </View>
+            <Text style={[styles.previewLabel, { color: preview.foreground }]}>Live palette preview</Text>
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={preview.foreground}
+            />
+          </View>
 
-            <View style={styles.chipsRow}>
-              <View
-                style={[
-                  styles.chip,
-                  { backgroundColor: "rgba(255,255,255,0.18)" },
-                ]}
-              >
-                <Text style={styles.chipText}>Primary</Text>
-              </View>
-              <View
-                style={[styles.chip, { backgroundColor: "rgba(0,0,0,0.16)" }]}
-              >
-                <Text style={styles.chipText}>Secondary</Text>
-              </View>
-              <View style={[styles.dot, { backgroundColor: preview.p }]} />
-              <View style={[styles.dot, { backgroundColor: preview.a }]} />
+            <View style={styles.variantRow}>
+              {[
+                { label: "Full", color: preview.a },
+                { label: "Muted", color: preview.muted },
+                { label: "Subtle", color: preview.subtle },
+                { label: "Dim", color: preview.dim },
+              ].map((item) => (
+                <View key={item.label} style={styles.variantItem}>
+                  <View style={[styles.dot, { backgroundColor: item.color, borderColor: preview.foreground }]} />
+                  <Text style={[styles.variantLabel, { color: preview.foreground }]}>
+                    {item.label}
+                  </Text>
+                </View>
+              ))}
             </View>
           </LinearGradient>
         </View>
@@ -223,20 +236,19 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     fontSize: 12,
   },
-  chipsRow: {
+  variantRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     gap: 8,
-    flexWrap: "wrap",
   },
-  chip: { paddingVertical: 7, paddingHorizontal: 10, borderRadius: 999 },
-  chipText: { color: "#fff", fontWeight: "900", fontSize: 12 },
+  variantItem: { alignItems: "center", gap: 4, minWidth: 46 },
+  variantLabel: { fontSize: 10, fontWeight: "400" },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 10,
+    width: 16,
+    height: 16,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.35)",
   },
 
   footerRow: { flexDirection: "row", gap: 10, marginTop: 12 },

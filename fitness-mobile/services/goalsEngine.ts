@@ -362,8 +362,8 @@ export function adjustTdeeFromCheckIn(args: {
   const a = clamp01(args.metabolismAdaptation);
   if (a <= 0) return args.currentTdee;
 
-  // Energy equivalence ~ 7700 kcal per kg fat (approx)
-  const kcalPerKg = 7700;
+  // Match the common 3,500 kcal/lb guidance used in mainstream calculators.
+  const kcalPerKg = 3500 / 0.45359237;
 
   // If losing slower than planned, we likely overestimated TDEE
   const errorKg = args.actualKgPerWeek - args.targetKgPerWeek; // e.g. -0.2 - (-0.5) = +0.3 (too slow)

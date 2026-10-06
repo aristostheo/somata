@@ -14,19 +14,28 @@ export function useNutritionStreams(user, date) {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
+    setFoods([]);
+    setExercise([]);
+    setRecent([]);
+    setProfile(null);
     if (!user) return;
+    let active = true;
     const unsubs = [];
     unsubs.push(subscribeFoodsByDate(user.uid, date, setFoods));
     unsubs.push(subscribeExerciseByDate(user.uid, date, setExercise));
-    getRecentFoods(user.uid, 40).then(setRecent);
+    getRecentFoods(user.uid, 40).then((items) => {
+      if (active) setRecent(items);
+    }).catch(console.error);
 
     (async () => {
       await ensureProfile(user.uid, { email: user.email });
+      if (!active) return;
       const unsub = subscribeProfile(user.uid, setProfile);
       unsubs.push(unsub);
-    })();
+    })().catch(console.error);
 
     return () => {
+      active = false;
       for (const u of unsubs) {
         try { typeof u === "function" && u(); } catch {}
       }

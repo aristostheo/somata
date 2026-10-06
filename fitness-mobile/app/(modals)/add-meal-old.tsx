@@ -1,3 +1,5 @@
+import Constants from "expo-constants";
+import { dayKey } from "@/utils/date";
 // app/(modals)/add-meal.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -347,7 +349,7 @@ type FdcItem = {
   };
 };
 
-const FDC_API_KEY = process.env.FDC_API_KEY as string;
+const FDC_API_KEY = Constants.expoConfig?.extra?.fdcApiKey as string;
 
 async function searchFDC(queryStr: string): Promise<FdcItem[]> {
   if (!FDC_API_KEY || !queryStr.trim()) return [];
@@ -731,7 +733,7 @@ export default function AddMealModal() {
   const [meal, setMeal] = useState<MealKey>(
     (params.meal as MealKey) || "breakfast"
   );
-  const date = (params.date as string) || new Date().toISOString().slice(0, 10);
+  const date = (params.date as string) || dayKey(new Date());
 
   const [tab, setTab] = useState<
     "recents" | "search" | "scan" | "describe" | "manual"
@@ -1303,9 +1305,7 @@ export default function AddMealModal() {
     );
   }
 
-  const AI_URL =
-    process.env.AI_DESCRIBE_URL ||
-    "https://us-central1-fitness-tracker-25254.cloudfunctions.net/describe";
+  const AI_URL = "https://api.openai.com/v1/chat/completions";
 
   async function calculateFromDescription() {
     const text = descText.trim();
@@ -1488,7 +1488,7 @@ export default function AddMealModal() {
           <Pressable
             onPress={closeConfirm}
             style={[
-              StyleSheet.absoluteFillObject,
+              StyleSheet.absoluteFill,
               { backgroundColor: "rgba(0,0,0,0.35)", zIndex: 0, elevation: 0 },
             ]}
           />
@@ -1570,7 +1570,7 @@ export default function AddMealModal() {
           <Pressable
             onPress={() => setPickOpen(false)}
             style={[
-              StyleSheet.absoluteFillObject,
+              StyleSheet.absoluteFill,
               { backgroundColor: "rgba(0,0,0,0.35)" },
             ]}
           />

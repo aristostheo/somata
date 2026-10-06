@@ -1,1147 +1,212 @@
-// app/(modals)/theme-editor.tsx
-import React, { useMemo, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  TextInput,
-  PanResponder,
-  Platform,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme, GradientPairingStyle } from "@/content/ThemeProvider";
+import { useTheme } from "@/content/ThemeProvider";
+import { contrastRatio, isHex6, normalizeHex } from "@/lib/themeColor";
+import { withAlpha } from "@/lib/color";
+import { visualTokens, type VisualTokens } from "@/components/accountSettings/visualTokens";
 import {
-  clamp,
-  isHex6,
-  normalizeHex,
-  hexToHsl,
-  hslToHex,
-  contrastRatio,
-} from "@/lib/themeColor";
+  OCEAN, PRESETS, copyTheme, effectiveIsDark, resetPalette, setPreset,
+  type PaletteTarget, type ThemeMode, type ThemeSnapshot,
+} from "@/services/theme/themeState";
 
-type ModeTab = "light" | "dark";
-
-const PRESETS = [
-  { name: "Indigo / Violet", p: "#6366F1", a: "#8B5CF6" },
-  { name: "Sky / Cyan", p: "#0EA5E9", a: "#06B6D4" },
-  { name: "Emerald / Teal", p: "#10B981", a: "#14B8A6" },
-  { name: "Amber / Orange", p: "#F59E0B", a: "#FB923C" },
-  { name: "Rose / Pink", p: "#F43F5E", a: "#EC4899" },
-  { name: "Slate / Blue", p: "#64748B", a: "#60A5FA" },
-  { name: "Lime / Green", p: "#84CC16", a: "#22C55E" },
-  { name: "Fuchsia / Purple", p: "#D946EF", a: "#7C3AED" },
-];
-
-type GradientStops = readonly [string, string, ...string[]];
-
-function styleStops(
-  style: GradientPairingStyle,
-  primary: string,
-  accent: string
-): GradientStops {
-  if (style === "subtle") return [primary, primary, accent] as const;
-  if (style === "bold") return [primary, accent] as const;
-  return [primary, accent, accent] as const;
-}
-
-function Segmented({
-  value,
-  onChange,
-  options,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: { key: string; label: string; icon?: any }[];
-}) {
+function Choice({ label, selected, onPress, palette, icon }: { label: string; selected: boolean; onPress: () => void; palette: VisualTokens; icon: keyof typeof Ionicons.glyphMap }) {
   return (
-    <View style={segStyles.wrap}>
-      {options.map((o) => {
-        const active = o.key === value;
-        return (
-          <Pressable
-            key={o.key}
-            onPress={() => {
-              Haptics.selectionAsync();
-              onChange(o.key);
-            }}
-            style={[segStyles.item, active && segStyles.itemActive]}
-          >
-            {o.icon ? (
-              <Ionicons
-                name={o.icon}
-                size={14}
-                color={active ? "#fff" : "rgba(255,255,255,0.65)"}
-              />
-            ) : null}
-            <Text
-              style={[
-                segStyles.txt,
-                { color: active ? "#fff" : "rgba(255,255,255,0.70)" },
-              ]}
-            >
-              {o.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
+    <Pressable accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={label} onPress={onPress} style={({ pressed }) => ({ minHeight: 80, paddingHorizontal: 10, paddingVertical: 11, borderRadius: 17, borderWidth: selected ? 2 : 1, borderColor: selected ? palette.primary : palette.border, backgroundColor: selected ? palette.primaryTint : palette.card, flexGrow: 1, flexBasis: 86, justifyContent: "center", alignItems: "center", gap: 6, opacity: pressed ? 0.72 : 1 })}>
+      <Ionicons name={icon} size={22} color={selected ? palette.primary : palette.secondary} />
+      <Text style={{ color: palette.text, fontSize: 14, fontWeight: selected ? "700" : "600" }}>{label}</Text>
+    </Pressable>
   );
 }
 
-const segStyles = StyleSheet.create({
-  wrap: {
-    flexDirection: "row",
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 999,
-    padding: 4,
-    gap: 4,
-  },
-  item: {
-    flex: 1,
-    borderRadius: 999,
-    paddingVertical: 9,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    gap: 8,
-  },
-  itemActive: {
-    backgroundColor: "rgba(255,255,255,0.16)",
-  },
-  txt: { fontSize: 12, fontWeight: "900" },
-});
-
-function Slider({
-  label,
-  value,
-  min,
-  max,
-  onChange,
-  left,
-  right,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  onChange: (v: number, isEnd?: boolean) => void;
-  left?: React.ReactNode;
-  right?: React.ReactNode;
-}) {
-  const width = 260;
-  const barRef = useRef<View>(null);
-
-  const pan = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant: () => {
-          Haptics.selectionAsync();
-        },
-        onPanResponderMove: (_, g) => {
-          const x = clamp(g.dx, -width / 2, width / 2) + width / 2;
-          const t = x / width;
-          const v = min + t * (max - min);
-          onChange(v, false);
-        },
-        onPanResponderRelease: () => {
-          Haptics.selectionAsync();
-          onChange(value, true);
-        },
-      }),
-    [min, max, onChange, value]
-  );
-
-  const t = (value - min) / (max - min);
-  const knobX = clamp(t, 0, 1) * width;
-
-  return (
-    <View style={{ gap: 8 }}>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Text
-          style={{
-            color: "rgba(255,255,255,0.75)",
-            fontSize: 12,
-            fontWeight: "900",
-          }}
-        >
-          {label}
-        </Text>
-        <Text
-          style={{
-            color: "rgba(255,255,255,0.75)",
-            fontSize: 12,
-            fontWeight: "900",
-          }}
-        >
-          {Math.round(value)}
-        </Text>
-      </View>
-
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        {left}
-        <View
-          ref={barRef}
-          {...pan.panHandlers}
-          style={{
-            width,
-            height: 14,
-            borderRadius: 999,
-            backgroundColor: "rgba(255,255,255,0.10)",
-            overflow: "hidden",
-            justifyContent: "center",
-          }}
-        >
-          <View
-            style={{
-              position: "absolute",
-              left: 0,
-              width: knobX,
-              height: 14,
-              backgroundColor: "rgba(255,255,255,0.18)",
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              left: knobX - 10,
-              width: 20,
-              height: 20,
-              borderRadius: 999,
-              backgroundColor: "rgba(255,255,255,0.85)",
-              borderWidth: 1,
-              borderColor: "rgba(0,0,0,0.20)",
-            }}
-          />
-        </View>
-        {right}
-      </View>
-    </View>
-  );
+function Label({ children, palette }: { children: React.ReactNode; palette: VisualTokens }) {
+  return <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 11 }}><View style={{ width: 4, height: 15, borderRadius: 3, backgroundColor: palette.coral }} /><Text accessibilityRole="header" style={{ color: palette.text, fontSize: 13, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase" }}>{children}</Text></View>;
 }
 
-function PreviewCard({
-  primary,
-  accent,
-  style,
-  isDarkPreview,
-}: {
-  primary: string;
-  accent: string;
-  style: GradientPairingStyle;
-  isDarkPreview: boolean;
-}) {
-  const bg = isDarkPreview ? "#0B0F1A" : "#F6F9FF";
-  const txt = isDarkPreview ? "#EEF2FF" : "#0B1220";
-  const muted = isDarkPreview
-    ? "rgba(255,255,255,0.62)"
-    : "rgba(11,18,32,0.56)";
-  const surface = isDarkPreview
-    ? "rgba(255,255,255,0.06)"
-    : "rgba(11,18,32,0.04)";
-  const border = isDarkPreview
-    ? "rgba(255,255,255,0.10)"
-    : "rgba(11,18,32,0.10)";
-
-  return (
-    <View
-      style={{
-        borderRadius: 18,
-        overflow: "hidden",
-        borderWidth: 1,
-        borderColor: border,
-      }}
-    >
-      <LinearGradient
-        colors={styleStops(style, primary, accent)}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        style={{ padding: 14 }}
-      >
-        <Text
-          style={{
-            color: "rgba(255,255,255,0.9)",
-            fontWeight: "900",
-            fontSize: 12,
-          }}
-        >
-          Live UI Preview
-        </Text>
-
-        <View style={{ marginTop: 12, gap: 10 }}>
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            <View
-              style={{
-                flex: 1,
-                borderRadius: 14,
-                backgroundColor: "rgba(255,255,255,0.16)",
-                padding: 12,
-              }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "900" }}>
-                Primary Action
-              </Text>
-              <Text
-                style={{
-                  marginTop: 4,
-                  color: "rgba(255,255,255,0.82)",
-                  fontWeight: "800",
-                  fontSize: 12,
-                }}
-              >
-                Button / CTA feel
-              </Text>
-            </View>
-            <View
-              style={{
-                width: 54,
-                height: 54,
-                borderRadius: 16,
-                backgroundColor: "rgba(0,0,0,0.18)",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Ionicons name="sparkles" size={18} color="#fff" />
-            </View>
-          </View>
-
-          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-            <View
-              style={{
-                paddingVertical: 7,
-                paddingHorizontal: 10,
-                borderRadius: 999,
-                backgroundColor: "rgba(255,255,255,0.18)",
-              }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>
-                Chip
-              </Text>
-            </View>
-            <View
-              style={{
-                paddingVertical: 7,
-                paddingHorizontal: 10,
-                borderRadius: 999,
-                backgroundColor: "rgba(0,0,0,0.16)",
-              }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>
-                Secondary
-              </Text>
-            </View>
-            <View
-              style={{
-                paddingVertical: 7,
-                paddingHorizontal: 10,
-                borderRadius: 999,
-                backgroundColor: "rgba(255,255,255,0.14)",
-              }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}>
-                Focus
-              </Text>
-            </View>
-          </View>
-        </View>
-      </LinearGradient>
-
-      <View style={{ backgroundColor: bg, padding: 14 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Text style={{ color: txt, fontWeight: "900" }}>Card Surface</Text>
-          <View style={{ flexDirection: "row", gap: 6 }}>
-            <View
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: 6,
-                backgroundColor: primary,
-              }}
-            />
-            <View
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: 6,
-                backgroundColor: accent,
-              }}
-            />
-          </View>
-        </View>
-
-        <View
-          style={{
-            marginTop: 10,
-            borderRadius: 16,
-            backgroundColor: surface,
-            borderWidth: 1,
-            borderColor: border,
-            padding: 12,
-          }}
-        >
-          <Text style={{ color: txt, fontWeight: "900" }}>Progress</Text>
-          <View
-            style={{
-              marginTop: 8,
-              height: 10,
-              borderRadius: 999,
-              backgroundColor: isDarkPreview
-                ? "rgba(255,255,255,0.10)"
-                : "rgba(11,18,32,0.10)",
-              overflow: "hidden",
-            }}
-          >
-            <LinearGradient
-              colors={[primary, accent]}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={{ width: "66%", height: 10, borderRadius: 999 }}
-            />
-          </View>
-          <Text
-            style={{
-              marginTop: 8,
-              color: muted,
-              fontWeight: "800",
-              fontSize: 12,
-            }}
-          >
-            Accent readability + polish check
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-export default function ThemeEditorModal() {
+export default function ThemePickerScreen() {
   const router = useRouter();
-  const {
-    colors,
-    isDark,
-    themeAccents,
-    setAccentsFor,
-    setGradientStyleFor,
-    resetAccentsFor,
-  } = useTheme();
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+  const systemScheme = useColorScheme();
+  const { modeSetting, themeAccents, isDark, themeReady, themeLoadError, refreshTheme, commitThemeDraft } = useTheme();
+  const [draft, setDraft] = useState<ThemeSnapshot | null>(null);
+  const [target, setTarget] = useState<PaletteTarget>(isDark ? "dark" : "light");
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [error, setError] = useState("");
+  const chrome = visualTokens(isDark, (isDark ? themeAccents.dark.primary : themeAccents.light.primary) ?? OCEAN[isDark ? "dark" : "light"].primary, (isDark ? themeAccents.dark.accent : themeAccents.light.accent) ?? OCEAN[isDark ? "dark" : "light"].accent);
 
-  const [tab, setTab] = useState<ModeTab>(isDark ? "dark" : "light");
+  useEffect(() => {
+    if (themeReady && !themeLoadError && draft === null) {
+      setDraft(copyTheme({
+        mode: modeSetting,
+        light: { primary: themeAccents.light.primary ?? OCEAN.light.primary, accent: themeAccents.light.accent ?? OCEAN.light.accent, gradientStyle: themeAccents.light.gradientStyle ?? "balanced" },
+        dark: { primary: themeAccents.dark.primary ?? OCEAN.dark.primary, accent: themeAccents.dark.accent ?? OCEAN.dark.accent, gradientStyle: themeAccents.dark.gradientStyle ?? "balanced" },
+      }));
+    }
+  }, [themeReady, themeLoadError, draft, modeSetting, themeAccents]);
 
-  const initial = useMemo(() => {
-    const t = tab === "dark" ? themeAccents.dark : themeAccents.light;
-    return {
-      primary: (t.primary ?? "#6366F1").toUpperCase(),
-      accent: (t.accent ?? "#8B5CF6").toUpperCase(),
-      style: (t.gradientStyle ?? "balanced") as GradientPairingStyle,
-    };
-  }, [tab, themeAccents]);
+  useEffect(() => navigation.addListener("beforeRemove", (event) => {
+    if (savingRef.current) event.preventDefault();
+  }), [navigation]);
 
-  const [primary, setPrimary] = useState(initial.primary);
-  const [accent, setAccent] = useState(initial.accent);
-  const [pairStyle, setPairStyle] = useState<GradientPairingStyle>(
-    initial.style
-  );
-
-  // when switching tabs, reset local editor to that tab values
-  React.useEffect(() => {
-    setPrimary(initial.primary);
-    setAccent(initial.accent);
-    setPairStyle(initial.style);
-  }, [initial.primary, initial.accent, initial.style]);
-
-  // advanced controls state (HSL) per selected target
-  const [editing, setEditing] = useState<"primary" | "accent">("primary");
-
-  const activeHex = editing === "primary" ? primary : accent;
-
-  const hsl = useMemo(() => {
-    if (!isHex6(activeHex)) return { h: 260, s: 70, l: 55 };
-    return hexToHsl(activeHex);
-  }, [activeHex]);
-
-  const [h, setH] = useState(hsl.h);
-  const [s, setS] = useState(hsl.s);
-  const [l, setL] = useState(hsl.l);
-
-  React.useEffect(() => {
-    setH(hsl.h);
-    setS(hsl.s);
-    setL(hsl.l);
-  }, [hsl.h, hsl.s, hsl.l]);
-
-  const setHexForEditing = (hex: string) => {
-    const up = hex.toUpperCase();
-    if (editing === "primary") setPrimary(up);
-    else setAccent(up);
+  const leave = () => {
+    if (savingRef.current) return;
+    if (router.canGoBack()) router.back();
+    else router.replace("/(modals)/settings");
   };
-
-  const updateFromHsl = (nextH: number, nextS: number, nextL: number) => {
-    const hex = hslToHex(nextH, nextS, nextL);
-    setHexForEditing(hex);
+  const changeMode = (mode: ThemeMode) => { if (draft) { setError(""); setDraft({ ...draft, mode }); } };
+  const changeColor = (field: "primary" | "accent", value: string) => {
+    if (!draft) return;
+    setError("");
+    setDraft({ ...draft, [target]: { ...draft[target], [field]: value.toUpperCase() } });
   };
-
-  const gradientStops = styleStops(pairStyle, primary, accent);
-
-  const contrastInfo = useMemo(() => {
-    // simple checks: contrast against light/dark card backgrounds
-    const bg = tab === "dark" ? "#0B0F1A" : "#F6F9FF";
-    const rP = contrastRatio(primary, bg);
-    const rA = contrastRatio(accent, bg);
-    // 3.0 is okay-ish for large UI accents; warn if very low
-    return { rP, rA, warn: rP < 2.2 || rA < 2.2 };
-  }, [primary, accent, tab]);
-
-  const applyPreset = (p: string, a: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setPrimary(p.toUpperCase());
-    setAccent(a.toUpperCase());
+  const choosePreset = (name: keyof typeof PRESETS) => {
+    if (!draft) return;
+    setError("");
+    setDraft(setPreset(draft, target, name));
   };
-
-  const onSave = () => {
-    const p = normalizeHex(primary);
-    const a = normalizeHex(accent);
-
-    if (!isHex6(p) || !isHex6(a)) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+  const resetSelected = () => {
+    if (!draft) return;
+    setError("");
+    setDraft(resetPalette(draft, target));
+  };
+  const save = async () => {
+    if (!draft || savingRef.current) return;
+    if (![draft.light.primary, draft.light.accent, draft.dark.primary, draft.dark.accent].every((value) => isHex6(normalizeHex(value)))) {
+      setError("Enter a valid six-digit hex color for each palette before saving.");
       return;
     }
-
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setAccentsFor(tab, p, a);
-    setGradientStyleFor(tab, pairStyle);
-    router.back();
+    savingRef.current = true;
+    setSaving(true);
+    setError("");
+    try {
+      await commitThemeDraft(draft);
+      savingRef.current = false;
+      if (router.canGoBack()) router.back();
+      else router.replace("/(modals)/settings");
+    } catch (reason: any) {
+      setError(reason?.message || "Couldn’t save your theme. Your edits are still here; please retry.");
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
   };
 
-  const onResetTab = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    resetAccentsFor(tab);
-    // reset local too (will be picked up by effect on themeAccents changes next open;
-    // for immediate feel, set defaults now)
-    setPrimary("#6366F1");
-    setAccent("#8B5CF6");
-    setPairStyle("balanced");
-  };
+  const active = draft?.[target];
+  const validPrimary = !!active && isHex6(normalizeHex(active.primary));
+  const validAccent = !!active && isHex6(normalizeHex(active.accent));
+  const primary = validPrimary ? normalizeHex(active!.primary) : OCEAN[target].primary;
+  const accent = validAccent ? normalizeHex(active!.accent) : OCEAN[target].accent;
+  const preview = visualTokens(target === "dark", primary, accent);
+  const primaryRatio = validPrimary ? contrastRatio(primary, preview.card) : 0;
+  const accentRatio = validAccent ? contrastRatio(accent, preview.card) : 0;
+  const buttonText = contrastRatio(primary, "#FFFFFF") >= contrastRatio(primary, "#111419") ? "#FFFFFF" : "#111419";
+  const presetName = useMemo(() => {
+    if (!active || !validPrimary || !validAccent) return "Custom";
+    return (Object.keys(PRESETS) as Array<keyof typeof PRESETS>).find((name) => PRESETS[name][target].primary === primary && PRESETS[name][target].accent === accent) ?? "Custom";
+  }, [active, target, primary, accent, validPrimary, validAccent]);
+  const systemIsDark = effectiveIsDark(draft?.mode ?? "system", systemScheme);
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <LinearGradient
-        colors={[
-          "rgba(255,255,255,0.06)",
-          "rgba(255,255,255,0.00)",
-          "rgba(255,255,255,0.04)",
-        ]}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={{ flex: 1, backgroundColor: chrome.canvas }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 27, gap: 27 }} keyboardShouldPersistTaps="handled">
+        <LinearGradient colors={[chrome.heroStart, chrome.heroMiddle, chrome.heroEnd]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 28, padding: 22, minHeight: 186, overflow: "hidden" }}>
+          <View pointerEvents="none" style={{ position: "absolute", width: 184, height: 184, borderRadius: 92, top: -72, right: -48, backgroundColor: withAlpha(chrome.primary, 0.24) }} />
+          <View pointerEvents="none" style={{ position: "absolute", width: 125, height: 125, borderRadius: 63, bottom: -70, right: 40, backgroundColor: withAlpha(chrome.accent, 0.18) }} />
+          <Pressable accessibilityRole="button" accessibilityLabel="Cancel theme changes" onPress={leave} disabled={saving} style={{ minHeight: 44, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 4, paddingRight: 12 }}>
+            <Ionicons name="chevron-back" size={20} color="#FFFFFF" /><Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "600" }}>Cancel</Text>
+          </Pressable>
+          <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 10, marginTop: 13 }}><Text accessibilityRole="header" style={{ color: "#FFFFFF", fontSize: 33, fontWeight: "700", letterSpacing: -1.1, flex: 1 }}>Theme picker</Text><Ionicons name="color-palette-outline" size={26} color={chrome.gold} /></View>
+          <Text style={{ color: "#E7E9FA", fontSize: 14, lineHeight: 20, marginTop: 8, maxWidth: 288 }}>Choose an appearance and two independent accent palettes.</Text>
+          <View style={{ width: 52, height: 3, borderRadius: 2, backgroundColor: chrome.gold, marginTop: 16 }} />
+        </LinearGradient>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => {
-            Haptics.selectionAsync();
-            router.back();
-          }}
-          style={styles.headerBtn}
-          accessibilityRole="button"
-          accessibilityLabel="Close theme editor"
-        >
-          <Ionicons name="close" size={18} color={colors.text} />
-        </Pressable>
-
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.hTitle, { color: colors.text }]}>
-            Theme Editor
-          </Text>
-          <Text style={[styles.hSub, { color: colors.muted }]}>
-            Tune accents for Light and Dark separately
-          </Text>
-        </View>
-
-        <Pressable
-          onPress={onSave}
-          style={({ pressed }) => [
-            styles.saveBtn,
-            { opacity: pressed ? 0.9 : 1 },
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Save theme changes"
-        >
-          <LinearGradient
-            colors={gradientStops}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={styles.saveBtnInner}
-          >
-            <Text style={styles.saveTxt}>Save</Text>
-          </LinearGradient>
-        </Pressable>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Top mode switch + preview */}
-        <View style={{ gap: 12 }}>
-          <BlurView
-            intensity={22}
-            tint={isDark ? "dark" : "light"}
-            style={[styles.block, { borderColor: colors.glassBorder }]}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
-              <Segmented
-                value={tab}
-                onChange={(v) => setTab(v as ModeTab)}
-                options={[
-                  { key: "light", label: "Light", icon: "sunny" },
-                  { key: "dark", label: "Dark", icon: "moon" },
-                ]}
-              />
-              <Pressable
-                onPress={onResetTab}
-                style={({ pressed }) => [
-                  {
-                    paddingVertical: 10,
-                    paddingHorizontal: 12,
-                    borderRadius: 999,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    opacity: pressed ? 0.9 : 1,
-                  },
-                ]}
-              >
-                <Text
-                  style={{
-                    color: colors.text,
-                    fontWeight: "900",
-                    fontSize: 12,
-                  }}
-                >
-                  Reset
-                </Text>
-              </Pressable>
+        {!themeReady ? <View style={{ minHeight: 160, justifyContent: "center", alignItems: "center" }}><ActivityIndicator color={chrome.primary} /><Text style={{ color: chrome.secondary, marginTop: 10 }}>Loading saved appearance…</Text></View> : themeLoadError ? <View style={{ backgroundColor: chrome.card, borderColor: chrome.border, borderWidth: 1, borderRadius: 20, padding: 18, gap: 12 }}>
+          <Text style={{ color: chrome.text, fontSize: 16, fontWeight: "700" }}>Saved appearance unavailable</Text>
+          <Text style={{ color: chrome.secondary, fontSize: 14 }}>Retry before editing so your saved colors stay intact.</Text>
+          <Pressable accessibilityRole="button" onPress={() => { void refreshTheme(); }} style={{ minHeight: 48, justifyContent: "center" }}><Text style={{ color: chrome.text, fontSize: 16, fontWeight: "700" }}>Retry loading</Text></Pressable>
+        </View> : draft && <>
+          <View>
+            <Label palette={chrome}>Appearance</Label>
+            <View accessibilityRole="radiogroup" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              <Choice label="System" icon="phone-portrait-outline" selected={draft.mode === "system"} onPress={() => changeMode("system")} palette={chrome} />
+              <Choice label="Light" icon="sunny-outline" selected={draft.mode === "light"} onPress={() => changeMode("light")} palette={chrome} />
+              <Choice label="Dark" icon="moon-outline" selected={draft.mode === "dark"} onPress={() => changeMode("dark")} palette={chrome} />
             </View>
+            <Text style={{ color: chrome.secondary, fontSize: 14, lineHeight: 20, marginTop: 11 }}>{draft.mode === "system" ? `System follows your device · currently ${systemIsDark ? "Dark" : "Light"}` : `Somata will use ${draft.mode === "dark" ? "Dark" : "Light"} appearance`}</Text>
+          </View>
 
-            <View style={{ marginTop: 12 }}>
-              <PreviewCard
-                primary={normalizeHex(primary)}
-                accent={normalizeHex(accent)}
-                style={pairStyle}
-                isDarkPreview={tab === "dark"}
-              />
+          <View>
+            <Label palette={chrome}>Palette to edit</Label>
+            <View accessibilityRole="radiogroup" style={{ flexDirection: "row", gap: 9 }}>
+              <Choice label="Light palette" icon="sunny-outline" selected={target === "light"} onPress={() => setTarget("light")} palette={chrome} />
+              <Choice label="Dark palette" icon="moon-outline" selected={target === "dark"} onPress={() => setTarget("dark")} palette={chrome} />
             </View>
+            <Text style={{ color: chrome.secondary, fontSize: 14, lineHeight: 20, marginTop: 11 }}>Changes here affect only the {target} palette, regardless of appearance mode.</Text>
+          </View>
 
-            {contrastInfo.warn ? (
-              <View style={[styles.warnRow, { borderColor: colors.border }]}>
-                <Ionicons name="warning" size={16} color={colors.warning} />
-                <Text style={[styles.warnTxt, { color: colors.muted }]}>
-                  Low contrast detected. Some text/icons may be harder to read.
-                </Text>
+          <View>
+            <Label palette={chrome}>Preview · {target === "light" ? "Light" : "Dark"}</Label>
+            <LinearGradient colors={[preview.heroStart, preview.heroMiddle, preview.heroEnd]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 23, padding: 13, overflow: "hidden" }}>
+              <View pointerEvents="none" style={{ position: "absolute", width: 150, height: 150, borderRadius: 75, top: -60, right: -30, backgroundColor: withAlpha(primary, 0.2) }} />
+              <View style={{ borderRadius: 17, backgroundColor: preview.card, padding: 17, gap: 10 }}>
+                <Text style={{ color: preview.text, fontSize: 19, fontWeight: "700" }}>Your progress</Text>
+                <Text style={{ color: preview.secondary, fontSize: 14 }}>A calm place for your personal record.</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}><View style={{ width: 11, height: 11, borderRadius: 6, backgroundColor: accent }} /><Text style={{ color: preview.text, fontSize: 14 }}>Recorded measurements</Text></View>
+                <View style={{ backgroundColor: primary, borderRadius: 12, minHeight: 44, paddingHorizontal: 14, justifyContent: "center", alignSelf: "flex-start" }}><Text style={{ color: buttonText, fontSize: 15, fontWeight: "700" }}>View progress</Text></View>
               </View>
-            ) : null}
-          </BlurView>
-        </View>
-
-        {/* Picker */}
-        <BlurView
-          intensity={22}
-          tint={isDark ? "dark" : "light"}
-          style={[
-            styles.block,
-            { borderColor: colors.glassBorder, marginTop: 14 },
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Accents
-          </Text>
-          <Text style={[styles.sectionSub, { color: colors.muted }]}>
-            Choose a palette quickly, or fine-tune precisely.
-          </Text>
-
-          {/* Primary / Secondary selector */}
-          <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
-            <Pressable
-              onPress={() => {
-                Haptics.selectionAsync();
-                setEditing("primary");
-              }}
-              style={[
-                styles.swatchCard,
-                {
-                  borderColor: colors.border,
-                  backgroundColor: colors.surface2,
-                },
-                editing === "primary" && { borderColor: normalizeHex(primary) },
-              ]}
-            >
-              <View
-                style={[
-                  styles.bigSwatch,
-                  { backgroundColor: normalizeHex(primary) },
-                ]}
-              />
-              <Text style={[styles.swatchLabel, { color: colors.text }]}>
-                Primary
-              </Text>
-              <Text style={[styles.swatchHex, { color: colors.muted }]}>
-                {normalizeHex(primary)}
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => {
-                Haptics.selectionAsync();
-                setEditing("accent");
-              }}
-              style={[
-                styles.swatchCard,
-                {
-                  borderColor: colors.border,
-                  backgroundColor: colors.surface2,
-                },
-                editing === "accent" && { borderColor: normalizeHex(accent) },
-              ]}
-            >
-              <View
-                style={[
-                  styles.bigSwatch,
-                  { backgroundColor: normalizeHex(accent) },
-                ]}
-              />
-              <Text style={[styles.swatchLabel, { color: colors.text }]}>
-                Secondary
-              </Text>
-              <Text style={[styles.swatchHex, { color: colors.muted }]}>
-                {normalizeHex(accent)}
-              </Text>
-            </Pressable>
+            </LinearGradient>
           </View>
 
-          {/* Presets */}
-          <View style={{ marginTop: 14, gap: 10 }}>
-            <Text
-              style={{ color: colors.muted, fontWeight: "900", fontSize: 12 }}
-            >
-              Preset palettes
-            </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-              {PRESETS.map((x) => (
-                <Pressable
-                  key={x.name}
-                  onPress={() => applyPreset(x.p, x.a)}
-                  style={{
-                    borderRadius: 14,
-                    overflow: "hidden",
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Apply preset ${x.name}`}
-                >
-                  <LinearGradient
-                    colors={[x.p, x.a]}
-                    start={{ x: 0, y: 0.5 }}
-                    end={{ x: 1, y: 0.5 }}
-                    style={{
-                      width: 156,
-                      height: 44,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Text
-                      style={{ color: "#fff", fontWeight: "900", fontSize: 12 }}
-                    >
-                      {x.name}
-                    </Text>
-                  </LinearGradient>
-                </Pressable>
-              ))}
+          <View>
+            <Label palette={chrome}>Accent presets</Label>
+            <View style={{ gap: 9 }}>
+              {(Object.keys(PRESETS) as Array<keyof typeof PRESETS>).map((name) => <Pressable key={name} accessibilityRole="button" accessibilityState={{ selected: presetName === name }} onPress={() => choosePreset(name)} style={({ pressed }) => ({ minHeight: 65, borderRadius: 17, borderWidth: presetName === name ? 2 : 1, borderColor: presetName === name ? chrome.primary : chrome.border, backgroundColor: presetName === name ? chrome.primaryTint : chrome.card, paddingHorizontal: 15, flexDirection: "row", alignItems: "center", gap: 10, opacity: pressed ? 0.72 : 1 })}>
+                <View style={{ width: 26, height: 26, borderRadius: 9, backgroundColor: PRESETS[name][target].primary }} /><View style={{ width: 26, height: 26, borderRadius: 9, backgroundColor: PRESETS[name][target].accent, marginLeft: -17, marginTop: 13, borderWidth: 2, borderColor: chrome.card }} />
+                <Text style={{ color: chrome.text, fontSize: 16, fontWeight: "700", flex: 1, marginLeft: 6 }}>{name}</Text>
+                {presetName === name ? <Ionicons name="checkmark-circle" size={20} color={chrome.primary} /> : <Ionicons name="chevron-forward" size={17} color={chrome.secondary} />}
+              </Pressable>)}
             </View>
           </View>
 
-          {/* Gradient style */}
-          <View style={{ marginTop: 16, gap: 10 }}>
-            <Text
-              style={{ color: colors.muted, fontWeight: "900", fontSize: 12 }}
-            >
-              Gradient pairing
-            </Text>
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              {(["subtle", "balanced", "bold"] as GradientPairingStyle[]).map(
-                (sOpt) => {
-                  const active = pairStyle === sOpt;
-                  return (
-                    <Pressable
-                      key={sOpt}
-                      onPress={() => {
-                        Haptics.selectionAsync();
-                        setPairStyle(sOpt);
-                      }}
-                      style={{
-                        flex: 1,
-                        borderRadius: 14,
-                        borderWidth: 1,
-                        borderColor: active
-                          ? normalizeHex(primary)
-                          : colors.border,
-                        overflow: "hidden",
-                      }}
-                    >
-                      <LinearGradient
-                        colors={styleStops(
-                          sOpt,
-                          normalizeHex(primary),
-                          normalizeHex(accent)
-                        )}
-                        start={{ x: 0, y: 0.5 }}
-                        end={{ x: 1, y: 0.5 }}
-                        style={{ paddingVertical: 10, alignItems: "center" }}
-                      >
-                        <Text
-                          style={{
-                            color: "#fff",
-                            fontWeight: "900",
-                            fontSize: 12,
-                          }}
-                        >
-                          {sOpt === "subtle"
-                            ? "Subtle"
-                            : sOpt === "balanced"
-                            ? "Balanced"
-                            : "Bold"}
-                        </Text>
-                      </LinearGradient>
-                    </Pressable>
-                  );
-                }
-              )}
+          <View>
+            <Label palette={chrome}>Customize {target} palette</Label>
+            <View style={{ backgroundColor: chrome.card, borderRadius: 20, borderWidth: 1, borderColor: chrome.border, padding: 16, gap: 13 }}>
+              {(["primary", "accent"] as const).map((field) => <View key={field} style={{ gap: 7 }}>
+                <Text style={{ color: chrome.text, fontSize: 14, fontWeight: "700" }}>{field === "primary" ? "Primary accent" : "Secondary accent"}</Text>
+                <View style={{ borderRadius: 13, backgroundColor: chrome.raised, minHeight: 51, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 11 }}>
+                  <View style={{ width: 23, height: 23, borderRadius: 8, backgroundColor: isHex6(normalizeHex(draft[target][field])) ? normalizeHex(draft[target][field]) : chrome.border }} />
+                  <TextInput accessibilityLabel={`${target} ${field} hex color`} value={draft[target][field]} onChangeText={(value) => changeColor(field, value)} autoCapitalize="characters" autoCorrect={false} maxLength={7} placeholder="#315B9A" placeholderTextColor={chrome.secondary} style={{ color: chrome.text, fontSize: 16, flex: 1, minHeight: 48 }} />
+                </View>
+              </View>)}
+              <Text style={{ color: chrome.secondary, fontSize: 13, lineHeight: 19 }}>Use six-digit hex colors. Your saved palettes stay separate.</Text>
             </View>
           </View>
 
-          {/* Advanced controls */}
-          <View style={{ marginTop: 16, gap: 12 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Text style={{ color: colors.text, fontWeight: "900" }}>
-                Fine tune
-              </Text>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-              >
-                <Ionicons name="options" size={16} color={colors.muted} />
-                <Text
-                  style={{
-                    color: colors.muted,
-                    fontWeight: "900",
-                    fontSize: 12,
-                  }}
-                >
-                  Editing {editing === "primary" ? "Primary" : "Secondary"}
-                </Text>
-              </View>
-            </View>
-
-            <View style={{ gap: 12 }}>
-              <Slider
-                label="Hue"
-                value={h}
-                min={0}
-                max={360}
-                onChange={(v) => {
-                  setH(v);
-                  updateFromHsl(v, s, l);
-                }}
-                left={
-                  <Text
-                    style={{
-                      color: "rgba(255,255,255,0.55)",
-                      fontWeight: "900",
-                      fontSize: 12,
-                    }}
-                  >
-                    0
-                  </Text>
-                }
-                right={
-                  <Text
-                    style={{
-                      color: "rgba(255,255,255,0.55)",
-                      fontWeight: "900",
-                      fontSize: 12,
-                    }}
-                  >
-                    360
-                  </Text>
-                }
-              />
-              <Slider
-                label="Saturation"
-                value={s}
-                min={0}
-                max={100}
-                onChange={(v) => {
-                  setS(v);
-                  updateFromHsl(h, v, l);
-                }}
-                left={
-                  <Text
-                    style={{
-                      color: "rgba(255,255,255,0.55)",
-                      fontWeight: "900",
-                      fontSize: 12,
-                    }}
-                  >
-                    0
-                  </Text>
-                }
-                right={
-                  <Text
-                    style={{
-                      color: "rgba(255,255,255,0.55)",
-                      fontWeight: "900",
-                      fontSize: 12,
-                    }}
-                  >
-                    100
-                  </Text>
-                }
-              />
-              <Slider
-                label="Lightness"
-                value={l}
-                min={0}
-                max={100}
-                onChange={(v) => {
-                  setL(v);
-                  updateFromHsl(h, s, v);
-                }}
-                left={
-                  <Text
-                    style={{
-                      color: "rgba(255,255,255,0.55)",
-                      fontWeight: "900",
-                      fontSize: 12,
-                    }}
-                  >
-                    0
-                  </Text>
-                }
-                right={
-                  <Text
-                    style={{
-                      color: "rgba(255,255,255,0.55)",
-                      fontWeight: "900",
-                      fontSize: 12,
-                    }}
-                  >
-                    100
-                  </Text>
-                }
-              />
-            </View>
-
-            <View style={{ gap: 10 }}>
-              <Text
-                style={{ color: colors.muted, fontWeight: "900", fontSize: 12 }}
-              >
-                Hex (precise)
-              </Text>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-              >
-                <View
-                  style={[
-                    styles.hexSwatch,
-                    {
-                      backgroundColor: isHex6(activeHex) ? activeHex : "#000",
-                      borderColor: colors.border,
-                    },
-                  ]}
-                />
-                <TextInput
-                  value={editing === "primary" ? primary : accent}
-                  onChangeText={(t) => {
-                    const up = t.trim().toUpperCase();
-                    if (editing === "primary") setPrimary(up);
-                    else setAccent(up);
-                  }}
-                  autoCapitalize="characters"
-                  placeholder="#RRGGBB"
-                  placeholderTextColor={colors.placeholder}
-                  style={[
-                    styles.hexInput,
-                    {
-                      backgroundColor: colors.inputBg,
-                      borderColor: colors.inputBorder,
-                      color: colors.text,
-                    },
-                  ]}
-                />
-                <Pressable
-                  onPress={() => {
-                    const hex = normalizeHex(
-                      editing === "primary" ? primary : accent
-                    );
-                    if (!isHex6(hex)) {
-                      Haptics.notificationAsync(
-                        Haptics.NotificationFeedbackType.Error
-                      );
-                      return;
-                    }
-                    Haptics.selectionAsync();
-                    // sync sliders to this hex
-                    const next = hexToHsl(hex);
-                    setH(next.h);
-                    setS(next.s);
-                    setL(next.l);
-                  }}
-                  style={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 12,
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: colors.text,
-                      fontWeight: "900",
-                      fontSize: 12,
-                    }}
-                  >
-                    Sync
-                  </Text>
-                </Pressable>
-              </View>
-
-              <Text
-                style={{
-                  color: colors.muted,
-                  fontWeight: "800",
-                  fontSize: 12,
-                  lineHeight: 16,
-                }}
-              >
-                Tip: presets get you 90% there. Fine tune for that “perfect
-                Apple glow”.
-              </Text>
-            </View>
+          <View style={{ backgroundColor: chrome.accentTint, borderRadius: 18, padding: 16, gap: 7 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Ionicons name="contrast-outline" size={18} color={chrome.accent} /><Text style={{ color: chrome.text, fontSize: 15, fontWeight: "700" }}>Contrast check</Text></View>
+            {!validPrimary || !validAccent ? <Text style={{ color: chrome.secondary, fontSize: 14 }}>Enter valid hex colors to check contrast.</Text> : <>
+              <Text style={{ color: chrome.secondary, fontSize: 14 }}>Primary on card: {primaryRatio.toFixed(1)}:1 · Secondary on card: {accentRatio.toFixed(1)}:1</Text>
+              <Text style={{ color: chrome.text, fontSize: 14, lineHeight: 20 }}>{primaryRatio < 3 || accentRatio < 3 ? "Low contrast: one or both accents may be hard to distinguish from the card." : "Both accents are distinguishable from the card."}</Text>
+            </>}
           </View>
-        </BlurView>
+
+          <Pressable accessibilityRole="button" onPress={resetSelected} style={{ minHeight: 44, alignSelf: "flex-start", justifyContent: "center" }}><Text style={{ color: chrome.text, fontSize: 14, fontWeight: "700" }}>Reset {target} palette to Ocean</Text></Pressable>
+        </>}
       </ScrollView>
+
+      {!!draft && <View style={{ backgroundColor: chrome.card, borderTopColor: chrome.border, borderTopWidth: 1, paddingHorizontal: 20, paddingTop: 12, paddingBottom: Math.max(14, insets.bottom), gap: 8 }}>
+        {!!error && <Text accessibilityRole="alert" style={{ color: chrome.text, fontSize: 14, lineHeight: 20 }}>{error}</Text>}
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <Pressable accessibilityRole="button" onPress={leave} disabled={saving} style={{ flex: 1, minHeight: 48, alignItems: "center", justifyContent: "center" }}><Text style={{ color: chrome.secondary, fontSize: 15, fontWeight: "700" }}>Cancel</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => { void save(); }} disabled={saving} style={{ flex: 1, minHeight: 48, opacity: saving ? 0.5 : 1 }}><LinearGradient colors={[chrome.heroStart, chrome.heroMiddle]} style={{ flex: 1, borderRadius: 13, justifyContent: "center", alignItems: "center" }}><Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "700" }}>{saving ? "Saving…" : "Save"}</Text></LinearGradient></Pressable>
+        </View>
+      </View>}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  header: {
-    paddingTop: Platform.select({ ios: 54, android: 22, default: 22 }),
-    paddingHorizontal: 14,
-    paddingBottom: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  headerBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.10)",
-  },
-  hTitle: { fontSize: 16, fontWeight: "900" },
-  hSub: { marginTop: 2, fontSize: 12, fontWeight: "800" },
-
-  saveBtn: { borderRadius: 14, overflow: "hidden" },
-  saveBtnInner: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 14,
-  },
-  saveTxt: { color: "#fff", fontWeight: "900" },
-
-  block: {
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 14,
-    overflow: "hidden",
-  },
-  sectionTitle: { fontSize: 14, fontWeight: "900" },
-  sectionSub: { marginTop: 4, fontSize: 12, fontWeight: "800", lineHeight: 16 },
-
-  swatchCard: {
-    flex: 1,
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 12,
-  },
-  bigSwatch: {
-    height: 44,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.20)",
-  },
-  swatchLabel: { marginTop: 10, fontWeight: "900" },
-  swatchHex: { marginTop: 4, fontWeight: "900", fontSize: 12 },
-
-  warnRow: {
-    marginTop: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: "rgba(245,158,11,0.10)",
-  },
-  warnTxt: { flex: 1, fontSize: 12, fontWeight: "800", lineHeight: 16 },
-
-  hexSwatch: { width: 34, height: 34, borderRadius: 12, borderWidth: 1 },
-  hexInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontWeight: "900",
-    letterSpacing: 0.5,
-  },
-});

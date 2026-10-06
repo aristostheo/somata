@@ -1,14 +1,16 @@
 {
-  "name": "fitness-root",
+  "name": "fitness-web",
   "private": true,
   "workspaces": [
     "functions"
   ],
   "scripts": {
-    "start": "BROWSER=safari react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test:rules": "node --test test/firestore-rules.emulator.cjs",
+    "eject": "react-scripts eject",
+    "dev": "react-scripts start"
   },
   "pnpm": {
     "overrides": {
@@ -18,12 +20,22 @@
   },
   "devDependencies": {
     "@expo/cli": "^0.17.13",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
+    "autoprefixer": "^10.4.21",
     "metro-runtime": "0.83.1",
-    "react-scripts": "^5.0.1"
+    "postcss": "^8.4.49",
+    "react-scripts": "^5.0.1",
+    "tailwindcss": "^3.4.18"
   },
   "dependencies": {
+    "firebase": "^11.10.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.6",
+    "recharts": "^2.15.4",
+    "web-vitals": "^2.1.4"
   },
   "browserslist": {
     "production": [
@@ -39,5 +51,11 @@
   },
   "engines": {
     "node": "18"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
   }
 }

@@ -35,6 +35,13 @@ export default function AppShell() {
             </button>
           </div>
         </div>
+        <nav aria-label="Main navigation" className="flex flex-wrap gap-1 px-4 pb-3">
+          <NavLink to="/" className={link}>Home</NavLink>
+          <NavLink to="/dashboard" className={link}>Workouts</NavLink>
+          <NavLink to="/nutrition" className={link}>Nutrition</NavLink>
+          <NavLink to="/profile" className={link}>Profile</NavLink>
+          <NavLink to="/insights" className={link}>Insights</NavLink>
+        </nav>
       </header>
 
       <div className="mx-auto max-w-7xl md:grid md:grid-cols-[240px_1fr]">

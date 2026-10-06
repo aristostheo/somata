@@ -23,6 +23,7 @@ export type Workout = {
   date: string; // "YYYY-MM-DD"
   dateMs?: number; // <- local-midnight millis (optional but useful)
   exercise: string;
+  primaryMuscle?: string;
   sets?: number;
   reps?: number;
   weight?: number; // stored as KG
@@ -75,6 +76,7 @@ export function subscribeWorkouts(
           id: d.id,
           date: x.date || "",
           exercise: x.exercise || "",
+          primaryMuscle: x.primaryMuscle || "",
           sets: Number(x.sets ?? 0),
           reps: Number(x.reps ?? 0),
           weight: Number(x.weight ?? 0), // kg
@@ -134,6 +136,7 @@ export async function addWorkout(uid: string, entry: Omit<Workout, "id">) {
   const ref = await addDoc(col(uid), {
     uid, // ✅ used by rules/queries
     exercise: entry.exercise ?? "",
+    primaryMuscle: entry.primaryMuscle ?? "",
     sets: Number(entry.sets ?? 0),
     reps: Number(entry.reps ?? 0),
     weight: Number(entry.weight ?? 0),
@@ -142,14 +145,8 @@ export async function addWorkout(uid: string, entry: Omit<Workout, "id">) {
     dateMs, // ✅ numeric for future range queries
     sessionId: entry.sessionId ?? null,
     sessionTitle: entry.sessionTitle ?? null,
-    sessionStartedAt:
-      typeof entry.sessionStartedAt === "number"
-        ? entry.sessionStartedAt
-        : entry.sessionStartedAt?.toMillis?.() ?? null,
-    setCreatedAt:
-      typeof entry.setCreatedAt === "number"
-        ? entry.setCreatedAt
-        : entry.setCreatedAt?.toMillis?.() ?? null,
+    sessionStartedAt: entry.sessionStartedAt ?? null,
+    setCreatedAt: entry.setCreatedAt ?? null,
     createdAt: serverTimestamp(),
   });
   return ref;

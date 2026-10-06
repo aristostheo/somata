@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#7b6fff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="vgrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="50%" stop-color="#7b6fff"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="bggrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#13101e"/>
+      <stop offset="100%" stop-color="#0a0812"/>
+    </linearGradient>
+    <filter id="glow-filter" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="32" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="soft-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+    <clipPath id="roundedClip">
+      <rect width="1024" height="1024" rx="230"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background with rounded corners -->
+  <rect width="1024" height="1024" rx="230" fill="url(#bggrad)"/>
+
+  <!-- Clipped content -->
+  <g clip-path="url(#roundedClip)">
+
+    <!-- Ambient glow behind circle -->
+    <circle cx="512" cy="512" r="360" fill="url(#glow)" filter="url(#soft-glow)"/>
+
+    <!-- Outer gradient ring -->
+    <circle cx="512" cy="512" r="340"
+      fill="none"
+      stroke="url(#vgrad)"
+      stroke-width="18"
+      stroke-linecap="round"/>
+
+    <!-- Inner subtle ring -->
+    <circle cx="512" cy="512" r="268"
+      fill="none"
+      stroke="rgba(167,139,250,0.18)"
+      stroke-width="6"/>
+
+    <!-- Very inner faint fill circle -->
+    <circle cx="512" cy="512" r="240"
+      fill="rgba(123,111,255,0.06)"/>
+
+    <!-- Spine center line -->
+    <line x1="512" y1="196" x2="512" y2="828"
+      stroke="url(#vgrad)"
+      stroke-width="22"
+      stroke-linecap="round"/>
+
+    <!-- Vertebra 1 — faint -->
+    <rect x="390" y="204" width="244" height="72" rx="22"
+      fill="rgba(196,181,253,0.16)"
+      stroke="#c4b5fd"
+      stroke-width="10"/>
+
+    <!-- Vertebra 2 — solid -->
+    <rect x="390" y="308" width="244" height="72" rx="22"
+      fill="rgba(123,111,255,0.42)"
+      stroke="#7b6fff"
+      stroke-width="10"/>
+
+    <!-- Vertebra 3 — faint -->
+    <rect x="390" y="412" width="244" height="72" rx="22"
+      fill="rgba(196,181,253,0.16)"
+      stroke="#c4b5fd"
+      stroke-width="10"/>
+
+    <!-- Vertebra 4 — solid -->
+    <rect x="390" y="516" width="244" height="72" rx="22"
+      fill="rgba(123,111,255,0.42)"
+      stroke="#7b6fff"
+      stroke-width="10"/>
+
+    <!-- Vertebra 5 — faint -->
+    <rect x="390" y="620" width="244" height="72" rx="22"
+      fill="rgba(196,181,253,0.16)"
+      stroke="#c4b5fd"
+      stroke-width="10"/>
+
+    <!-- Vertebra 6 — solid -->
+    <rect x="390" y="724" width="244" height="72" rx="22"
+      fill="rgba(123,111,255,0.42)"
+      stroke="#7b6fff"
+      stroke-width="10"/>
+
+  </g>
+</svg>

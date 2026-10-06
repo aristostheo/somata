@@ -1,6 +1,7 @@
 // components/scanMeal/BottomActionBar.tsx
 import React from "react";
 import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/content/ThemeProvider";
 
 export default function BottomActionBar({
@@ -20,22 +21,25 @@ export default function BottomActionBar({
   tertiaryLabel?: string;
   onTertiary?: (() => void) | undefined;
 }) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme() as any;
 
   return (
     <View
       style={[
         styles.wrap,
-        { borderTopColor: colors.border, backgroundColor: colors.bg },
+        { backgroundColor: isDark ? "rgba(8,10,16,0.86)" : "rgba(255,255,255,0.92)" },
       ]}
     >
       <View style={styles.row}>
         {secondaryLabel && onSecondary ? (
           <Pressable
             onPress={onSecondary}
-            style={[
+            style={({ pressed }) => [
               styles.secondary,
-              { borderColor: colors.border, backgroundColor: colors.surface },
+              {
+                backgroundColor: "rgba(255,255,255,0.08)",
+                opacity: pressed ? 0.82 : 1,
+              },
             ]}
             accessibilityRole="button"
           >
@@ -48,17 +52,27 @@ export default function BottomActionBar({
         <Pressable
           onPress={onPrimary}
           disabled={!onPrimary || primaryDisabled}
-          style={[
+          style={({ pressed }) => [
             styles.primary,
             {
-              backgroundColor:
-                !onPrimary || primaryDisabled ? colors.border : colors.primary,
-              opacity: !onPrimary || primaryDisabled ? 0.75 : 1,
+              opacity: !onPrimary || primaryDisabled ? 0.75 : pressed ? 0.9 : 1,
+              transform: [{ scale: pressed ? 0.985 : 1 }],
             },
           ]}
           accessibilityRole="button"
         >
-          <Text style={styles.primaryText}>{primaryLabel}</Text>
+          <LinearGradient
+            colors={
+              !onPrimary || primaryDisabled
+                ? ["rgba(255,255,255,0.12)", "rgba(255,255,255,0.08)"]
+                : ["rgba(56,189,248,0.98)", colors.primary]
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.primaryFill}
+          >
+            <Text style={styles.primaryText}>{primaryLabel}</Text>
+          </LinearGradient>
         </Pressable>
       </View>
 
@@ -86,12 +100,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 12,
     paddingBottom: Platform.OS === "ios" ? 22 : 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
   row: { flexDirection: "row", gap: 10 },
   secondary: {
     flex: 1,
-    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 16,
     paddingVertical: 12,
     alignItems: "center",
@@ -101,6 +113,9 @@ const styles = StyleSheet.create({
   primary: {
     flex: 1,
     borderRadius: 16,
+    overflow: "hidden",
+  },
+  primaryFill: {
     paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",

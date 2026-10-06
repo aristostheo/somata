@@ -317,7 +317,7 @@ export function PremiumHydrationBottle({
     wavePhase.value = 0;
     wavePhase.value = withRepeat(
       withTiming(Math.PI * 2, {
-        duration: 6000,
+        duration: 7800,
         easing: Easing.linear,
       }),
       -1,
@@ -327,7 +327,7 @@ export function PremiumHydrationBottle({
 
   // Animate level on change
   useEffect(() => {
-    const dur = reducedMotion ? 200 : 800;
+    const dur = reducedMotion ? 200 : 1150;
     level.value = withTiming(visualP, {
       duration: dur,
       easing: reducedMotion
@@ -421,7 +421,7 @@ export function PremiumHydrationBottle({
     const fillNow = level.value;
     const phaseNow = wavePhase.value;
     const splashPx = reducedMotion ? 0 : 10 * splash.value;
-    const ampBase = fillNow < 0.1 ? 2.2 : fillNow > 0.88 ? 2.2 : 4.2;
+    const ampBase = fillNow < 0.1 ? 1.8 : fillNow > 0.88 ? 1.8 : 3.1;
     const amp = reducedMotion ? 0 : ampBase;
     return makeWaterPath(
       { x: contentX, y: contentY, w: contentW, h: contentH },

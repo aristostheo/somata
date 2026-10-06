@@ -13,7 +13,7 @@ export function BadgesPreviewCard(props: {
   unlockedCount?: number;
   previewIds?: string[]; // optional ids
 }) {
-  const { colors, isDark } = useTheme();
+  const { colors, isDark } = useTheme() as any;
 
   const unlocked = props.unlockedCount ?? 0;
   const previewBadges = useMemo(
@@ -35,7 +35,7 @@ export function BadgesPreviewCard(props: {
   return (
     <GlassCard>
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}>
+        <Text style={{ color: colors.textPrimary, fontWeight: "500", fontSize: 16 }}>
           Badges
         </Text>
 
@@ -48,11 +48,8 @@ export function BadgesPreviewCard(props: {
             styles.btn,
             {
               marginLeft: "auto",
-              backgroundColor: withAlpha(
-                colors.card,
-                isDark ? (pressed ? 0.22 : 0.18) : pressed ? 0.7 : 0.55
-              ),
-              borderColor: withAlpha(colors.border, 0.7),
+              backgroundColor: colors.surface3,
+              borderColor: colors.border,
             },
           ]}
           accessibilityRole="button"
@@ -61,12 +58,12 @@ export function BadgesPreviewCard(props: {
           <Ionicons
             name="chevron-forward-outline"
             size={16}
-            color={colors.text}
+            color={colors.textTertiary}
           />
         </Pressable>
       </View>
 
-      <Text style={{ color: colors.muted, marginTop: 6 }}>{pill}</Text>
+      <Text style={{ color: colors.textTertiary, marginTop: 6, fontWeight: "300" }}>{pill}</Text>
 
       <View style={{ height: 12 }} />
 
@@ -108,18 +105,26 @@ export function BadgesPreviewCard(props: {
             style={{ alignItems: "center", justifyContent: "center", gap: 8 }}
           >
             <Ionicons name="ribbon-outline" size={18} color={colors.muted} />
-            <Text style={{ color: colors.muted, fontSize: 12 }}>
+          <Text style={{ color: colors.textTertiary, fontSize: 12, fontWeight: "300" }}>
               No featured badges yet
-            </Text>
+          </Text>
           </View>
         )}
       </View>
 
-      <Text style={{ color: colors.muted, fontSize: 12, marginTop: 12 }}>
+      <Text style={{ color: colors.textTertiary, fontSize: 12, marginTop: 12, fontWeight: "300" }}>
         Unlocked:{" "}
-        <Text style={{ color: colors.text, fontWeight: "900" }}>
+        <Text style={{ color: colors.textPrimary, fontWeight: "500" }}>
           {unlocked}
         </Text>
+      </Text>
+      {hasPreview ? (
+        <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: "400", marginTop: 6 }} numberOfLines={1}>
+          Latest: {previewBadges[0]!.title}
+        </Text>
+      ) : null}
+      <Text style={{ color: colors.accent, fontSize: 12, marginTop: 4, fontWeight: "300", fontStyle: "italic" }}>
+        {Math.max(1, 3 - (unlocked % 3))} away from next badge
       </Text>
     </GlassCard>
   );

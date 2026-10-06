@@ -239,7 +239,7 @@ export default function ExerciseBrowserModal() {
             ? ["rgba(0,0,0,0.0)", "rgba(0,0,0,0.25)"]
             : ["rgba(255,255,255,0.0)", "rgba(0,0,0,0.03)"]
         }
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       <View style={styles.topPad} />

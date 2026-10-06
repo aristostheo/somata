@@ -1,6 +1,6 @@
 // app/(tabs)/workouts.tsx
 // Drop-in replacement ✅
-// Theme-adjusted: light mode is glossy + readable (no “washed out” text), dark mode unchanged vibe.
+// Theme-adjusted: light mode is glossy + readable (no "washed out" text), dark mode unchanged vibe.
 // Notes:
 // - Uses your ThemeProvider: { colors, isDark }
 // - Keeps your Coach Spark + template routes as-is
@@ -26,9 +26,8 @@ import {
   Modal,
   ActivityIndicator,
   Alert as RNAlert,
+  TextInput,
 } from "react-native";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   Easing,
@@ -42,10 +41,19 @@ import Animated, {
 } from "react-native-reanimated";
 import { useFocusEffect, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Body, {
+  type ExtendedBodyPart,
+  type Slug as BodySlug,
+} from "react-native-body-highlighter/dist/index";
 
 import * as Haptics from "expo-haptics";
 import { useAuth } from "@/content/AuthContext";
 import { useTheme } from "@/content/ThemeProvider";
+import { subscribeProfile, type Profile } from "@/services/profile";
+import {
+  inferPrimaryMuscle,
+  PRIMARY_MUSCLE_OPTIONS,
+} from "@/services/workoutMuscles";
 import {
   subscribeWorkouts,
   deleteWorkout,
@@ -71,6 +79,11 @@ import {
   deleteActivity,
   type ActivityEntry as CardioEntry,
 } from "@/services/activity";
+import {
+  getRecoveryMetrics,
+  subscribeIntegrations,
+  type IntegrationSnapshot,
+} from "@/services/integrations";
 import {
   loadSessionDraft,
   type WorkoutSessionDraft,
@@ -104,10 +117,13 @@ type WorkoutSummary = {
   id: string;
   title: string;
   subtitle?: string;
+  dateISO: string;
+  timeLabel?: string;
   dateLabel: string;
   durationMin: number;
   sets: number;
   volumeKg: number;
+  group?: "push" | "pull" | "legs" | "full" | "cardio" | "recovery" | "other";
   pr?: { label: string; value?: string };
   highlight?: string;
 };
@@ -135,6 +151,7 @@ type TemplateVM = {
   updatedAt?: any;
   lastUsedAt?: any;
   pinned?: boolean;
+  archived?: boolean;
 };
 
 type ActiveSession = {
@@ -301,78 +318,35 @@ function ScalePressable({
 
 /**
  * THEME MODEL (local to this file)
- * Goal: keep the exact same components, but drive every “white-on-dark” style
+ * Goal: keep the exact same components, but drive every "white-on-dark" style
  * from theme tokens so light mode is glossy + high-contrast.
  */
 function useSurfaceTokens() {
   const { colors, isDark } = useTheme();
 
-  // Background gradient
-  const bgGradient = isDark
-    ? ["#070A12", "#050711", "#03040A"]
-    : [
-        withAlpha(colors.primary, 0.12),
-        withAlpha("#FFFFFF", 0.92),
-        withAlpha(colors.card, 0.55),
-      ];
+  const t1 = colors.textPrimary;
+  const t2 = colors.textSecondary;
+  const t3 = colors.textTertiary;
 
-  // Text
-  const t1 = isDark ? withAlpha("#FFFFFF", 0.94) : withAlpha(colors.text, 0.94);
-  const t2 = isDark ? withAlpha("#FFFFFF", 0.62) : withAlpha(colors.text, 0.64);
-  const t3 = isDark ? withAlpha("#FFFFFF", 0.78) : withAlpha(colors.text, 0.78);
+  const cardBorder = colors.border;
+  const cardFill = colors.surface1;
+  const chipFill = colors.surface2;
+  const chipBorder = colors.border;
+  const hairline = colors.border;
 
-  // Surfaces
-  const cardBorder = isDark
-    ? withAlpha("#FFFFFF", 0.2)
-    : withAlpha(colors.text, 0.12);
+  const icon = colors.textSecondary;
+  const iconBright = colors.textPrimary;
+  const chevron = colors.textTertiary;
 
-  const cardFill = isDark
-    ? withAlpha("#FFFFFF", 0.04)
-    : withAlpha("#FFFFFF", 0.78);
+  const tTitleSoft = colors.textSecondary;
+  const tMetaStrong = colors.textSecondary;
 
-  const chipFill = isDark
-    ? withAlpha("#FFFFFF", 0.06)
-    : withAlpha("#FFFFFF", 0.7);
-
-  const chipBorder = isDark
-    ? withAlpha("#FFFFFF", 0.14)
-    : withAlpha(colors.text, 0.12);
-
-  const hairline = isDark
-    ? withAlpha("#FFFFFF", 0.12)
-    : withAlpha(colors.text, 0.1);
-
-  // Icons + chevrons
-  const icon = isDark
-    ? withAlpha("#FFFFFF", 0.9)
-    : withAlpha(colors.text, 0.86);
-  const iconBright = isDark
-    ? withAlpha("#FFFFFF", 0.98)
-    : withAlpha(colors.text, 0.92);
-  const chevron = isDark
-    ? withAlpha("#FFFFFF", 0.35)
-    : withAlpha(colors.text, 0.35);
-
-  // optional helpers for hierarchy
-  const tTitleSoft = isDark
-    ? withAlpha("#FFFFFF", 0.78)
-    : withAlpha(colors.text, 0.78);
-  const tMetaStrong = isDark
-    ? withAlpha("#FFFFFF", 0.72)
-    : withAlpha(colors.text, 0.72);
-
-  // “Ghost button” look
-  const ghostFill = isDark
-    ? withAlpha("#FFFFFF", 0.06)
-    : withAlpha("#FFFFFF", 0.72);
-  const ghostBorder = isDark
-    ? withAlpha("#FFFFFF", 0.14)
-    : withAlpha(colors.text, 0.14);
+  const ghostFill = colors.surface2;
+  const ghostBorder = colors.borderElevated;
 
   return {
     colors,
     isDark,
-    bgGradient,
     t1,
     t2,
     t3,
@@ -394,65 +368,21 @@ function useSurfaceTokens() {
 function GlassCard({
   children,
   style,
-  intensity = 24,
 }: {
   children: React.ReactNode;
   style?: any;
   intensity?: number;
 }) {
   const s = useSurfaceTokens();
-
-  const gradColors = s.isDark
-    ? [
-        withAlpha("#FFFFFF", 0.14),
-        withAlpha("#FFFFFF", 0.06),
-        withAlpha("#000000", 0.02),
-      ]
-    : [
-        withAlpha("#FFFFFF", 0.94),
-        withAlpha(s.colors.primary, 0.1),
-        withAlpha("#FFFFFF", 0.78),
-      ];
-
   return (
     <View
       style={[
         styles.cardWrap,
-        { backgroundColor: s.cardFill, borderColor: s.cardBorder },
+        { backgroundColor: s.cardFill, borderColor: s.cardBorder, borderWidth: 1 },
         style,
       ]}
     >
-      <View
-        style={[styles.cardBorder, { borderColor: s.cardBorder }]}
-        pointerEvents="none"
-      />
-      <BlurView
-        intensity={intensity}
-        tint={s.isDark ? "dark" : "light"}
-        style={styles.cardBlur}
-      >
-        <LinearGradient
-          colors={gradColors as any}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardInner}
-        >
-          {/* subtle sheen */}
-          <View
-            pointerEvents="none"
-            style={[
-              StyleSheet.absoluteFill,
-              {
-                borderRadius: 18,
-                backgroundColor: s.isDark
-                  ? withAlpha("#FFFFFF", 0.09)
-                  : withAlpha("#FFFFFF", 0.4),
-              },
-            ]}
-          />
-          {children}
-        </LinearGradient>
-      </BlurView>
+      <View style={styles.cardInner}>{children}</View>
     </View>
   );
 }
@@ -471,9 +401,6 @@ function Pill({
   const iconStyle = useAnimatedStyle(() => ({
     transform: [{ scale: iconScale.value }],
   }));
-  const stroke = s.isDark
-    ? [withAlpha("#FFFFFF", 0.28), withAlpha("#FFFFFF", 0.08)]
-    : [withAlpha(s.colors.primary, 0.38), withAlpha("#FFFFFF", 0.35)];
   return (
     <ScalePressable
       onPress={onPress}
@@ -488,22 +415,17 @@ function Pill({
       accessibilityHint="Activates quick workout action"
       style={{ marginRight: 10 }}
     >
-      <LinearGradient colors={stroke as any} style={styles.pillStroke}>
-        <View
-          style={[
-            styles.pill,
-            {
-              backgroundColor: s.chipFill,
-              borderColor: s.chipBorder,
-            },
-          ]}
-        >
-          <Animated.View style={iconStyle}>
-            <Ionicons name={icon} size={15} color={s.iconBright} />
-          </Animated.View>
-          <Text style={[styles.pillText, { color: s.t1 }]}>{label}</Text>
-        </View>
-      </LinearGradient>
+      <View
+        style={[
+          styles.pill,
+          { backgroundColor: s.chipFill, borderColor: s.chipBorder },
+        ]}
+      >
+        <Animated.View style={iconStyle}>
+          <Ionicons name={icon} size={15} color={s.iconBright} />
+        </Animated.View>
+        <Text style={[styles.pillText, { color: s.t1 }]}>{label}</Text>
+      </View>
     </ScalePressable>
   );
 }
@@ -512,7 +434,7 @@ function Ring({
   label,
   value,
   sub,
-  accent = "#68D7FF",
+  accent,
   onPress,
 }: {
   label: string;
@@ -522,6 +444,7 @@ function Ring({
   onPress?: () => void;
 }) {
   const s = useSurfaceTokens();
+  const ringAccent = accent || s.colors.primary;
   return (
     <ScalePressable
       onPress={onPress}
@@ -534,7 +457,7 @@ function Ring({
           <View
             style={[
               styles.ringDot,
-              { backgroundColor: withAlpha(accent, 0.9) },
+              { backgroundColor: withAlpha(ringAccent, 0.9) },
             ]}
           />
           <Text style={[styles.ringLabel, { color: s.t2 }]}>{label}</Text>
@@ -589,18 +512,12 @@ function StatChip({
   dense?: boolean;
 }) {
   const s = useSurfaceTokens();
-  const bg = s.isDark
-    ? [withAlpha("#FFFFFF", 0.08), withAlpha("#FFFFFF", 0.04)]
-    : [withAlpha("#FFFFFF", 0.9), withAlpha("#FFFFFF", 0.6)];
   return (
-    <LinearGradient
-      colors={bg as any}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+    <View
       style={[
         styles.statChip,
         dense && styles.statChipDense,
-        { borderColor: withAlpha(s.colors.text, s.isDark ? 0.18 : 0.12) },
+        { backgroundColor: s.chipFill, borderColor: s.chipBorder },
       ]}
     >
       <Ionicons name={icon} size={dense ? 13 : 14} color={s.iconBright} />
@@ -613,7 +530,7 @@ function StatChip({
       >
         {label}
       </Text>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -746,8 +663,8 @@ function WorkoutCard({
                 styles.bestSetPill,
                 {
                   backgroundColor: s.isDark
-                    ? withAlpha("#FFFFFF", 0.06)
-                    : withAlpha("#FFFFFF", 0.72),
+                    ? withAlpha(s.colors.surface1, 0.06)
+                    : withAlpha(s.colors.surface1, 0.72),
                   borderColor: s.hairline,
                 },
               ]}
@@ -759,8 +676,16 @@ function WorkoutCard({
                 </Text>
               </View>
               {w.pr ? (
-                <View style={styles.bestSetTag}>
-                  <Text style={styles.bestSetTagText}>PR</Text>
+                <View
+                  style={[
+                    styles.bestSetTag,
+                    {
+                      backgroundColor: withAlpha(s.colors.warning, 0.18),
+                      borderColor: withAlpha(s.colors.warning, 0.35),
+                    },
+                  ]}
+                >
+                  <Text style={[styles.bestSetTagText, { color: s.colors.warning }]}>PR</Text>
                 </View>
               ) : null}
               <Text
@@ -791,10 +716,10 @@ function WorkoutCard({
                   styles.actionBtnPrimary,
                   {
                     backgroundColor: s.isDark
-                      ? withAlpha("#FFFFFF", 0.08)
-                      : withAlpha("#FFFFFF", 0.82),
+                      ? withAlpha(s.colors.surface1, 0.08)
+                      : withAlpha(s.colors.surface1, 0.82),
                     borderColor: s.isDark
-                      ? withAlpha("#FFFFFF", 0.16)
+                      ? withAlpha(s.colors.surface1, 0.16)
                       : withAlpha(s.colors.text, 0.14),
                   },
                   pressed && { opacity: 0.75 },
@@ -815,8 +740,8 @@ function WorkoutCard({
                   styles.actionBtn,
                   {
                     backgroundColor: s.isDark
-                      ? withAlpha("#FFFFFF", 0.05)
-                      : withAlpha("#FFFFFF", 0.74),
+                      ? withAlpha(s.colors.surface1, 0.05)
+                      : withAlpha(s.colors.surface1, 0.74),
                     borderColor: s.hairline,
                   },
                   pressed && { opacity: 0.75 },
@@ -923,15 +848,21 @@ function TemplateChip({ t, onPress }: { t: TemplateVM; onPress?: () => void }) {
                 style={[
                   styles.templateBadge,
                   isUser
-                    ? styles.templateBadgeUser
+                    ? [
+                        styles.templateBadgeUser,
+                        {
+                          backgroundColor: withAlpha(s.colors.primary, 0.16),
+                          borderColor: withAlpha(s.colors.primary, 0.35),
+                        },
+                      ]
                     : [
                         styles.templateBadgeAuto,
                         {
                           backgroundColor: s.isDark
-                            ? withAlpha("#FFFFFF", 0.07)
-                            : withAlpha("#FFFFFF", 0.8),
+                            ? withAlpha(s.colors.surface1, 0.07)
+                            : withAlpha(s.colors.surface1, 0.8),
                           borderColor: s.isDark
-                            ? withAlpha("#FFFFFF", 0.14)
+                            ? withAlpha(s.colors.surface1, 0.14)
                             : withAlpha(s.colors.text, 0.14),
                         },
                       ],
@@ -941,7 +872,7 @@ function TemplateChip({ t, onPress }: { t: TemplateVM; onPress?: () => void }) {
                   style={[
                     styles.templateBadgeText,
                     {
-                      color: isUser ? styles.templateBadgeTextUser.color : s.t2,
+                      color: isUser ? s.colors.primary : s.t2,
                     },
                   ]}
                 >
@@ -991,8 +922,8 @@ function SheetShell({
           styles.sheetBackdrop,
           {
             backgroundColor: s.isDark
-              ? "rgba(0,0,0,0.35)"
-              : "rgba(10,14,28,0.12)",
+              ? withAlpha(s.colors.textPrimary, 0.35)
+              : withAlpha(s.colors.textPrimary, 0.12),
           },
         ]}
       >
@@ -1055,8 +986,8 @@ function SheetRow({
           styles.sheetRow,
           {
             backgroundColor: s.isDark
-              ? withAlpha("#FFFFFF", 0.05)
-              : withAlpha("#FFFFFF", 0.78),
+              ? withAlpha(s.colors.surface1, 0.05)
+              : withAlpha(s.colors.surface1, 0.78),
             borderColor: s.hairline,
           },
         ]}
@@ -1148,11 +1079,13 @@ export default function WorkoutsPage() {
   const s = useSurfaceTokens();
 
   const TEMPLATE_PREVIEW_COUNT = 7;
+  const TEMPLATE_KEEP_KEY = "workouts:template-keep-until";
   const [dbTemplates, setDbTemplates] = useState<DbWorkoutTemplate[]>([]);
   const [activityEntries, setActivityEntries] = useState<CardioEntry[]>([]);
+  const [templateKeepUntil, setTemplateKeepUntil] = useState<Record<string, number>>({});
+  const [profile, setProfile] = useState<Profile | null>(null);
 
-  const accent = "#68D7FF";
-  const accent2 = "#8B7CFF";
+  const accent = s.colors.primary;
   const scrollY = useSharedValue(0);
   const [headerH, setHeaderH] = useState(0);
 
@@ -1160,6 +1093,25 @@ export default function WorkoutsPage() {
     if (!user?.uid) return;
     return subscribeWorkoutTemplates(user.uid, setDbTemplates);
   }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    return subscribeProfile(user.uid, (next) => setProfile(next || null));
+  }, [user?.uid]);
+
+  useEffect(() => subscribeIntegrations(setCoachIntegrations), []);
+
+  useEffect(() => {
+    AsyncStorage.getItem(TEMPLATE_KEEP_KEY)
+      .then((raw) => {
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          setTemplateKeepUntil(parsed);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const templatesMerged: TemplateVM[] = useMemo<TemplateVM[]>(() => {
     const userMapped: TemplateVM[] = (dbTemplates ?? [])
@@ -1184,6 +1136,7 @@ export default function WorkoutsPage() {
         updatedAt: t.updatedAt ?? null,
         lastUsedAt: t.lastUsedAt ?? null,
         pinned: !!t.pinned,
+        archived: !!t.archived,
       }))
       .filter((t) => t.name && t.items?.length);
 
@@ -1199,7 +1152,7 @@ export default function WorkoutsPage() {
   const userTemplatesPreview = useMemo(
     () =>
       templatesMerged
-        .filter((t) => t.source === "user")
+        .filter((t) => t.source === "user" && !t.archived)
         .slice(0, TEMPLATE_PREVIEW_COUNT),
     [templatesMerged]
   );
@@ -1208,6 +1161,8 @@ export default function WorkoutsPage() {
 
   const [templateActionsOpen, setTemplateActionsOpen] = useState(false);
   const [activeTemplate, setActiveTemplate] = useState<TemplateVM | null>(null);
+  const [coachIntegrations, setCoachIntegrations] =
+    useState<IntegrationSnapshot | null>(null);
 
   function openTemplateActions(t: TemplateVM) {
     setActiveTemplate(t);
@@ -1245,7 +1200,25 @@ export default function WorkoutsPage() {
         () => {}
       );
     }
-    await openSession({ templateId: t.id, templateName: t.name });
+    await openSession({
+      templateId: t.id,
+      templateName: t.name,
+      templateLaunch: "1",
+    });
+  }
+
+  async function keepTemplateFresh(templateId: string) {
+    const next = {
+      ...templateKeepUntil,
+      [templateId]: Date.now() + 30 * 86400000,
+    };
+    setTemplateKeepUntil(next);
+    await AsyncStorage.setItem(TEMPLATE_KEEP_KEY, JSON.stringify(next));
+  }
+
+  async function archiveTemplate(templateId: string) {
+    if (!uid) return;
+    await updateWorkoutTemplate(uid, templateId, { archived: true } as any);
   }
 
   function volumeKg(sets: number, reps: number, weightKg: number) {
@@ -1276,7 +1249,7 @@ export default function WorkoutsPage() {
     return isoDate;
   }
 
-  function fmtTime(ms: number) {
+function fmtTime(ms: number) {
     if (!ms) return "";
     const d = new Date(ms);
     let h = d.getHours();
@@ -1285,6 +1258,40 @@ export default function WorkoutsPage() {
     h = h % 12;
     if (h === 0) h = 12;
     return `${h}:${String(m).padStart(2, "0")} ${ampm}`;
+  }
+
+  function classifyWorkoutGroup(
+    title: string,
+    exercises: string[]
+  ): "push" | "pull" | "legs" | "full" | "cardio" | "recovery" | "other" {
+    const all = `${title} ${exercises.join(" ")}`.toLowerCase();
+    if (
+      /cardio|run|bike|cycle|swim|treadmill|rower|hiit|conditioning/.test(all)
+    ) {
+      return "cardio";
+    }
+    if (/mobility|stretch|recovery|rest|yoga/.test(all)) {
+      return "recovery";
+    }
+    if (/full body|fullbody|total body/.test(all)) {
+      return "full";
+    }
+    if (
+      /squat|leg|rdl|deadlift|hamstring|quad|glute|calf|lunge/.test(all)
+    ) {
+      return "legs";
+    }
+    if (
+      /row|pulldown|pull|curl|rear delt|face pull|bicep|lat/.test(all)
+    ) {
+      return "pull";
+    }
+    if (
+      /bench|press|chest|shoulder|tricep|dip|push/.test(all)
+    ) {
+      return "push";
+    }
+    return "other";
   }
 
   type WorkoutRow = Workout & {
@@ -1477,15 +1484,22 @@ export default function WorkoutsPage() {
       const dayLabel = timeAgoLabelFromISO(sess.dateISO);
       const timeLabel = start ? fmtTime(start) : "";
       const dateLabel = timeLabel ? `${dayLabel} • ${timeLabel}` : dayLabel;
+      const exercises = ordered
+        .map((r) => String((r as any).exercise || "").trim())
+        .filter(Boolean);
+      const group = classifyWorkoutGroup(sess.title || "Workout", exercises);
 
       return {
         id: sess.key,
         title: sess.title || "Workout",
         subtitle: exerciseCount ? `${exerciseCount} exercises` : undefined,
+        dateISO: sess.dateISO,
+        timeLabel,
         dateLabel,
         durationMin,
         sets: totalSets,
         volumeKg: Math.round(totalVolume),
+        group,
         highlight: bestLine ? `Best set: ${bestLine}` : undefined,
       };
     });
@@ -1579,6 +1593,13 @@ export default function WorkoutsPage() {
 
   const [startOpen, setStartOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [configTitle, setConfigTitle] = useState("");
+  const [configMuscle, setConfigMuscle] = useState("");
+  const [configDuration, setConfigDuration] = useState("45");
+  const [surpriseOpen, setSurpriseOpen] = useState(false);
+  const [surpriseTemplate, setSurpriseTemplate] = useState<TemplateVM | null>(
+    null
+  );
   const [toast, setToast] = useState<{
     text: string;
     undo?: () => void;
@@ -1593,11 +1614,24 @@ export default function WorkoutsPage() {
     toastTimer.current = setTimeout(() => setToast(null), 3200);
   }
 
+  const referenceSeedKey = (u: string) => `workout:referenceSeed:${u}`;
+
   const onStart = async () => {
     const reduceMotion = await AccessibilityInfo.isReduceMotionEnabled().catch(
       () => false
     );
     if (!reduceMotion) await haptic("light");
+    await openSession({ freshStart: "1" });
+  };
+
+  const onOptions = async () => {
+    const reduceMotion = await AccessibilityInfo.isReduceMotionEnabled().catch(
+      () => false
+    );
+    if (!reduceMotion) await haptic("light");
+    setConfigTitle("");
+    setConfigMuscle("");
+    setConfigDuration("45");
     setStartOpen(true);
   };
 
@@ -1683,12 +1717,146 @@ export default function WorkoutsPage() {
     setTemplatesOpen(true);
   };
 
+  async function seedReferenceSession(session: SessionBucket) {
+    if (!uid) return;
+    const grouped = new Map<
+      string,
+      {
+        exercise: string;
+        primaryMuscle?: string;
+        sets: Array<{ reps: number; weightKg: number; note?: string }>;
+      }
+    >();
+    for (const row of session.rows) {
+      const exercise = String((row as any).exercise || "").trim();
+      if (!exercise) continue;
+      const key = exercise.toLowerCase();
+      const current =
+        grouped.get(key) ||
+        {
+          exercise,
+          primaryMuscle:
+            inferPrimaryMuscle(
+              exercise,
+              String((row as any).primaryMuscle || "")
+            ) || "",
+          sets: [],
+        };
+      current.sets.push({
+        reps: Number((row as any).reps || 0),
+        weightKg: Number((row as any).weight || 0),
+        note: String((row as any).notes || "").trim() || undefined,
+      });
+      grouped.set(key, current);
+    }
+    const seed = {
+      title: (session.title || "Workout").trim() || "Workout",
+      groups: [...grouped.values()],
+    };
+    await AsyncStorage.setItem(referenceSeedKey(uid), JSON.stringify(seed));
+  }
+
+  async function startFromSession(session: SessionBucket) {
+    if (!uid) return;
+    await seedReferenceSession(session);
+    await openSession({
+      freshStart: "1",
+      configTitle: (session.title || "Workout").trim() || "Workout",
+      resumeReference: "1",
+    });
+  }
+
+  function templatePrimaryGroup(template: TemplateVM) {
+    const text = `${template.name} ${template.items
+      .map((item) => item.exercise)
+      .join(" ")}`.toLowerCase();
+    if (/push|bench|chest|shoulder|tricep|press/.test(text)) return "push";
+    if (/pull|row|lat|bicep|curl|rear delt/.test(text)) return "pull";
+    if (/leg|quad|hamstring|glute|calf|squat|rdl/.test(text)) return "legs";
+    if (/cardio|run|bike|zone 2|conditioning/.test(text)) return "cardio";
+    return "full";
+  }
+
+  function pickSmartTemplate() {
+    const candidates = templatesMerged.filter(
+      (template) => template.source === "user" && !template.archived
+    );
+    if (!candidates.length) return null;
+
+    const cutoff = Date.now() - 3 * 86400000;
+    const recentGroups = new Set<string>();
+    const { sessions } = buildSessionBuckets(workoutRows);
+    for (const session of sessions) {
+      const stamp = Number(session.latestAt || session.startedAt || 0);
+      if (!stamp || stamp < cutoff) continue;
+        recentGroups.add(
+          classifyWorkoutGroup(
+            session.title || "Workout",
+            session.rows.map((row) => String((row as any).exercise || ""))
+          ) || "full"
+        );
+    }
+
+    const scored = candidates.map((template) => {
+      const group = templatePrimaryGroup(template);
+      const rawLastUsed =
+        (template.lastUsedAt as any)?.toMillis?.() ||
+        (template.updatedAt as any)?.toMillis?.() ||
+        (template.createdAt as any)?.toMillis?.() ||
+        0;
+      const recentlyTrainedPenalty = recentGroups.has(group) ? 0 : 1000;
+      return {
+        template,
+        group,
+        score: recentlyTrainedPenalty - rawLastUsed,
+        lastUsed: rawLastUsed,
+      };
+    });
+
+    const bestScore = Math.max(...scored.map((item) => item.score));
+    const best = scored.filter((item) => item.score === bestScore);
+    if (best.length === 1) return best[0].template;
+
+    best.sort((a, b) => a.lastUsed - b.lastUsed);
+    return best[0]?.template || candidates[0];
+  }
+
+  function rerollSurpriseTemplate() {
+    const next = pickSmartTemplate();
+    setSurpriseTemplate(next);
+    setSurpriseOpen(true);
+  }
+
+  const onSurprise = () => {
+    const next = pickSmartTemplate();
+    setSurpriseTemplate(next);
+    setSurpriseOpen(true);
+  };
+
+  const coachSparkContextLine = useMemo(() => {
+    const recovery = getRecoveryMetrics(coachIntegrations);
+    const latest = recents[0];
+    if (recovery?.recoveryScore != null) {
+      const score = Math.round(recovery.recoveryScore);
+      if (score < 40) return `Recovery: ${score}% · Consider a lighter session today`;
+      if (score < 70) return `Recovery: ${score}% · Consider a moderate session today`;
+      return `Recovery: ${score}% · Good day to train with intent`;
+    }
+    if (latest?.group === "legs") {
+      return "Last session: Legs · Upper body or rest recommended";
+    }
+    if (!recents.length) {
+      return "No sessions yet this week · Good time to start";
+    }
+    return "Tap to build a personalized workout";
+  }, [coachIntegrations, recents]);
+
   const onCreateTemplate = () => {
     setStartOpen(false);
     router.push("/(modals)/create-template");
   };
 
-  const onViewAllTemplates = () => setTemplatesOpen(true);
+  const onViewAllTemplates = () => router.push("/workouts/templates");
   const onSeeMoreHistory = () => router.push("/workouts/history");
 
   const deleteRecent = async (sum: WorkoutSummary) => {
@@ -1713,8 +1881,14 @@ export default function WorkoutsPage() {
     }
   };
 
-  const duplicateRecent = (w: WorkoutSummary) => {
-    openSession({ repeatWorkoutId: w.id, repeatTitle: w.title });
+  const duplicateRecent = async (w: WorkoutSummary) => {
+    const { sessions } = buildSessionBuckets(workoutRows);
+    const session = sessions.find((entry) => entry.key === w.id);
+    if (!session) {
+      await openSession({ freshStart: "1", configTitle: w.title || "Workout" });
+      return;
+    }
+    await startFromSession(session);
   };
   async function handleCreateActivity(e: CardioEntry) {
     if (!uid) return;
@@ -1728,6 +1902,18 @@ export default function WorkoutsPage() {
     if (!uid) return;
     await deleteActivity(uid, id);
   }
+  const validActivityEntries = useMemo(
+    () =>
+      (activityEntries || []).filter((entry) => {
+        const minutes = Number(entry.minutes || 0);
+        const calories = Number(entry.calories || 0);
+        const steps = Number(entry.steps || 0);
+        if (minutes > 0) return true;
+        if (steps > 0) return true;
+        return false;
+      }),
+    [activityEntries]
+  );
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (e) => {
       scrollY.value = e.contentOffset.y;
@@ -1756,8 +1942,8 @@ export default function WorkoutsPage() {
       id: w.id,
       sessionKey: w.id,
       title: w.title || "Workout",
-      dateISO: "", // not available in WorkoutSummary; keep blank for now
-      timeLabel: "", // not available in WorkoutSummary; keep blank for now
+      dateISO: w.dateISO,
+      timeLabel: w.timeLabel,
       durationMin: Number(w.durationMin || 0),
       exercisesCount: Number((w.subtitle || "").match(/\d+/)?.[0] || 0),
       sets: Number(w.sets || 0),
@@ -1778,24 +1964,374 @@ export default function WorkoutsPage() {
         index={index}
         onPress={() =>
           router.push({
-            pathname: "/workouts/recap",
-            params: { sessionKey: w.id }, // ✅ opens recap
+            pathname: "/workouts/session-detail",
+            params: { sessionKey: w.id },
+          } as any)
+        }
+        onMore={() =>
+          router.push({
+            pathname: "/workouts/session-detail",
+            params: { sessionKey: w.id, focus: "actions" },
           } as any)
         }
         onDuplicate={() => duplicateRecent(w)}
-        onDelete={() => deleteRecent(w)}
-        onSaveTemplate={() =>
-          router.push({
-            pathname: "/(modals)/save-workout-as-templates",
-            params: { sessionKey: w.id, defaultName: w.title },
-          } as any)
-        }
       />
     );
   };
 
   // make data a real variable so TS sees the type
   const recentData: WorkoutSummary[] = recents.slice(0, recentLimit);
+  const weeklyWorkoutRows = useMemo(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const start = ymd(addDays(today, mondayOffset));
+    const end = ymd(addDays(today, mondayOffset + 6));
+    return (workoutRows || []).filter((row) => {
+      const date = String((row as any).date || "");
+      return date >= start && date <= end;
+    });
+  }, [workoutRows]);
+  const weeklyWorkouts = useMemo(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const start = ymd(addDays(today, mondayOffset));
+    const end = ymd(addDays(today, mondayOffset + 6));
+    return recents.filter((row) => row.dateISO >= start && row.dateISO <= end);
+  }, [recents]);
+  const priorWeekWorkouts = useMemo(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const start = ymd(addDays(today, mondayOffset - 7));
+    const end = ymd(addDays(today, mondayOffset - 1));
+    return recents.filter((row) => row.dateISO >= start && row.dateISO <= end);
+  }, [recents]);
+  const weeklyWorkoutCount = weeklyWorkouts.length;
+  const weeklyMinutes = weeklyWorkouts.reduce((sum, row) => sum + Number(row.durationMin || 0), 0);
+  const weeklyVolume = weeklyWorkouts.reduce((sum, row) => sum + Number(row.volumeKg || 0), 0);
+  const priorWeekVolume = priorWeekWorkouts.reduce((sum, row) => sum + Number(row.volumeKg || 0), 0);
+  const hasVolumeComparison = priorWeekVolume > 0 && weeklyWorkoutCount > 0;
+  const volumeDeltaPct = hasVolumeComparison
+    ? Math.round(((weeklyVolume - priorWeekVolume) / priorWeekVolume) * 100)
+    : null;
+  const weeklyHoursLabel = `${Math.floor(weeklyMinutes / 60)}h ${String(weeklyMinutes % 60).padStart(2, "0")}m`;
+  const weeklySubtitle =
+    weeklyWorkoutCount === 0
+      ? "Let's get this week started"
+      : `This week: ${weeklyWorkoutCount} workouts · ${weeklyHoursLabel}${
+          volumeDeltaPct == null ? "" : ` · ${volumeDeltaPct >= 0 ? "+" : ""}${volumeDeltaPct}% volume`
+        }`;
+  const weeklyStatTiles = useMemo(() => {
+    const target = 4;
+    const restDays = Math.max(0, 7 - weeklyWorkoutCount);
+    return [
+      { label: "Workouts", value: `${weeklyWorkoutCount}/${target}`, sub: weeklyWorkoutCount >= target ? "Goal hit" : `${Math.max(0, target - weeklyWorkoutCount)} to go` },
+      { label: "Minutes", value: String(weeklyMinutes), sub: `${weeklyHoursLabel} total` },
+      { label: "Strength", value: volumeDeltaPct == null ? "—" : `${volumeDeltaPct >= 0 ? "+" : ""}${volumeDeltaPct}%`, sub: volumeDeltaPct == null ? "No comparison yet" : "vs last wk" },
+      { label: "Rest Days", value: String(restDays), sub: restDays === 1 ? "1 rest day" : `${restDays} rest days` },
+    ];
+  }, [weeklyWorkoutCount, weeklyMinutes, weeklyHoursLabel, volumeDeltaPct]);
+
+  const recentWorkout = recents[0] || null;
+  const recentTemplate = recentWorkout ? recentWorkout.title : "";
+
+  const weeklySplit = useMemo(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const weekStart = addDays(today, mondayOffset);
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const date = ymd(addDays(weekStart, i));
+      const hit = weeklyWorkouts.find((row) => row.dateISO === date);
+      const isToday = date === ymd(today);
+      return {
+        date,
+        label: new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short" }),
+        group: hit?.group || undefined,
+        detail:
+          hit?.group === "push"
+            ? "Push"
+            : hit?.group === "pull"
+            ? "Pull"
+            : hit?.group === "legs"
+            ? "Legs"
+            : hit?.group === "full"
+            ? "Full"
+            : hit?.group === "cardio" || hit?.group === "recovery"
+            ? "Rest"
+            : "",
+        isToday,
+      };
+    });
+    return days;
+  }, [weeklyWorkouts]);
+
+  const splitCounts = useMemo(() => {
+    return weeklySplit.reduce(
+      (acc, day) => {
+        if (day.group === "push" || day.group === "pull" || day.group === "legs") acc[day.group] += 1;
+        return acc;
+      },
+      { push: 0, pull: 0, legs: 0 }
+    );
+  }, [weeklySplit]);
+
+  const splitInsight = useMemo(() => {
+    if (weeklyWorkoutCount === 0) return "No workouts logged yet this week";
+    if (weeklyWorkoutCount < 2) return "Log one more session to see your split balance";
+    const values = [splitCounts.push, splitCounts.pull, splitCounts.legs];
+    const max = Math.max(...values);
+    const min = Math.min(...values);
+    if (max - min <= 1) return "Push · Pull · Legs balance looks good";
+    const weakest =
+      splitCounts.push === min ? "Push" : splitCounts.pull === min ? "Pull" : "Legs";
+    return `${weakest} is trailing this week — rebalance your split next session`;
+  }, [splitCounts, weeklyWorkoutCount]);
+
+  const nextWorkoutSuggestion = useMemo(() => {
+    if (weeklyWorkoutCount < 1) return "";
+    const entries = [
+      { key: "push", count: splitCounts.push, label: "Push day" },
+      { key: "pull", count: splitCounts.pull, label: "Pull day" },
+      { key: "legs", count: splitCounts.legs, label: "Leg day" },
+    ].sort((a, b) => a.count - b.count);
+    const target = entries[0]?.label || "Full body";
+    return `Based on your split, next up: ${target} · ~45 min`;
+  }, [splitCounts, weeklyWorkoutCount]);
+
+  const recentPRs = useMemo(() => {
+    const sorted = (workoutRows || [])
+      .slice()
+      .sort((a, b) => {
+        const at = Number((a as any).setCreatedAt || 0) || Number((a as any).sessionStartedAt || 0);
+        const bt = Number((b as any).setCreatedAt || 0) || Number((b as any).sessionStartedAt || 0);
+        return at - bt;
+      });
+    const bestByExercise = new Map<string, number>();
+    const prs: Array<{ id: string; exercise: string; text: string; date: string; when: string; value: number; weight: number }> = [];
+    const seen = new Map<string, { idx: number; value: number; weight: number }>();
+    for (const row of sorted) {
+      const exercise = String((row as any).exercise || "").trim();
+      if (!exercise) continue;
+      const sets = Math.max(1, Number((row as any).sets || 1));
+      const reps = Math.max(0, Number((row as any).reps || 0));
+      const weight = Math.round(Number((row as any).weight || 0));
+      const value = volumeKg(Number((row as any).sets || 0), Number((row as any).reps || 0), Number((row as any).weight || 0));
+      if (value <= 0) continue;
+      const key = exercise.toLowerCase();
+      const prev = bestByExercise.get(key) || 0;
+      if (value > prev) {
+        bestByExercise.set(key, value);
+        const date = String((row as any).date || "");
+        const dedupeKey = `${key}|${date}|${sets}x${reps}`;
+        const existing = seen.get(dedupeKey);
+        const candidate = {
+          id: String((row as any).id || `${key}-${value}`),
+          exercise,
+          text: `${sets}×${reps} @ ${weight}kg`,
+          date,
+          when: date
+            ? new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+              })
+            : "Recent",
+          value,
+          weight,
+        };
+        if (existing) {
+          if (weight > existing.weight) {
+            prs[existing.idx] = candidate;
+            seen.set(dedupeKey, { idx: existing.idx, value, weight });
+          }
+        } else {
+          seen.set(dedupeKey, { idx: prs.length, value, weight });
+          prs.push(candidate);
+        }
+      }
+    }
+    return prs.slice(-3).reverse();
+  }, [workoutRows]);
+
+  const muscleVolumes = useMemo(() => {
+    const out = {
+      chest: 0,
+      shoulders: 0,
+      biceps: 0,
+      triceps: 0,
+      forearms: 0,
+      abs: 0,
+      back: 0,
+      traps: 0,
+      lats: 0,
+      rhomboids: 0,
+      lowerBack: 0,
+      quads: 0,
+      adductors: 0,
+      hamstrings: 0,
+      glutes: 0,
+      calves: 0,
+    };
+    for (const row of weeklyWorkoutRows) {
+      const explicit = inferPrimaryMuscle(
+        String((row as any).exercise || ""),
+        String((row as any).primaryMuscle || "")
+      );
+      const v = 1;
+      if (explicit) {
+        out[explicit] += v;
+        continue;
+      }
+      const all = `${(row as any).exercise || ""} ${(row as any).notes || ""}`.toLowerCase();
+      if (/bench|chest|press/.test(all)) out.chest += v;
+      if (/shoulder|lateral|press/.test(all)) out.shoulders += v;
+      if (/tricep|dip|pushdown/.test(all)) out.triceps += v;
+      if (/row|pulldown|lat|pull/.test(all)) {
+        out.back += v;
+        out.lats += v;
+        out.rhomboids += v;
+      }
+      if (/trap|shrug/.test(all)) out.traps += v;
+      if (/deadlift|rdl|lower back|back extension/.test(all)) out.lowerBack += v;
+      if (/curl|bicep/.test(all)) out.biceps += v;
+      if (/forearm|grip|wrist/.test(all)) out.forearms += v;
+      if (/squat|leg press|quad|lunge/.test(all)) out.quads += v;
+      if (/rdl|hamstring|curl/.test(all)) out.hamstrings += v;
+      if (/glute|hip thrust|rdl/.test(all)) out.glutes += v;
+      if (/calf/.test(all)) out.calves += v;
+      if (/adductor|copenhagen|groin/.test(all)) out.adductors += v;
+      if (/core|plank|crunch|ab/.test(all)) out.abs += v;
+    }
+    return out;
+  }, [weeklyWorkoutRows]);
+
+  const undertrainedMuscles = useMemo(() => {
+    return Object.entries(muscleVolumes)
+      .filter(([, value]) => value <= 0)
+      .map(([key]) => key)
+      .slice(0, 2);
+  }, [muscleVolumes]);
+
+  const muscleLastTrained = useMemo(() => {
+    const out: Record<string, string> = {};
+    const sorted = (workoutRows || []).slice().sort((a, b) => {
+      const ad = String((a as any).date || "");
+      const bd = String((b as any).date || "");
+      if (ad !== bd) return bd.localeCompare(ad);
+      return Number((b as any).setCreatedAt || 0) - Number((a as any).setCreatedAt || 0);
+    });
+    for (const row of sorted) {
+      const explicit = inferPrimaryMuscle(
+        String((row as any).exercise || ""),
+        String((row as any).primaryMuscle || "")
+      );
+      const date = String((row as any).date || "");
+      const all = `${(row as any).exercise || ""} ${(row as any).notes || ""}`.toLowerCase();
+      const dateLabel = date
+        ? new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          })
+        : "Recent";
+      const assign = (key: string, hit: boolean) => {
+        if (hit && !out[key]) out[key] = dateLabel;
+      };
+      if (explicit) {
+        assign(explicit, true);
+        continue;
+      }
+      assign("chest", /bench|chest|press/.test(all));
+      assign("shoulders", /shoulder|lateral|press/.test(all));
+      assign("biceps", /curl|bicep/.test(all));
+      assign("triceps", /tricep|dip|pushdown/.test(all));
+      assign("forearms", /forearm|grip|wrist/.test(all));
+      assign("abs", /core|plank|crunch|ab/.test(all));
+      assign("quads", /squat|leg press|quad|lunge/.test(all));
+      assign("adductors", /adductor|copenhagen|groin/.test(all));
+      assign("traps", /trap|shrug/.test(all));
+      assign("lats", /lat|pulldown|pull/.test(all));
+      assign("rhomboids", /row|rhomboid/.test(all));
+      assign("lowerBack", /deadlift|rdl|lower back|back extension/.test(all));
+      assign("glutes", /glute|hip thrust|rdl/.test(all));
+      assign("hamstrings", /hamstring|rdl|curl/.test(all));
+      assign("calves", /calf/.test(all));
+    }
+    return out;
+  }, [workoutRows]);
+
+  const cardioWeekSummary = useMemo(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const start = ymd(addDays(today, mondayOffset));
+    const end = ymd(addDays(today, mondayOffset + 6));
+    const weekly = validActivityEntries.filter((entry) => {
+      const d = new Date(entry.timestamp);
+      const date = ymd(d);
+      return date >= start && date <= end;
+    });
+    const mins = weekly.reduce((sum, entry) => sum + Number(entry.minutes || 0), 0);
+    const estimateRates: Record<string, number> = {
+      walk: 4,
+      run: 10,
+      bike: 8,
+      swim: 8,
+      sport: 11,
+      stairs: 9,
+      yoga: 3,
+      stretch: 2,
+      other: 6,
+    };
+    const hasAppleCalories = weekly.some(
+      (entry) =>
+        Number(entry.calories || 0) > 0 &&
+        String((entry as any).note || "").toLowerCase().includes("apple health")
+    );
+    const kcals = weekly.reduce((sum, entry) => {
+      const logged = Number(entry.calories || 0);
+      if (logged > 0) return sum + logged;
+      const rate = estimateRates[String(entry.type || "other")] || 6;
+      return sum + rate * Number(entry.minutes || 0);
+    }, 0);
+    return { mins, kcals, viaApple: hasAppleCalories };
+  }, [validActivityEntries]);
+
+  const displayedTemplates = useMemo(() => {
+    const deriveTags = (t: TemplateVM) => {
+      if (t.tags?.length) return t.tags.slice(0, 3);
+      const text = `${t.name} ${t.items.map((i) => i.exercise).join(" ")}`.toLowerCase();
+      if (/squat|leg|rdl|hamstring|glute/.test(text)) return ["Quads", "Hamstrings", "Core"];
+      if (/pull|row|lat|curl/.test(text)) return ["Back", "Biceps", "Rear delts"];
+      if (/push|bench|press|tricep/.test(text)) return ["Chest", "Shoulders", "Triceps"];
+      return ["Full body"];
+    };
+    const candidates = userTemplatesPreview
+      .filter((template) => !template.archived)
+      .map((template) => {
+        const raw =
+          (template.lastUsedAt as any)?.toMillis?.() ||
+          (template.updatedAt as any)?.toMillis?.() ||
+          (template.createdAt as any)?.toMillis?.() ||
+          0;
+        const days = raw ? Math.floor((Date.now() - raw) / 86400000) : 999;
+        const keepUntil = Number(templateKeepUntil[template.id] || 0);
+        return {
+          ...template,
+          displayTags: deriveTags(template),
+          staleDays: days,
+          stale: days > 60 && keepUntil < Date.now(),
+        };
+      })
+      .sort((a, b) => b.staleDays - a.staleDays);
+    const staleId = candidates.find((template) => template.stale)?.id;
+    return candidates.slice(0, 2).map((template) => ({
+      ...template,
+      stale: template.id === staleId,
+    }));
+  }, [userTemplatesPreview, templateKeepUntil]);
+
   const headerBorderAnimStyle = useAnimatedStyle(() => {
     // fade border in after slight scroll
     const o = Math.min(Math.max(scrollY.value / 18, 0), 1);
@@ -1803,16 +2339,17 @@ export default function WorkoutsPage() {
   });
   return (
     <View style={[styles.root, { backgroundColor: s.colors.bg }]}>
-      <LinearGradient
-        colors={s.bgGradient as any}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.8, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-
       {isDeletingSession ? (
-        <View style={styles.deleteOverlay}>
-          <View style={styles.deleteCard}>
+        <View style={[styles.deleteOverlay, { backgroundColor: withAlpha(s.colors.textPrimary, 0.35) }]}>
+          <View
+            style={[
+              styles.deleteCard,
+              {
+                borderColor: withAlpha(s.colors.surface1, 0.18),
+                backgroundColor: withAlpha(s.colors.surface2, 0.88),
+              },
+            ]}
+          >
             <ActivityIndicator size="small" color={withAlpha(s.t1, 0.9)} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.deleteTitle, { color: s.t1 }]}>
@@ -1826,31 +2363,6 @@ export default function WorkoutsPage() {
         </View>
       ) : null}
 
-      {/* Glows: keep in light mode but softer */}
-      <View
-        pointerEvents="none"
-        style={[
-          styles.glow,
-          {
-            top: -120,
-            left: -80,
-            backgroundColor: withAlpha(accent, s.isDark ? 0.18 : 0.1),
-          },
-        ]}
-      />
-      <View
-        pointerEvents="none"
-        style={[
-          styles.glow,
-          {
-            top: 120,
-            right: -90,
-            backgroundColor: withAlpha(accent2, s.isDark ? 0.14 : 0.08),
-          },
-        ]}
-      />
-
-      {/* Sticky header */}
       <Animated.View
         style={[
           styles.headerContainer,
@@ -1859,19 +2371,16 @@ export default function WorkoutsPage() {
         ]}
         onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}
       >
-        <BlurView
-          intensity={s.isDark ? 28 : 18}
-          tint={s.isDark ? "dark" : "light"}
+        <View
           style={[
             styles.headerBlur,
             {
-              backgroundColor: s.isDark
-                ? undefined
-                : withAlpha("#FFFFFF", 0.25),
+              backgroundColor: s.colors.background,
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomColor: s.colors.border,
             },
           ]}
         >
-          {/* ✅ animated hairline */}
           <Animated.View
             pointerEvents="none"
             style={[
@@ -1885,52 +2394,27 @@ export default function WorkoutsPage() {
             <View style={{ flex: 1 }}>
               <Text style={[styles.title, { color: s.t1 }]}>Workouts</Text>
               <Text style={[styles.subtitle, { color: s.t2 }]}>
-                This week: 3 workouts • 2h 18m • +1% volume
+                {weeklySubtitle}
               </Text>
             </View>
 
             <ScalePressable
               onPress={onStart}
               accessibilityLabel="Start workout"
-              accessibilityHint="Opens workout start options"
+              accessibilityHint="Starts a new workout"
             >
-              <LinearGradient
-                colors={
-                  s.isDark
-                    ? [withAlpha(accent, 0.35), withAlpha("#FFFFFF", 0.1)]
-                    : [
-                        withAlpha(s.colors.primary, 0.95),
-                        withAlpha(s.colors.primary, 0.78),
-                      ]
-                }
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+              <View
                 style={[
                   styles.startBtn,
-                  {
-                    borderColor: s.isDark
-                      ? withAlpha("#FFFFFF", 0.2)
-                      : withAlpha(s.colors.primary, 0.65),
-                  },
+                  { backgroundColor: "transparent", borderColor: withAlpha(s.colors.primary, 0.5) },
                 ]}
               >
-                <Ionicons
-                  name="add"
-                  size={18}
-                  color={s.isDark ? withAlpha("#FFFFFF", 0.95) : "#fff"}
-                />
-                {/* <Text
-                  style={[
-                    styles.startBtnText,
-                    { color: s.isDark ? withAlpha("#FFFFFF", 0.92) : "#fff" },
-                  ]}
-                >
-                  Start
-                </Text> */}
-              </LinearGradient>
+                <Ionicons name="add" size={18} color={s.colors.primary} />
+                <Text style={[styles.startBtnText, { color: s.colors.primary }]}>+ New</Text>
+              </View>
             </ScalePressable>
           </View>
-        </BlurView>
+        </View>
       </Animated.View>
 
       <AFlatList
@@ -1948,197 +2432,111 @@ export default function WorkoutsPage() {
         }}
         ListHeaderComponent={
           <View>
-            <WorkoutSessionHeroCard
-              hasDraftSession={showDraftSession}
-              activeSession={
-                showDraftSession && activeSession
-                  ? {
-                      title: activeSession.title,
-                      elapsedMin: activeSession.elapsedMin,
-                      setsLogged: activeSession.setsLogged,
-                      exercisesCount: activeSession.exercisesCount,
-                      volumeKg: activeSession.volumeKg,
-                      // optional: if you have it, pass last active time
-                      // lastActiveAtMs: Date.now() - 5 * 60 * 1000,
-                      lastActiveAtMs: activeSession.lastActiveAtMs,
-                      startedAtMs: activeSession.startedAtMs,
+            <StartWorkoutCard
+              onStart={onStart}
+              onOptions={onOptions}
+              onResumeLast={
+                recentWorkout
+                  ? async () => {
+                      const { sessions } = buildSessionBuckets(workoutRows);
+                      const session = sessions.find(
+                        (entry) => entry.key === recentWorkout.id
+                      );
+                      if (!session) return;
+                      await startFromSession(session);
                     }
-                  : null
+                  : undefined
               }
-              recentlyFinished={recentlyFinished}
-              onPrimaryPress={() => {
-                // press anywhere: resume if exists else start new
-                if (showDraftSession && (activeSession || hasDraftSession))
-                  onContinue();
-                else openSession({});
-              }}
-              onSecondaryPress={showDraftSession ? onFinish : undefined}
-              onOptionsPress={onStart}
+              resumeLabel={recentTemplate}
+              onSurprise={onSurprise}
             />
 
-            {/* Rings */}
-            <View style={styles.ringsRow}>
-              <Ring
-                label="Workouts"
-                value="3/4"
-                sub="On track"
-                accent={accent}
-                onPress={onSeeMoreHistory}
-              />
-              <View style={{ width: 10 }} />
-              <Ring
-                label="Minutes"
-                value="138"
-                sub="+12 vs last week"
-                accent={accent2}
-                onPress={onSeeMoreHistory}
-              />
-              <View style={{ width: 10 }} />
-              <Ring
-                label="Strength"
-                value="+1%"
-                sub="Volume trend"
-                accent={"#7CFFB5"}
-                onPress={onSeeMoreHistory}
-              />
-            </View>
-
-            {/* Coach Spark */}
-            <View style={{ marginTop: 14 }}>
-              <CoachSparkCardPremium
-                onOpen={() => router.push("/(modals)/coach-spark")}
-                onGenerate={async (sel) => {
-                  // simplest: just open the existing modal and pass params
+            {nextWorkoutSuggestion ? (
+              <NextWorkoutSuggestionChip
+                text={nextWorkoutSuggestion}
+                onPress={() =>
                   router.push({
                     pathname: "/(modals)/coach-spark",
-                    params: {
-                      focus: sel.focus,
-                      duration: String(sel.duration),
-                      style: sel.style,
-                    },
+                    params: { focus: nextWorkoutSuggestion.includes("Pull") ? "Upper" : nextWorkoutSuggestion.includes("Leg") ? "Lower" : "Balanced", duration: "45", style: "Balanced" },
+                  } as any)
+                }
+              />
+            ) : null}
+
+            <SmallCapsHeader title="Weekly Stats" />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 10, paddingVertical: 10 }}
+            >
+              {weeklyStatTiles.map((tile) => (
+                <StatTile key={tile.label} title={tile.label} value={tile.value} sub={tile.sub} />
+              ))}
+            </ScrollView>
+
+            <WeeklySplitVisualizer days={weeklySplit} insight={splitInsight} />
+
+            <SmallCapsHeader title="AI Coach" />
+            <View style={{ marginTop: 10 }}>
+              <CoachSparkCardPremium
+                contextLine={coachSparkContextLine}
+                onOpen={() => router.push("/(modals)/coach-spark")}
+                onQuickPick={(preset) => {
+                  if (preset === "surprise") {
+                    router.push({
+                      pathname: "/(modals)/coach-spark",
+                      params: { instant: "1", quickPreset: "surprise" },
+                    } as any);
+                    return;
+                  }
+                  if (preset === "push") {
+                    router.push({
+                      pathname: "/(modals)/coach-spark",
+                      params: { mode: "quick", focus: "Push" },
+                    } as any);
+                    return;
+                  }
+                  router.push({
+                    pathname: "/(modals)/coach-spark",
+                    params: { mode: "quick", duration: "15-30" },
                   } as any);
                 }}
-                hasHistorySignal={true}
               />
             </View>
+            <RecoveryCoachCard
+              onPress={() =>
+                router.push({
+                  pathname: "/(modals)/coach-spark",
+                  params: {
+                    focus: "Mobility",
+                    duration: "20",
+                    style: "Calm",
+                  },
+                } as any)
+              }
+            />
 
-            {/* Quick actions */}
-            {/* <View style={{ marginTop: 16 }}>
-              <SectionHeader title="Quick actions" />
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingVertical: 10 }}
-              >
-                <Pill
-                  label="Quick Strength"
-                  icon="barbell-outline"
-                  onPress={() => router.push("/(modals)/quick-strength")}
-                />
-                <Pill
-                  label="Quick Cardio"
-                  icon="pulse-outline"
-                  onPress={() => router.push("/(modals)/quick-cardio")}
-                />
-                <Pill
-                  label="Quick Mobility"
-                  icon="body-outline"
-                  onPress={() => router.push("/(modals)/quick-mobility")}
-                />
-                <Pill
-                  label="Quick Hydration"
-                  icon="water-outline"
-                  onPress={() => router.push("/(modals)/quick-hydration")}
-                />
-                <Pill
-                  label="From Template"
-                  icon="albums-outline"
-                  onPress={onFromTemplate}
-                />
-                <Pill
-                  label="Create Template"
-                  icon="sparkles-outline"
-                  onPress={onCreateTemplate}
-                />
-              </ScrollView>
-            </View> */}
-
-            {/* Templates */}
-            {/* <View style={{ marginTop: 8 }}>
-              <SectionHeader
-                title="Templates"
-                actionLabel="View all"
-                onAction={onViewAllTemplates}
-              />
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingVertical: 10 }}
-              >
-                {templatesPreview.map((t) => (
-                  <TemplateChip
-                    key={`${t.source}-${t.id}`}
-                    t={t}
-                    onPress={() => openTemplateActions(t)}
-                  />
-                ))}
-              </ScrollView>
-            </View> */}
-
-            <TemplatesSectionPremium
-              templates={userTemplatesPreview.map((t) => ({
-                id: t.id,
-                name: t.name,
-                items: t.items,
-                tags: t.tags,
-                createdAt: t.createdAt,
-                updatedAt: t.updatedAt,
-                lastUsedAt: t.lastUsedAt,
-                savedFrom: (t.tags || []).find((tag) => !!String(tag).trim()),
-                pinned: t.pinned,
-              }))}
-              loading={false}
+            <TemplatesOverview
+              templates={displayedTemplates}
               onViewAll={onViewAllTemplates}
-              onStartFromTemplate={(id) => {
+              onCreateNew={onCreateTemplate}
+              onUseTemplate={(id) => {
                 const t = templatesMerged.find((x) => x.id === id);
                 if (t) startFromTemplate(t);
               }}
-              onEdit={(id) => {
-                // optional: route to an edit screen if you have one
-                // router.push({ pathname: "/(modals)/edit-template", params: { templateId: id } } as any);
-                openTemplateActions(templatesMerged.find((x) => x.id === id)!);
-              }}
-              onPinToggle={(id, next) => {
-                // optional: store pin locally or in DB later
-                // for now, just show a toast if you want
-              }}
-              onDelete={(id) => {
+              onManageTemplate={(id) => {
                 const t = templatesMerged.find((x) => x.id === id);
-                if (!t || t.source !== "user") return;
-                RNAlert.alert("Delete template?", "This can’t be undone.", [
-                  { text: "Cancel", style: "cancel" },
-                  {
-                    text: "Delete",
-                    style: "destructive",
-                    onPress: async () => {
-                      await deleteWorkoutTemplate(uid!, id);
-                    },
-                  },
-                ]);
+                if (t) openTemplateActions(t);
               }}
-              onCreateTemplate={onCreateTemplate}
+              onKeepTemplate={keepTemplateFresh}
+              onArchiveTemplate={archiveTemplate}
             />
 
-            {/* Recent header */}
+            <PRFeed prs={recentPRs} />
+
             <View style={{ marginTop: 10 }}>
-              <SectionHeader
-                title="Recent"
-                actionLabel="See more"
-                onAction={onSeeMoreHistory}
-              />
-              <Text style={[styles.helperText, { color: s.t2 }]}>
-                Tap a workout for details. Duplicate to repeat fast.
-              </Text>
+              <SectionHeader title="Recent Workouts" actionLabel="See more" onAction={onSeeMoreHistory} />
+              <Text style={[styles.helperText, { color: s.t2 }]}>Tap a workout for details or duplicate it to repeat fast.</Text>
             </View>
 
             <View style={{ height: 10 }} />
@@ -2146,46 +2544,59 @@ export default function WorkoutsPage() {
         }
         ListFooterComponent={
           <View style={{ paddingBottom: 62 }}>
+            <MuscleHeatmapCard
+              muscleVolumes={muscleVolumes}
+              undertrained={undertrainedMuscles}
+              lastTrainedMap={muscleLastTrained}
+              sex={profile?.sex === "female" ? "female" : "male"}
+            />
             <View style={{ marginTop: 10 }}>
               <SectionHeader title="Activity" />
               <Text style={[styles.helperText, { color: s.t2 }]}>
-                Optional cardio + movement logs — complements your lifts.
+                This week: {cardioWeekSummary.mins} min cardio · ~{Math.round(cardioWeekSummary.kcals)} kcal burned
+                {cardioWeekSummary.viaApple ? " · via Apple Health" : ""}
               </Text>
             </View>
 
             <View style={{ marginTop: 10 }}>
               <ActivityCard
-                entries={activityEntries}
+                entries={validActivityEntries}
                 goal={{ minutesPerDay: 30 }}
                 onCreate={handleCreateActivity}
                 onUpdate={handleUpdateActivity}
                 onDelete={handleDeleteActivity}
                 title="Movement"
-                subtitle="Optional • gentle momentum"
+                subtitle="Cardio + movement"
                 presets={[
                   {
                     type: "walk",
                     minutes: 10,
                     intensity: "easy",
-                    label: "Walk 10",
+                    label: "Walk 10 · ~40 kcal",
                   },
                   {
                     type: "run",
                     minutes: 20,
                     intensity: "moderate",
-                    label: "Run 20",
+                    label: "Run 20 · ~180 kcal",
                   },
                   {
                     type: "bike",
                     minutes: 20,
                     intensity: "moderate",
-                    label: "Bike 20",
+                    label: "Bike 20 · ~150 kcal",
                   },
                   {
-                    type: "stretch",
-                    minutes: 10,
-                    intensity: "easy",
-                    label: "Stretch 10",
+                    type: "swim",
+                    minutes: 20,
+                    intensity: "moderate",
+                    label: "Swim 20 · ~160 kcal",
+                  },
+                  {
+                    type: "sport",
+                    minutes: 15,
+                    intensity: "hard",
+                    label: "HIIT 15 · ~170 kcal",
                   },
                 ]}
               />
@@ -2195,52 +2606,235 @@ export default function WorkoutsPage() {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* Start options sheet */}
+      {/* Workout options sheet */}
       <SheetShell
         open={startOpen}
         onClose={() => setStartOpen(false)}
-        title="Start workout"
-        subtitle="Pick a flow that feels effortless."
+        title="Workout options"
+        subtitle="Set the session up before you start."
       >
-        <View style={{ marginTop: 6 }}>
-          <SheetRow
-            icon="flash-outline"
-            title={hasDraftSession ? "Continue draft" : "Quick start"}
-            subtitle={
-              hasDraftSession
-                ? "Jump back in where you left off."
-                : "Start empty. Add exercises as you go."
-            }
-            onPress={() => {
+        <View style={{ marginTop: 6, gap: 12 }}>
+          <View>
+            <Text style={[styles.sheetFieldLabel, { color: s.t2 }]}>
+              Workout name
+            </Text>
+            <TextInput
+              value={configTitle}
+              onChangeText={setConfigTitle}
+              placeholder="Workout"
+              placeholderTextColor={s.t3}
+              style={[
+                styles.sheetTextInput,
+                {
+                  color: s.t1,
+                  backgroundColor: s.colors.surface2,
+                  borderColor: s.hairline,
+                },
+              ]}
+            />
+          </View>
+
+          <View>
+            <Text style={[styles.sheetFieldLabel, { color: s.t2 }]}>
+              Target muscle group
+            </Text>
+            <View style={styles.sheetChipRow}>
+              <Pressable
+                onPress={() => setConfigMuscle("")}
+                style={[
+                  styles.sheetChip,
+                  {
+                    backgroundColor: !configMuscle
+                      ? withAlpha(s.colors.primary, 0.14)
+                      : s.colors.surface2,
+                    borderColor: !configMuscle
+                      ? withAlpha(s.colors.primary, 0.3)
+                      : s.hairline,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.sheetChipText,
+                    { color: !configMuscle ? s.colors.primary : s.t2 },
+                  ]}
+                >
+                  Auto
+                </Text>
+              </Pressable>
+              {PRIMARY_MUSCLE_OPTIONS.slice(0, 6).map((option) => (
+                <Pressable
+                  key={option.key}
+                  onPress={() => setConfigMuscle(option.key)}
+                  style={[
+                    styles.sheetChip,
+                    {
+                      backgroundColor:
+                        configMuscle === option.key
+                          ? withAlpha(s.colors.primary, 0.14)
+                          : s.colors.surface2,
+                      borderColor:
+                        configMuscle === option.key
+                          ? withAlpha(s.colors.primary, 0.3)
+                          : s.hairline,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.sheetChipText,
+                      {
+                        color:
+                          configMuscle === option.key
+                            ? s.colors.primary
+                            : s.t2,
+                      },
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <View>
+            <Text style={[styles.sheetFieldLabel, { color: s.t2 }]}>
+              Estimated duration
+            </Text>
+            <View style={styles.sheetChipRow}>
+              {["30", "45", "60", "75"].map((duration) => (
+                <Pressable
+                  key={duration}
+                  onPress={() => setConfigDuration(duration)}
+                  style={[
+                    styles.sheetChip,
+                    {
+                      backgroundColor:
+                        configDuration === duration
+                          ? withAlpha(s.colors.primary, 0.14)
+                          : s.colors.surface2,
+                      borderColor:
+                        configDuration === duration
+                          ? withAlpha(s.colors.primary, 0.3)
+                          : s.hairline,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.sheetChipText,
+                      {
+                        color:
+                          configDuration === duration
+                            ? s.colors.primary
+                            : s.t2,
+                      },
+                    ]}
+                  >
+                    {duration} min
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <Pressable
+            onPress={async () => {
               setStartOpen(false);
-              openSession({});
+              await openSession({
+                freshStart: "1",
+                configTitle: (configTitle || "Workout").trim() || "Workout",
+                configMuscle,
+                configDuration,
+              });
             }}
-          />
-          <SheetRow
-            icon="barbell-outline"
-            title="Add exercise first"
-            subtitle="Open the exercise picker, then drop into the session."
-            onPress={() => {
-              setStartOpen(false);
-              router.push("/(modals)/add-exercise");
-            }}
-          />
-          <SheetRow
-            icon="albums-outline"
-            title="From template"
-            subtitle="Start structured. Save time. Stay consistent."
-            onPress={onFromTemplate}
-          />
-          <SheetRow
-            icon="copy-outline"
-            title="Repeat last workout"
-            subtitle="Clone your last session and adjust as needed."
-            onPress={() => {
-              setStartOpen(false);
-              openSession({ repeatLast: "1" });
-            }}
-          />
+            style={({ pressed }) => [
+              styles.sheetPrimaryBtn,
+              { backgroundColor: s.colors.primary },
+              pressed && { opacity: 0.88 },
+            ]}
+          >
+            <Text style={[styles.sheetPrimaryBtnText, { color: s.colors.buttonText }]}>
+              Start configured workout →
+            </Text>
+          </Pressable>
         </View>
+      </SheetShell>
+
+      <SheetShell
+        open={surpriseOpen}
+        onClose={() => setSurpriseOpen(false)}
+        title={surpriseTemplate ? surpriseTemplate.name : "No templates yet"}
+        subtitle={
+          surpriseTemplate
+            ? "A smart pick from your saved templates."
+            : "Create one first to use Surprise me."
+        }
+      >
+        {surpriseTemplate ? (
+          <View style={{ marginTop: 6, gap: 12 }}>
+            <View
+              style={[
+                styles.sheetPreviewCard,
+                { backgroundColor: s.colors.surface2, borderColor: s.hairline },
+              ]}
+            >
+              {(surpriseTemplate.items || []).slice(0, 4).map((item, index) => (
+                <Text
+                  key={`${surpriseTemplate.id}-${item.exercise}-${index}`}
+                  style={[styles.sheetPreviewText, { color: s.t2 }]}
+                >
+                  {item.exercise}
+                </Text>
+              ))}
+            </View>
+            <Pressable
+              onPress={async () => {
+                setSurpriseOpen(false);
+                await startFromTemplate(surpriseTemplate);
+              }}
+              style={({ pressed }) => [
+                styles.sheetPrimaryBtn,
+                { backgroundColor: s.colors.primary },
+                pressed && { opacity: 0.88 },
+              ]}
+            >
+              <Text style={[styles.sheetPrimaryBtnText, { color: s.colors.buttonText }]}>
+                Let&apos;s go →
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={rerollSurpriseTemplate}
+              style={({ pressed }) => [pressed && { opacity: 0.8 }]}
+            >
+              <Text style={[styles.sheetTextLink, { color: s.colors.primary }]}>
+                Pick another →
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={{ marginTop: 6, gap: 12 }}>
+            <Text style={[styles.sheetPreviewText, { color: s.t2 }]}>
+              No templates yet · Create one first
+            </Text>
+            <Pressable
+              onPress={() => {
+                setSurpriseOpen(false);
+                onCreateTemplate();
+              }}
+              style={({ pressed }) => [
+                styles.sheetPrimaryBtn,
+                { backgroundColor: s.colors.primary },
+                pressed && { opacity: 0.88 },
+              ]}
+            >
+              <Text style={[styles.sheetPrimaryBtnText, { color: s.colors.buttonText }]}>
+                Create template
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </SheetShell>
 
       {/* Templates sheet */}
@@ -2280,25 +2874,12 @@ export default function WorkoutsPage() {
               }}
               style={({ pressed }) => [
                 styles.sheetPrimaryBtn,
-                {
-                  backgroundColor: s.isDark
-                    ? withAlpha("#FFFFFF", 0.92)
-                    : withAlpha(s.colors.primary, 0.95),
-                },
-                pressed && { opacity: 0.9 },
+                { backgroundColor: s.colors.primary },
+                pressed && { opacity: 0.88 },
               ]}
             >
-              <Ionicons
-                name="sparkles-outline"
-                size={16}
-                color={s.isDark ? withAlpha("#111", 0.9) : "#fff"}
-              />
-              <Text
-                style={[
-                  styles.sheetPrimaryBtnText,
-                  { color: s.isDark ? withAlpha("#111", 0.92) : "#fff" },
-                ]}
-              >
+              <Ionicons name="sparkles-outline" size={16} color="#fff" />
+              <Text style={[styles.sheetPrimaryBtnText, { color: "#fff" }]}>
                 Create template
               </Text>
             </Pressable>
@@ -2306,7 +2887,7 @@ export default function WorkoutsPage() {
             <Pressable
               onPress={() => {
                 setTemplatesOpen(false);
-                onSeeMoreHistory();
+                onViewAllTemplates();
               }}
               style={({ pressed }) => [
                 styles.sheetGhostBtn,
@@ -2314,9 +2895,9 @@ export default function WorkoutsPage() {
                 pressed && { opacity: 0.85 },
               ]}
             >
-              <Ionicons name="time-outline" size={16} color={s.icon} />
+              <Ionicons name="grid-outline" size={16} color={s.icon} />
               <Text style={[styles.sheetGhostBtnText, { color: s.t1 }]}>
-                History
+                View all
               </Text>
             </Pressable>
           </View>
@@ -2338,8 +2919,8 @@ export default function WorkoutsPage() {
             styles.modalBackdrop,
             {
               backgroundColor: s.isDark
-                ? "rgba(0,0,0,0.55)"
-                : "rgba(10,14,28,0.18)",
+                ? withAlpha(s.colors.textPrimary, 0.55)
+                : withAlpha(s.colors.textPrimary, 0.18),
             },
           ]}
         >
@@ -2349,8 +2930,8 @@ export default function WorkoutsPage() {
               styles.modalCard,
               {
                 backgroundColor: s.isDark
-                  ? withAlpha("#0B0F1A", 0.98)
-                  : withAlpha("#FFFFFF", 0.9),
+                  ? withAlpha(s.colors.background, 0.98)
+                  : withAlpha(s.colors.surface1, 0.9),
                 borderColor: s.hairline,
               },
             ]}
@@ -2362,7 +2943,7 @@ export default function WorkoutsPage() {
               {activeTemplate?.name || "Template"}
             </Text>
             <Text style={[styles.modalSub, { color: s.t2 }]}>
-              Choose what you want to do.
+              Start it, keep it active, archive it, or remove it.
             </Text>
 
             <Pressable
@@ -2375,10 +2956,10 @@ export default function WorkoutsPage() {
                 styles.modalPrimary,
                 {
                   backgroundColor: s.isDark
-                    ? withAlpha("#68D7FF", 0.22)
+                    ? withAlpha(s.colors.primary, 0.22)
                     : withAlpha(s.colors.primary, 0.12),
                   borderColor: s.isDark
-                    ? withAlpha("#68D7FF", 0.35)
+                    ? withAlpha(s.colors.primary, 0.35)
                     : withAlpha(s.colors.primary, 0.25),
                 },
               ]}
@@ -2388,49 +2969,56 @@ export default function WorkoutsPage() {
               </Text>
             </Pressable>
 
-            <Pressable
-              onPress={async () => {
-                if (!uid || !activeTemplate) return;
+            {activeTemplate?.source === "user" ? (
+              <Pressable
+                onPress={async () => {
+                  if (!activeTemplate) return;
+                  await keepTemplateFresh(activeTemplate.id);
+                  setTemplateActionsOpen(false);
+                }}
+                style={[
+                  styles.modalSecondary,
+                  {
+                    borderColor: s.hairline,
+                    backgroundColor: s.isDark
+                      ? withAlpha(s.colors.surface1, 0.04)
+                      : withAlpha(s.colors.surface1, 0.72),
+                  },
+                ]}
+              >
+                <Text style={[styles.modalSecondaryText, { color: s.t1 }]}>
+                  Keep active for 30 days
+                </Text>
+              </Pressable>
+            ) : null}
 
-                if (activeTemplate.source !== "user") {
-                  RNAlert.alert(
-                    "Not editable",
-                    "Suggested templates can’t be updated."
-                  );
-                  return;
-                }
-
-                const mapped = activeTemplate.items.map((it) => ({
-                  exercise: it.exercise,
-                  sets: Number(it.sets || 1),
-                  reps: Number(it.reps || 10),
-                  weightKg: Number(it.weightKg ?? it.weight ?? 0),
-                  notes: it.notes || "",
-                }));
-
-                await updateWorkoutTemplate(uid, activeTemplate.id, {
-                  name: activeTemplate.name,
-                  title: activeTemplate.name,
-                  items: mapped,
-                  exercises: mapped,
-                } as any);
-
-                setTemplateActionsOpen(false);
-              }}
-              style={[
-                styles.modalSecondary,
-                {
-                  borderColor: s.hairline,
-                  backgroundColor: s.isDark
-                    ? withAlpha("#FFFFFF", 0.04)
-                    : withAlpha("#FFFFFF", 0.72),
-                },
-              ]}
-            >
-              <Text style={[styles.modalSecondaryText, { color: s.t1 }]}>
-                Update template
-              </Text>
-            </Pressable>
+            {activeTemplate?.source === "user" ? (
+              <Pressable
+                onPress={async () => {
+                  if (!activeTemplate) return;
+                  await archiveTemplate(activeTemplate.id);
+                  setTemplateActionsOpen(false);
+                }}
+                style={[
+                  styles.modalSecondary,
+                  {
+                    borderColor: withAlpha(s.colors.warning, 0.25),
+                    backgroundColor: s.isDark
+                      ? withAlpha(s.colors.surface1, 0.04)
+                      : withAlpha(s.colors.surface1, 0.72),
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.modalSecondaryText,
+                    { color: withAlpha(s.colors.warning, 0.95) },
+                  ]}
+                >
+                  Archive template
+                </Text>
+              </Pressable>
+            ) : null}
 
             <Pressable
               onPress={() => {
@@ -2439,12 +3027,12 @@ export default function WorkoutsPage() {
                 if (activeTemplate.source !== "user") {
                   RNAlert.alert(
                     "Not editable",
-                    "Suggested templates can’t be deleted."
+                    "Suggested templates can't be deleted."
                   );
                   return;
                 }
 
-                RNAlert.alert("Delete template?", "This can’t be undone.", [
+                RNAlert.alert("Delete template?", "This can't be undone.", [
                   { text: "Cancel", style: "cancel" },
                   {
                     text: "Delete",
@@ -2459,17 +3047,17 @@ export default function WorkoutsPage() {
               style={[
                 styles.modalSecondary,
                 {
-                  borderColor: "rgba(255,92,106,0.25)",
+                  borderColor: withAlpha(s.colors.danger, 0.25),
                   backgroundColor: s.isDark
-                    ? withAlpha("#FFFFFF", 0.04)
-                    : withAlpha("#FFFFFF", 0.72),
+                    ? withAlpha(s.colors.surface1, 0.04)
+                    : withAlpha(s.colors.surface1, 0.72),
                 },
               ]}
             >
               <Text
                 style={[
                   styles.modalSecondaryText,
-                  { color: "rgba(255,92,106,0.95)" },
+                  { color: withAlpha(s.colors.danger, 0.95) },
                 ]}
               >
                 Delete template
@@ -2478,6 +3066,637 @@ export default function WorkoutsPage() {
           </Pressable>
         </Pressable>
       </Modal>
+    </View>
+  );
+}
+
+function SmallCapsHeader({ title }: { title: string }) {
+  const s = useSurfaceTokens();
+  return (
+    <Text
+      style={[
+        styles.smallCapsHeader,
+        { color: s.t2, borderBottomColor: s.hairline },
+      ]}
+    >
+      {title}
+    </Text>
+  );
+}
+
+function StatTile({
+  title,
+  value,
+  sub,
+}: {
+  title: string;
+  value: string;
+  sub?: string;
+}) {
+  const s = useSurfaceTokens();
+  return (
+    <View
+      style={[
+        styles.flatStatTile,
+        { backgroundColor: s.colors.surface1, borderColor: s.hairline },
+      ]}
+    >
+      <Text style={[styles.flatStatTitle, { color: s.t2 }]}>{title}</Text>
+      <Text style={[styles.flatStatValue, { color: s.t1 }]}>{value}</Text>
+      {!!sub && (
+        <Text style={[styles.flatStatSub, { color: s.t2 }]} numberOfLines={1}>
+          {sub}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+function StartWorkoutCard({
+  onStart,
+  onOptions,
+  onResumeLast,
+  resumeLabel,
+  onSurprise,
+}: {
+  onStart: () => void;
+  onOptions: () => void;
+  onResumeLast?: () => void;
+  resumeLabel?: string;
+  onSurprise?: () => void;
+}) {
+  const s = useSurfaceTokens();
+  return (
+    <View
+      style={[
+        styles.startWorkoutCard,
+        { backgroundColor: s.colors.surface1, borderColor: s.hairline },
+      ]}
+    >
+      <View style={styles.startWorkoutHeader}>
+        <View style={[styles.readyChip, { borderWidth: 1, borderColor: withAlpha(s.colors.primary, 0.35), backgroundColor: withAlpha(s.colors.primary, 0.08) }]}>
+          <Text style={[styles.readyChipText, { color: s.t2 }]}>
+            Ready when you are
+          </Text>
+        </View>
+        <Text style={[styles.startWorkoutTitle, { color: s.t1 }]}>
+          Start a workout
+        </Text>
+        <Text style={[styles.startWorkoutSub, { color: s.t2 }]} numberOfLines={1}>
+          Pick up where you left off or start fresh.
+        </Text>
+      </View>
+
+      <Pressable
+        onPress={onStart}
+        style={({ pressed }) => [
+          styles.primaryWideButton,
+          { backgroundColor: s.colors.primary, opacity: pressed ? 0.88 : 1 },
+        ]}
+      >
+        <Ionicons name="add" size={16} color={s.colors.buttonText} />
+        <Text style={[styles.primaryWideButtonText, { color: s.colors.buttonText }]}>+ Start</Text>
+      </Pressable>
+
+      <Pressable
+        onPress={onOptions}
+        style={({ pressed }) => [
+          styles.secondaryButton,
+          { backgroundColor: s.colors.surface2, borderColor: s.hairline, opacity: pressed ? 0.8 : 1 },
+        ]}
+      >
+        <Text style={[styles.secondaryButtonText, { color: s.t1 }]}>
+          Options
+        </Text>
+      </Pressable>
+
+      <View style={styles.quickStartRow}>
+        {onResumeLast ? (
+          <Pressable
+            onPress={onResumeLast}
+            style={({ pressed }) => [
+              styles.quickStartChip,
+              { backgroundColor: s.colors.surface2, borderColor: s.hairline },
+              pressed && { opacity: 0.8 },
+            ]}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Ionicons name="play" size={12} color={s.t2} />
+              <Text style={[styles.quickStartChipText, { color: s.t1 }]} numberOfLines={1}>
+                {`Resume last: ${resumeLabel || "Last workout"}`}
+              </Text>
+            </View>
+          </Pressable>
+        ) : null}
+        <Pressable
+          onPress={onSurprise}
+          style={({ pressed }) => [
+            styles.quickStartChip,
+            { backgroundColor: s.colors.surface2, borderColor: s.hairline },
+            pressed && { opacity: 0.8 },
+          ]}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Ionicons name="shuffle" size={12} color={s.t2} />
+            <Text style={[styles.quickStartChipText, { color: s.t1 }]}>
+              Surprise me
+            </Text>
+          </View>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function NextWorkoutSuggestionChip({
+  text,
+  onPress,
+}: {
+  text: string;
+  onPress?: () => void;
+}) {
+  const s = useSurfaceTokens();
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.nextSuggestionChip,
+        { backgroundColor: withAlpha(s.colors.primary, 0.14), borderColor: withAlpha(s.colors.primary, 0.3) },
+        pressed && { opacity: 0.85 },
+      ]}
+    >
+      <Text style={[styles.nextSuggestionText, { color: s.t1 }]}>{text}</Text>
+      <Ionicons name="chevron-forward" size={14} color={s.t2} />
+    </Pressable>
+  );
+}
+
+function WeeklySplitVisualizer({
+  days,
+  insight,
+}: {
+  days: Array<{ label: string; group?: string; detail?: string; isToday?: boolean }>;
+  insight: string;
+}) {
+  const s = useSurfaceTokens();
+  const toneForGroup = (group?: string) =>
+    group === "push"
+      ? s.colors.primary
+      : group === "pull"
+        ? s.colors.info
+        : group === "legs"
+          ? s.colors.success
+          : group === "full"
+            ? s.colors.warning
+            : s.colors.textTertiary;
+  const shortForGroup = (group?: string) =>
+    group === "push"
+      ? "P"
+      : group === "pull"
+        ? "PL"
+        : group === "legs"
+          ? "L"
+          : group === "full"
+            ? "FB"
+            : group === "cardio" || group === "recovery"
+              ? "R"
+              : "—";
+  return (
+    <View
+      style={[
+        styles.splitCard,
+        { backgroundColor: s.colors.surface1, borderColor: s.hairline },
+      ]}
+    >
+      <View style={styles.splitHeaderRow}>
+        <Text style={[styles.splitTitle, { color: s.t1 }]}>This week&apos;s split</Text>
+      </View>
+      <View style={styles.splitPillRow}>
+        {days.map((day) => (
+          <View key={day.label} style={styles.splitDayWrap}>
+            <Text style={[styles.splitDayMeta, { color: s.t2 }]}>
+              {day.label.slice(0, 3)}
+            </Text>
+            <View
+              style={[
+                styles.splitDayPill,
+                {
+                  backgroundColor: day.group
+                    ? withAlpha(toneForGroup(day.group), day.group === "full" ? 0.16 : 0.12)
+                    : s.colors.surface3,
+                  borderColor: day.isToday
+                    ? s.colors.primary
+                    : day.group
+                      ? withAlpha(toneForGroup(day.group), 0.34)
+                      : s.hairline,
+                  borderWidth: day.isToday ? 1.5 : StyleSheet.hairlineWidth,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.splitDayLabel,
+                  { color: day.group ? toneForGroup(day.group) : s.t2 },
+                ]}
+              >
+                {shortForGroup(day.group)}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+      <Text
+        style={[
+          styles.splitInsight,
+          {
+            color: s.t2,
+            fontStyle: insight.includes("No workouts") ? "italic" : "normal",
+          },
+        ]}
+      >
+        {insight}
+      </Text>
+    </View>
+  );
+}
+
+function RecoveryCoachCard({ onPress }: { onPress?: () => void }) {
+  const s = useSurfaceTokens();
+  const [integrations, setIntegrations] = useState<IntegrationSnapshot | null>(
+    null
+  );
+  useEffect(() => subscribeIntegrations(setIntegrations), []);
+  const recovery = useMemo(() => getRecoveryMetrics(integrations), [integrations]);
+  const score = recovery?.recoveryScore ?? null;
+  const tone =
+    score == null
+      ? s.colors.warning
+      : score < 40
+        ? s.colors.warning
+        : score > 80
+          ? s.colors.success
+          : s.colors.primary;
+  const badge =
+    score == null ? "Fatigued" : score < 40 ? "Low recovery" : score > 80 ? "Recovered" : "Ready";
+  const body =
+    score == null
+      ? "Your last session was rated Fatigued. Consider a lighter session or rest today."
+      : score < 40
+      ? `Low recovery detected. ${recovery?.sourceName || "Your wearable"} suggests rest or light movement today.`
+      : score > 80
+      ? `Recovery: ${Math.round(score)}% · HRV: ${Math.round(
+          recovery?.hrvMs || 0
+        )}ms · Resting HR: ${Math.round(
+          recovery?.restingHeartRateBpm || 0
+        )}bpm · Good day to push intensity.`
+      : `Recovery: ${Math.round(score)}% · HRV: ${Math.round(
+          recovery?.hrvMs || 0
+        )}ms · Resting HR: ${Math.round(
+          recovery?.restingHeartRateBpm || 0
+        )}bpm · Ready to train.`;
+  return (
+    <View
+      style={[
+        styles.recoveryCard,
+        { backgroundColor: s.colors.surface1, borderColor: s.hairline },
+      ]}
+    >
+      <View style={styles.recoveryTopRow}>
+        <View style={[styles.recoveryBadge, { backgroundColor: withAlpha(tone, 0.14), borderColor: withAlpha(tone, 0.28) }]}>
+          <Text style={[styles.recoveryBadgeText, { color: tone }]}>{badge}</Text>
+        </View>
+      </View>
+      <Text style={[styles.recoveryTitle, { color: s.t1 }]}>Recovery check</Text>
+      <Text style={[styles.recoveryBody, { color: s.t2 }]}>
+        {body}
+      </Text>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.recoveryAction,
+          { borderColor: s.hairline, backgroundColor: withAlpha(s.colors.surface1, 0.04) },
+          pressed && { opacity: 0.8 },
+        ]}
+      >
+        <Text style={[styles.recoveryActionText, { color: s.t1 }]}>
+          Plan rest day →
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function TemplatesOverview({
+  templates,
+  onViewAll,
+  onCreateNew,
+  onUseTemplate,
+  onManageTemplate,
+  onKeepTemplate,
+  onArchiveTemplate,
+}: {
+  templates: any[];
+  onViewAll?: () => void;
+  onCreateNew?: () => void;
+  onUseTemplate?: (id: string) => void;
+  onManageTemplate?: (id: string) => void;
+  onKeepTemplate?: (id: string) => void;
+  onArchiveTemplate?: (id: string) => void;
+}) {
+  const s = useSurfaceTokens();
+  return (
+    <View style={{ marginTop: 18 }}>
+      <SectionHeader title="Templates" actionLabel="View all" onAction={onViewAll} />
+      <View style={styles.templatesGrid}>
+        {templates.map((template) => (
+          <Pressable
+            key={template.id}
+            onPress={() => onUseTemplate?.(template.id)}
+            style={({ pressed }) => [
+              styles.templateOverviewCard,
+              { backgroundColor: s.colors.surface1, borderColor: s.hairline },
+              pressed && { opacity: 0.92 },
+            ]}
+          >
+            <View style={styles.templateOverviewTop}>
+              <View style={[styles.templateOverviewIcon, { backgroundColor: s.colors.surface3 }]}>
+                <Text style={[styles.templateOverviewIconText, { color: s.t1 }]}>
+                  {(template.name || "W").slice(0, 2).toUpperCase()}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.templateOverviewName, { color: s.t1 }]} numberOfLines={1}>
+                  {template.name}
+                </Text>
+                <Text style={[styles.templateOverviewMeta, { color: s.t2 }]} numberOfLines={1}>
+                  {template.lastUsedLabel || "Saved template"}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => onManageTemplate?.(template.id)}
+                hitSlop={8}
+              >
+                <Ionicons name="ellipsis-horizontal" size={16} color={s.t2} />
+              </Pressable>
+            </View>
+            {template.stale ? (
+              <View style={[styles.staleChip, { backgroundColor: withAlpha(s.colors.warning, 0.12), borderColor: withAlpha(s.colors.warning, 0.24) }]}>
+                <Text style={[styles.staleChipText, { color: s.colors.warning }]}>
+                  Haven&apos;t used in a while — still relevant?
+                </Text>
+                <View style={styles.staleActionsRow}>
+                  <Pressable
+                    onPress={() => onKeepTemplate?.(template.id)}
+                    style={[styles.staleActionBtn, { borderColor: withAlpha(s.colors.success, 0.3) }]}
+                  >
+                    <Text style={[styles.staleActionText, { color: s.colors.success }]}>Keep ✓</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => onArchiveTemplate?.(template.id)}
+                    style={[styles.staleActionBtn, { borderColor: withAlpha(s.colors.danger, 0.3) }]}
+                  >
+                    <Text style={[styles.staleActionText, { color: s.colors.danger }]}>Archive ✗</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
+            <View style={styles.templateTagRow}>
+              {(template.displayTags || template.tags || []).slice(0, 3).map((tag: string) => (
+                <View
+                  key={`${template.id}-${tag}`}
+                  style={[styles.templateTagChip, { backgroundColor: s.colors.surface2, borderColor: s.hairline }]}
+                >
+                  <Text style={[styles.templateTagChipText, { color: s.t2 }]}>{tag}</Text>
+                </View>
+              ))}
+            </View>
+          </Pressable>
+        ))}
+
+        <Pressable
+          onPress={onCreateNew}
+          style={({ pressed }) => [
+            styles.templateOverviewCard,
+            styles.templateCreateCard,
+            { backgroundColor: s.colors.surface1, borderColor: withAlpha(s.colors.primary, 0.36) },
+            pressed && { opacity: 0.92 },
+          ]}
+        >
+          <Ionicons name="add" size={20} color={s.colors.primary} />
+          <Text style={[styles.templateCreateText, { color: s.t1 }]}>Create new</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function PRFeed({ prs }: { prs: any[] }) {
+  const s = useSurfaceTokens();
+  const [open, setOpen] = useState(true);
+  return (
+    <View style={{ marginTop: 18 }}>
+      <Pressable
+        onPress={() => setOpen((v) => !v)}
+        style={styles.collapsibleHeader}
+      >
+        <Text style={[styles.collapsibleTitle, { color: s.t1 }]}>Recent PRs</Text>
+        <Ionicons name={open ? "chevron-up" : "chevron-down"} size={16} color={s.t2} />
+      </Pressable>
+      {open ? (
+        prs.length ? (
+          <View style={{ gap: 8, marginTop: 10 }}>
+            {prs.map((pr) => (
+              <View
+                key={pr.id}
+                style={[styles.prFeedRow, { backgroundColor: s.colors.surface1, borderColor: s.hairline }]}
+              >
+                <Ionicons name="trophy" size={14} color={s.colors.warning} />
+                <Text style={[styles.prFeedText, { color: s.t1 }]} numberOfLines={2}>
+                  {pr.exercise} · {pr.text}{pr.when ? ` · ${pr.when}` : ""}
+                </Text>
+                <Ionicons name="chevron-forward" size={15} color={s.t2} />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={[styles.prFeedEmpty, { backgroundColor: s.colors.surface1, borderColor: s.hairline }]}>
+            <Text style={[styles.prFeedEmptyText, { color: s.t2 }]}>
+              No PRs yet this month — push a little harder next session
+            </Text>
+          </View>
+        )
+      ) : null}
+    </View>
+  );
+}
+
+function MuscleHeatmapCard({
+  muscleVolumes,
+  undertrained,
+  lastTrainedMap,
+  sex,
+}: {
+  muscleVolumes: Record<string, number>;
+  undertrained: string[];
+  lastTrainedMap: Record<string, string>;
+  sex: "male" | "female";
+}) {
+  const s = useSurfaceTokens();
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const legend = [
+    { label: "Light", color: withAlpha(s.colors.primary, 0.35) },
+    { label: "Moderate", color: withAlpha(s.colors.primary, 0.65) },
+    { label: "Heavy", color: s.colors.primary },
+  ];
+  const regionLabels: Record<string, string> = {
+    chest: "Chest",
+    shoulders: "Shoulders",
+    biceps: "Biceps",
+    triceps: "Triceps",
+    forearms: "Forearms",
+    abs: "Abs",
+    quads: "Quads",
+    adductors: "Adductors",
+    traps: "Traps",
+    lats: "Lats",
+    rhomboids: "Rhomboids",
+    lowerBack: "Lower back",
+    glutes: "Glutes",
+    hamstrings: "Hamstrings",
+    calves: "Calves",
+  };
+  const keyToSlug: Record<string, BodySlug> = {
+    chest: "chest",
+    shoulders: "deltoids",
+    biceps: "biceps",
+    triceps: "triceps",
+    forearms: "forearm",
+    abs: "abs",
+    quads: "quadriceps",
+    adductors: "adductors",
+    traps: "trapezius",
+    lats: "upper-back",
+    rhomboids: "upper-back",
+    lowerBack: "lower-back",
+    glutes: "gluteal",
+    hamstrings: "hamstring",
+    calves: "calves",
+  };
+  const slugToKeys: Partial<Record<BodySlug, string[]>> = {
+    chest: ["chest"],
+    deltoids: ["shoulders"],
+    biceps: ["biceps"],
+    triceps: ["triceps"],
+    forearm: ["forearms"],
+    abs: ["abs"],
+    quadriceps: ["quads"],
+    adductors: ["adductors"],
+    trapezius: ["traps"],
+    "upper-back": ["lats", "rhomboids"],
+    "lower-back": ["lowerBack"],
+    gluteal: ["glutes"],
+    hamstring: ["hamstrings"],
+    calves: ["calves"],
+  };
+  const levelIntensity = (sessions: number) => {
+    if (sessions >= 3) return 3;
+    if (sessions >= 2) return 2;
+    if (sessions >= 1) return 1;
+    return 0;
+  };
+  const bodyData = useMemo<ExtendedBodyPart[]>(() => {
+    return Object.entries(keyToSlug)
+      .map(([key, slug]) => {
+        const sessions = muscleVolumes[key] || 0;
+        const intensity = levelIntensity(sessions);
+        if (!intensity) return null;
+        return {
+          slug,
+          intensity,
+          styles:
+            activeKey === key
+              ? {
+                  stroke: withAlpha(s.colors.textPrimary, 0.3),
+                  strokeWidth: 1.5,
+                }
+              : undefined,
+        } as ExtendedBodyPart;
+      })
+      .filter(Boolean) as ExtendedBodyPart[];
+  }, [activeKey, muscleVolumes]);
+  const activeRegion = activeKey
+    ? {
+        key: activeKey,
+        label: regionLabels[activeKey] || activeKey,
+        sessions: muscleVolumes[activeKey] || 0,
+      }
+    : null;
+
+  return (
+    <View
+      style={[
+        styles.heatmapCard,
+        { backgroundColor: s.colors.surface1, borderColor: s.hairline },
+      ]}
+    >
+      <SectionHeader title="Muscle Heatmap" />
+      <View style={styles.heatmapSilhouetteRow}>
+        <View style={styles.silhouetteWrap}>
+          <Body
+            data={bodyData}
+            gender={sex}
+            side="front"
+            scale={0.92}
+            border="none"
+            defaultFill={s.colors.surface3}
+            colors={[withAlpha(s.colors.primary, 0.35), withAlpha(s.colors.primary, 0.65), s.colors.primary]}
+            onBodyPartPress={(part) => {
+              const key = slugToKeys[part.slug as BodySlug]?.[0];
+              if (key) setActiveKey(key);
+            }}
+          />
+          <Text style={[styles.silhouetteLabel, { color: s.t2 }]}>Front</Text>
+        </View>
+        <View style={styles.silhouetteWrap}>
+          <Body
+            data={bodyData}
+            gender={sex}
+            side="back"
+            scale={0.92}
+            border="none"
+            defaultFill={s.colors.surface3}
+            colors={[withAlpha(s.colors.primary, 0.35), withAlpha(s.colors.primary, 0.65), s.colors.primary]}
+            onBodyPartPress={(part) => {
+              const key = slugToKeys[part.slug as BodySlug]?.[0];
+              if (key) setActiveKey(key);
+            }}
+          />
+          <Text style={[styles.silhouetteLabel, { color: s.t2 }]}>Back</Text>
+        </View>
+      </View>
+      {activeRegion ? (
+        <View style={[styles.heatmapTooltip, { borderColor: s.hairline }]}>
+          <Text style={[styles.heatmapTooltipText, { color: s.t1 }]}>
+            {activeRegion.label} · Last trained: {lastTrainedMap[activeRegion.key] || "Not logged"} · {activeRegion.sessions} {activeRegion.sessions === 1 ? "session" : "sessions"}
+          </Text>
+        </View>
+      ) : null}
+      <View style={styles.heatmapLegendRow}>
+        {legend.map((item) => (
+          <View key={item.label} style={styles.heatmapLegendItem}>
+            <View style={[styles.heatmapLegendDot, { backgroundColor: item.color }]} />
+            <Text style={[styles.heatmapLegendText, { color: s.t2 }]}>{item.label}</Text>
+          </View>
+        ))}
+      </View>
+      <Text style={[styles.heatmapInsight, { color: s.t2 }]}>
+        {undertrained.length
+          ? `${undertrained
+              .map((m) => m.replace(/([A-Z])/g, " $1"))
+              .map((m) => m[0].toUpperCase() + m.slice(1))
+              .join(" and ")} haven't been trained this week`
+          : "Your weekly muscle balance looks good"}
+      </Text>
     </View>
   );
 }
@@ -2524,13 +3743,13 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 28,
-    fontWeight: "800",
+    fontWeight: "400",
     letterSpacing: -0.2,
   },
   subtitle: {
     marginTop: 2,
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "300",
   },
 
   startBtn: {
@@ -2538,20 +3757,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 7,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    height: 32,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
-    overflow: "hidden",
   },
   startBtnText: {
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 13,
+    fontWeight: "500",
     letterSpacing: 0.2,
   },
 
   cardWrap: { borderRadius: 18, overflow: "hidden" },
   cardBorder: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     zIndex: 2,
@@ -2563,17 +3781,17 @@ const styles = StyleSheet.create({
   continueTopRow: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   continueTitle: {
     fontSize: 12,
-    fontWeight: "900",
+    fontWeight: "500",
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
   continueName: {
     marginTop: 6,
     fontSize: 18,
-    fontWeight: "900",
+    fontWeight: "500",
     letterSpacing: -0.2,
   },
-  continueMeta: { marginTop: 5, fontSize: 13, fontWeight: "600" },
+  continueMeta: { marginTop: 5, fontSize: 13, fontWeight: "300" },
   pulseDot: {
     width: 10,
     height: 10,
@@ -2592,7 +3810,7 @@ const styles = StyleSheet.create({
   },
   finishBtnText: {
     fontSize: 12,
-    fontWeight: "900",
+    fontWeight: "500",
   },
   continueCTA: {
     marginTop: 12,
@@ -2605,18 +3823,18 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  continueCTAText: { fontSize: 13, fontWeight: "800" },
+  continueCTAText: { fontSize: 13, fontWeight: "400" },
 
   emptyStateCard: { borderRadius: 22 },
-  emptyTitle: { fontSize: 18, fontWeight: "900", letterSpacing: -0.2 },
-  emptyText: { marginTop: 6, fontSize: 13, fontWeight: "600", lineHeight: 18 },
+  emptyTitle: { fontSize: 18, fontWeight: "500", letterSpacing: -0.2 },
+  emptyText: { marginTop: 6, fontSize: 13, fontWeight: "300", lineHeight: 18 },
   emptyCTA: {
     marginTop: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
-  emptyCTAtext: { fontSize: 13, fontWeight: "800" },
+  emptyCTAtext: { fontSize: 13, fontWeight: "400" },
 
   ringsRow: { flexDirection: "row", marginTop: 2 },
   ringCard: { borderRadius: 18 },
@@ -2629,17 +3847,17 @@ const styles = StyleSheet.create({
   ringDot: { width: 8, height: 8, borderRadius: 8 },
   ringLabel: {
     fontSize: 12,
-    fontWeight: "900",
+    fontWeight: "500",
     letterSpacing: 0.6,
     textTransform: "uppercase",
   },
   ringValue: {
     fontSize: 18,
-    fontWeight: "900",
+    fontWeight: "500",
     letterSpacing: -0.2,
     fontVariant: ["tabular-nums"],
   },
-  ringSub: { marginTop: 2, fontSize: 12, fontWeight: "600" },
+  ringSub: { marginTop: 2, fontSize: 12, fontWeight: "300" },
 
   sectionHeader: {
     marginTop: 6,
@@ -2647,7 +3865,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  sectionTitle: { fontSize: 14, fontWeight: "900", letterSpacing: 0.4 },
+  sectionTitle: { fontSize: 14, fontWeight: "500", letterSpacing: 0.4 },
   sectionAction: {
     flexDirection: "row",
     alignItems: "center",
@@ -2655,8 +3873,8 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
   },
-  sectionActionText: { fontSize: 13, fontWeight: "800" },
-  helperText: { marginTop: 6, fontSize: 12, fontWeight: "600" },
+  sectionActionText: { fontSize: 13, fontWeight: "400" },
+  helperText: { marginTop: 6, fontSize: 12, fontWeight: "300" },
 
   pillStroke: {
     borderRadius: 999,
@@ -2671,7 +3889,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  pillText: { fontSize: 12.5, fontWeight: "800", letterSpacing: 0.2 },
+  pillText: { fontSize: 12.5, fontWeight: "400", letterSpacing: 0.2 },
 
   templateCard: {
     borderRadius: 18,
@@ -2687,8 +3905,8 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   templateEmoji: { fontSize: 18 },
-  templateName: { fontSize: 14, fontWeight: "900", letterSpacing: -0.1 },
-  templateTag: { marginTop: 2, fontSize: 12, fontWeight: "700" },
+  templateName: { fontSize: 14, fontWeight: "500", letterSpacing: -0.1 },
+  templateTag: { marginTop: 2, fontSize: 12, fontWeight: "300" },
 
   templateBadge: {
     paddingHorizontal: 8,
@@ -2697,8 +3915,6 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   templateBadgeUser: {
-    backgroundColor: withAlpha("#68D7FF", 0.16),
-    borderColor: withAlpha("#68D7FF", 0.35),
   },
   templateBadgeAuto: {},
 
@@ -2724,7 +3940,7 @@ const styles = StyleSheet.create({
   intensityRowCompact: {
     marginTop: 8,
   },
-  intensityLabel: { fontSize: 12, fontWeight: "800", letterSpacing: 0.2 },
+  intensityLabel: { fontSize: 12, fontWeight: "400", letterSpacing: 0.2 },
   intensityBars: {
     flexDirection: "row",
     alignItems: "center",
@@ -2742,16 +3958,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
-  bestSetBadgeText: { fontSize: 12, fontWeight: "800" },
+  bestSetBadgeText: { fontSize: 12, fontWeight: "400" },
   bestSetTag: {
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: withAlpha("#FFD45A", 0.18),
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: withAlpha("#FFD45A", 0.35),
   },
-  bestSetTagText: { fontSize: 10, fontWeight: "900", color: "#FFD45A" },
+  bestSetTagText: { fontSize: 10, fontWeight: "500" },
 
   cardActionsCompact: {
     marginTop: 8,
@@ -2767,14 +3981,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  templateBadgeText: { fontSize: 10, fontWeight: "900", letterSpacing: 0.6 },
-  templateBadgeTextUser: { color: withAlpha("#68D7FF", 0.95) },
-  templateBadgeTextAuto: { color: withAlpha("#FFFFFF", 0.78) },
+  templateBadgeText: { fontSize: 10, fontWeight: "500", letterSpacing: 0.6 },
+  templateBadgeTextUser: {},
+  templateBadgeTextAuto: {},
 
   workoutCard: { borderRadius: 22 },
   workoutHeaderRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  workoutTitle: { fontSize: 16, fontWeight: "900", letterSpacing: -0.15 },
-  workoutMeta: { marginTop: 4, fontSize: 12, fontWeight: "700" },
+  workoutTitle: { fontSize: 16, fontWeight: "500", letterSpacing: -0.15 },
+  workoutMeta: { marginTop: 4, fontSize: 12, fontWeight: "300" },
 
   prBadge: {
     flexDirection: "row",
@@ -2785,7 +3999,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: withAlpha("#FFD66B", 0.92),
   },
-  prText: { color: withAlpha("#111", 0.9), fontSize: 12, fontWeight: "900" },
+  prText: { color: withAlpha("#111", 0.9), fontSize: 12, fontWeight: "500" },
 
   statsRow: { marginTop: 12, flexDirection: "row", gap: 8, flexWrap: "wrap" },
   statChip: {
@@ -2799,12 +4013,12 @@ const styles = StyleSheet.create({
   },
   statChipText: {
     fontSize: 12,
-    fontWeight: "800",
+    fontWeight: "400",
     fontVariant: ["tabular-nums"],
   },
 
-  highlight: { marginTop: 10, fontSize: 12, fontWeight: "700" },
-  prLine: { marginTop: 6, fontSize: 12, fontWeight: "800" },
+  highlight: { marginTop: 10, fontSize: 12, fontWeight: "300" },
+  prLine: { marginTop: 6, fontSize: 12, fontWeight: "400" },
 
   cardActions: { marginTop: 12, flexDirection: "row", gap: 10 },
   actionBtn: {
@@ -2816,7 +4030,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  actionBtnText: { fontSize: 12, fontWeight: "800" },
+  actionBtnText: { fontSize: 12, fontWeight: "400" },
 
   /* Coach Spark */
   coachCard: { borderRadius: 22, padding: 0 },
@@ -2830,8 +4044,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: StyleSheet.hairlineWidth,
   },
-  coachTitle: { fontSize: 15, fontWeight: "900", letterSpacing: -0.1 },
-  coachSub: { marginTop: 4, fontSize: 12, fontWeight: "700", lineHeight: 16 },
+  coachTitle: { fontSize: 15, fontWeight: "500", letterSpacing: -0.1 },
+  coachSub: { marginTop: 4, fontSize: 12, fontWeight: "300", lineHeight: 16 },
   coachCTA: {
     flexDirection: "row",
     alignItems: "center",
@@ -2841,7 +4055,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  coachCTAText: { fontSize: 13, fontWeight: "900" },
+  coachCTAText: { fontSize: 13, fontWeight: "500" },
   coachChipsRow: {
     marginTop: 12,
     flexDirection: "row",
@@ -2857,7 +4071,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  coachChipText: { fontSize: 12, fontWeight: "800" },
+  coachChipText: { fontSize: 12, fontWeight: "400" },
 
   /* Sheets */
   sheetBackdrop: { flex: 1 },
@@ -2874,8 +4088,8 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 10,
   },
-  sheetTitle: { fontSize: 16, fontWeight: "900", letterSpacing: -0.2 },
-  sheetSubtitle: { marginTop: 4, fontSize: 12, fontWeight: "700" },
+  sheetTitle: { fontSize: 16, fontWeight: "500", letterSpacing: -0.2 },
+  sheetSubtitle: { marginTop: 4, fontSize: 12, fontWeight: "300" },
   sheetClose: {
     width: 40,
     height: 40,
@@ -2900,11 +4114,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: StyleSheet.hairlineWidth,
   },
-  sheetRowTitle: { fontSize: 14, fontWeight: "900" },
+  sheetRowTitle: { fontSize: 14, fontWeight: "500" },
   sheetRowSubtitle: {
     marginTop: 3,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "300",
     lineHeight: 16,
   },
   sheetPrimaryBtn: {
@@ -2916,7 +4130,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
-  sheetPrimaryBtnText: { fontWeight: "900" },
+  sheetPrimaryBtnText: { fontWeight: "500" },
   sheetGhostBtn: {
     width: 120,
     height: 46,
@@ -2927,7 +4141,54 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
-  sheetGhostBtnText: { fontWeight: "900" },
+  sheetGhostBtnText: { fontWeight: "500" },
+  sheetFieldLabel: {
+    marginBottom: 6,
+    fontSize: 11,
+    fontWeight: "500",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  sheetTextInput: {
+    height: 44,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    fontWeight: "400",
+  },
+  sheetChipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  sheetChip: {
+    minHeight: 34,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sheetChipText: {
+    fontSize: 12,
+    fontWeight: "400",
+  },
+  sheetPreviewCard: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 12,
+    padding: 12,
+    gap: 6,
+  },
+  sheetPreviewText: {
+    fontSize: 12,
+    fontWeight: "300",
+    lineHeight: 18,
+  },
+  sheetTextLink: {
+    fontSize: 12,
+    fontWeight: "400",
+  },
 
   /* Toast */
   toastWrap: { position: "absolute", left: 14, right: 14, bottom: 98 },
@@ -2938,7 +4199,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  toastText: { flex: 1, fontWeight: "800", fontSize: 12, lineHeight: 16 },
+  toastText: { flex: 1, fontWeight: "400", fontSize: 12, lineHeight: 16 },
   toastBtn: {
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -2946,12 +4207,11 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     marginLeft: 8,
   },
-  toastBtnText: { fontWeight: "900", fontSize: 12 },
+  toastBtnText: { fontWeight: "500", fontSize: 12 },
   deleteOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.35)",
     zIndex: 30,
   },
   deleteCard: {
@@ -2960,21 +4220,19 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: withAlpha("#FFFFFF", 0.18),
-    backgroundColor: "rgba(15,18,28,0.88)",
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
   deleteTitle: {
     fontSize: 13,
-    fontWeight: "900",
+    fontWeight: "500",
     letterSpacing: 0.2,
   },
   deleteSub: {
     marginTop: 4,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "300",
   },
 
   /* Template actions modal */
@@ -2984,8 +4242,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  modalTitle: { fontWeight: "900", fontSize: 16 },
-  modalSub: { marginTop: 6, fontWeight: "700", fontSize: 12 },
+  modalTitle: { fontWeight: "500", fontSize: 16 },
+  modalSub: { marginTop: 6, fontWeight: "300", fontSize: 12 },
   modalPrimary: {
     marginTop: 12,
     paddingHorizontal: 14,
@@ -2993,7 +4251,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  modalPrimaryText: { fontWeight: "900" },
+  modalPrimaryText: { fontWeight: "500" },
   modalSecondary: {
     marginTop: 10,
     paddingHorizontal: 14,
@@ -3001,9 +4259,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  modalSecondaryText: { fontWeight: "900" },
+  modalSecondaryText: { fontWeight: "500" },
   heroCardWrap: {
-    // more “hero” elevation for the first card
+    // more "hero" elevation for the first card
     shadowColor: "#000",
     shadowOpacity: 0.18,
     shadowRadius: 22,
@@ -3035,15 +4293,314 @@ const styles = StyleSheet.create({
 
   bestSetText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "300",
   },
 
   actionBtnPrimary: {
-    // tiny “primary” emphasis via shape only; colors already set inline
+    // tiny "primary" emphasis via shape only; colors already set inline
   },
 
   actionBtnIconOnly: {
     paddingHorizontal: 10,
     justifyContent: "center",
   },
+  smallCapsHeader: {
+    marginTop: 18,
+    paddingBottom: 8,
+    fontSize: 12,
+    fontWeight: "500",
+    letterSpacing: 1.1,
+    textTransform: "uppercase",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  flatStatTile: {
+    minWidth: 140,
+    minHeight: 108,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    justifyContent: "space-between",
+  },
+  flatStatTitle: {
+    fontSize: 11,
+    fontWeight: "500",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  flatStatValue: {
+    fontSize: 28,
+    fontWeight: "500",
+    letterSpacing: -0.4,
+  },
+  flatStatSub: {
+    fontSize: 11,
+    fontWeight: "300",
+  },
+  startWorkoutCard: {
+    marginTop: 10,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 16,
+  },
+  startWorkoutHeader: {
+    gap: 8,
+  },
+  readyChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  readyChipText: { fontSize: 11, fontWeight: "400" },
+  startWorkoutTitle: { fontSize: 20, fontWeight: "500", letterSpacing: -0.3 },
+  startWorkoutSub: { fontSize: 13, lineHeight: 18, fontWeight: "300" },
+  primaryWideButton: {
+    marginTop: 16,
+    height: 48,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  primaryWideButtonText: {
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  secondaryButton: {
+    marginTop: 10,
+    height: 42,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  secondaryButtonText: { fontSize: 13, fontWeight: "400" },
+  quickStartRow: {
+    marginTop: 12,
+    gap: 8,
+  },
+  quickStartChip: {
+    minHeight: 36,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+  },
+  quickStartChipText: { fontSize: 13, fontWeight: "400" },
+  nextSuggestionChip: {
+    marginTop: 12,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  nextSuggestionText: { flex: 1, fontSize: 13, fontWeight: "400" },
+  splitCard: {
+    marginTop: 10,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+  },
+  splitHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  splitTitle: { fontSize: 15, fontWeight: "500" },
+  splitPillRow: {
+    marginTop: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 6,
+  },
+  splitDayWrap: { flex: 1, alignItems: "center", gap: 6 },
+  splitDayMeta: {
+    fontSize: 9,
+    fontWeight: "500",
+    letterSpacing: 0.9,
+    textTransform: "uppercase",
+  },
+  splitDayPill: {
+    minWidth: 36,
+    width: "100%",
+    minHeight: 44,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  splitDayLabel: { fontSize: 12, fontWeight: "500" },
+  splitDayDetail: { fontSize: 10, fontWeight: "300" },
+  splitInsight: { marginTop: 12, fontSize: 12, fontWeight: "300", lineHeight: 17 },
+  recoveryCard: {
+    marginTop: 12,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+  },
+  recoveryTopRow: { flexDirection: "row", justifyContent: "flex-start" },
+  recoveryBadge: {
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  recoveryBadgeText: { fontSize: 11, fontWeight: "500" },
+  recoveryTitle: { marginTop: 10, fontSize: 15, fontWeight: "500" },
+  recoveryBody: { marginTop: 6, fontSize: 13, fontWeight: "300", lineHeight: 18 },
+  recoveryAction: {
+    marginTop: 12,
+    alignSelf: "flex-start",
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  recoveryActionText: { fontSize: 13, fontWeight: "400" },
+  templatesGrid: {
+    marginTop: 10,
+    gap: 10,
+  },
+  templateOverviewCard: {
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+  },
+  templateOverviewTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  templateOverviewIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  templateOverviewIconText: {
+    fontWeight: "500",
+    fontSize: 13,
+  },
+  templateOverviewName: { fontSize: 15, fontWeight: "500" },
+  templateOverviewMeta: { marginTop: 4, fontSize: 12, fontWeight: "300" },
+  staleChip: {
+    marginTop: 10,
+    alignSelf: "stretch",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  staleChipText: { fontSize: 11, fontWeight: "400" },
+  staleActionsRow: {
+    marginTop: 8,
+    flexDirection: "row",
+    gap: 8,
+  },
+  staleActionBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  staleActionText: { fontSize: 11, fontWeight: "400" },
+  templateTagRow: {
+    marginTop: 12,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  templateTagChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  templateTagChipText: { fontSize: 11, fontWeight: "300" },
+  templateCreateCard: {
+    borderStyle: "dashed",
+    minHeight: 92,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  templateCreateText: { fontSize: 14, fontWeight: "400" },
+  collapsibleHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  collapsibleTitle: { fontSize: 15, fontWeight: "500" },
+  prFeedRow: {
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  prFeedText: { flex: 1, fontSize: 13, fontWeight: "400", lineHeight: 18 },
+  prFeedEmpty: {
+    marginTop: 10,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+  },
+  prFeedEmptyText: { fontSize: 13, fontWeight: "300" },
+  heatmapCard: {
+    marginTop: 18,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+  },
+  heatmapSilhouetteRow: {
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    gap: 16,
+  },
+  silhouetteWrap: {
+    alignItems: "center",
+    gap: 6,
+  },
+  silhouetteLabel: {
+    fontSize: 11,
+    fontWeight: "300",
+  },
+  heatmapTooltip: {
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  heatmapTooltipText: { fontSize: 12, fontWeight: "300" },
+  heatmapLegendRow: {
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 14,
+  },
+  heatmapLegendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  heatmapLegendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 999,
+  },
+  heatmapLegendText: { fontSize: 11, fontWeight: "300" },
+  heatmapInsight: { marginTop: 12, fontSize: 12, fontWeight: "300", lineHeight: 18 },
 });

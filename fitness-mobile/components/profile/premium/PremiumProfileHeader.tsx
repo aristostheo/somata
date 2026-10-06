@@ -1,7 +1,6 @@
 // components/profile/premium/PremiumProfileHeader.tsx
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { Image, View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
@@ -60,11 +59,13 @@ export function PremiumProfileHeader(props: {
   activityLevel: string;
   onToggleUnit: () => void;
   onPressSettings: () => void;
+  onPressAvatar?: () => void;
   onPressAccount?: () => void;
   onPressGoPro: () => void;
+  photoURL?: string | null;
   rightSlot?: React.ReactNode;
 }) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   const goalLabel = useMemo(() => {
     if (props.goalType === "cut") return "Cut";
@@ -88,45 +89,60 @@ export function PremiumProfileHeader(props: {
     const dist = Math.abs(w - t);
     return clamp(1 - dist / 20, 0.15, 0.95);
   }, [props.weightKg, props.targetWeightKg]);
+  const progressPct = Math.round(progress * 100);
+  const momentumColor =
+    progressPct >= 70 ? colors.accent : progressPct >= 40 ? colors.warning : colors.danger;
 
   return (
     <GlassCard style={{ padding: 0 }}>
-      <LinearGradient
-        colors={
-          isDark
-            ? [
-                withAlpha("#3B82F6", 0.16),
-                withAlpha("#22C55E", 0.08),
-                withAlpha("#A78BFA", 0.12),
-              ]
-            : [
-                withAlpha("#3B82F6", 0.14),
-                withAlpha("#22C55E", 0.07),
-                withAlpha("#A78BFA", 0.09),
-              ]
-        }
-        style={styles.heroBg}
-      />
-
-      <View style={{ padding: 14, gap: 12 }}>
+      <View style={{ padding: 20, gap: 16 }}>
         <View style={styles.row}>
-          <View style={styles.avatar}>
-            <Text
-              style={{ color: colors.text, fontWeight: "900", fontSize: 16 }}
-            >
-              {props.initials}
-            </Text>
-          </View>
+          <PressScale
+            onPress={() => {
+              Haptics.selectionAsync();
+              props.onPressAvatar?.();
+            }}
+            accessibilityLabel="Change profile photo"
+          >
+            <View style={styles.avatar}>
+              {props.photoURL ? (
+                <Image source={{ uri: props.photoURL }} style={styles.avatarImg} />
+              ) : (
+                <Text
+                  style={{ color: colors.surface1, fontWeight: "500", fontSize: 22 }}
+                >
+                  {props.initials}
+                </Text>
+              )}
+              <View
+                style={[
+                  styles.cameraBadge,
+                  {
+                    backgroundColor: colors.surface2,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Ionicons name="camera-outline" size={12} color={colors.muted} />
+              </View>
+            </View>
+          </PressScale>
 
           <View style={{ flex: 1 }}>
             <Text
-              style={{ color: colors.text, fontWeight: "900", fontSize: 18 }}
+              style={{ color: colors.text, fontWeight: "500", fontSize: 26 }}
               numberOfLines={1}
             >
               {props.name}
             </Text>
             <Text
-              style={{ color: colors.muted, marginTop: 2 }}
+              style={{
+                color: colors.placeholder,
+                marginTop: 4,
+                fontSize: 12,
+                fontWeight: "300",
+                letterSpacing: 0.3,
+              }}
               numberOfLines={1}
             >
               {props.subtitle}
@@ -176,18 +192,15 @@ export function PremiumProfileHeader(props: {
                   style={[
                     styles.iconBtn,
                     {
-                      backgroundColor: withAlpha(
-                        colors.card,
-                        isDark ? 0.2 : 0.55
-                      ),
-                      borderColor: withAlpha(colors.border, 0.65),
+                      backgroundColor: colors.surface2,
+                      borderColor: colors.border,
                     },
                   ]}
                 >
                   <Ionicons
                     name="settings-outline"
                     size={16}
-                    color={colors.text}
+                    color={colors.muted}
                   />
                 </View>
               </PressScale>
@@ -204,21 +217,23 @@ export function PremiumProfileHeader(props: {
                     style={[
                       styles.proPill,
                       {
-                        borderColor: withAlpha(colors.primary, 0.35),
-                        backgroundColor: withAlpha(colors.primary, 0.14),
+                        borderColor: withAlpha(colors.accent, 0.3),
+                        backgroundColor: withAlpha(colors.accent, 0.12),
                       },
                     ]}
                   >
                     <Ionicons
-                      name="sparkles-outline"
+                      name="diamond-outline"
                       size={14}
-                      color={colors.text}
+                      color={colors.accent}
                     />
                     <Text
                       style={{
-                        color: colors.text,
-                        fontWeight: "900",
-                        fontSize: 12,
+                        color: colors.accent,
+                        fontWeight: "500",
+                        fontSize: 11,
+                        textTransform: "uppercase",
+                        letterSpacing: 1,
                       }}
                     >
                       Pro
@@ -234,12 +249,12 @@ export function PremiumProfileHeader(props: {
           <View
             style={[
               styles.stat,
-              { borderColor: withAlpha(colors.border, 0.6) },
+              { borderColor: colors.border, backgroundColor: colors.surface2 },
             ]}
           >
-            <Text style={{ color: colors.muted, fontSize: 12 }}>Today</Text>
+            <Text style={styles.label}>TODAY WEIGHT</Text>
             <Text
-              style={{ color: colors.text, fontWeight: "900", marginTop: 4 }}
+              style={{ color: colors.text, fontWeight: "300", marginTop: 8, fontSize: 26, letterSpacing: -0.8 }}
             >
               {unitWeight}
             </Text>
@@ -248,12 +263,12 @@ export function PremiumProfileHeader(props: {
           <View
             style={[
               styles.stat,
-              { borderColor: withAlpha(colors.border, 0.6) },
+              { borderColor: colors.border, backgroundColor: colors.surface2 },
             ]}
           >
-            <Text style={{ color: colors.muted, fontSize: 12 }}>Focus</Text>
+            <Text style={styles.label}>FOCUS</Text>
             <Text
-              style={{ color: colors.text, fontWeight: "900", marginTop: 4 }}
+              style={{ color: colors.text, fontWeight: "500", marginTop: 8, fontSize: 16 }}
             >
               {goalLabel}
             </Text>
@@ -269,12 +284,12 @@ export function PremiumProfileHeader(props: {
             <View
               style={[
                 styles.stat,
-                { borderColor: withAlpha(colors.border, 0.6) },
+                { borderColor: colors.border, backgroundColor: colors.surface2 },
               ]}
             >
-              <Text style={{ color: colors.muted, fontSize: 12 }}>Unit</Text>
+              <Text style={styles.label}>UNIT</Text>
               <Text
-                style={{ color: colors.text, fontWeight: "900", marginTop: 4 }}
+                style={{ color: colors.text, fontWeight: "500", marginTop: 8, fontSize: 16 }}
               >
                 {props.unit.toUpperCase()}
               </Text>
@@ -287,16 +302,18 @@ export function PremiumProfileHeader(props: {
           <View
             style={{ flexDirection: "row", justifyContent: "space-between" }}
           >
-            <Text style={{ color: colors.muted, fontSize: 12 }}>Momentum</Text>
-            <Text style={{ color: colors.muted, fontSize: 12 }}>
-              {Math.round(progress * 100)}%
+            <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: "500" }}>
+              Momentum · {progressPct}%
+            </Text>
+            <Text style={{ color: momentumColor, fontSize: 12, fontWeight: "500" }}>
+              {progressPct >= 70 ? "Strong" : progressPct >= 40 ? "Building" : "Needs attention"}
             </Text>
           </View>
           <View
             style={[
               styles.track,
               {
-                backgroundColor: withAlpha(colors.border, isDark ? 0.18 : 0.35),
+                backgroundColor: colors.inputBg,
               },
             ]}
           >
@@ -304,18 +321,15 @@ export function PremiumProfileHeader(props: {
               style={[
                 styles.fill,
                 {
-                  width: `${Math.round(progress * 100)}%`,
-                  backgroundColor: withAlpha(
-                    colors.primary,
-                    isDark ? 0.35 : 0.28
-                  ),
-                  borderColor: withAlpha(colors.primary, 0.28),
+                  width: `${progressPct}%`,
+                  backgroundColor: momentumColor,
+                  borderColor: "transparent",
                 },
               ]}
             />
           </View>
-          <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 16 }}>
-            Quiet confidence. You don’t need perfection — just direction.
+          <Text style={{ color: colors.textTertiary, fontSize: 11, lineHeight: 18, fontWeight: "300" }}>
+            Consistency score based on your last 7 days.
           </Text>
         </View>
       </View>
@@ -324,17 +338,31 @@ export function PremiumProfileHeader(props: {
 }
 
 const styles = StyleSheet.create({
-  heroBg: { position: "absolute", inset: 0 },
   row: { flexDirection: "row", alignItems: "center", gap: 12 },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.08)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
+    overflow: "visible",
+  },
+  avatarImg: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 36,
+  },
+  cameraBadge: {
+    position: "absolute",
+    right: -2,
+    bottom: -2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   iconBtn: {
     width: 36,
@@ -354,20 +382,25 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 6,
   },
+  label: {
+    fontSize: 11,
+    fontWeight: "500",
+    letterSpacing: 1,
+  },
   stat: {
     flex: 1,
     borderRadius: 16,
-    padding: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 13,
     borderWidth: 1,
-    backgroundColor: "rgba(255,255,255,0.06)",
   },
   track: {
-    height: 10,
+    height: 4,
     borderRadius: 999,
     overflow: "hidden",
   },
   fill: {
-    height: 10,
+    height: 4,
     borderRadius: 999,
     borderWidth: 1,
   },

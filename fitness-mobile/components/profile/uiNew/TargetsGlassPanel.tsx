@@ -139,7 +139,7 @@ export function TargetsGlassPanel({
         <LinearGradient
           colors={[
             "transparent",
-            withAlpha("#FFFFFF", isDark ? 0.05 : 0.18),
+            colors.surface2,
             "transparent",
           ]}
           start={{ x: 0.2, y: 0 }}

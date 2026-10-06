@@ -308,10 +308,10 @@ function MiniSparkBars({
                   width: 8,
                   borderRadius: 999,
                   backgroundColor: withAlpha(
-                    colors.accent ?? "#d6b36a",
+                    colors.accent,
                     isRecent ? 0.82 : 0.55
                   ),
-                  shadowColor: colors.accent ?? "#d6b36a",
+                  shadowColor: colors.accent,
                   shadowOpacity: isRecent ? 0.16 : 0.06,
                   shadowRadius: isRecent ? 10 : 6,
                   shadowOffset: { width: 0, height: 6 },
@@ -326,7 +326,7 @@ function MiniSparkBars({
         pointerEvents="none"
         colors={[
           "transparent",
-          withAlpha("#000000", Platform.OS === "ios" ? 0.18 : 0.26),
+          Platform.OS === "ios" ? "rgba(0,0,0,0.18)" : "rgba(0,0,0,0.26)",
         ]}
         style={styles.sparkFade}
       />
@@ -557,6 +557,7 @@ export function LongTermProgressCard(props: {
     const opt = RANGE_OPTIONS.find((o) => o.key === range);
     return opt?.label ?? "Range";
   }, [range]);
+  const hasTrendData = seriesRaw.length >= 2;
 
   const openDetails = async () => {
     try {
@@ -604,30 +605,32 @@ export function LongTermProgressCard(props: {
                 Long-term progress
               </Text>
 
-              <Pressable
-                onPress={cycleRange}
-                style={({ pressed }) => [
-                  styles.rangePill,
-                  {
-                    backgroundColor: withAlpha(
-                      colors.text,
-                      pressed ? 0.14 : 0.1
-                    ),
-                    borderColor: withAlpha(colors.text, 0.12),
-                  },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel="Change range"
-              >
-                <Ionicons
-                  name="time-outline"
-                  size={14}
-                  color={withAlpha(colors.text, 0.82)}
-                />
-                <Text style={[styles.rangeText, { color: colors.text }]}>
-                  {rangeLabel}
-                </Text>
-              </Pressable>
+              {hasTrendData ? (
+                <Pressable
+                  onPress={cycleRange}
+                  style={({ pressed }) => [
+                    styles.rangePill,
+                    {
+                      backgroundColor: withAlpha(
+                        colors.text,
+                        pressed ? 0.14 : 0.1
+                      ),
+                      borderColor: withAlpha(colors.text, 0.12),
+                    },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Change range"
+                >
+                  <Ionicons
+                    name="time-outline"
+                    size={14}
+                    color={withAlpha(colors.text, 0.82)}
+                  />
+                  <Text style={[styles.rangeText, { color: colors.text }]}>
+                    {rangeLabel}
+                  </Text>
+                </Pressable>
+              ) : null}
             </View>
 
             <Text
@@ -689,8 +692,8 @@ export function LongTermProgressCard(props: {
           />
         ) : seriesRaw.length < 2 ? (
           <EmptyState
-            title="No trend yet"
-            subtitle="Add a couple of weight check-ins to see a calm long-term signal."
+            title="No weight data yet"
+            subtitle="Add a check-in to start your long-term trend."
             ctaLabel={props.onPressAddCheckIn ? "Add a check-in" : undefined}
             onPressCTA={props.onPressAddCheckIn}
           />
@@ -699,27 +702,31 @@ export function LongTermProgressCard(props: {
         )}
 
         {/* Chips */}
-        <View style={styles.chipsRow}>
-          <Chip
-            label="Latest"
-            value={formatLatest(signal.latest, props.unit)}
-          />
-          <Chip label="Change" value={formatChange(signal.delta, props.unit)} />
-          <Chip
-            label="Signal"
-            value={signal.label}
-            rightAccessory={
-              showConfidence ? (
-                <ConfidencePill label={signal.confidenceLabel} />
-              ) : null
-            }
-          />
-        </View>
+        {hasTrendData ? (
+          <>
+            <View style={styles.chipsRow}>
+              <Chip
+                label="Latest"
+                value={formatLatest(signal.latest, props.unit)}
+              />
+              <Chip label="Change" value={formatChange(signal.delta, props.unit)} />
+              <Chip
+                label="Signal"
+                value={signal.label}
+                rightAccessory={
+                  showConfidence ? (
+                    <ConfidencePill label={signal.confidenceLabel} />
+                  ) : null
+                }
+              />
+            </View>
 
-        <Text style={[styles.note, { color: withAlpha(colors.text, 0.68) }]}>
-          Weight swings are normal. This summarizes direction gently — not a
-          judgment.
-        </Text>
+            <Text style={[styles.note, { color: withAlpha(colors.text, 0.68) }]}>
+              Weight swings are normal. This summarizes direction gently — not a
+              judgment.
+            </Text>
+          </>
+        ) : null}
       </Pressable>
     </Animated.View>
   );

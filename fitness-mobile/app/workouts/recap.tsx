@@ -1,68 +1,34 @@
-// app/workouts/recap.tsx
-// Premium Workout Recap (Apple-inspired glossy UI)
-// Uses your EXISTING backend/session bucketing logic from old recap screen.
-// Drop-in replacement ✅
-//
-// Depends on: expo-router, expo-blur, expo-linear-gradient, expo-haptics, react-native-reanimated
-//
-// Notes on data:
-// Your existing Workout rows appear to be "set blocks" (sets x reps @ weight) rather than per-set details.
-// This screen preserves exact performed order by sorting rows by createdAtMs (same as before).
-// Within an exercise, each logged row becomes a "performed block" row in order.
-// If later you store true per-set details, you can map them into the same UI structure.
-
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Clipboard from "expo-clipboard";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  View,
-  Text,
+  AccessibilityInfo,
+  Alert,
+  Animated as RNAnimated,
+  Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
-  Platform,
+  Share,
   StatusBar,
-  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
-import Animated, {
-  FadeInDown,
-  FadeOut,
-  Layout,
-  LinearTransition,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Body, {
+  type ExtendedBodyPart,
+  type Slug as BodySlug,
+} from "react-native-body-highlighter/dist/index";
 
 import { useAuth } from "@/content/AuthContext";
 import { useTheme } from "@/content/ThemeProvider";
-import { subscribeWorkouts, type Workout } from "@/services/workouts";
 import { subscribeProfile, type Profile } from "@/services/profile";
-
-// ---------------------- helpers (kept from old logic) ----------------------
-
-const withAlpha = (hex: string, a: number) => {
-  const h = (hex || "").replace("#", "");
-  if (h.length !== 6) return hex;
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  const alpha = Math.max(0, Math.min(1, a));
-  return `rgba(${r},${g},${b},${alpha})`;
-};
-
-function createdAtMs(x: any) {
-  const t = x?.setCreatedAt ?? x?.createdAt ?? x?.sessionStartedAt;
-  if (!t) return 0;
-  if (typeof t === "number") return t;
-  if (typeof t?.toMillis === "function") return t.toMillis();
-  if (typeof t?.seconds === "number") return t.seconds * 1000;
-  return Number(t) || 0;
-}
+import { inferPrimaryMuscle, type PrimaryMuscleKey } from "@/services/workoutMuscles";
+import { subscribeWorkouts, type Workout } from "@/services/workouts";
 
 type WorkoutRow = Workout & {
   sessionId?: string;
@@ -80,6 +46,116 @@ type SessionBucket = {
   rows: WorkoutRow[];
 };
 
+type PerformedBlock = {
+  id: string;
+  exercise: string;
+  sets: number;
+  reps: number;
+  weightKg: number;
+  primaryMuscle?: PrimaryMuscleKey;
+  createdMs: number;
+};
+
+type ExerciseSummary = {
+  name: string;
+  totalSets: number;
+  totalReps: number;
+  totalVolumeKg: number;
+  bestWeightKg: number;
+  bestRepShape: string;
+};
+
+type SessionRecapDraft = {
+  fatigue?: FatigueLevel;
+  note?: string;
+};
+
+type FatigueLevel = "destroyed" | "hard" | "good" | "easy" | "tooEasy";
+
+const BODY_COLORS = ["rgba(123,111,255,0.25)", "rgba(123,111,255,0.5)", "#7B6FFF"];
+const FATIGUE_OPTIONS: Array<{
+  key: FatigueLevel;
+  label: string;
+  tint: string;
+}> = [
+  { key: "destroyed", label: "Destroyed", tint: "#F87171" },
+  { key: "hard", label: "Hard", tint: "#F59E0B" },
+  { key: "good", label: "Good", tint: "#7B6FFF" },
+  { key: "easy", label: "Easy", tint: "#4ADE80" },
+  { key: "tooEasy", label: "Too easy", tint: "#4ADE80" },
+];
+
+const KEY_TO_SLUG: Record<PrimaryMuscleKey, BodySlug> = {
+  chest: "chest",
+  shoulders: "deltoids",
+  biceps: "biceps",
+  triceps: "triceps",
+  forearms: "forearm",
+  abs: "abs",
+  traps: "trapezius",
+  lats: "upper-back",
+  rhomboids: "upper-back",
+  lowerBack: "lower-back",
+  quads: "quadriceps",
+  adductors: "adductors",
+  hamstrings: "hamstring",
+  glutes: "gluteal",
+  calves: "calves",
+};
+
+const SLUG_TO_KEYS: Partial<Record<BodySlug, PrimaryMuscleKey[]>> = {
+  chest: ["chest"],
+  deltoids: ["shoulders"],
+  biceps: ["biceps"],
+  triceps: ["triceps"],
+  forearm: ["forearms"],
+  abs: ["abs"],
+  trapezius: ["traps"],
+  "upper-back": ["lats", "rhomboids"],
+  "lower-back": ["lowerBack"],
+  quadriceps: ["quads"],
+  adductors: ["adductors"],
+  hamstring: ["hamstrings"],
+  gluteal: ["glutes"],
+  calves: ["calves"],
+};
+
+const REGION_LABELS: Record<PrimaryMuscleKey, string> = {
+  chest: "Chest",
+  shoulders: "Shoulders",
+  biceps: "Biceps",
+  triceps: "Triceps",
+  forearms: "Forearms",
+  abs: "Abs",
+  traps: "Traps",
+  lats: "Lats",
+  rhomboids: "Rhomboids",
+  lowerBack: "Lower back",
+  quads: "Quads",
+  adductors: "Adductors",
+  hamstrings: "Hamstrings",
+  glutes: "Glutes",
+  calves: "Calves",
+};
+
+function withAlpha(hex: string, alpha: number) {
+  const safe = (hex || "").replace("#", "");
+  if (safe.length !== 6) return hex;
+  const r = parseInt(safe.slice(0, 2), 16);
+  const g = parseInt(safe.slice(2, 4), 16);
+  const b = parseInt(safe.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, alpha))})`;
+}
+
+function createdAtMs(x: any) {
+  const t = x?.setCreatedAt ?? x?.createdAt ?? x?.sessionStartedAt;
+  if (!t) return 0;
+  if (typeof t === "number") return t;
+  if (typeof t?.toMillis === "function") return t.toMillis();
+  if (typeof t?.seconds === "number") return t.seconds * 1000;
+  return Number(t) || 0;
+}
+
 function dateMsFromISO(iso: string) {
   if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return 0;
   return new Date(`${iso}T00:00:00`).getTime();
@@ -88,7 +164,6 @@ function dateMsFromISO(iso: string) {
 function buildSessionBuckets(all: WorkoutRow[]) {
   const rows = (all || []).slice();
   const gapMs = 1000 * 60 * 120;
-
   rows.sort((a, b) => {
     const ad = (a as any).date || "";
     const bd = (b as any).date || "";
@@ -106,8 +181,7 @@ function buildSessionBuckets(all: WorkoutRow[]) {
         ? String((r as any).sessionId)
         : "";
     const title =
-      typeof (r as any).sessionTitle === "string" &&
-      (r as any).sessionTitle.trim()
+      typeof (r as any).sessionTitle === "string" && (r as any).sessionTitle.trim()
         ? String((r as any).sessionTitle)
         : "Workout";
     const startedAt =
@@ -132,12 +206,8 @@ function buildSessionBuckets(all: WorkoutRow[]) {
         });
       } else {
         existing.rows.push(r);
-        existing.latestAt = Math.max(existing.latestAt || 0, createdMs || 0);
-        if (existing.title === "Workout" && title !== "Workout")
-          existing.title = title;
-        if (!existing.startedAt && startedAt) existing.startedAt = startedAt;
-        if (existing.dateISO === "Unknown date" && dateISO !== "Unknown date")
-          existing.dateISO = dateISO;
+        existing.latestAt = Math.max(existing.latestAt || 0, createdMs);
+        if (existing.title === "Workout" && title !== "Workout") existing.title = title;
       }
       continue;
     }
@@ -146,14 +216,12 @@ function buildSessionBuckets(all: WorkoutRow[]) {
     const last = autoList[autoList.length - 1];
     if (last && last.latestAt && last.latestAt - createdMs <= gapMs) {
       last.rows.push(r);
-      last.latestAt = Math.max(last.latestAt || 0, createdMs || 0);
+      last.latestAt = Math.max(last.latestAt || 0, createdMs);
       if (last.title === "Workout" && title !== "Workout") last.title = title;
-      if (!last.startedAt && startedAt) last.startedAt = startedAt;
     } else {
       const key = `auto:${dateISO}:${autoList.length}`;
       const bucket: SessionBucket = {
         key,
-        sessionId: undefined,
         dateISO,
         title,
         startedAt,
@@ -173,161 +241,143 @@ function buildSessionBuckets(all: WorkoutRow[]) {
   });
 }
 
-function fmtTime(ms: number) {
-  if (!ms) return "";
-  const d = new Date(ms);
-  let h = d.getHours();
-  const m = d.getMinutes();
-  const ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12;
-  if (h === 0) h = 12;
-  return `${h}:${String(m).padStart(2, "0")} ${ampm}`;
-}
-
-function fmtDateLong(iso: string) {
-  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || "";
+function formatHeaderDate(iso: string) {
+  if (!iso) return "";
   const d = new Date(`${iso}T00:00:00`);
   return d.toLocaleDateString(undefined, {
     weekday: "short",
     month: "short",
     day: "numeric",
-    year: "numeric",
   });
 }
 
-function volumeKg(sets: number, reps: number, weightKg: number) {
-  return Math.max(0, sets) * Math.max(0, reps) * Math.max(0, weightKg);
+function formatShortDate(iso: string) {
+  if (!iso) return "";
+  const d = new Date(`${iso}T00:00:00`);
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 }
 
-// ---------------------- UI models ----------------------
-
-type PerformedBlock = {
-  id: string;
-  order: number; // 1..n within session overall
-  exercise: string;
-  sets: number;
-  reps: number;
-  weight: number;
-  notes?: string;
-  t?: number; // created time
-  vol: number;
-};
-
-type ExerciseGroup = {
-  name: string;
-  firstIndex: number; // index in session (for performed order)
-  blocks: PerformedBlock[]; // in performed order
-  totalSets: number;
-  totalVol: number;
-  bestWeight: number;
-  bestVol: number;
-  hasNotes: boolean;
-};
-
-function clamp(n: number, a: number, b: number) {
-  return Math.max(a, Math.min(b, n));
+function formatDuration(minutes: number) {
+  if (!minutes) return "—";
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `${h}h ${m}m` : `${h}h`;
 }
 
-function computeSignalLabel(
-  totalVol: number,
-  durationMin: number,
-  exCount: number
-) {
-  // Calm, low-drama "signal" based on work density.
-  // (Keeps it stable without user history comparison.)
-  if (!totalVol || !durationMin)
-    return { label: "Logged", tone: "neutral" as const };
-  const density = totalVol / Math.max(1, durationMin); // kg/min
-  const complexity = exCount >= 8 ? 1.07 : exCount >= 5 ? 1.0 : 0.93;
-  const score = density * complexity;
-
-  if (score >= 220) return { label: "High Output", tone: "strong" as const };
-  if (score >= 140) return { label: "Solid", tone: "good" as const };
-  if (score >= 80) return { label: "Steady", tone: "neutral" as const };
-  return { label: "Light", tone: "soft" as const };
+function formatVolume(n: number, unit: "kg" | "lb") {
+  if (!isFinite(n) || n <= 0) return "—";
+  const rounded = Math.round(n);
+  return `${rounded}${unit}`;
 }
 
-function formatKg(n: number) {
-  if (!isFinite(n)) return "—";
-  const r = Math.round(n);
-  return `${r}`;
+function workoutScore(totalVolumeKg: number, durationMin: number, exerciseCount: number) {
+  if (!totalVolumeKg || !durationMin) return 0;
+  const density = totalVolumeKg / Math.max(1, durationMin);
+  const complexity = exerciseCount >= 8 ? 1.15 : exerciseCount >= 5 ? 1.0 : 0.9;
+  return Math.max(0, Math.min(100, Math.round(density * complexity)));
 }
 
-function formatVolume(n: number) {
-  if (!isFinite(n)) return "—";
-  // Keep it clean: show 12.4k for big sessions.
-  if (n >= 100000) return `${(n / 1000).toFixed(0)}k`;
-  if (n >= 10000) return `${(n / 1000).toFixed(1)}k`;
-  return `${Math.round(n)}`;
+function recapKey(uid: string, sessionKey: string) {
+  return `workout:recap:${uid}:${sessionKey}`;
 }
 
-// ---------------------- micro component helpers ----------------------
-
-function usePressScale() {
-  const s = useSharedValue(1);
-  const onPressIn = () => {
-    s.value = withSpring(0.98, { damping: 18, stiffness: 260 });
-  };
-  const onPressOut = () => {
-    s.value = withSpring(1, { damping: 18, stiffness: 260 });
-  };
-  const style = useAnimatedStyle(() => ({
-    transform: [{ scale: s.value }],
-  }));
-  return { style, onPressIn, onPressOut };
+function enterMotion(reduceMotion: boolean, delay: number, distance = 8) {
+  return reduceMotion
+    ? FadeIn.duration(220).delay(delay)
+    : FadeInDown.duration(320).delay(delay).withInitialValues({
+        opacity: 0,
+        transform: [{ translateY: distance }],
+      });
 }
-
-const HAPTIC_LIGHT = () => {
-  if (Platform.OS === "ios" || Platform.OS === "android") {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-  }
-};
-const HAPTIC_SOFT = () => {
-  if (Platform.OS === "ios" || Platform.OS === "android") {
-    // Soft is iOS-only; fallback to Light on Android
-    const anyHaptics: any = Haptics;
-    const soft = anyHaptics?.ImpactFeedbackStyle?.Soft;
-    Haptics.impactAsync(soft ?? Haptics.ImpactFeedbackStyle.Light).catch(
-      () => {}
-    );
-  }
-};
-
-// ---------------------- Screen ----------------------
 
 export default function WorkoutRecapScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { colors, isDark } = useTheme();
-  const [profile, setProfile] = useState<Profile | null>(null);
-
+  const { isDark } = useTheme();
   const params = useLocalSearchParams<{ sessionKey?: string }>();
   const sessionKey = String(params.sessionKey || "");
 
-  const topInset = Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0;
-
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [allRows, setAllRows] = useState<WorkoutRow[]>([]);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({}); // per exercise
+  const [fatigue, setFatigue] = useState<FatigueLevel | null>(null);
+  const [note, setNote] = useState("");
+  const [notesExpanded, setNotesExpanded] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const [activeMuscle, setActiveMuscle] = useState<PrimaryMuscleKey | null>(null);
+  const [sharing, setSharing] = useState(false);
+
+  const noteDraftRef = useRef("");
+  const backgroundOpacity = useRef(new RNAnimated.Value(0)).current;
+
+  const topInset = Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0;
+  const surfaces = useMemo(
+    () => ({
+      bg: isDark ? "#08080F" : "#F8F8FC",
+      s1: isDark ? "#0F0F1A" : "#FFFFFF",
+      s2: isDark ? "#141422" : "#F2F2F8",
+      s3: isDark ? "#1C1C2E" : "#EAEAF2",
+      border: isDark ? "#FFFFFF08" : "#00000008",
+      borderElev: isDark ? "#FFFFFF12" : "#00000012",
+      accent: isDark ? "#7B6FFF" : "#6355E8",
+      accentDim: isDark ? "#7B6FFF12" : "#6355E820",
+      accentBorder: isDark ? "#7B6FFF30" : "#6355E830",
+      text: isDark ? "#F0F0FF" : "#0A0A1A",
+      text2: isDark ? "#8888AA" : "#666688",
+      text3: isDark ? "#444466" : "#AAAACC",
+      success: "#4ADE80",
+      warning: "#F59E0B",
+      danger: "#F87171",
+      shadow: isDark
+        ? {}
+        : {
+            shadowColor: "#000000",
+            shadowOpacity: 0.05,
+            shadowOffset: { width: 0, height: 2 },
+            shadowRadius: 12,
+            elevation: 2,
+          },
+    }),
+    [isDark]
+  );
 
   useEffect(() => {
     if (!user?.uid) return;
-    return subscribeWorkouts(
-      user.uid,
-      (rows: Workout[]) => setAllRows((rows || []) as WorkoutRow[]),
-      { max: 800 }
-    );
+    return subscribeWorkouts(user.uid, (rows) => setAllRows((rows || []) as WorkoutRow[]), {
+      max: 800,
+    });
   }, [user?.uid]);
 
   useEffect(() => {
-    if (!user?.uid) {
-      setProfile(null);
-      return;
-    }
+    if (!user?.uid) return;
     return subscribeProfile(user.uid, (p) => setProfile(p || null));
   }, [user?.uid]);
 
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((v) => setReduceMotion(!!v))
+      .catch(() => {});
+    const sub = (AccessibilityInfo as any).addEventListener?.(
+      "reduceMotionChanged",
+      (v: boolean) => setReduceMotion(!!v)
+    );
+    return () => sub?.remove?.();
+  }, []);
+
+  useEffect(() => {
+    RNAnimated.timing(backgroundOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [backgroundOpacity]);
+
+  const sessions = useMemo(() => buildSessionBuckets(allRows), [allRows]);
+
   const session = useMemo(() => {
-    const sessions = buildSessionBuckets(allRows);
     let match = sessions.find((s) => s.key === sessionKey);
     if (!match && sessionKey.startsWith("session:")) {
       const sid = sessionKey.replace("session:", "");
@@ -338,1739 +388,830 @@ export default function WorkoutRecapScreen() {
       match = sessions.find((s) => s.dateISO === iso);
     }
     return match || null;
-  }, [allRows, sessionKey]);
+  }, [sessions, sessionKey]);
 
-  const rows = useMemo(() => {
-    return (session?.rows || [])
-      .slice()
-      .sort((a, b) => createdAtMs(a) - createdAtMs(b));
-  }, [session]);
+  const sessionIndex = useMemo(
+    () => sessions.findIndex((x) => x.key === session?.key),
+    [sessions, session?.key]
+  );
+
+  const previousSession = useMemo(() => {
+    if (!session) return null;
+    const sameTitle = sessions.find(
+      (s, idx) => idx > sessionIndex && s.title.trim() === session.title.trim()
+    );
+    return sameTitle || sessions[sessionIndex + 1] || null;
+  }, [session, sessionIndex, sessions]);
 
   const weightUnit = profile?.weightUnit === "lb" ? "lb" : "kg";
+  const sex = profile?.sex === "female" ? "female" : "male";
   const toDisplayWeight = useCallback(
     (kg: number) => (weightUnit === "lb" ? kg * 2.20462 : kg),
     [weightUnit]
   );
-  const formatWeightValue = useCallback(
-    (kg: number) => formatKg(toDisplayWeight(kg)),
-    [toDisplayWeight]
-  );
-  const formatVolumeDisplay = useCallback(
-    (kg: number) => formatVolume(toDisplayWeight(kg)),
-    [toDisplayWeight]
+
+  const rows = useMemo(
+    () => (session?.rows || []).slice().sort((a, b) => createdAtMs(a) - createdAtMs(b)),
+    [session]
   );
 
-  const performedBlocks = useMemo<PerformedBlock[]>(() => {
-    const out: PerformedBlock[] = [];
-    let idx = 0;
-    for (const r of rows) {
-      const exercise = String((r as any).exercise || "Exercise");
-      const sets = Number((r as any).sets || 0);
-      const reps = Number((r as any).reps || 0);
-      const weight = Number((r as any).weight || 0);
-      const notes = String((r as any).notes || "").trim();
-      const t = createdAtMs(r) || undefined;
-      const vol = volumeKg(sets, reps, weight);
-      out.push({
-        id: String((r as any).id || `${idx}`),
-        order: idx + 1,
-        exercise,
-        sets,
-        reps,
-        weight,
-        notes: notes || undefined,
-        t,
-        vol,
-      });
-      idx++;
-    }
-    return out;
+  const blocks = useMemo<PerformedBlock[]>(() => {
+    return rows.map((row) => ({
+      id: row.id,
+      exercise: String(row.exercise || "Exercise"),
+      sets: Number(row.sets || 0),
+      reps: Number(row.reps || 0),
+      weightKg: Number(row.weight || 0),
+      primaryMuscle: inferPrimaryMuscle(row.exercise || "", row.primaryMuscle),
+      createdMs: createdAtMs(row),
+    }));
   }, [rows]);
 
-  const exercises = useMemo<ExerciseGroup[]>(() => {
-    const map = new Map<string, ExerciseGroup>();
-    performedBlocks.forEach((b, i) => {
-      const ex = b.exercise;
-      const cur = map.get(ex);
-      if (!cur) {
-        map.set(ex, {
-          name: ex,
-          firstIndex: i,
-          blocks: [b],
-          totalSets: b.sets,
-          totalVol: b.vol,
-          bestWeight: b.weight,
-          bestVol: b.vol,
-          hasNotes: !!b.notes,
+  const exerciseSummaries = useMemo<ExerciseSummary[]>(() => {
+    const map = new Map<string, ExerciseSummary>();
+    for (const block of blocks) {
+      const current = map.get(block.exercise);
+      const vol = block.sets * block.reps * block.weightKg;
+      if (!current) {
+        map.set(block.exercise, {
+          name: block.exercise,
+          totalSets: block.sets,
+          totalReps: block.sets * block.reps,
+          totalVolumeKg: vol,
+          bestWeightKg: block.weightKg,
+          bestRepShape: `${block.sets}×${block.reps} @ ${Math.round(toDisplayWeight(block.weightKg))}${weightUnit}`,
         });
       } else {
-        cur.blocks.push(b);
-        cur.totalSets += b.sets;
-        cur.totalVol += b.vol;
-        cur.bestWeight = Math.max(cur.bestWeight, b.weight);
-        cur.bestVol = Math.max(cur.bestVol, b.vol);
-        cur.hasNotes = cur.hasNotes || !!b.notes;
+        current.totalSets += block.sets;
+        current.totalReps += block.sets * block.reps;
+        current.totalVolumeKg += vol;
+        if (block.weightKg > current.bestWeightKg) {
+          current.bestWeightKg = block.weightKg;
+          current.bestRepShape = `${block.sets}×${block.reps} @ ${Math.round(
+            toDisplayWeight(block.weightKg)
+          )}${weightUnit}`;
+        }
       }
-    });
-
-    return Array.from(map.values()).sort((a, b) => a.firstIndex - b.firstIndex);
-  }, [performedBlocks]);
-
-  useEffect(() => {
-    // default expand first 1-2 exercises (feels premium, less empty)
-    if (!exercises.length) return;
-    setExpanded((prev) => {
-      if (Object.keys(prev).length) return prev;
-      const next: Record<string, boolean> = {};
-      exercises.forEach((e, idx) => {
-        next[e.name] = idx < 2;
-      });
-      return next;
-    });
-  }, [exercises]);
+    }
+    return Array.from(map.values());
+  }, [blocks, toDisplayWeight, weightUnit]);
 
   const meta = useMemo(() => {
-    if (!performedBlocks.length) {
-      return {
-        title: session?.title || "Workout",
-        dateISO: session?.dateISO || "",
-        dateLabel: session?.dateISO ? fmtDateLong(session.dateISO) : "",
-        timeLabel: "",
-        durationMin: 0,
-        totalSets: 0,
-        totalReps: 0,
-        totalVol: 0,
-        exCount: 0,
-        prCount: 0,
-        bestBlockId: "",
-        bestWeight: { ex: "", weight: 0, sets: 0, reps: 0 },
-        bestVol: { ex: "", vol: 0, sets: 0, reps: 0, weight: 0 },
-      };
-    }
-
     const first = rows[0];
     const last = rows[rows.length - 1];
-
-    const title =
-      session?.title || String((first as any)?.sessionTitle || "Workout");
-
-    const dateISO = String(session?.dateISO || (first as any)?.date || "");
-    const start =
-      Number((session as any)?.startedAt || 0) || createdAtMs(first);
-    const end = createdAtMs(last) || start;
-
+    const startMs =
+      Number(session?.startedAt || 0) || (first ? createdAtMs(first) : 0) || 0;
+    const endMs = last ? createdAtMs(last) || startMs : startMs;
     const durationMin =
-      start && end && end >= start
-        ? Math.max(1, Math.round((end - start) / 60000))
-        : 0;
-
-    const totalSets = performedBlocks.reduce((a, b) => a + (b.sets || 0), 0);
-    const totalReps = performedBlocks.reduce(
-      (a, b) => a + (b.sets || 0) * (b.reps || 0),
-      0
-    );
-    const totalVol = performedBlocks.reduce((a, b) => a + (b.vol || 0), 0);
-
-    let bestWeight = { ex: "", weight: 0, sets: 0, reps: 0 };
-    let bestVol = { ex: "", vol: 0, sets: 0, reps: 0, weight: 0 };
-    let bestBlockId = performedBlocks[0]?.id || "";
-
-    for (const b of performedBlocks) {
-      if (b.weight > bestWeight.weight) {
-        bestWeight = {
-          ex: b.exercise,
-          weight: b.weight,
-          sets: b.sets,
-          reps: b.reps,
-        };
-      }
-      if (b.vol > bestVol.vol) {
-        bestVol = {
-          ex: b.exercise,
-          vol: b.vol,
-          sets: b.sets,
-          reps: b.reps,
-          weight: b.weight,
-        };
-        bestBlockId = b.id;
-      }
-    }
-
-    // PR count heuristic (session-local):
-    // - Count distinct exercises that had a "best block" (max weight OR max volume) (within this session)
-    // This avoids needing your historical PR system.
-    let prCount = 0;
-    for (const ex of exercises) {
-      const bestW = ex.bestWeight;
-      const bestV = ex.bestVol;
-      // if there's meaningful effort
-      if (bestW > 0 || bestV > 0) prCount++;
-    }
-
+      startMs && endMs >= startMs ? Math.max(1, Math.round((endMs - startMs) / 60000)) : 0;
+    const totalSets = blocks.reduce((sum, b) => sum + b.sets, 0);
+    const totalReps = blocks.reduce((sum, b) => sum + b.sets * b.reps, 0);
+    const totalVolumeKg = blocks.reduce((sum, b) => sum + b.sets * b.reps * b.weightKg, 0);
     return {
-      title,
-      dateISO,
-      dateLabel: dateISO ? fmtDateLong(dateISO) : "",
-      timeLabel: start ? fmtTime(start) : "",
+      title: session?.title || "Workout",
+      dateISO: session?.dateISO || "",
       durationMin,
       totalSets,
       totalReps,
-      totalVol: Math.round(totalVol),
-      exCount: exercises.length,
-      prCount,
-      bestBlockId,
-      bestWeight,
-      bestVol,
+      totalVolumeKg,
+      exerciseCount: exerciseSummaries.length,
+      startMs,
     };
-  }, [performedBlocks, rows, session, exercises]);
+  }, [blocks, exerciseSummaries.length, rows, session]);
 
-  // ---------------------- theme tokens ----------------------
+  const previousMeta = useMemo(() => {
+    if (!previousSession) return null;
+    const prevRows = previousSession.rows || [];
+    const durationMin = (() => {
+      const start =
+        Number(previousSession.startedAt || 0) ||
+        (prevRows[0] ? createdAtMs(prevRows[0]) : 0) ||
+        0;
+      const end = prevRows[prevRows.length - 1]
+        ? createdAtMs(prevRows[prevRows.length - 1]) || start
+        : start;
+      return start && end >= start ? Math.max(1, Math.round((end - start) / 60000)) : 0;
+    })();
+    const totalVolumeKg = prevRows.reduce(
+      (sum, row) => sum + Number(row.sets || 0) * Number(row.reps || 0) * Number(row.weight || 0),
+      0
+    );
+    const exerciseCount = new Set(prevRows.map((r) => r.exercise)).size;
+    return { durationMin, totalVolumeKg, exerciseCount };
+  }, [previousSession]);
 
-  const accent = colors.primary ?? "#68D7FF";
-  const accent2 = "#8B7CFF";
-  const gold = "#FFD66B";
-  const hot = "#FF4FD8";
+  const comparisonCopy = useMemo(() => {
+    if (!previousMeta || !previousMeta.totalVolumeKg) return "—";
+    const volDelta =
+      ((meta.totalVolumeKg - previousMeta.totalVolumeKg) / previousMeta.totalVolumeKg) * 100;
+    const exDelta = meta.exerciseCount - previousMeta.exerciseCount;
+    const arrow = volDelta >= 0 ? "↑" : "↓";
+    if (volDelta < 0) {
+      return `${arrow} lighter than last session${
+        exDelta ? ` · ${Math.abs(exDelta)} ${Math.abs(exDelta) === 1 ? "exercise" : "exercises"} difference` : ""
+      }`;
+    }
+    const volText = `${arrow} +${Math.round(volDelta)}% volume`;
+    const exText = exDelta
+      ? ` · ${exDelta > 0 ? "+" : ""}${exDelta} ${Math.abs(exDelta) === 1 ? "exercise" : "exercises"} vs last session`
+      : "";
+    return `${volText}${exText}`;
+  }, [meta.exerciseCount, meta.totalVolumeKg, previousMeta]);
 
-  const bgGradient = isDark
-    ? ["#050710", "#040513", "#02030A"]
-    : [
-        withAlpha(accent, 0.12),
-        withAlpha("#FFFFFF", 0.92),
-        withAlpha("#FFFFFF", 0.88),
-      ];
+  const prRows = useMemo(() => {
+    if (!session) return [];
+    const currentSessionStart =
+      meta.startMs || dateMsFromISO(session.dateISO) || Number.MAX_SAFE_INTEGER;
+    const olderRows = allRows.filter((row) => {
+      if (!row.id || row.id === rows[0]?.id) return true;
+      if (session.sessionId && row.sessionId === session.sessionId) return false;
+      const rowMs = createdAtMs(row) || dateMsFromISO(row.date || "");
+      return rowMs < currentSessionStart;
+    });
 
-  const headerBorder = withAlpha(colors.text, isDark ? 0.12 : 0.08);
+    return exerciseSummaries
+      .map((summary) => {
+        const hist = olderRows.filter((row) => row.exercise === summary.name);
+        const prevBestWeightKg = hist.reduce(
+          (best, row) => Math.max(best, Number(row.weight || 0)),
+          0
+        );
+        if (summary.bestWeightKg <= prevBestWeightKg || summary.bestWeightKg <= 0) return null;
+        return {
+          exercise: summary.name,
+          repShape: summary.bestRepShape,
+          prevWeightKg: prevBestWeightKg,
+        };
+      })
+      .filter(Boolean) as Array<{
+      exercise: string;
+      repShape: string;
+      prevWeightKg: number;
+    }>;
+  }, [allRows, exerciseSummaries, meta.startMs, rows, session]);
 
-  const glassBg = isDark
-    ? withAlpha("#FFFFFF", 0.06)
-    : withAlpha("#FFFFFF", 0.8);
-  const glassBorder = isDark
-    ? withAlpha("#FFFFFF", 0.14)
-    : withAlpha(colors.text, 0.1);
-
-  const cardBg = isDark
-    ? withAlpha("#FFFFFF", 0.05)
-    : withAlpha("#FFFFFF", 0.86);
-  const cardBorder = isDark
-    ? withAlpha("#FFFFFF", 0.12)
-    : withAlpha(colors.text, 0.08);
-
-  const pillBg = isDark
-    ? withAlpha("#FFFFFF", 0.06)
-    : withAlpha("#FFFFFF", 0.86);
-  const pillBorder = isDark
-    ? withAlpha("#FFFFFF", 0.14)
-    : withAlpha(colors.text, 0.1);
-
-  const textStrong = isDark ? withAlpha("#FFFFFF", 0.94) : colors.text;
-  const textMid = withAlpha(colors.text, isDark ? 0.7 : 0.76);
-  const textMuted = withAlpha(colors.text, isDark ? 0.58 : 0.62);
-
-  const signal = computeSignalLabel(
-    meta.totalVol,
-    meta.durationMin,
-    meta.exCount
+  const score = useMemo(
+    () => workoutScore(meta.totalVolumeKg, meta.durationMin, meta.exerciseCount),
+    [meta.durationMin, meta.exerciseCount, meta.totalVolumeKg]
   );
-  const signalColor =
-    signal.tone === "strong"
-      ? withAlpha(hot, 0.95)
-      : signal.tone === "good"
-      ? withAlpha(accent, 0.95)
-      : signal.tone === "soft"
-      ? withAlpha("#B6C0FF", 0.85)
-      : withAlpha("#FFFFFF", isDark ? 0.72 : 0.68);
 
-  const onToggleExercise = useCallback((name: string) => {
-    HAPTIC_SOFT();
-    setExpanded((p) => ({ ...p, [name]: !p[name] }));
-  }, []);
+  const muscleSummary = useMemo(() => {
+    const byKey = new Map<
+      PrimaryMuscleKey,
+      { sets: number; exercise: string; lastDate: string }
+    >();
+    for (const row of rows) {
+      const key = inferPrimaryMuscle(row.exercise || "", row.primaryMuscle);
+      if (!key) continue;
+      const current = byKey.get(key);
+      const sets = Number(row.sets || 0);
+      if (!current) {
+        byKey.set(key, {
+          sets,
+          exercise: row.exercise || "Exercise",
+          lastDate: row.date || "",
+        });
+      } else {
+        current.sets += sets;
+      }
+    }
+    return byKey;
+  }, [rows]);
 
-  const onAction = useCallback((kind: "repeat" | "duplicate" | "edit") => {
-    HAPTIC_LIGHT();
-    // Hook these into your real flows when ready.
-    // Keeping it safe: no assumptions about your routes/templates structure.
-    const msg =
-      kind === "repeat"
-        ? "Repeat workout"
-        : kind === "duplicate"
-        ? "Duplicate as template"
-        : "Edit workout";
-    Alert.alert(msg, "Wire this action to your workflow/template system.");
-  }, []);
+  const bodyData = useMemo<ExtendedBodyPart[]>(() => {
+    return Array.from(muscleSummary.entries()).map(([key, value]) => {
+      const intensity = value.sets >= 5 ? 3 : value.sets >= 3 ? 2 : 1;
+      return {
+        slug: KEY_TO_SLUG[key],
+        intensity,
+        styles:
+          activeMuscle === key
+            ? {
+                stroke: withAlpha("#FFFFFF", 0.32),
+                strokeWidth: 1.25,
+              }
+            : undefined,
+      };
+    });
+  }, [activeMuscle, muscleSummary]);
 
-  // ---------------------- header press scale ----------------------
+  const activeMuscleDetail = activeMuscle ? muscleSummary.get(activeMuscle) : null;
 
-  const backPress = usePressScale();
+  const showCelebration =
+    !reduceMotion && (prRows.length > 0 || score > 80 || sessions.length === 1);
+
+  useEffect(() => {
+    if (!user?.uid || !session?.key) return;
+    AsyncStorage.getItem(recapKey(user.uid, session.key))
+      .then((raw) => {
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as SessionRecapDraft;
+        if (parsed.fatigue) setFatigue(parsed.fatigue);
+        if (parsed.note) {
+          setNote(parsed.note);
+          noteDraftRef.current = parsed.note;
+        }
+      })
+      .catch(() => {});
+  }, [session?.key, user?.uid]);
+
+  const persistDraft = useCallback(
+    async (patch: Partial<SessionRecapDraft>) => {
+      if (!user?.uid || !session?.key) return;
+      const next: SessionRecapDraft = {
+        fatigue: patch.fatigue ?? fatigue ?? undefined,
+        note: patch.note ?? noteDraftRef.current,
+      };
+      noteDraftRef.current = next.note || "";
+      await AsyncStorage.setItem(recapKey(user.uid, session.key), JSON.stringify(next)).catch(
+        () => {}
+      );
+    },
+    [fatigue, session?.key, user?.uid]
+  );
+
+  const onSelectFatigue = useCallback(
+    async (value: FatigueLevel) => {
+      setFatigue(value);
+      await persistDraft({ fatigue: value });
+      Haptics.selectionAsync().catch(() => {});
+    },
+    [persistDraft]
+  );
+
+  const onBlurNote = useCallback(async () => {
+    await persistDraft({ note });
+  }, [note, persistDraft]);
+
+  const onDone = useCallback(() => {
+    router.replace("/(tabs)/workouts");
+  }, [router]);
+
+  const shareText = useMemo(() => {
+    const lines = [
+      `${meta.title}`,
+      `${formatHeaderDate(meta.dateISO)} · ${meta.durationMin} min`,
+      `Sets ${meta.totalSets} · Reps ${meta.totalReps} · Volume ${formatVolume(
+        Math.round(toDisplayWeight(meta.totalVolumeKg)),
+        weightUnit
+      )}`,
+    ];
+    if (prRows.length) {
+      lines.push(
+        "",
+        "PRs",
+        ...prRows.map(
+          (row) =>
+            `${row.exercise} · ${row.repShape} · prev ${Math.round(
+              toDisplayWeight(row.prevWeightKg)
+            )}${weightUnit}`
+        )
+      );
+    }
+    lines.push("", "Logged with Fitness Mobile");
+    return lines.join("\n");
+  }, [meta, prRows, toDisplayWeight, weightUnit]);
+
+  const onShare = useCallback(async () => {
+    setSharing(true);
+    try {
+      await Share.share({ message: shareText });
+    } catch {
+      await Clipboard.setStringAsync(shareText);
+      Alert.alert("Summary copied", "Copied a plain text workout summary to your clipboard.");
+    } finally {
+      setSharing(false);
+    }
+  }, [shareText]);
+
+  const renderTile = (
+    label: string,
+    value: string,
+    delay: number,
+    inlineUnit?: string
+  ) => (
+    <Animated.View
+      entering={enterMotion(reduceMotion, 400 + delay, 8)}
+      style={[styles.tile, { backgroundColor: surfaces.s1, borderColor: surfaces.border }, surfaces.shadow]}
+    >
+      <Text style={[styles.tileLabel, { color: surfaces.text3 }]}>{label}</Text>
+      <Text style={[styles.tileValue, { color: surfaces.text }]}>
+        {value}
+        {inlineUnit ? <Text style={[styles.tileUnit, { color: surfaces.text3 }]}> {inlineUnit}</Text> : null}
+      </Text>
+    </Animated.View>
+  );
+
+  if (!session) {
+    return (
+      <View style={[styles.root, { backgroundColor: surfaces.bg, paddingTop: topInset + 24 }]}>
+        <Text style={[styles.heroTitle, { color: surfaces.text }]}>Workout complete</Text>
+        <Text style={[styles.heroMeta, { color: surfaces.text3 }]}>
+          This session could not be found.
+        </Text>
+        <View style={{ paddingHorizontal: 16, marginTop: 24 }}>
+          <Pressable
+            onPress={onDone}
+            style={[styles.primaryButton, { backgroundColor: surfaces.accent }]}
+          >
+            <Text style={styles.primaryButtonText}>Done</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
-      <LinearGradient
-        colors={bgGradient as any}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.9, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={[styles.root, { backgroundColor: surfaces.bg }]}>
+      <RNAnimated.View style={[StyleSheet.absoluteFill, { opacity: backgroundOpacity }]} />
+      {showCelebration ? <CelebrationConfetti accent={surfaces.accent} gold={surfaces.warning} /> : null}
 
-      {/* soft glows */}
-      <View
-        pointerEvents="none"
-        style={[
-          styles.glow,
-          {
-            top: -140,
-            left: -110,
-            backgroundColor: withAlpha(accent, isDark ? 0.18 : 0.14),
-          },
-        ]}
-      />
-      <View
-        pointerEvents="none"
-        style={[
-          styles.glow,
-          {
-            top: 140,
-            right: -120,
-            backgroundColor: withAlpha(accent2, isDark ? 0.16 : 0.12),
-          },
-        ]}
-      />
-      <View
-        pointerEvents="none"
-        style={[
-          styles.glowSm,
-          {
-            bottom: 40,
-            left: 40,
-            backgroundColor: withAlpha(hot, isDark ? 0.1 : 0.08),
-          },
-        ]}
-      />
-
-      {/* ---------------------- Header ---------------------- */}
-      <View style={{ paddingTop: topInset }}>
-        <BlurView
-          intensity={isDark ? 30 : 22}
-          tint={isDark ? "dark" : "light"}
-          style={[styles.headerBlur, { borderBottomColor: headerBorder }]}
-        >
-          <View style={styles.headerRow}>
-            <Animated.View style={backPress.style}>
-              <Pressable
-                onPress={() => router.back()}
-                onPressIn={backPress.onPressIn}
-                onPressOut={backPress.onPressOut}
-                style={({ pressed }) => [
-                  styles.backBtn,
-                  { backgroundColor: pillBg, borderColor: pillBorder },
-                  pressed && { opacity: 0.85 },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel="Back"
-              >
-                <Ionicons
-                  name="chevron-back"
-                  size={18}
-                  color={withAlpha(colors.text, isDark ? 0.9 : 0.8)}
-                />
-                <Text style={[styles.backText, { color: textStrong }]}>
-                  History
-                </Text>
-              </Pressable>
-            </Animated.View>
-
-            <View style={{ flex: 1 }}>
-              <Text
-                style={[styles.title, { color: textStrong }]}
-                numberOfLines={1}
-              >
-                {meta.title}
-              </Text>
-
-              <View style={styles.subRow}>
-                <Text
-                  style={[styles.subtitle, { color: textMuted }]}
-                  numberOfLines={1}
-                >
-                  {meta.dateLabel || meta.dateISO || ""}
-                  {meta.timeLabel ? ` • ${meta.timeLabel}` : ""}
-                  {meta.durationMin ? ` • ${meta.durationMin} min` : ""}
-                </Text>
-
-                <View
-                  style={[
-                    styles.signalPill,
-                    {
-                      backgroundColor: withAlpha(
-                        signalColor,
-                        isDark ? 0.14 : 0.1
-                      ),
-                      borderColor: withAlpha(signalColor, isDark ? 0.28 : 0.18),
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.signalDot,
-                      {
-                        backgroundColor: signalColor,
-                        shadowColor: signalColor,
-                      },
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.signalText,
-                      { color: withAlpha(textStrong, isDark ? 0.86 : 0.82) },
-                    ]}
-                  >
-                    {signal.label}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.headerRight}>
-              <View
-                style={[
-                  styles.headerIconPill,
-                  { backgroundColor: pillBg, borderColor: pillBorder },
-                ]}
-              >
-                <Ionicons
-                  name="sparkles-outline"
-                  size={16}
-                  color={withAlpha(accent, 0.95)}
-                />
-              </View>
-            </View>
-          </View>
-        </BlurView>
-      </View>
-
-      {/* ---------------------- Content ---------------------- */}
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: topInset + 28,
+          paddingHorizontal: 16,
+          paddingBottom: 120,
+          gap: 24,
+        }}
       >
-        {/* Edge states */}
-        {!session ? (
-          <View
+        <Animated.View entering={enterMotion(reduceMotion, 300, 12)} style={styles.centerBlock}>
+          <Text style={[styles.heroTitle, { color: surfaces.text }]}>Workout complete</Text>
+          <Text style={[styles.heroMeta, { color: surfaces.text3 }]}>{meta.title}</Text>
+          <Text style={[styles.heroMeta, { color: surfaces.text3 }]}>
+            {formatHeaderDate(meta.dateISO)} · {meta.durationMin} min
+          </Text>
+        </Animated.View>
+
+        <View style={styles.tilesRow}>
+          {renderTile("DURATION", formatDuration(meta.durationMin), 0)}
+          {renderTile("SETS", meta.totalSets ? String(meta.totalSets) : "—", 100)}
+          {renderTile("REPS", meta.totalReps ? String(meta.totalReps) : "—", 200)}
+          {renderTile(
+            "VOLUME",
+            meta.totalVolumeKg ? String(Math.round(toDisplayWeight(meta.totalVolumeKg))) : "—",
+            300,
+            meta.totalVolumeKg ? weightUnit : undefined
+          )}
+        </View>
+
+        {prRows.length ? (
+          <Animated.View
+            entering={enterMotion(reduceMotion, 600, -10)}
             style={[
-              styles.edgeCard,
-              { backgroundColor: glassBg, borderColor: glassBorder },
-            ]}
-          >
-            <Ionicons
-              name="alert-circle-outline"
-              size={18}
-              color={withAlpha(gold, 0.9)}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.edgeTitle, { color: textStrong }]}>
-                Workout not found
-              </Text>
-              <Text style={[styles.edgeSub, { color: textMuted }]}>
-                This session key doesn’t match any saved workout in history.
-              </Text>
-            </View>
-          </View>
-        ) : performedBlocks.length === 0 ? (
-          <View
-            style={[
-              styles.edgeCard,
-              { backgroundColor: glassBg, borderColor: glassBorder },
-            ]}
-          >
-            <Ionicons
-              name="file-tray-outline"
-              size={18}
-              color={withAlpha(accent, 0.9)}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.edgeTitle, { color: textStrong }]}>
-                No log entries
-              </Text>
-              <Text style={[styles.edgeSub, { color: textMuted }]}>
-                This workout has no sets recorded.
-              </Text>
-            </View>
-          </View>
-        ) : null}
-
-        {/* ---------------------- Premium Summary ---------------------- */}
-        {!!session && (
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: glassBg, borderColor: glassBorder },
-            ]}
-          >
-            <Text
-              style={[
-                styles.sectionLabel,
-                { color: withAlpha(colors.text, isDark ? 0.7 : 0.6) },
-              ]}
-            >
-              Recap
-            </Text>
-
-            {/* Highlight chips */}
-            <View style={styles.chipsWrap}>
-              <Chip
-                icon="barbell-outline"
-                label="Exercises"
-                value={`${meta.exCount || 0}`}
-                tone="neutral"
-                isDark={isDark}
-                textStrong={textStrong}
-                textMuted={textMuted}
-                pillBg={pillBg}
-                pillBorder={pillBorder}
-              />
-              <Chip
-                icon="repeat-outline"
-                label="Sets"
-                value={`${meta.totalSets || 0}`}
-                tone="good"
-                accent={accent}
-                isDark={isDark}
-                textStrong={textStrong}
-                textMuted={textMuted}
-                pillBg={pillBg}
-                pillBorder={pillBorder}
-              />
-              <Chip
-                icon="pulse-outline"
-                label="Volume"
-                value={`${formatVolumeDisplay(meta.totalVol)}`}
-                // display as "12.4k" (we append k label visually; value already includes k for big)
-                // but keep it cute: show “12.4k”
-                tone="strong"
-                accent={accent2}
-                isDark={isDark}
-                textStrong={textStrong}
-                textMuted={textMuted}
-                pillBg={pillBg}
-                pillBorder={pillBorder}
-                valueOverride={`${formatVolumeDisplay(meta.totalVol)}${
-                  meta.totalVol >= 10000 ? "" : ""
-                }`}
-                suffix={` ${weightUnit}`}
-              />
-              <Chip
-                icon="trophy-outline"
-                label="PRs"
-                value={`${meta.prCount || 0}`}
-                tone="gold"
-                accent={gold}
-                isDark={isDark}
-                textStrong={textStrong}
-                textMuted={textMuted}
-                pillBg={pillBg}
-                pillBorder={pillBorder}
-              />
-            </View>
-
-            {/* Best moments */}
-            <View style={{ marginTop: 10, gap: 8 }}>
-              {!!meta.bestWeight.ex && meta.bestWeight.weight > 0 && (
-                <HighlightLine
-                  icon="trophy-outline"
-                  iconColor={withAlpha(gold, 0.95)}
-                  text={`Heaviest: ${meta.bestWeight.ex} • ${formatWeightValue(
-                    meta.bestWeight.weight
-                  )}${weightUnit} (${meta.bestWeight.sets}×${
-                    meta.bestWeight.reps
-                  })`}
-                  textColor={withAlpha(colors.text, isDark ? 0.84 : 0.78)}
-                />
-              )}
-              {!!meta.bestVol.ex && meta.bestVol.vol > 0 && (
-                <HighlightLine
-                  icon="sparkles-outline"
-                  iconColor={withAlpha(accent, 0.95)}
-                  text={`Best output: ${meta.bestVol.ex} • ${
-                    meta.bestVol.sets
-                  }×${meta.bestVol.reps} @ ${formatWeightValue(
-                    meta.bestVol.weight
-                  )}${weightUnit}`}
-                  textColor={withAlpha(colors.text, isDark ? 0.84 : 0.78)}
-                />
-              )}
-            </View>
-          </View>
-        )}
-
-        {/* ---------------------- Exercise List ---------------------- */}
-        {!!session && (
-          <View style={{ marginTop: 12 }}>
-            <Text
-              style={[
-                styles.sectionLabel,
-                { color: withAlpha(colors.text, isDark ? 0.7 : 0.6) },
-              ]}
-            >
-              Exercises
-            </Text>
-            <Text style={[styles.smallMuted, { color: textMuted }]}>
-              Performed order • tap to expand
-            </Text>
-
-            <View style={{ marginTop: 10, gap: 10 }}>
-              {exercises.map((ex, idx) => {
-                const isOpen = !!expanded[ex.name];
-                const exBestWeight = ex.bestWeight;
-                const exBestVol = ex.bestVol;
-
-                // subtle "PR" highlight badge if this exercise has meaningful load
-                const hasPR = exBestWeight > 0 || exBestVol > 0;
-
-                return (
-                  <Animated.View
-                    key={ex.name}
-                    layout={LinearTransition.springify()
-                      .damping(18)
-                      .stiffness(220)}
-                    entering={FadeInDown.duration(260).delay(
-                      clamp(idx * 18, 0, 140)
-                    )}
-                    style={[
-                      styles.exerciseCard,
-                      {
-                        backgroundColor: cardBg,
-                        borderColor: cardBorder,
-                      },
-                    ]}
-                  >
-                    {/* Exercise Header */}
-                    <Pressable
-                      onPress={() => onToggleExercise(ex.name)}
-                      style={({ pressed }) => [
-                        styles.exerciseHeaderRow,
-                        pressed && { opacity: 0.9 },
-                      ]}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Toggle ${ex.name}`}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <View style={styles.exerciseTitleRow}>
-                          <View
-                            style={[
-                              styles.exerciseIconPill,
-                              {
-                                backgroundColor: withAlpha(
-                                  accent,
-                                  isDark ? 0.14 : 0.1
-                                ),
-                                borderColor: withAlpha(
-                                  accent,
-                                  isDark ? 0.28 : 0.16
-                                ),
-                              },
-                            ]}
-                          >
-                            <Ionicons
-                              name="barbell-outline"
-                              size={14}
-                              color={withAlpha(accent, 0.95)}
-                            />
-                          </View>
-
-                          <Text
-                            style={[styles.exerciseName, { color: textStrong }]}
-                            numberOfLines={1}
-                          >
-                            {ex.name}
-                          </Text>
-
-                          {hasPR && (
-                            <View
-                              style={[
-                                styles.miniBadge,
-                                {
-                                  backgroundColor: withAlpha(
-                                    gold,
-                                    isDark ? 0.12 : 0.1
-                                  ),
-                                  borderColor: withAlpha(
-                                    gold,
-                                    isDark ? 0.26 : 0.18
-                                  ),
-                                },
-                              ]}
-                            >
-                              <Ionicons
-                                name="trophy-outline"
-                                size={12}
-                                color={withAlpha(gold, 0.92)}
-                              />
-                              <Text
-                                style={[
-                                  styles.miniBadgeText,
-                                  {
-                                    color: withAlpha(
-                                      textStrong,
-                                      isDark ? 0.86 : 0.82
-                                    ),
-                                  },
-                                ]}
-                              >
-                                Best
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-
-                        <View style={styles.exerciseMetaRow}>
-                          <Text
-                            style={[styles.exerciseMeta, { color: textMuted }]}
-                          >
-                            {ex.blocks.length} log
-                            {ex.blocks.length === 1 ? "" : "s"} • {ex.totalSets}{" "}
-                            sets
-                          </Text>
-                          <Text
-                            style={[styles.exerciseMeta, { color: textMuted }]}
-                          >
-                            {formatVolumeDisplay(ex.totalVol)} {weightUnit}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.chevWrap}>
-                        <View
-                          style={[
-                            styles.chevPill,
-                            {
-                              backgroundColor: pillBg,
-                              borderColor: pillBorder,
-                            },
-                          ]}
-                        >
-                          <Ionicons
-                            name={isOpen ? "chevron-up" : "chevron-down"}
-                            size={16}
-                            color={withAlpha(colors.text, isDark ? 0.86 : 0.76)}
-                          />
-                        </View>
-                      </View>
-                    </Pressable>
-
-                    {/* Expanded content */}
-                    {isOpen && (
-                      <Animated.View
-                        entering={FadeInDown.duration(220)}
-                        exiting={FadeOut.duration(140)}
-                        layout={Layout.springify().damping(18).stiffness(220)}
-                        style={{ marginTop: 10, gap: 8 }}
-                      >
-                        {ex.blocks.map((b, j) => {
-                          const isSessionBest = b.id === meta.bestBlockId;
-                          const isExBestWeight =
-                            b.weight === exBestWeight && b.weight > 0;
-                          const isExBestVol = b.vol === exBestVol && b.vol > 0;
-
-                          // "PR" highlight rules:
-                          // - session best output gets strongest glow
-                          // - exercise best weight or best volume gets subtle highlight
-                          const prLevel: "none" | "soft" | "strong" =
-                            isSessionBest
-                              ? "strong"
-                              : isExBestWeight || isExBestVol
-                              ? "soft"
-                              : "none";
-
-                          return (
-                            <SetRow
-                              key={b.id}
-                              indexInExercise={j + 1}
-                              block={b}
-                              prLevel={prLevel}
-                              isDark={isDark}
-                              textStrong={textStrong}
-                              textMuted={textMuted}
-                              colorsText={colors.text}
-                              accent={accent}
-                              gold={gold}
-                              hot={hot}
-                              weightUnit={weightUnit}
-                              formatWeightValue={formatWeightValue}
-                              formatVolumeDisplay={formatVolumeDisplay}
-                            />
-                          );
-                        })}
-
-                        {ex.hasNotes && (
-                          <View
-                            style={[
-                              styles.noteCard,
-                              {
-                                backgroundColor: withAlpha(
-                                  "#FFFFFF",
-                                  isDark ? 0.04 : 0.7
-                                ),
-                                borderColor: withAlpha(
-                                  "#FFFFFF",
-                                  isDark ? 0.1 : 0.12
-                                ),
-                              },
-                            ]}
-                          >
-                            <Ionicons
-                              name="document-text-outline"
-                              size={16}
-                              color={withAlpha(
-                                colors.text,
-                                isDark ? 0.7 : 0.62
-                              )}
-                            />
-                            <Text
-                              style={[styles.noteHint, { color: textMuted }]}
-                            >
-                              Some sets have notes. Expand each row to read
-                              them.
-                            </Text>
-                          </View>
-                        )}
-                      </Animated.View>
-                    )}
-                  </Animated.View>
-                );
-              })}
-
-              {exercises.length === 0 && !!session && (
-                <Text style={[styles.smallMuted, { color: textMuted }]}>
-                  No exercises found for this workout.
-                </Text>
-              )}
-            </View>
-          </View>
-        )}
-
-        {/* ---------------------- Notes (session-level) ---------------------- */}
-        {!!session && (
-          <View
-            style={[
-              styles.card,
+              styles.prCard,
               {
-                marginTop: 12,
-                backgroundColor: glassBg,
-                borderColor: glassBorder,
+                backgroundColor: surfaces.accentDim,
+                borderColor: surfaces.accentBorder,
               },
             ]}
           >
-            <Text
-              style={[
-                styles.sectionLabel,
-                { color: withAlpha(colors.text, isDark ? 0.7 : 0.6) },
-              ]}
-            >
-              Notes
-            </Text>
-
-            <Text style={[styles.notesBody, { color: textMid }]}>
-              {/* You don’t have a session-level notes field in the provided logic.
-                  So we derive a clean summary from set notes (deduped). */}
-              {deriveSessionNotes(performedBlocks) ||
-                "No notes for this workout."}
-            </Text>
-          </View>
-        )}
-      </ScrollView>
-
-      {/* ---------------------- Bottom Actions ---------------------- */}
-      {!!session && (
-        <BlurView
-          intensity={isDark ? 34 : 22}
-          tint={isDark ? "dark" : "light"}
-          style={[styles.bottomBar, { borderTopColor: headerBorder }]}
-        >
-          <View style={styles.actionsRow}>
-            <ActionButton
-              icon="refresh-outline"
-              label="Repeat"
-              onPress={() => onAction("repeat")}
-              accent={accent}
-              isDark={isDark}
-              textStrong={textStrong}
-              pillBg={pillBg}
-              pillBorder={pillBorder}
-            />
-            <ActionButton
-              icon="copy-outline"
-              label="Duplicate"
-              onPress={() => onAction("duplicate")}
-              accent={accent2}
-              isDark={isDark}
-              textStrong={textStrong}
-              pillBg={pillBg}
-              pillBorder={pillBorder}
-            />
-            <ActionButton
-              icon="create-outline"
-              label="Edit"
-              onPress={() => onAction("edit")}
-              accent={gold}
-              isDark={isDark}
-              textStrong={textStrong}
-              pillBg={pillBg}
-              pillBorder={pillBorder}
-            />
-          </View>
-        </BlurView>
-      )}
-    </View>
-  );
-}
-
-// ---------------------- Components ----------------------
-
-function Chip(props: {
-  icon: any;
-  label: string;
-  value: string;
-  valueOverride?: string;
-  suffix?: string;
-  tone: "neutral" | "good" | "strong" | "gold";
-  accent?: string;
-  isDark: boolean;
-  textStrong: string;
-  textMuted: string;
-  pillBg: string;
-  pillBorder: string;
-}) {
-  const { style, onPressIn, onPressOut } = usePressScale();
-  const accent = props.accent || "#68D7FF";
-
-  const ringBg =
-    props.tone === "neutral"
-      ? withAlpha("#FFFFFF", props.isDark ? 0.06 : 0.12)
-      : withAlpha(accent, props.isDark ? 0.14 : 0.1);
-
-  const ringBorder =
-    props.tone === "neutral"
-      ? withAlpha("#FFFFFF", props.isDark ? 0.14 : 0.12)
-      : withAlpha(accent, props.isDark ? 0.26 : 0.18);
-
-  const iconColor =
-    props.tone === "neutral"
-      ? withAlpha(props.textStrong, props.isDark ? 0.78 : 0.72)
-      : withAlpha(accent, 0.95);
-
-  return (
-    <Animated.View style={[styles.chipWrap, style]}>
-      <Pressable
-        onPress={() => HAPTIC_LIGHT()}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        style={({ pressed }) => [
-          styles.chip,
-          { backgroundColor: props.pillBg, borderColor: props.pillBorder },
-          pressed && { opacity: 0.92 },
-        ]}
-      >
-        <View
-          style={[
-            styles.chipIconRing,
-            { backgroundColor: ringBg, borderColor: ringBorder },
-          ]}
-        >
-          <Ionicons name={props.icon} size={14} color={iconColor} />
-        </View>
-
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.chipLabel, { color: props.textMuted }]}>
-            {props.label}
-          </Text>
-          <Text style={[styles.chipValue, { color: props.textStrong }]}>
-            {props.valueOverride ?? props.value}
-            {props.suffix ? (
-              <Text
-                style={{
-                  color: withAlpha(props.textMuted, props.isDark ? 0.85 : 0.85),
-                }}
-              >
-                {props.suffix}
+            <View style={styles.prHeader}>
+              <Ionicons name="trophy-outline" size={20} color={surfaces.warning} />
+              <Text style={[styles.cardTitle, { color: surfaces.text }]}>
+                {prRows.length} new {prRows.length === 1 ? "PR" : "PRs"} this session
               </Text>
-            ) : null}
-          </Text>
-        </View>
-      </Pressable>
-    </Animated.View>
-  );
-}
-
-function HighlightLine(props: {
-  icon: any;
-  iconColor: string;
-  text: string;
-  textColor: string;
-}) {
-  return (
-    <View style={styles.highlightRow}>
-      <Ionicons name={props.icon} size={16} color={props.iconColor} />
-      <Text
-        style={[styles.highlightText, { color: props.textColor }]}
-        numberOfLines={2}
-      >
-        {props.text}
-      </Text>
-    </View>
-  );
-}
-
-function SetRow(props: {
-  indexInExercise: number;
-  block: PerformedBlock;
-  prLevel: "none" | "soft" | "strong";
-  isDark: boolean;
-  textStrong: string;
-  textMuted: string;
-  colorsText: string;
-  accent: string;
-  gold: string;
-  hot: string;
-  weightUnit: "kg" | "lb";
-  formatWeightValue: (kg: number) => string;
-  formatVolumeDisplay: (kg: number) => string;
-}) {
-  const { style, onPressIn, onPressOut } = usePressScale();
-  const [showNote, setShowNote] = useState(false);
-
-  const t = props.block.t ? fmtTime(props.block.t) : "";
-
-  const prAccent =
-    props.prLevel === "strong"
-      ? props.hot
-      : props.prLevel === "soft"
-      ? props.gold
-      : props.accent;
-
-  const bg =
-    props.prLevel === "strong"
-      ? withAlpha(prAccent, props.isDark ? 0.16 : 0.1)
-      : props.prLevel === "soft"
-      ? withAlpha(prAccent, props.isDark ? 0.1 : 0.08)
-      : withAlpha("#FFFFFF", props.isDark ? 0.04 : 0.7);
-
-  const border =
-    props.prLevel === "strong"
-      ? withAlpha(prAccent, props.isDark ? 0.3 : 0.18)
-      : props.prLevel === "soft"
-      ? withAlpha(prAccent, props.isDark ? 0.22 : 0.14)
-      : withAlpha("#FFFFFF", props.isDark ? 0.1 : 0.12);
-
-  const dot =
-    props.prLevel === "strong"
-      ? withAlpha(prAccent, 0.95)
-      : props.prLevel === "soft"
-      ? withAlpha(prAccent, 0.9)
-      : withAlpha(props.accent, 0.9);
-
-  const onToggleNote = () => {
-    if (!props.block.notes) return;
-    HAPTIC_SOFT();
-    setShowNote((v) => !v);
-  };
-
-  return (
-    <Animated.View layout={Layout.springify().damping(18).stiffness(220)}>
-      <Animated.View style={style}>
-        <Pressable
-          onPress={onToggleNote}
-          onPressIn={onPressIn}
-          onPressOut={onPressOut}
-          style={({ pressed }) => [
-            styles.setRow,
-            { backgroundColor: bg, borderColor: border },
-            pressed && { opacity: 0.92 },
-          ]}
-          accessibilityRole={props.block.notes ? "button" : undefined}
-          accessibilityLabel={
-            props.block.notes ? "Toggle set notes" : "Set row"
-          }
-        >
-          <View style={styles.setLeft}>
-            <View
-              style={[
-                styles.setDot,
-                {
-                  backgroundColor: dot,
-                  shadowColor: dot,
-                  shadowOpacity: props.isDark ? 0.55 : 0.22,
-                },
-              ]}
-            />
-            <Text
-              style={[
-                styles.setIndex,
-                { color: withAlpha(props.textMuted, props.isDark ? 0.9 : 0.9) },
-              ]}
-            >
-              {props.indexInExercise}
-            </Text>
-          </View>
-
-          <View style={{ flex: 1 }}>
-            <View style={styles.setTopLine}>
-              <Text
-                style={[styles.setTitle, { color: props.textStrong }]}
-                numberOfLines={1}
-              >
-                {props.block.sets}×{props.block.reps}{" "}
-                <Text
-                  style={{
-                    color: withAlpha(
-                      props.textMuted,
-                      props.isDark ? 0.78 : 0.7
-                    ),
-                  }}
-                >
-                  @
-                </Text>{" "}
-                {props.formatWeightValue(props.block.weight)}
-                {props.weightUnit}
-              </Text>
-
-              {!!t && (
-                <View style={styles.timePill}>
-                  <Ionicons
-                    name="time-outline"
-                    size={12}
-                    color={withAlpha(
-                      props.colorsText,
-                      props.isDark ? 0.66 : 0.6
-                    )}
-                  />
-                  <Text
-                    style={[
-                      styles.timeText,
-                      {
-                        color: withAlpha(
-                          props.colorsText,
-                          props.isDark ? 0.66 : 0.6
-                        ),
-                      },
-                    ]}
-                  >
-                    {t}
-                  </Text>
-                </View>
-              )}
             </View>
-
-            <View style={styles.setBottomLine}>
-              <View style={styles.metricPill}>
-                <Ionicons
-                  name="pulse-outline"
-                  size={12}
-                  color={withAlpha(props.accent, 0.9)}
-                />
-                <Text
-                  style={[
-                    styles.metricText,
-                    {
-                      color: withAlpha(
-                        props.textMuted,
-                        props.isDark ? 0.9 : 0.9
-                      ),
-                    },
-                  ]}
-                >
-                  {props.formatVolumeDisplay(props.block.vol)} {props.weightUnit}
+            <View style={{ gap: 4 }}>
+              {prRows.map((row) => (
+                <Text key={row.exercise} style={[styles.prLine, { color: surfaces.text2 }]}>
+                  {row.exercise} · {row.repShape}
+                  {row.prevWeightKg ? (
+                    <Text style={{ color: surfaces.text3 }}>
+                      {" "}
+                      · prev: {Math.round(toDisplayWeight(row.prevWeightKg))}
+                      {weightUnit}
+                    </Text>
+                  ) : null}
                 </Text>
-              </View>
-
-              {props.prLevel !== "none" && (
-                <View
-                  style={[
-                    styles.prPill,
-                    {
-                      backgroundColor: withAlpha(
-                        prAccent,
-                        props.isDark ? 0.14 : 0.1
-                      ),
-                      borderColor: withAlpha(
-                        prAccent,
-                        props.isDark ? 0.28 : 0.16
-                      ),
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name={
-                      props.prLevel === "strong" ? "sparkles" : "trophy-outline"
-                    }
-                    size={12}
-                    color={withAlpha(prAccent, 0.95)}
-                  />
-                  <Text
-                    style={[
-                      styles.prText,
-                      {
-                        color: withAlpha(
-                          props.textStrong,
-                          props.isDark ? 0.86 : 0.82
-                        ),
-                      },
-                    ]}
-                  >
-                    {props.prLevel === "strong" ? "Peak" : "Best"}
-                  </Text>
-                </View>
-              )}
-
-              {!!props.block.notes && (
-                <View style={styles.noteTapHint}>
-                  <Ionicons
-                    name="chatbubble-ellipses-outline"
-                    size={12}
-                    color={withAlpha(
-                      props.textMuted,
-                      props.isDark ? 0.86 : 0.78
-                    )}
-                  />
-                  <Text
-                    style={[
-                      styles.noteTapText,
-                      {
-                        color: withAlpha(
-                          props.textMuted,
-                          props.isDark ? 0.86 : 0.78
-                        ),
-                      },
-                    ]}
-                  >
-                    Note
-                  </Text>
-                  <Ionicons
-                    name={showNote ? "chevron-up" : "chevron-down"}
-                    size={12}
-                    color={withAlpha(
-                      props.textMuted,
-                      props.isDark ? 0.86 : 0.78
-                    )}
-                  />
-                </View>
-              )}
+              ))}
             </View>
+          </Animated.View>
+        ) : null}
 
-            {!!props.block.notes && showNote && (
-              <Animated.View
-                entering={FadeInDown.duration(160)}
-                exiting={FadeOut.duration(120)}
-                layout={Layout.springify().damping(18).stiffness(220)}
-                style={[
-                  styles.inlineNote,
-                  {
-                    borderColor: withAlpha(
-                      "#FFFFFF",
-                      props.isDark ? 0.1 : 0.14
-                    ),
-                    backgroundColor: withAlpha(
-                      "#000000",
-                      props.isDark ? 0.16 : 0.05
-                    ),
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.inlineNoteText,
-                    {
-                      color: withAlpha(
-                        props.textStrong,
-                        props.isDark ? 0.86 : 0.78
-                      ),
-                    },
-                  ]}
-                >
-                  {props.block.notes}
-                </Text>
-              </Animated.View>
-            )}
-          </View>
-        </Pressable>
-      </Animated.View>
-    </Animated.View>
-  );
-}
-
-function ActionButton(props: {
-  icon: any;
-  label: string;
-  onPress: () => void;
-  accent: string;
-  isDark: boolean;
-  textStrong: string;
-  pillBg: string;
-  pillBorder: string;
-}) {
-  const { style, onPressIn, onPressOut } = usePressScale();
-  const glow = useSharedValue(0);
-
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glow.value,
-  }));
-
-  const onPress = () => {
-    glow.value = withTiming(1, { duration: 90 }, () => {
-      glow.value = withTiming(0, { duration: 240 });
-    });
-    props.onPress();
-  };
-
-  return (
-    <Animated.View style={[style, { flex: 1 }]}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={() => {
-          onPressIn();
-          HAPTIC_LIGHT();
-        }}
-        onPressOut={onPressOut}
-        style={({ pressed }) => [
-          styles.actionBtn,
-          { backgroundColor: props.pillBg, borderColor: props.pillBorder },
-          pressed && { opacity: 0.92 },
-        ]}
-      >
         <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.actionGlow,
-            {
-              backgroundColor: withAlpha(
-                props.accent,
-                props.isDark ? 0.18 : 0.12
-              ),
-            },
-            glowStyle,
-          ]}
-        />
-        <View
-          style={[
-            styles.actionIconRing,
-            {
-              backgroundColor: withAlpha(
-                props.accent,
-                props.isDark ? 0.14 : 0.1
-              ),
-              borderColor: withAlpha(props.accent, props.isDark ? 0.28 : 0.16),
-            },
-          ]}
+          entering={enterMotion(reduceMotion, 500)}
+          style={[styles.compareCard, { backgroundColor: surfaces.s1, borderColor: surfaces.border }, surfaces.shadow]}
         >
           <Ionicons
-            name={props.icon}
+            name={
+              comparisonCopy === "—"
+                ? "remove-outline"
+                : comparisonCopy.startsWith("↑")
+                ? "arrow-up-outline"
+                : "arrow-down-outline"
+            }
             size={16}
-            color={withAlpha(props.accent, 0.95)}
+            color={
+              comparisonCopy === "—"
+                ? surfaces.text3
+                : comparisonCopy.startsWith("↑")
+                ? surfaces.success
+                : surfaces.text2
+            }
           />
-        </View>
-        <Text style={[styles.actionText, { color: props.textStrong }]}>
-          {props.label}
-        </Text>
-      </Pressable>
-    </Animated.View>
+          <Text style={[styles.compareText, { color: surfaces.text2 }]}>{comparisonCopy}</Text>
+        </Animated.View>
+
+        <Animated.View
+          entering={enterMotion(reduceMotion, 520)}
+          style={[styles.card, { backgroundColor: surfaces.s1, borderColor: surfaces.border }, surfaces.shadow]}
+        >
+          <Text style={[styles.cardTitle, { color: surfaces.text }]}>Muscles worked</Text>
+          <View style={styles.heatmapRow}>
+            <View style={styles.bodyWrap}>
+              <Body
+                data={bodyData}
+                gender={sex}
+                side="front"
+                scale={0.88}
+                border="none"
+                defaultFill={surfaces.s3}
+                colors={BODY_COLORS}
+                onBodyPartPress={(part: ExtendedBodyPart) => {
+                  const slug = part.slug as BodySlug | undefined;
+                  if (!slug) return;
+                  const key = SLUG_TO_KEYS[slug]?.[0];
+                  if (key) setActiveMuscle(key);
+                }}
+              />
+            </View>
+            <View style={styles.bodyWrap}>
+              <Body
+                data={bodyData}
+                gender={sex}
+                side="back"
+                scale={0.88}
+                border="none"
+                defaultFill={surfaces.s3}
+                colors={BODY_COLORS}
+                onBodyPartPress={(part: ExtendedBodyPart) => {
+                  const slug = part.slug as BodySlug | undefined;
+                  if (!slug) return;
+                  const key = SLUG_TO_KEYS[slug]?.[0];
+                  if (key) setActiveMuscle(key);
+                }}
+              />
+            </View>
+          </View>
+          {activeMuscle && activeMuscleDetail ? (
+            <View style={[styles.tooltip, { backgroundColor: surfaces.s2, borderColor: surfaces.borderElev }]}>
+              <Text style={[styles.tooltipText, { color: surfaces.text2 }]}>
+                {REGION_LABELS[activeMuscle]} · {activeMuscleDetail.exercise} · {activeMuscleDetail.sets}{" "}
+                {activeMuscleDetail.sets === 1 ? "set" : "sets"}
+              </Text>
+            </View>
+          ) : null}
+        </Animated.View>
+
+        <Animated.View
+          entering={enterMotion(reduceMotion, 560)}
+          style={[styles.card, { backgroundColor: surfaces.s1, borderColor: surfaces.border }, surfaces.shadow]}
+        >
+          <Text style={[styles.cardTitle, { color: surfaces.text }]}>How did that feel?</Text>
+          <Text style={[styles.cardCaption, { color: surfaces.text3 }]}>
+            This shapes your next recovery suggestion
+          </Text>
+          <View style={styles.fatigueRow}>
+            {FATIGUE_OPTIONS.map((option) => {
+              const selected = fatigue === option.key;
+              return (
+                <Pressable
+                  key={option.key}
+                  onPress={() => onSelectFatigue(option.key)}
+                  style={[
+                    styles.fatigueChip,
+                    selected
+                      ? {
+                          backgroundColor: withAlpha(option.tint, 0.12),
+                          borderColor: option.tint,
+                        }
+                      : {
+                          backgroundColor: surfaces.s2,
+                          borderColor: surfaces.border,
+                        },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.fatigueText,
+                      { color: selected ? option.tint : surfaces.text2 },
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Animated.View>
+
+        <Animated.View entering={enterMotion(reduceMotion, 600)}>
+          <Pressable onPress={() => setNotesExpanded((v) => !v)} style={styles.noteToggle}>
+            <Ionicons name="create-outline" size={14} color={surfaces.accent} />
+            <Text style={[styles.noteToggleText, { color: surfaces.accent }]}>Add a note →</Text>
+          </Pressable>
+          {notesExpanded ? (
+            <View
+              style={[
+                styles.noteFieldWrap,
+                { backgroundColor: surfaces.s3, borderColor: surfaces.borderElev },
+              ]}
+            >
+              <TextInput
+                multiline
+                value={note}
+                onChangeText={(value) => {
+                  setNote(value);
+                  noteDraftRef.current = value;
+                }}
+                onBlur={onBlurNote}
+                placeholder="How did it go? Form notes, energy levels..."
+                placeholderTextColor={surfaces.text3}
+                style={[styles.noteField, { color: surfaces.text }]}
+                textAlignVertical="top"
+              />
+              <Text style={[styles.noteCount, { color: surfaces.text3 }]}>{note.length}</Text>
+            </View>
+          ) : null}
+        </Animated.View>
+      </ScrollView>
+
+      <Animated.View
+        entering={enterMotion(reduceMotion, 700)}
+        style={[
+          styles.bottomBar,
+          {
+            backgroundColor: surfaces.s1,
+            borderTopColor: surfaces.border,
+          },
+          surfaces.shadow,
+        ]}
+      >
+        <Pressable onPress={onDone} style={[styles.primaryButton, { backgroundColor: surfaces.accent }]}>
+          <Text style={styles.primaryButtonText}>Done</Text>
+        </Pressable>
+        <Pressable
+          onPress={onShare}
+          disabled={sharing}
+          style={[styles.secondaryButton, { borderColor: surfaces.borderElev, backgroundColor: "transparent" }]}
+        >
+          <Text style={[styles.secondaryButtonText, { color: surfaces.text2 }]}>
+            {sharing ? "Sharing..." : "Share session"}
+          </Text>
+        </Pressable>
+      </Animated.View>
+    </View>
   );
 }
 
-// ---------------------- Notes derivation ----------------------
+function CelebrationConfetti({ accent, gold }: { accent: string; gold: string }) {
+  const progress = useRef(new RNAnimated.Value(0)).current;
+  useEffect(() => {
+    RNAnimated.timing(progress, {
+      toValue: 1,
+      duration: 1500,
+      useNativeDriver: true,
+    }).start();
+  }, [progress]);
 
-function deriveSessionNotes(blocks: PerformedBlock[]) {
-  const notes = (blocks || [])
-    .map((b) => (b.notes || "").trim())
-    .filter(Boolean);
+  const particles = Array.from({ length: 24 }, (_, i) => ({
+    id: i,
+    left: `${(i * 37) % 100}%`,
+    color: i % 3 === 0 ? gold : accent,
+    delay: (i % 6) * 40,
+  }));
 
-  if (!notes.length) return "";
-
-  // Dedupe but keep order
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const n of notes) {
-    const key = n.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(n);
-    if (out.length >= 6) break; // keep it premium, not a dump
-  }
-
-  return out.join("\n\n");
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      {particles.map((p) => {
+        const translateY = progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-20 - p.delay, 240 + p.delay],
+        });
+        const opacity = progress.interpolate({
+          inputRange: [0, 0.75, 1],
+          outputRange: [0, 1, 0],
+        });
+        const rotate = progress.interpolate({
+          inputRange: [0, 1],
+          outputRange: ["0deg", `${(p.id % 2 === 0 ? 1 : -1) * 120}deg`],
+        });
+        return (
+          <RNAnimated.View
+            key={p.id}
+            style={[
+              styles.particle,
+              {
+                left: p.left as any,
+                backgroundColor: p.color,
+                opacity,
+                transform: [{ translateY }, { rotate }],
+              },
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
 }
-
-// ---------------------- Styles ----------------------
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-
-  glow: {
-    position: "absolute",
-    width: 320,
-    height: 320,
-    borderRadius: 320,
+  centerBlock: { alignItems: "center" },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: "200",
+    letterSpacing: 0,
+    textAlign: "center",
   },
-  glowSm: {
-    position: "absolute",
-    width: 220,
-    height: 220,
-    borderRadius: 220,
+  heroMeta: {
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: "300",
+    lineHeight: 18,
+    textAlign: "center",
   },
-
-  headerBlur: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  headerRow: {
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 10,
+  tilesRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    gap: 8,
   },
-  backBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  backText: { fontWeight: "900", fontSize: 13, letterSpacing: -0.1 },
-
-  title: { fontSize: 18, fontWeight: "950" as any, letterSpacing: -0.3 },
-
-  subRow: {
-    marginTop: 2,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  subtitle: { flex: 1, fontSize: 12, fontWeight: "750" as any },
-
-  signalPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  signalDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 8,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  signalText: { fontSize: 11, fontWeight: "850" as any, letterSpacing: -0.1 },
-
-  headerRight: { justifyContent: "center", alignItems: "center" },
-  headerIconPill: {
-    width: 34,
-    height: 34,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  card: {
-    borderRadius: 18,
-    padding: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: "950" as any,
-    letterSpacing: 0.9,
-    textTransform: "uppercase",
-  },
-  smallMuted: { marginTop: 6, fontSize: 12, fontWeight: "650" as any },
-
-  chipsWrap: {
-    marginTop: 12,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  chipWrap: {
-    flexBasis: "48%",
-    flexGrow: 1,
-    maxWidth: "48%",
-  },
-  chip: {
-    width: "100%",
-    borderRadius: 16,
-    padding: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  chipIconRing: {
-    width: 34,
-    height: 34,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  chipLabel: { fontSize: 11, fontWeight: "800" as any, letterSpacing: -0.1 },
-  chipValue: {
-    marginTop: 2,
-    fontSize: 16,
-    fontWeight: "950" as any,
-    letterSpacing: -0.3,
-  },
-
-  highlightRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  highlightText: {
+  tile: {
     flex: 1,
-    fontSize: 12,
-    fontWeight: "750" as any,
-    lineHeight: 16,
+    minHeight: 88,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    justifyContent: "space-between",
   },
-
-  exerciseCard: {
-    borderRadius: 18,
-    padding: 12,
-    borderWidth: StyleSheet.hairlineWidth,
+  tileLabel: {
+    fontSize: 9,
+    fontWeight: "500",
+    letterSpacing: 1,
   },
-  exerciseHeaderRow: {
+  tileValue: {
+    fontSize: 28,
+    fontWeight: "200",
+    letterSpacing: 0,
+  },
+  tileUnit: {
+    fontSize: 11,
+    fontWeight: "300",
+  },
+  prCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+    gap: 8,
+  },
+  prHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
   },
-  exerciseTitleRow: {
+  card: {
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 16,
+    gap: 12,
+  },
+  compareCard: {
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
   },
-  exerciseIconPill: {
-    width: 28,
-    height: 28,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  exerciseName: {
+  compareText: {
     flex: 1,
     fontSize: 14,
-    fontWeight: "950" as any,
-    letterSpacing: -0.2,
+    fontWeight: "400",
+    lineHeight: 20,
   },
-
-  miniBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "500",
+    lineHeight: 22,
   },
-  miniBadgeText: {
-    fontSize: 11,
-    fontWeight: "900" as any,
-    letterSpacing: -0.1,
+  cardCaption: {
+    marginTop: -4,
+    fontSize: 12,
+    fontWeight: "300",
+    fontStyle: "italic",
   },
-
-  exerciseMetaRow: {
-    marginTop: 6,
+  prLine: {
+    fontSize: 12,
+    fontWeight: "300",
+    lineHeight: 18,
+  },
+  heatmapRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 10,
+    gap: 8,
   },
-  exerciseMeta: { fontSize: 12, fontWeight: "700" as any },
-
-  chevWrap: { justifyContent: "center", alignItems: "center" },
-  chevPill: {
-    width: 34,
-    height: 34,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
+  bodyWrap: {
+    flex: 1,
     alignItems: "center",
+    minHeight: 180,
     justifyContent: "center",
   },
-
-  setRow: {
-    flexDirection: "row",
-    gap: 10,
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
+  tooltip: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
-  setLeft: { width: 40, alignItems: "center" },
-  setDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 10,
-    marginTop: 2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  setIndex: {
-    marginTop: 6,
+  tooltipText: {
     fontSize: 12,
-    fontWeight: "950" as any,
-    fontVariant: ["tabular-nums"],
+    fontWeight: "300",
+    lineHeight: 18,
   },
-  setTopLine: {
+  fatigueRow: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  setTitle: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: "950" as any,
-    letterSpacing: -0.2,
-  },
-
-  timePill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(255,255,255,0.10)",
-    backgroundColor: "rgba(255,255,255,0.04)",
-  },
-  timeText: { fontSize: 11, fontWeight: "800" as any, letterSpacing: -0.1 },
-
-  setBottomLine: {
-    marginTop: 10,
-    flexDirection: "row",
-    alignItems: "center",
     flexWrap: "wrap",
     gap: 8,
   },
-  metricPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+  fatigueChip: {
+    minHeight: 36,
     borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(255,255,255,0.10)",
-    backgroundColor: "rgba(255,255,255,0.04)",
-  },
-  metricText: { fontSize: 11, fontWeight: "850" as any, letterSpacing: -0.1 },
-
-  prPill: {
-    flexDirection: "row",
+    borderWidth: 1,
+    paddingHorizontal: 14,
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
+    justifyContent: "center",
   },
-  prText: { fontSize: 11, fontWeight: "900" as any, letterSpacing: -0.1 },
-
-  noteTapHint: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(255,255,255,0.10)",
-    backgroundColor: "rgba(255,255,255,0.04)",
-  },
-  noteTapText: { fontSize: 11, fontWeight: "850" as any, letterSpacing: -0.1 },
-
-  inlineNote: {
-    marginTop: 10,
-    padding: 10,
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  inlineNoteText: {
+  fatigueText: {
     fontSize: 12,
-    fontWeight: "650" as any,
-    lineHeight: 16,
+    fontWeight: "400",
   },
-
-  noteCard: {
-    marginTop: 4,
-    padding: 10,
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
+  noteToggle: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
   },
-  noteHint: { flex: 1, fontSize: 12, fontWeight: "650" as any, lineHeight: 16 },
-
-  notesBody: {
-    marginTop: 10,
+  noteToggleText: {
+    fontSize: 12,
+    fontWeight: "300",
+  },
+  noteFieldWrap: {
+    marginTop: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    minHeight: 100,
+    padding: 12,
+  },
+  noteField: {
+    minHeight: 84,
     fontSize: 13,
-    fontWeight: "650" as any,
-    lineHeight: 18,
+    fontWeight: "300",
+    lineHeight: 20,
   },
-
-  edgeCard: {
-    borderRadius: 18,
-    padding: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    marginBottom: 12,
+  noteCount: {
+    alignSelf: "flex-end",
+    marginTop: 8,
+    fontSize: 11,
+    fontWeight: "300",
   },
-  edgeTitle: { fontSize: 14, fontWeight: "950" as any, letterSpacing: -0.2 },
-  edgeSub: {
-    marginTop: 4,
-    fontSize: 12,
-    fontWeight: "650" as any,
-    lineHeight: 16,
-  },
-
   bottomBar: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: 14,
-    paddingTop: 10,
-    paddingBottom: 18,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: 1,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
+    gap: 8,
   },
-  actionsRow: { flexDirection: "row", gap: 10 },
-
-  actionBtn: {
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    overflow: "hidden",
-  },
-  actionGlow: {
-    position: "absolute",
-    left: -40,
-    top: -40,
-    width: 120,
-    height: 120,
-    borderRadius: 120,
-  },
-  actionIconRing: {
-    width: 34,
-    height: 34,
+  primaryButton: {
+    height: 44,
     borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
     alignItems: "center",
     justifyContent: "center",
   },
-  actionText: { fontSize: 13, fontWeight: "950" as any, letterSpacing: -0.2 },
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  secondaryButton: {
+    height: 44,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  secondaryButtonText: {
+    fontSize: 14,
+    fontWeight: "400",
+  },
+  particle: {
+    position: "absolute",
+    top: 0,
+    width: 6,
+    height: 10,
+    borderRadius: 3,
+  },
 });

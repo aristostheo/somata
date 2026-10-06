@@ -201,7 +201,7 @@ export default function AdvancedGoalsEngineCard({
 
     const dailyDelta =
       targets.calorieGoal - (output.tdee || targets.calorieGoal);
-    const weeklyKg = (dailyDelta * 7) / 7700;
+    const weeklyKg = (dailyDelta * 7) / (3500 / 0.45359237);
 
     if (!Number.isFinite(weeklyKg) || weeklyKg === 0) return Infinity;
     return Math.ceil(Math.abs(remainingKg / weeklyKg));
@@ -283,7 +283,7 @@ export default function AdvancedGoalsEngineCard({
           >
             <Text
               style={{
-                color: goalType === g ? "#fff" : colors.text,
+                color: goalType === g ? "white" : colors.text,
                 fontWeight: "800",
               }}
             >
@@ -416,7 +416,7 @@ export default function AdvancedGoalsEngineCard({
                       >
                         <Text
                           style={{
-                            color: active ? "#fff" : colors.text,
+                            color: active ? "white" : colors.text,
                             fontWeight: "900",
                             fontSize: 12,
                           }}
@@ -469,7 +469,7 @@ export default function AdvancedGoalsEngineCard({
         style={{
           padding: 14,
           borderRadius: 16,
-          backgroundColor: isDark ? "#0B1220" : "#F2F5FF",
+          backgroundColor: colors.background,
           borderWidth: 1,
           borderColor: colors.border,
           gap: 6,
@@ -509,10 +509,10 @@ export default function AdvancedGoalsEngineCard({
             style={{
               color:
                 risk === "High"
-                  ? "#FF453A"
+                  ? colors.danger
                   : risk === "Moderate"
-                  ? "#FF9F0A"
-                  : "#34C759",
+                  ? colors.warning
+                  : colors.success,
               fontWeight: "900",
             }}
           >

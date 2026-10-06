@@ -1,3 +1,4 @@
+import { dayKey } from "../utils/date";
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -7,12 +8,13 @@ import {
   subscribeExerciseBetween,
 } from "../services/nutrition";
 import { ensureProfile, subscribeProfile } from "../services/profile";
+import { subscribeWorkouts } from "../services/workouts";
 import WeeklyCaloriesChart from "../components/WeeklyCaloriesChart";
 import ProgressRing from "../components/ProgressRing";
 import { Link } from "react-router-dom";
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
-const ymd = (d) => d.toISOString().slice(0, 10);
+const todayStr = () => dayKey(new Date());
+const ymd = dayKey;
 const addDays = (date, n) => {
   const d = new Date(date);
   d.setDate(d.getDate() + n);
@@ -33,9 +35,11 @@ export default function Home() {
   // weekly series
   const [foodsRange, setFoodsRange] = useState([]);
   const [exerciseRange, setExerciseRange] = useState([]);
+  const [workoutsRange, setWorkoutsRange] = useState([]);
 
   useEffect(() => {
     if (!user) return;
+    let active = true;
     const unsubs = [];
     // today
     unsubs.push(subscribeFoodsByDate(user.uid, date, setFoodsToday));
@@ -43,23 +47,27 @@ export default function Home() {
     // profile (goals)
     (async () => {
       await ensureProfile(user.uid);
+      if (!active) return;
       unsubs.push(subscribeProfile(user.uid, setProfile));
-    })();
+    })().catch(console.error);
 
-    // last 7 days inclusive
+    // Fetch 30 days for streaks; the chart selects the last 7 days.
     const today = new Date();
-    const start = addDays(today, -6);
+    const start = addDays(today, -29);
     const from = ymd(start),
       to = ymd(today);
     unsubs.push(subscribeFoodsBetween(user.uid, from, to, setFoodsRange));
     unsubs.push(subscribeExerciseBetween(user.uid, from, to, setExerciseRange));
+    unsubs.push(subscribeWorkouts(user.uid, setWorkoutsRange, { from, to }));
 
-    return () =>
+    return () => {
+      active = false;
       unsubs.forEach((u) => {
         try {
           typeof u === "function" && u();
         } catch {}
       });
+    };
   }, [user, date]);
 
   // compute today's totals
@@ -103,8 +111,8 @@ export default function Home() {
   }, [foodsRange, exerciseRange]);
 
   // goals
-  const kcalGoal = profile?.dailyCaloriesTarget ?? 2200;
-  const proteinGoal = profile?.dailyProteinTarget ?? 130;
+  const kcalGoal = profile?.calorieGoal ?? profile?.dailyCaloriesTarget ?? 2200;
+  const proteinGoal = profile?.proteinGoal ?? profile?.dailyProteinTarget ?? 135;
 
   // streaks (last 30 days)
   const [foodStreak, workoutStreak] = useMemo(() => {
@@ -114,7 +122,7 @@ export default function Home() {
     foodsRange.forEach((f) => {
       logs[f.date] = true;
     });
-    exerciseRange.forEach((x) => {
+    workoutsRange.forEach((x) => {
       logs[`w:${x.date}`] = true;
     });
 
@@ -135,7 +143,7 @@ export default function Home() {
       return s;
     };
     return [streak(foodPresence), streak(woPresence)];
-  }, [foodsRange, exerciseRange]);
+  }, [foodsRange, workoutsRange]);
 
   return (
     <div className="space-y-6">

@@ -1,3 +1,4 @@
+import { dayKey } from "@/utils/date";
 // components/workouts/Filters.tsx (makeover)
 import React, { useMemo } from "react";
 import { View, Text, Pressable } from "react-native";
@@ -63,14 +64,14 @@ export default function Filters({
 
   function setToday() {
     const d = new Date();
-    const s = d.toISOString().slice(0, 10);
+    const s = dayKey(d);
     setFrom(s);
     setTo(s);
   }
   function setYesterday() {
     const d = new Date();
     d.setDate(d.getDate() - 1);
-    const s = d.toISOString().slice(0, 10);
+    const s = dayKey(d);
     setFrom(s);
     setTo(s);
   }

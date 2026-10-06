@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
 
   cardWrap: { borderRadius: 18, overflow: "hidden" },
   cardBorder: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: withAlpha("#FFFFFF", 0.14),

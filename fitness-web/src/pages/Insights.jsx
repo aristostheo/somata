@@ -32,7 +32,7 @@ function rangeDays(n = 7) {
 
 export default function Insights() {
   const { user } = useAuth();
-  const [days, setDays] = useState(rangeDays(7));
+  const [days] = useState(() => rangeDays(7));
   const [foods, setFoods] = useState([]);
   const [ex, setEx] = useState([]);
   const from = days[0];

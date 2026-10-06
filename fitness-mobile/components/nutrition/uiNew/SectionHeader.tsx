@@ -16,7 +16,7 @@ export function SectionHeader({
     <View
       style={{
         flexDirection: "row",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "space-between",
         gap: 12,
       }}
@@ -24,23 +24,24 @@ export function SectionHeader({
       <View style={{ flex: 1 }}>
         <Text
           style={{
-            color: colors.text,
-            fontWeight: "900",
-            fontSize: 16,
-            letterSpacing: 0.2,
+            color: colors.placeholder ?? colors.muted,
+            fontWeight: "500",
+            fontSize: 11,
+            letterSpacing: 1,
           }}
         >
-          {title}
+          {title.toUpperCase()}
         </Text>
         {!!subtitle && (
           <Text
             style={{
               color: colors.muted,
-              fontWeight: "800",
+              fontWeight: "300",
               fontSize: 12,
               marginTop: 4,
-              lineHeight: 16,
+              lineHeight: 18,
             }}
+            numberOfLines={1}
           >
             {subtitle}
           </Text>

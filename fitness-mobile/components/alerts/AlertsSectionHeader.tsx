@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "@/content/ThemeProvider";
-import { withAlpha } from "@/lib/color";
 
 export function AlertsSectionHeader({
   title,
@@ -10,28 +9,26 @@ export function AlertsSectionHeader({
   title: string;
   subtitle?: string;
 }) {
-  const { colors, isDark } = useTheme() as any;
+  const { colors } = useTheme() as any;
 
   return (
-    <View style={{ paddingHorizontal: 16, paddingTop: 14 }}>
+    <View style={styles.wrap}>
       <View style={styles.row}>
-        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.title, { color: colors.textTertiary }]}>{title}</Text>
         {subtitle ? (
-          <Text style={[styles.sub, { color: colors.muted }]}>{subtitle}</Text>
+          <Text style={[styles.sub, { color: colors.textTertiary }]}>{subtitle}</Text>
         ) : null}
       </View>
-      <View
-        style={{
-          marginTop: 10,
-          height: StyleSheet.hairlineWidth,
-          backgroundColor: withAlpha(colors.text, isDark ? 0.12 : 0.08),
-        }}
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrap: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
   row: {
     flexDirection: "row",
     alignItems: "baseline",
@@ -39,14 +36,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 0.6,
+    fontSize: 11,
+    fontWeight: "500",
+    letterSpacing: 1,
     textTransform: "uppercase",
   },
   sub: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.2,
+    fontSize: 11,
+    fontWeight: "300",
   },
 });

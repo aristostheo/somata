@@ -1,0 +1,382 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ---------- Helpers ---------- */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Expect "YYYY-MM-DD"
+    function isDateISO(s) {
+      return s is string && s.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    function isNonNegNumber(n) {
+      return (n is int || n is float) && n >= 0;
+    }
+
+    function isTimestampLike(t) {
+      return t is timestamp || isNonNegNumber(t);
+    }
+
+    // membership helper
+    function isOneOf(val, arr) {
+      return val is string && arr.hasAny([val]);
+    }
+
+    // Optional: allow privileged writes for admins (set via custom claims)
+    function isAdmin() {
+      return isSignedIn() && (request.auth.token.admin == true);
+    }
+
+    // Is the caller an accepted friend of userId?
+    function isAcceptedFriend(userId) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/users/$(userId)/friends/$(request.auth.uid)).exists
+        && get(/databases/$(database)/documents/users/$(userId)/friends/$(request.auth.uid)).data.status == "accepted";
+    }
+
+    // Is the caller listed as a friend (any status) of userId?
+    function isFriend(userId) {
+      return isSignedIn()
+        && (
+          get(/databases/$(database)/documents/users/$(userId)/friends/$(request.auth.uid)).exists ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(userId)).exists
+        );
+    }
+
+    /* =========================================================
+       ✅ Scan quota collections (NEW)
+       Used by services/scanQuota.ts
+       ========================================================= */
+
+    // Per-user override: grant unlimited scans to specific users
+    // Collection: overrides_scanUnlimited
+    // Doc ID: uid
+    match /overrides_scanUnlimited/{uid} {
+      // User can read their own override (lets client cache unlimited)
+      allow read: if isOwner(uid);
+
+      // Only admins can create/update/delete overrides
+      allow create, update, delete: if isAdmin();
+
+      // Optional: basic shape check (keeps docs clean)
+      // (Rules don't let you "call" this here easily for all ops without a helper,
+      // so we keep it simple; enforce full schema in admin tooling if needed.)
+    }
+
+    // Daily usage tracking
+    // Collection: usage_scanDaily
+    // Doc ID: `${uid}_${YYYY-MM-DD}`
+    match /usage_scanDaily/{docId} {
+      // Must start with caller uid + "_"
+      function isOwnUsageDoc() {
+        return isSignedIn() && docId.matches('^' + request.auth.uid + '_\\d{4}-\\d{2}-\\d{2}$');
+      }
+
+      allow read: if isOwnUsageDoc();
+
+      // Let the user write ONLY their own usage doc.
+      // Keep it tight so they can’t write arbitrary fields.
+      allow create: if isOwnUsageDoc() && isValidScanUsageCreate(request.resource.data);
+      allow update: if isOwnUsageDoc() && isValidScanUsageUpdate(request.resource.data);
+      allow delete: if false; // keep history; optional
+    }
+
+    // Validators for usage docs (NEW)
+    function isValidScanUsageBase(d) {
+      return
+        d.keys().hasAll(['uid','dateKey','used','limit','updatedAt']) &&
+        (d.uid is string && d.uid == request.auth.uid) &&
+        isDateISO(d.dateKey) &&
+        isNonNegNumber(d.used) &&
+        isNonNegNumber(d.limit) &&
+        isTimestampLike(d.updatedAt);
+    }
+
+    function isValidScanUsageCreate(d) {
+      // On create: used must be 1..limit (or 0..limit if you want)
+      return
+        isValidScanUsageBase(d) &&
+        d.used <= d.limit;
+    }
+
+    function isValidScanUsageUpdate(d) {
+      // On update: prevent decreasing used (stops “refund cheating” via client)
+      // and cap used to limit.
+      return
+        isValidScanUsageBase(d) &&
+        d.used >= resource.data.used &&
+        d.used <= d.limit;
+    }
+
+    /* ---------- Public catalog (read-only to everyone) ---------- */
+    match /exercises/{id} {
+      allow read: if true;
+      // Writes only from server/admin (e.g., Cloud Functions)
+      allow write: if isAdmin();
+    }
+
+    /* ---------- NEW: Public Food Catalog (global, de-duplicated) ---------- */
+    // All users can read; any signed-in user can add/update valid entries.
+    match /foodCatalog/{foodId} {
+      allow read: if true;
+      allow create, update: if isSignedIn() && isValidFoodCatalog(request.resource.data);
+      // No deletes by default (tighten later if you want admin deletes)
+      allow delete: if false;
+    }
+
+    /* ---------- Users root doc ---------- */
+    match /users/{userId} {
+      // The accepted FitAdapt target projection is written only by trusted Admin code.
+      // Compare the final document so set(), merge(), update(), and field deletion
+      // cannot change it while ordinary owner profile writes remain available.
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && !request.resource.data.keys().hasAny(['activeFitAdaptTargets']);
+      allow update: if isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeFitAdaptTargets']);
+      allow delete: if isOwner(userId)
+        && !resource.data.keys().hasAny(['activeFitAdaptTargets']);
+
+      /* ---------- Workouts ---------- */
+      match /exerciseEntries/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidWorkout(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+      match /workouts/{docId} {
+        // Owner or friend can read; to unblock sharing, allow any signed-in user to view
+        allow read: if isOwner(userId) || isFriend(userId) || isSignedIn();
+        allow create, update: if isOwner(userId) && isValidWorkout(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      /* ---------- Nutrition Entries ---------- */
+      match /nutritionEntries/{docId} {
+        // Owner OR any friend edge can read; to unblock access, allow any signed-in user to read shared meals
+        allow read: if isOwner(userId) || isFriend(userId) || isSignedIn();
+        allow create, update: if isOwner(userId) && isValidNutritionEntry(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      /* ---------- Notifications ---------- */
+      match /notifications/{docId} {
+        // Owner can read/update/delete; any signed-in user can create (used for cross-user pings/requests)
+        allow read, update, delete: if isOwner(userId);
+        allow create: if isSignedIn() && isValidNotification(request.resource.data);
+      }
+
+      /* ---------- Reactions ---------- */
+      match /reactions/{docId} {
+        allow read: if isSignedIn(); // allow signed-in users to fetch reactions on shared items
+        allow create: if isSignedIn() && isValidReaction(request.resource.data);
+        allow update, delete: if isOwner(userId) || (isSignedIn() && resource.data.createdByUid == request.auth.uid);
+      }
+
+      /* ---------- Comments ---------- */
+      match /comments/{docId} {
+        allow read: if isSignedIn(); // allow signed-in users to fetch comments on shared items
+        allow create: if isSignedIn() && isValidComment(request.resource.data);
+        allow update, delete: if isOwner(userId) || (isSignedIn() && resource.data.createdByUid == request.auth.uid);
+      }
+
+      /* ---------- Friends ---------- */
+      match /friends/{friendUid} {
+        allow read: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendUid);
+        allow create, update: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendUid);
+        allow delete: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendUid);
+      }
+
+      /* ---------- Templates & routines ---------- */
+      match /workoutTemplates/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidWorkoutTemplate(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+      match /mealTemplates/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidMealTemplate(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+      match /routines/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidRoutine(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      /* ---------- (Legacy) Food history ----------
+         Keep for now; safe to remove once you fully migrate to /foodCatalog.
+      */
+      match /foodHistory/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      /* ---------- Future subcollections (private by default) ---------- */
+      // Require a subcollection segment: a recursive wildcard alone also matches
+      // users/{userId} in rules v2 and would bypass the protected-field guard.
+      match /{subcollection}/{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    /* ---------- FitAdapt plan, proposal, and adaptation history ---------- */
+    match /fitadaptPlans/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false;
+
+      match /history/{proposalId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+    }
+
+    /* ---------- Validators ---------- */
+    function isValidWorkout(d) {
+      return
+        d.keys().hasAll(['date']) &&
+        isDateISO(d.date) &&
+
+        (!('exercise' in d) || (d.exercise is string && d.exercise.size() <= 120)) &&
+        (!('sets'     in d) || isNonNegNumber(d.sets)) &&
+        (!('reps'     in d) || isNonNegNumber(d.reps)) &&
+        (!('weight'   in d) || isNonNegNumber(d.weight)) &&
+        (!('notes'    in d) || (d.notes is string && d.notes.size() <= 1000));
+    }
+
+    function isValidNutritionEntry(d) {
+      return
+        // Required
+        d.keys().hasAll(['date','meal','name','qty','unit']) &&
+        isDateISO(d.date) &&
+        (d.name is string && d.name.size() > 0 && d.name.size() <= 200) &&
+        isOneOf(d.meal, ['breakfast','lunch','dinner','snacks']) &&
+        (d.unit is string && d.unit.size() > 0 && d.unit.size() <= 32) &&
+        isNonNegNumber(d.qty) &&
+
+        // Optional totals
+        (!('calories' in d) || isNonNegNumber(d.calories)) &&
+        (!('protein'  in d) || isNonNegNumber(d.protein)) &&
+        (!('carbs'    in d) || isNonNegNumber(d.carbs)) &&
+        (!('fat'      in d) || isNonNegNumber(d.fat)) &&
+        (!('sugar'    in d) || isNonNegNumber(d.sugar)) &&
+        (!('fiber'    in d) || isNonNegNumber(d.fiber)) &&
+        (!('score'    in d) || isNonNegNumber(d.score)) &&
+
+        // Optional metadata
+        (!('source'    in d) || (d.source is string && d.source.size() <= 40)) &&
+        (!('fdcId'     in d) || (d.fdcId is string && d.fdcId.size() <= 80)) &&
+        (!('createdAt' in d) || isTimestampLike(d.createdAt));
+    }
+
+    function isValidFriendEdge(d) {
+      return
+        // Required status/direction; friendUid optional (already implied by doc path)
+        d.keys().hasAll(['status','direction']) &&
+        (!('friendUid' in d) || (d.friendUid is string && d.friendUid.size() > 0 && d.friendUid.size() <= 128)) &&
+        isOneOf(d.status, ['pending','accepted','declined','blocked']) &&
+        isOneOf(d.direction, ['incoming','outgoing','mutual']) &&
+
+        (!('friendEmail' in d) || (d.friendEmail is string && d.friendEmail.size() <= 200)) &&
+        (!('friendDisplayName' in d) || (d.friendDisplayName is string && d.friendDisplayName.size() <= 200));
+    }
+
+    function isValidNotification(d) {
+      return
+        d.keys().hasAll(['type','title','createdAt','readAt']) &&
+        (d.type is string && d.type.size() > 0 && d.type.size() <= 80) &&
+        (d.title is string && d.title.size() > 0 && d.title.size() <= 200) &&
+        (!('body' in d) || (d.body is string && d.body.size() <= 1000)) &&
+        (!('data' in d) || d.data is map || d.data == null) &&
+        isTimestampLike(d.createdAt) &&
+        (d.readAt == null || isTimestampLike(d.readAt));
+    }
+
+    // PUBLIC FOOD CATALOG VALIDATOR
+    function isValidFoodCatalog(d) {
+      return
+        // Required core fields
+        d.keys().hasAll([
+          'name','unit','qty','calories','protein','carbs','fat',
+          'nameLower','createdAt','updatedAt'
+        ]) &&
+
+        // Core fields
+        (d.name is string && d.name.size() > 0 && d.name.size() <= 200) &&
+        (d.unit is string && d.unit.size() > 0 && d.unit.size() <= 40) &&
+        isNonNegNumber(d.qty) &&
+        isNonNegNumber(d.calories) &&
+        isNonNegNumber(d.protein) &&
+        isNonNegNumber(d.carbs) &&
+        isNonNegNumber(d.fat) &&
+
+        // Optional fields
+        (!('sugar' in d) || isNonNegNumber(d.sugar)) &&
+        (!('fiber' in d) || isNonNegNumber(d.fiber)) &&
+        (!('submitterUid' in d) || (d.submitterUid is string && d.submitterUid.size() > 0)) &&
+        (!('uses' in d) || isNonNegNumber(d.uses)) &&
+        (!('verified' in d) || (d.verified is bool)) &&
+
+        // Search helper: enforce lowercase, safe chars for nameLower
+        // (double-quoted string avoids escaping the apostrophe)
+        (d.nameLower is string &&
+          d.nameLower.size() > 0 &&
+          d.nameLower.size() <= 200 &&
+          d.nameLower.matches("^[a-z0-9 .,_()'\\-]+$")) &&
+
+        // Optional tokens: if present, must be a non-empty list
+        // (Rules can't validate each element; do that client-side)
+        (!('tokens' in d) ||
+          (d.tokens is list && d.tokens.size() > 0)) &&
+
+        // Timestamps (allow serverTimestamp() or concrete timestamp/number)
+        isTimestampLike(d.createdAt) &&
+        isTimestampLike(d.updatedAt);
+    }
+
+    function isValidReaction(d) {
+      return
+        d.keys().hasAll(['targetId','kind','createdByUid','createdAt']) &&
+        (d.targetId is string && d.targetId.size() > 0 && d.targetId.size() <= 200) &&
+        isOneOf(d.kind, ['like','fire','clap']) &&
+        (d.createdByUid is string && d.createdByUid.size() > 0 && d.createdByUid.size() <= 128) &&
+        (!('createdByName' in d) || (d.createdByName is string && d.createdByName.size() <= 200)) &&
+        isTimestampLike(d.createdAt);
+    }
+
+    function isValidComment(d) {
+      return
+        d.keys().hasAll(['targetId','text','createdByUid','createdAt']) &&
+        (d.targetId is string && d.targetId.size() > 0 && d.targetId.size() <= 200) &&
+        (d.text is string && d.text.size() > 0 && d.text.size() <= 400) &&
+        (d.createdByUid is string && d.createdByUid.size() > 0 && d.createdByUid.size() <= 128) &&
+        (!('createdByName' in d) || (d.createdByName is string && d.createdByName.size() <= 200)) &&
+        isTimestampLike(d.createdAt);
+    }
+
+    function isValidWorkoutTemplate(d) {
+      return
+        d.keys().hasAll(['name','items','createdAt','updatedAt']) &&
+        (d.name is string && d.name.size() > 0 && d.name.size() <= 120) &&
+        (d.items is list && d.items.size() > 0);
+    }
+
+    function isValidMealTemplate(d) {
+      return
+        d.keys().hasAll(['name','items','createdAt','updatedAt']) &&
+        (d.name is string && d.name.size() > 0 && d.name.size() <= 120) &&
+        (d.items is list && d.items.size() > 0);
+    }
+
+    function isValidRoutine(d) {
+      return
+        d.keys().hasAll(['dayOfWeek','createdAt','updatedAt']) &&
+        (d.dayOfWeek is int && d.dayOfWeek >= 0 && d.dayOfWeek <= 6);
+    }
+  }
+}

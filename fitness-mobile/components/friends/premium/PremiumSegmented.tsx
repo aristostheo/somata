@@ -1,11 +1,8 @@
-// components/friends/premium/PremiumSegmented.tsx
-// Drop-in ✅ calm premium segmented control
-
 import React from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { BlurView } from "expo-blur";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
-import { useTheme } from "@/content/ThemeProvider";
+
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { withAlpha } from "@/lib/color";
 
 export type FriendsTabKey = "friends" | "requests" | "sent";
@@ -13,13 +10,15 @@ export type FriendsTabKey = "friends" | "requests" | "sent";
 export function PremiumSegmented({
   value,
   onChange,
+  requestCount = 0,
 }: {
   value: FriendsTabKey;
   onChange: (v: FriendsTabKey) => void;
+  requestCount?: number;
 }) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useProfileFlowTheme();
 
-  const items: { key: FriendsTabKey; label: string }[] = [
+  const items: Array<{ key: FriendsTabKey; label: string }> = [
     { key: "friends", label: "Friends" },
     { key: "requests", label: "Requests" },
     { key: "sent", label: "Sent" },
@@ -30,44 +29,49 @@ export function PremiumSegmented({
       style={[
         styles.wrap,
         {
-          borderColor: colors.glassBorder,
-          backgroundColor: colors.surface,
+          backgroundColor: colors.surface1,
+          borderBottomColor: colors.border,
         },
       ]}
     >
-      <BlurView
-        intensity={22}
-        tint={isDark ? "dark" : "light"}
-        style={StyleSheet.absoluteFillObject}
-      />
-      {items.map((it) => {
-        const active = value === it.key;
+      {items.map((item) => {
+        const active = value === item.key;
         return (
           <Pressable
-            key={it.key}
+            key={item.key}
             onPress={() => {
-              Haptics.selectionAsync();
-              onChange(it.key);
+              Haptics.selectionAsync().catch(() => {});
+              onChange(item.key);
             }}
-            style={({ pressed }) => [
-              styles.item,
-              active && {
-                backgroundColor: withAlpha(colors.text, 0.12),
-                borderColor: withAlpha(colors.text, 0.16),
-              },
-              pressed && !active
-                ? { backgroundColor: withAlpha(colors.text, 0.06) }
-                : null,
-            ]}
+            style={styles.item}
           >
-            <Text
+            <View style={styles.labelRow}>
+              <Text
+                style={[
+                  styles.label,
+                  { color: active ? colors.textPrimary : colors.textTertiary },
+                ]}
+              >
+                {item.label}
+              </Text>
+              {item.key === "requests" && requestCount > 0 ? (
+                <View
+                  style={[
+                    styles.badgeDot,
+                    { backgroundColor: colors.danger },
+                  ]}
+                />
+              ) : null}
+            </View>
+            <View
               style={[
-                styles.text,
-                { color: active ? colors.text : colors.muted },
+                styles.underline,
+                {
+                  opacity: active ? 1 : 0,
+                  backgroundColor: colors.primary,
+                },
               ]}
-            >
-              {it.label}
-            </Text>
+            />
           </Pressable>
         );
       })}
@@ -78,23 +82,33 @@ export function PremiumSegmented({
 const styles = StyleSheet.create({
   wrap: {
     flexDirection: "row",
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: "hidden",
-    padding: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    minHeight: 52,
   },
   item: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 14,
     alignItems: "center",
-    justifyContent: "center",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "transparent",
+    justifyContent: "space-between",
+    paddingTop: 12,
   },
-  text: {
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: -0.2,
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 22,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  underline: {
+    width: 28,
+    height: 2,
+    borderRadius: 999,
+  },
+  badgeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 999,
   },
 });

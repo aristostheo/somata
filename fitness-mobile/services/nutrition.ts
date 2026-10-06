@@ -40,6 +40,30 @@ export type FoodEntry = {
   unsatFatRatio?: number; // 0..1
   alcoholCalories?: number;
 
+  entryKind?: "food" | "meal";
+  items?: Array<{
+    id?: string;
+    name: string;
+    qty: number;
+    unit: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    sugar?: number;
+    fiber?: number;
+    addedSugar?: number;
+    satFat?: number;
+    sodium?: number;
+    wholeFoodRatio?: number;
+    veggieFruitServings?: number;
+    unsatFatRatio?: number;
+    alcoholCalories?: number;
+    foodRefId?: string;
+    source?: string;
+  }>;
+  presetId?: string;
+
   source?: "manual" | "mock-ai" | string;
   createdAt?: Timestamp | number | null;
 };
@@ -134,6 +158,51 @@ export function subscribeFoodsByDate(
             data.alcoholCalories != null
               ? Number(data.alcoholCalories)
               : undefined,
+          entryKind: data.entryKind === "meal" ? "meal" : "food",
+          items: Array.isArray(data.items)
+            ? data.items.map((item: any) => ({
+                id: item?.id,
+                name: String(item?.name || "").trim(),
+                qty: Number(item?.qty || 0),
+                unit: String(item?.unit || "serving"),
+                calories: Number(item?.calories || 0),
+                protein: Number(item?.protein || 0),
+                carbs: Number(item?.carbs || 0),
+                fat: Number(item?.fat || 0),
+                sugar:
+                  item?.sugar != null ? Number(item.sugar) : undefined,
+                fiber:
+                  item?.fiber != null ? Number(item.fiber) : undefined,
+                addedSugar:
+                  item?.addedSugar != null
+                    ? Number(item.addedSugar)
+                    : undefined,
+                satFat:
+                  item?.satFat != null ? Number(item.satFat) : undefined,
+                sodium:
+                  item?.sodium != null ? Number(item.sodium) : undefined,
+                wholeFoodRatio:
+                  item?.wholeFoodRatio != null
+                    ? Number(item.wholeFoodRatio)
+                    : undefined,
+                veggieFruitServings:
+                  item?.veggieFruitServings != null
+                    ? Number(item.veggieFruitServings)
+                    : undefined,
+                unsatFatRatio:
+                  item?.unsatFatRatio != null
+                    ? Number(item.unsatFatRatio)
+                    : undefined,
+                alcoholCalories:
+                  item?.alcoholCalories != null
+                    ? Number(item.alcoholCalories)
+                    : undefined,
+                foodRefId: item?.foodRefId,
+                source: item?.source,
+              }))
+            : undefined,
+          presetId:
+            data.presetId != null ? String(data.presetId) : undefined,
 
           source: data.source,
           createdAt: data.createdAt ?? null,

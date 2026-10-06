@@ -21,6 +21,8 @@ import * as Haptics from "expo-haptics";
 import BottomTabSpacer from "@/components/ui/BottomTapSpacer";
 import { useTheme } from "@/content/ThemeProvider";
 import { useAuth } from "@/content/AuthContext";
+import { subscribeProfile, type Profile } from "@/services/profile";
+import { getFriendVisibility } from "@/services/friends/visibility";
 
 import { withAlpha } from "@/components/workouts/utils/withAlpha";
 import { subscribeFoodsByDate, type FoodEntry } from "@/services/nutrition";
@@ -40,7 +42,7 @@ const MEAL_ORDER: MealKey[] = ["breakfast", "lunch", "dinner", "snacks"];
 
 const softShadow = Platform.select({
   ios: {
-    shadowColor: "#000",
+    shadowColor: "black",
     shadowOpacity: 0.14,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
@@ -90,10 +92,19 @@ export default function FriendMealsScreen() {
   const [selectedDate, setSelectedDate] = useState(todayISO);
   const [foods, setFoods] = useState<FoodEntry[]>([]);
   const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    if (!friendUid) return;
+    return subscribeProfile(friendUid, setProfile);
+  }, [friendUid]);
+
+  const visibility = getFriendVisibility(profile);
+  const mealsVisible = visibility.enabled && visibility.nutrition?.mealsLoggedToday;
 
   // ✅ OLD BACKEND LOGIC (unchanged): Stream meals for selected day
   useEffect(() => {
-    if (!friendUid || !user?.uid) {
+    if (!friendUid || !user?.uid || !mealsVisible) {
       setFoods([]);
       return;
     }
@@ -109,7 +120,7 @@ export default function FriendMealsScreen() {
         unsub && unsub();
       } catch {}
     };
-  }, [friendUid, selectedDate, user?.uid]);
+  }, [friendUid, selectedDate, user?.uid, mealsVisible]);
 
   const totals = useMemo(() => {
     return foods.reduce(
@@ -160,13 +171,13 @@ export default function FriendMealsScreen() {
       {/* floating ribbons */}
       <Ribbon
         side="right"
-        colors={["#5ce1ff", "#ff5ac8"] as const}
+        colors={[colors.info, colors.danger] as const}
         opacity={isDark ? 0.18 : 0.22}
       />
       <Ribbon
         side="left"
         top={260}
-        colors={["#8cfb9f", "#ffc857"] as const}
+        colors={[colors.success, colors.warning] as const}
         opacity={isDark ? 0.14 : 0.18}
       />
 
@@ -246,7 +257,27 @@ export default function FriendMealsScreen() {
                   }}
                 />
               </View>
-            </View>
+              </View>
+
+            {!mealsVisible ? (
+              <View
+                style={{
+                  marginTop: 10,
+                  padding: 14,
+                  borderRadius: 16,
+                  backgroundColor: withAlpha(colors.text, 0.05),
+                  borderWidth: 1,
+                  borderColor: withAlpha(colors.text, 0.08),
+                }}
+              >
+                <Text style={{ color: colors.text, fontWeight: "900" }}>
+                  {title} hasn't shared recent meals
+                </Text>
+                <Text style={{ color: colors.muted, marginTop: 4, lineHeight: 18 }}>
+                  Meal sharing is private and controlled by your friend.
+                </Text>
+              </View>
+            ) : null}
 
             {/* small debug hint if route param is missing */}
             {!friendUid ? (
