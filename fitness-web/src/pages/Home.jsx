@@ -8,6 +8,7 @@ import {
   subscribeExerciseBetween,
 } from "../services/nutrition";
 import { ensureProfile, subscribeProfile } from "../services/profile";
+import { nutritionTargets } from "../services/targetProjection";
 import { subscribeWorkouts } from "../services/workouts";
 import WeeklyCaloriesChart from "../components/WeeklyCaloriesChart";
 import ProgressRing from "../components/ProgressRing";
@@ -111,8 +112,7 @@ export default function Home() {
   }, [foodsRange, exerciseRange]);
 
   // goals
-  const kcalGoal = profile?.calorieGoal ?? profile?.dailyCaloriesTarget ?? 2200;
-  const proteinGoal = profile?.proteinGoal ?? profile?.dailyProteinTarget ?? 135;
+  const { calories: kcalGoal, protein: proteinGoal } = nutritionTargets(profile);
 
   // streaks (last 30 days)
   const [foodStreak, workoutStreak] = useMemo(() => {

@@ -1,37 +1,29 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { appendScannedItems, createBuilderAdditionConsumer } from "@/services/mealBuilderHandoff";
+import { accountUidKeyStorage, useAccountStorage } from "@/services/local/accountStore";
+import { Button, Choice, Empty, Field, Heading, IconButton, Item, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   LayoutAnimation,
-  KeyboardAvoidingView,
   Platform,
-  Pressable,
-  ScrollView,
   Text,
-  TextInput,
   UIManager,
-  View,
+  View
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as ImagePicker from "expo-image-picker";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { LinearGradient } from "expo-linear-gradient";
-import { MotiView } from "moti";
-import * as Haptics from "expo-haptics";
-import PremiumModalSheet from "@/components/ui/PremiumModalSheet";
 
-import { useTheme } from "@/content/ThemeProvider";
 import { useAuth } from "@/content/AuthContext";
-import {
-  fetchMyRecentFoods,
-  fetchMyTopFoods,
-  type RecentFood,
-} from "@/services/nutritionRecents";
+import { useTheme } from "@/content/ThemeProvider";
 import { searchCatalog, type FoodCatalogItem } from "@/services/foodCatalog";
 import {
   applyQtyToMealItem,
   createMealBuilderItem,
+  mealItemId,
   readMealPresets,
   saveMealPreset,
   sumMealItems,
@@ -48,15 +40,20 @@ import {
   type BarcodeCandidate,
   type MealBuilderInputFood,
 } from "@/services/mealBuilderInputs";
+import {
+  fetchMyRecentFoods,
+  fetchMyTopFoods,
+  type RecentFood,
+} from "@/services/nutritionRecents";
 
 type SearchRow = {
   key: string;
   sourceBucket: "recent" | "frequent" | "search";
   rank: number;
-  item: RecentFood | (FoodCatalogItem & { id: string });
+  item: RecentFood | (FoodCatalogItem & { id: string; });
 };
 
-const MEAL_TYPES: Array<{ key: MealBuilderMealType; label: string; icon: any }> =
+const MEAL_TYPES: Array<{ key: MealBuilderMealType; label: string; icon: any; }> =
   [
     { key: "breakfast", label: "Breakfast", icon: "sunny-outline" },
     { key: "lunch", label: "Lunch", icon: "restaurant-outline" },
@@ -122,7 +119,7 @@ const softShadow = {
 
 const mealTargets: Record<
   MealBuilderMealType,
-  { calories: number; protein: number; carbs: number; fat: number }
+  { calories: number; protein: number; carbs: number; fat: number; }
 > = {
   breakfast: { calories: 550, protein: 30, carbs: 50, fat: 18 },
   lunch: { calories: 700, protein: 40, carbs: 70, fat: 24 },
@@ -131,11 +128,14 @@ const mealTargets: Record<
 };
 
 export default function MealBuilderScreen() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const { colors, isDark } = useTheme() as any;
   const { user } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ meal?: string; date?: string }>();
+  const params = useLocalSearchParams<{ meal?: string; date?: string; }>();
 
   useEffect(() => {
     if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -147,12 +147,17 @@ export default function MealBuilderScreen() {
     (params.meal as MealBuilderMealType) || "lunch"
   );
   const [mealName, setMealName] = useState("");
+  const [builderSessionId] = useState(mealItemId);
+  const [handoffNotice, setHandoffNotice] = useState<string | null>(null);
+  const [handoffCanRetry, setHandoffCanRetry] = useState(false);
+  const [handoffRetry, setHandoffRetry] = useState(0);
+  const [consumeScan] = useState(() => createBuilderAdditionConsumer(accountUidKeyStorage(localStore), localStore, builderSessionId));
   const [items, setItems] = useState<MealBuilderFoodItem[]>([]);
   const [query, setQuery] = useState("");
   const [recentFoods, setRecentFoods] = useState<RecentFood[]>([]);
   const [topFoods, setTopFoods] = useState<RecentFood[]>([]);
   const [searchResults, setSearchResults] = useState<
-    Array<FoodCatalogItem & { id: string }>
+    Array<FoodCatalogItem & { id: string; }>
   >([]);
   const [presets, setPresets] = useState<MealPreset[]>([]);
   const [busy, setBusy] = useState(false);
@@ -186,6 +191,29 @@ export default function MealBuilderScreen() {
 
   const dateISO = typeof params.date === "string" ? params.date : isoToday();
 
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    void consumeScan(dateISO, () => active, addition => {
+      localStore.assertCurrent();
+      const imported = addition.items.map(food => createMealBuilderItem(food));
+      setItems(current => appendScannedItems(current, imported));
+      setMealType(addition.meal);
+    }).then(status => {
+      if (!active) return;
+      setHandoffCanRetry(false);
+      if (status === 'added') setHandoffNotice('Scanned foods added. Review the meal before logging.');
+      else if (['expired', 'stale', 'invalid'].includes(status)) setHandoffNotice('An old or invalid scan was cleared. Scan again from this meal to add foods.');
+      else if (status === 'private') setHandoffNotice('This saved scan is unavailable for this account. Your meal has not changed.');
+      else if (status === 'duplicate') setHandoffNotice('Scanned foods were already added; duplicate transfer cleared.');
+    }).catch(() => {
+      if (active) {
+        setHandoffCanRetry(true);
+        setHandoffNotice('The scan transfer could not finish. Retry safely; foods already added will not be added twice.');
+      }
+    });
+    return () => { active = false; };
+  }, [consumeScan, dateISO, handoffRetry, localStore]));
+
   useEffect(() => {
     if (!user?.uid) return;
     fetchMyRecentFoods(user.uid, 20)
@@ -211,7 +239,7 @@ export default function MealBuilderScreen() {
       try {
         const res = await searchCatalog(query.trim(), 24);
         if (!live) return;
-        setSearchResults(res as Array<FoodCatalogItem & { id: string }>);
+        setSearchResults(res as Array<FoodCatalogItem & { id: string; }>);
       } catch {
         if (live) setSearchResults([]);
       }
@@ -275,7 +303,7 @@ export default function MealBuilderScreen() {
     const pushItem = (
       sourceBucket: SearchRow["sourceBucket"],
       rank: number,
-      raw: RecentFood | (FoodCatalogItem & { id: string })
+      raw: RecentFood | (FoodCatalogItem & { id: string; })
     ) => {
       const name = String(raw.name || "").trim();
       if (!name) return;
@@ -327,14 +355,14 @@ export default function MealBuilderScreen() {
 
   useEffect(() => {
     if (activeMethod === "barcode" && !cameraPermission?.granted) {
-      requestCameraPermission().catch(() => {});
+      requestCameraPermission().catch(() => { });
     }
   }, [activeMethod, cameraPermission?.granted, requestCameraPermission]);
 
   function appendFoods(raws: MealBuilderInputFood[], feedbackKey?: string | null) {
     if (!raws.length) return;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
     setItems((current) => {
       const clone = [...current];
       for (const raw of raws) {
@@ -376,7 +404,7 @@ export default function MealBuilderScreen() {
     setQuery("");
   }
 
-  function addFood(raw: RecentFood | (FoodCatalogItem & { id: string })) {
+  function addFood(raw: RecentFood | (FoodCatalogItem & { id: string; })) {
     appendFoods(
       [
         {
@@ -424,13 +452,13 @@ export default function MealBuilderScreen() {
 
   function removeItem(itemId: string) {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => { });
     setItems((current) => current.filter((item) => item.id !== itemId));
   }
 
   function moveItem(itemId: string, direction: "up" | "down") {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    Haptics.selectionAsync().catch(() => {});
+    Haptics.selectionAsync().catch(() => { });
     setItems((current) => {
       const index = current.findIndex((item) => item.id === itemId);
       if (index === -1) return current;
@@ -474,6 +502,7 @@ export default function MealBuilderScreen() {
           meal: mealType,
           date: dateISO,
           returnTo: "meal-builder",
+          builderSessionId,
         },
       });
       return;
@@ -623,17 +652,17 @@ export default function MealBuilderScreen() {
     const picker =
       source === "camera"
         ? await ImagePicker.launchCameraAsync({
-            mediaTypes: ["images"],
-            quality: 0.9,
-            allowsEditing: true,
-            aspect: [4, 3],
-          })
+          mediaTypes: ["images"],
+          quality: 0.9,
+          allowsEditing: true,
+          aspect: [4, 3],
+        })
         : await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images"],
-            quality: 0.9,
-            allowsEditing: true,
-            aspect: [4, 3],
-          });
+          mediaTypes: ["images"],
+          quality: 0.9,
+          allowsEditing: true,
+          aspect: [4, 3],
+        });
 
     if (picker.canceled) return;
     const uri = picker.assets?.[0]?.uri;
@@ -693,7 +722,7 @@ export default function MealBuilderScreen() {
       setPresetJustSaved(true);
       setShowPresets(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-        () => {}
+        () => { }
       );
     } catch {
       Alert.alert("Couldn’t save preset", "Try again.");
@@ -715,7 +744,7 @@ export default function MealBuilderScreen() {
     setBusy(true);
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-        () => {}
+        () => { }
       );
 
       await writePendingMealBuilderLog({
@@ -725,7 +754,7 @@ export default function MealBuilderScreen() {
         name: mealName.trim() || `${labelForMealType(mealType)} meal`,
         items,
         source: "meal-builder",
-      });
+      }, localStore);
 
       router.back();
     } catch {
@@ -735,1489 +764,69 @@ export default function MealBuilderScreen() {
     }
   }
 
-  return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingTop: Math.max(insets.top, 16) + 4,
-            paddingBottom: footerHeight + 28,
-          }}
-        >
-          <View style={{ gap: 14 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Pressable onPress={() => router.back()} style={topIconButton(colors)}>
-                <Ionicons name="chevron-back" size={18} color={colors.text} />
-              </Pressable>
+  return (<><TaskPage title={mealName.trim() || 'Build a meal'} section="Meal workspace" subtitle={dateISO} onBack={() => router.back()} action={<IconButton icon="refresh-outline" label="Reset meal" onPress={resetMeal} />} footer={<Button primary label={busy ? 'Logging…' : 'Log meal'} disabled={busy || !items.length} onPress={onLogMeal} />}>
 
-              <View style={{ alignItems: "center", gap: 2 }}>
-                <Text
-                  style={{ color: withAlpha(colors.text, 0.58), fontWeight: "900", fontSize: 11 }}
-                >
-                  Flagship nutrition flow
-                </Text>
-                <Text
-                  style={{ color: colors.text, fontWeight: "900", fontSize: 17 }}
-                >
-                  Meal Builder
-                </Text>
-              </View>
-
-              <Pressable onPress={resetMeal} style={topIconButton(colors)}>
-                <Ionicons name="refresh-outline" size={18} color={colors.text} />
-              </Pressable>
-            </View>
-
-            <View
-              style={{
-                borderRadius: 24,
-                overflow: "hidden",
-                ...softShadow,
-              }}
-            >
-              <LinearGradient
-                colors={[
-                  withAlpha(colors.primary, isDark ? 0.22 : 0.12),
-                  withAlpha("#38bdf8", isDark ? 0.14 : 0.08),
-                  withAlpha(colors.card, 0.86),
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ padding: 14, gap: 12 }}
-              >
-                <View style={{ gap: 4 }}>
-                  <Text
-                    style={{ color: colors.text, fontWeight: "900", fontSize: 20 }}
-                  >
-                    Build one meal, log once
-                  </Text>
-                  <Text
-                    style={{
-                      color: withAlpha(colors.text, 0.7),
-                      fontWeight: "700",
-                      fontSize: 13,
-                      lineHeight: 18,
-                    }}
-                  >
-                    Faster for repeat meals, with one grouped entry in the day log.
-                  </Text>
-                </View>
-
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 8 }}
-                >
-                  {MEAL_TYPES.map((option) => {
-                    const active = option.key === mealType;
-                    return (
-                      <Pressable
-                        key={option.key}
-                        onPress={() => setMealType(option.key)}
-                        style={({ pressed }) => ({
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 6,
-                          paddingHorizontal: 12,
-                          paddingVertical: 9,
-                          borderRadius: 999,
-                          backgroundColor: active
-                            ? withAlpha(colors.text, 0.14)
-                            : withAlpha(colors.bg, isDark ? 0.32 : 0.76),
-                          transform: [{ scale: pressed ? 0.98 : 1 }],
-                        })}
-                      >
-                        <Ionicons
-                          name={option.icon}
-                          size={15}
-                          color={colors.text}
-                        />
-                        <Text
-                          style={{ color: colors.text, fontWeight: "900", fontSize: 12 }}
-                        >
-                          {option.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </ScrollView>
-
-                <TextInput
-                  value={mealName}
-                  onChangeText={setMealName}
-                  placeholder="Meal name, optional"
-                  placeholderTextColor={withAlpha(colors.text, 0.38)}
-                  style={{
-                    color: colors.text,
-                    fontWeight: "800",
-                    fontSize: 16,
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    borderRadius: 18,
-                    backgroundColor: withAlpha(colors.bg, isDark ? 0.34 : 0.82),
-                  }}
-                />
-
-                <View
-                  style={{
-                    borderRadius: 20,
-                    paddingHorizontal: 12,
-                    paddingVertical: 12,
-                    backgroundColor: withAlpha(colors.bg, isDark ? 0.26 : 0.55),
-                    gap: 10,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Text
-                      style={{ color: withAlpha(colors.text, 0.62), fontWeight: "900", fontSize: 11 }}
-                    >
-                      Live engine
-                    </Text>
-                    <Text
-                      style={{ color: colors.text, fontWeight: "900", fontSize: 12 }}
-                    >
-                      {items.length} item{items.length === 1 ? "" : "s"}
-                    </Text>
-                  </View>
-
-                  <View style={{ gap: 8 }}>
-                    {macroStats.map((metric) => {
-                      const ratio = Math.max(
-                        0.04,
-                        Math.min(1, metric.value / Math.max(metric.target, 1))
-                      );
-                      const nearTarget = ratio >= 0.82 && ratio <= 1.08;
-                      return (
-                        <View key={metric.key} style={{ gap: 6 }}>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <Text
-                              style={{
-                                color: withAlpha(colors.text, 0.7),
-                                fontWeight: "900",
-                                fontSize: 11,
-                              }}
-                            >
-                              {metric.label}
-                            </Text>
-                            <Text
-                              style={{
-                                color: colors.text,
-                                fontWeight: "900",
-                                fontSize: 12,
-                              }}
-                            >
-                              {Math.round(metric.value)}
-                              {metric.suffix}
-                            </Text>
-                          </View>
-                          <View
-                            style={{
-                              height: 9,
-                              borderRadius: 999,
-                              overflow: "hidden",
-                              backgroundColor: withAlpha(colors.text, 0.08),
-                            }}
-                          >
-                            <MotiView
-                              animate={{
-                                width: `${ratio * 100}%`,
-                                opacity: nearTarget ? 1 : 0.92,
-                              }}
-                              transition={{ type: "timing", duration: 320 }}
-                              style={{
-                                height: "100%",
-                                borderRadius: 999,
-                                shadowColor: metric.glow,
-                                shadowOpacity: nearTarget ? 0.45 : 0.18,
-                                shadowRadius: nearTarget ? 10 : 4,
-                                shadowOffset: { width: 0, height: 0 },
-                              }}
-                            >
-                              <LinearGradient
-                                colors={[
-                                  withAlpha(metric.glow, nearTarget ? 0.95 : 0.78),
-                                  withAlpha(colors.primary, 0.92),
-                                ]}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={{ flex: 1 }}
-                              />
-                            </MotiView>
-                          </View>
-                        </View>
-                      );
-                    })}
-                  </View>
-                </View>
-              </LinearGradient>
-            </View>
-
-            {presetPreview.length ? (
-              <View style={{ gap: 8 }}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Text
-                    style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}
-                  >
-                    Presets
-                  </Text>
-                  <Pressable
-                    onPress={() => setShowPresets((v) => !v)}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 6,
-                      paddingHorizontal: 10,
-                      paddingVertical: 6,
-                      borderRadius: 999,
-                      backgroundColor: withAlpha(colors.card, 0.42),
-                    }}
-                  >
-                    <Text
-                      style={{ color: colors.muted, fontWeight: "900", fontSize: 11 }}
-                    >
-                      {showPresets ? "Hide" : "Browse"}
-                    </Text>
-                    <Ionicons
-                      name={showPresets ? "chevron-up" : "chevron-down"}
-                      size={14}
-                      color={colors.muted}
-                    />
-                  </Pressable>
-                </View>
-
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 8 }}
-                >
-                  {presetPreview.map((preset) => (
-                    <Pressable
-                      key={preset.id}
-                      onPress={() => applyPreset(preset)}
-                      style={({ pressed }) => ({
-                        paddingHorizontal: 12,
-                        paddingVertical: 10,
-                        borderRadius: 18,
-                        backgroundColor: withAlpha(colors.card, 0.42),
-                        minWidth: 120,
-                        maxWidth: 170,
-                        gap: 2,
-                        transform: [{ scale: pressed ? 0.98 : 1 }],
-                      })}
-                    >
-                      <Text
-                        style={{ color: colors.text, fontWeight: "900", fontSize: 13 }}
-                        numberOfLines={1}
-                      >
-                        {preset.name}
-                      </Text>
-                      <Text
-                        style={{ color: colors.muted, fontWeight: "800", fontSize: 11 }}
-                        numberOfLines={1}
-                      >
-                        {preset.items.length} foods • {labelForMealType(preset.mealType)}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-
-                {showPresets ? (
-                  <View
-                    style={{
-                      borderRadius: 18,
-                      padding: 10,
-                      backgroundColor: withAlpha(colors.card, 0.4),
-                      gap: 8,
-                    }}
-                  >
-                    {presets.map((preset) => (
-                      <Pressable
-                        key={`full:${preset.id}`}
-                        onPress={() => applyPreset(preset)}
-                        style={{
-                          borderRadius: 14,
-                          paddingHorizontal: 12,
-                          paddingVertical: 10,
-                          backgroundColor: withAlpha(colors.bg, 0.44),
-                          gap: 4,
-                        }}
-                      >
-                        <Text
-                          style={{ color: colors.text, fontWeight: "900", fontSize: 13 }}
-                          numberOfLines={1}
-                        >
-                          {preset.name}
-                        </Text>
-                        <Text
-                          style={{ color: colors.muted, fontWeight: "800", fontSize: 11 }}
-                          numberOfLines={1}
-                        >
-                          {preset.items.map((item) => item.name).join(", ")}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                ) : null}
-              </View>
-            ) : null}
-
-            <Panel colors={colors}>
-              <SectionHeader
-                colors={colors}
-                title="Current meal"
-                subtitle={
-                  items.length
-                    ? "Edit portions inline. Your totals update instantly."
-                    : "Start by adding foods below or tap a preset above."
-                }
-              />
-
-              {items.length ? (
-                <View style={{ gap: 10 }}>
-                  {items.map((item, visibleIndex) => {
-                    const step = quantityStep(item);
-                    const itemIndex = items.findIndex((candidate) => candidate.id === item.id);
-                    return (
-                      <MotiView
-                        key={item.id}
-                        from={{ opacity: 0, translateY: 10, scale: 0.98 }}
-                        animate={{ opacity: 1, translateY: 0, scale: 1 }}
-                        transition={{ type: "timing", duration: 220, delay: visibleIndex * 18 }}
-                        style={{
-                          borderRadius: 22,
-                          padding: 12,
-                          backgroundColor: withAlpha(colors.card, isDark ? 0.5 : 0.82),
-                          ...softShadow,
-                          gap: 10,
-                        }}
-                      >
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            gap: 12,
-                          }}
-                        >
-                          <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
-                            <Text
-                              style={{
-                                color: colors.text,
-                                fontWeight: "900",
-                                fontSize: 15,
-                              }}
-                              numberOfLines={1}
-                              ellipsizeMode="tail"
-                            >
-                              {item.name}
-                            </Text>
-                            <Text
-                              style={{
-                                color: colors.muted,
-                                fontWeight: "800",
-                                fontSize: 11,
-                              }}
-                              numberOfLines={1}
-                            >
-                              {fmtMacroRow(item)}
-                            </Text>
-                          </View>
-
-                          <View style={{ flexDirection: "row", gap: 6 }}>
-                            <View
-                              style={{
-                                width: 34,
-                                borderRadius: 12,
-                                overflow: "hidden",
-                                backgroundColor: withAlpha(colors.card, 0.44),
-                              }}
-                            >
-                              <Pressable
-                                disabled={itemIndex === 0}
-                                onPress={() => moveItem(item.id, "up")}
-                                style={{
-                                  height: 22,
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  opacity: itemIndex === 0 ? 0.35 : 1,
-                                }}
-                              >
-                                <Ionicons
-                                  name="chevron-up"
-                                  size={15}
-                                  color={colors.text}
-                                />
-                              </Pressable>
-                              <View
-                                style={{
-                                  height: 1,
-                                  backgroundColor: withAlpha(colors.border, 0.25),
-                                }}
-                              />
-                              <Pressable
-                                disabled={itemIndex === items.length - 1}
-                                onPress={() => moveItem(item.id, "down")}
-                                style={{
-                                  height: 22,
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  opacity: itemIndex === items.length - 1 ? 0.35 : 1,
-                                }}
-                              >
-                                <Ionicons
-                                  name="chevron-down"
-                                  size={15}
-                                  color={colors.text}
-                                />
-                              </Pressable>
-                            </View>
-
-                            <Pressable
-                              onPress={() => removeItem(item.id)}
-                              style={({ pressed }) => ({
-                                ...miniIconButton(colors),
-                                transform: [{ scale: pressed ? 0.95 : 1 }],
-                              })}
-                            >
-                              <Ionicons
-                                name="trash-outline"
-                                size={15}
-                                color={colors.text}
-                              />
-                            </Pressable>
-                          </View>
-                        </View>
-
-                        <View style={{ flexDirection: "row", gap: 8 }}>
-                          <View
-                            style={{
-                              flex: 1.2,
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: 8,
-                            }}
-                          >
-                            <Pressable
-                              onPress={() =>
-                                updateQty(item.id, Math.max(0, item.qty - step))
-                              }
-                              style={({ pressed }) => ({
-                                ...miniIconButton(colors),
-                                transform: [{ scale: pressed ? 0.95 : 1 }],
-                              })}
-                            >
-                              <Ionicons
-                                name="remove"
-                                size={16}
-                                color={colors.text}
-                              />
-                            </Pressable>
-
-                            <TextInput
-                              value={String(item.qty)}
-                              onChangeText={(text) =>
-                                updateQty(
-                                  item.id,
-                                  Number(text.replace(/[^0-9.]/g, "")) || 0
-                                )
-                              }
-                              keyboardType="decimal-pad"
-                              style={{
-                                flex: 1,
-                                color: colors.text,
-                                fontWeight: "900",
-                                fontSize: 15,
-                                textAlign: "center",
-                                borderRadius: 16,
-                                paddingVertical: 10,
-                                backgroundColor: withAlpha(colors.bg, 0.4),
-                              }}
-                            />
-
-                            <Pressable
-                              onPress={() => updateQty(item.id, item.qty + step)}
-                              style={({ pressed }) => ({
-                                ...miniIconButton(colors),
-                                transform: [{ scale: pressed ? 0.95 : 1 }],
-                              })}
-                            >
-                              <Ionicons name="add" size={16} color={colors.text} />
-                            </Pressable>
-                          </View>
-
-                          <TextInput
-                            value={item.unit}
-                            onChangeText={(text) => updateUnit(item.id, text)}
-                            style={{
-                              flex: 0.8,
-                              color: colors.text,
-                              fontWeight: "800",
-                              fontSize: 13,
-                              textAlign: "center",
-                              borderRadius: 16,
-                              paddingVertical: 10,
-                              backgroundColor: withAlpha(colors.bg, 0.4),
-                            }}
-                          />
-                        </View>
-                      </MotiView>
-                    );
-                  })}
-                </View>
-              ) : (
-                <View
-                  style={{
-                    borderRadius: 22,
-                    padding: 16,
-                    backgroundColor: withAlpha(colors.primary, 0.08),
-                    gap: 8,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: 14,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: withAlpha(colors.primary, 0.18),
-                    }}
-                  >
-                    <Ionicons name="sparkles-outline" size={18} color={colors.text} />
-                  </View>
-                  <Text
-                    style={{ color: colors.text, fontWeight: "900", fontSize: 15 }}
-                  >
-                    Build your meal here
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.muted,
-                      fontWeight: "800",
-                      lineHeight: 18,
-                    }}
-                  >
-                    Add a recent food, search for something new, or load a saved
-                    preset to start fast.
-                  </Text>
-                </View>
-              )}
-            </Panel>
-
-            <Panel colors={colors}>
-              <SectionHeader
-                colors={colors}
-                title="Add foods"
-                subtitle="Recent first, frequent next, then search."
-              />
-
-              {recentQuickAdds.length ? (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: 8, paddingBottom: 2 }}
-                >
-                  {recentQuickAdds.map((food) => (
-                    <Pressable
-                      key={`recent:${foodKey(food.name, food.unit)}`}
-                      onPress={() => addFood(food)}
-                      style={({ pressed }) => ({
-                        paddingHorizontal: 12,
-                        paddingVertical: 9,
-                        borderRadius: 999,
-                        backgroundColor: withAlpha(colors.primary, 0.12),
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 8,
-                        transform: [{ scale: pressed ? 0.98 : 1 }],
-                      })}
-                    >
-                      <Ionicons name="time-outline" size={14} color={colors.text} />
-                      <Text
-                        style={{ color: colors.text, fontWeight: "900", fontSize: 12 }}
-                        numberOfLines={1}
-                      >
-                        {food.name}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              ) : null}
-
-              <View
-                style={{
-                  borderRadius: 16,
-                  paddingHorizontal: 14,
-                  paddingVertical: 11,
-                  backgroundColor: withAlpha(colors.bg, isDark ? 0.42 : 0.78),
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 10,
-                }}
-              >
-                <Ionicons name="search-outline" size={18} color={colors.muted} />
-                <TextInput
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder="Search chicken, rice, yogurt..."
-                  placeholderTextColor={colors.placeholder}
-                  style={{ flex: 1, color: colors.text, fontWeight: "800" }}
-                />
-                <Pressable
-                  onPress={() => setInputSheetOpen(true)}
-                  style={{
-                    height: 34,
-                    paddingHorizontal: 12,
-                    borderRadius: 12,
-                    backgroundColor: withAlpha(colors.primary, 0.16),
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <Ionicons name="add" size={16} color={colors.text} />
-                  <Text
-                    style={{ color: colors.text, fontWeight: "900", fontSize: 12 }}
-                  >
-                    Add
-                  </Text>
-                </Pressable>
-              </View>
-
-              <View style={{ gap: 8 }}>
-                {suggestedResults.length ? (
-                  suggestedResults.map((row) => (
-                    (() => {
-                      const rowFoodKey = foodKey(row.item.name, row.item.unit);
-                      const lastUsed = lastUsedByFoodKey.get(rowFoodKey);
-                      const wasJustAdded = lastAddedKey === rowFoodKey;
-                      return (
-                        <Pressable
-                          key={`${row.sourceBucket}:${row.key}`}
-                          onPress={() => addFood(row.item)}
-                          style={({ pressed }) => ({
-                            borderRadius: 16,
-                            paddingHorizontal: 12,
-                            paddingVertical: 11,
-                            backgroundColor: withAlpha(
-                              colors.bg,
-                              isDark ? 0.35 : 0.72
-                            ),
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            gap: 12,
-                            transform: [{ scale: pressed ? 0.985 : 1 }],
-                          })}
-                        >
-                          <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                gap: 6,
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  color: colors.text,
-                                  fontWeight: "900",
-                                  fontSize: 14,
-                                  flexShrink: 1,
-                                }}
-                                numberOfLines={1}
-                              >
-                                {row.item.name}
-                              </Text>
-                              <BucketPill
-                                colors={colors}
-                                label={
-                                  row.sourceBucket === "recent"
-                                    ? "Recent"
-                                    : row.sourceBucket === "frequent"
-                                    ? "Frequent"
-                                    : "Search"
-                                }
-                              />
-                            </View>
-                            <Text
-                              style={{
-                                color: colors.muted,
-                                fontWeight: "800",
-                                fontSize: 11,
-                              }}
-                              numberOfLines={1}
-                            >
-                              {Math.round(Number(row.item.qty || 1))} {row.item.unit} •{" "}
-                              {fmtMacroRow(row.item)}
-                            </Text>
-                            {lastUsed ? (
-                              <Text
-                                style={{
-                                  color: colors.muted,
-                                  fontWeight: "800",
-                                  fontSize: 10,
-                                }}
-                                numberOfLines={1}
-                              >
-                                Last used: {lastUsed.qty} {lastUsed.unit}
-                              </Text>
-                            ) : null}
-                          </View>
-
-                          <View
-                            style={{
-                              width: 34,
-                              height: 34,
-                              borderRadius: 12,
-                              alignItems: "center",
-                              justifyContent: "center",
-                              backgroundColor: wasJustAdded
-                                ? withAlpha("#22c55e", 0.95)
-                                : withAlpha(colors.primary, 0.22),
-                              shadowColor: wasJustAdded ? "#22c55e" : colors.primary,
-                              shadowOpacity: wasJustAdded ? 0.35 : 0.12,
-                              shadowRadius: wasJustAdded ? 12 : 4,
-                              shadowOffset: { width: 0, height: 0 },
-                            }}
-                          >
-                            <Ionicons
-                              name={wasJustAdded ? "checkmark" : "add"}
-                              size={18}
-                              color={colors.text}
-                            />
-                          </View>
-                        </Pressable>
-                      );
-                    })()
-                  ))
-                ) : (
-                  <Text style={{ color: colors.muted, fontWeight: "800" }}>
-                    {query.trim()
-                      ? "No matches yet."
-                      : "Recent and frequent foods will appear here for quick add."}
-                  </Text>
-                )}
-              </View>
-            </Panel>
-          </View>
-        </ScrollView>
-
-        <View
-          pointerEvents="box-none"
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            paddingHorizontal: 16,
-            paddingBottom: Math.max(insets.bottom, 12),
-            paddingTop: 10,
-            backgroundColor: withAlpha(colors.bg, isDark ? 0.9 : 0.96),
-          }}
-        >
-          <View
-            style={{
-              borderRadius: 24,
-              padding: 12,
-              backgroundColor:
-                Platform.OS === "ios"
-                  ? withAlpha(colors.card, 0.78)
-                  : withAlpha(colors.card, 0.98),
-              gap: 10,
-              ...softShadow,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
-              <Pressable
-                onPress={onSavePreset}
-                disabled={presetBusy}
-                style={{
-                  flex: 1,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 10,
-                  opacity: presetBusy ? 0.65 : 1,
-                }}
-              >
-                <View
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 13,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: withAlpha(colors.primary, 0.14),
-                  }}
-                >
-                  <Ionicons
-                    name={presetJustSaved ? "checkmark" : "bookmark-outline"}
-                    size={17}
-                    color={colors.text}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: colors.text, fontWeight: "900" }}>
-                    {presetBusy
-                      ? "Saving preset..."
-                      : presetJustSaved
-                        ? "Preset saved"
-                        : "Save as preset"}
-                  </Text>
-                  <Text
-                    style={{ color: colors.muted, fontWeight: "800", fontSize: 11 }}
-                  >
-                    {presetJustSaved
-                      ? "Ready in your presets list"
-                      : "Reuse this full meal later"}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 14,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: withAlpha(
-                      presetJustSaved ? colors.primary : colors.border,
-                      presetJustSaved ? 0.28 : 0.14
-                    ),
-                  }}
-                >
-                  <Ionicons
-                    name={presetJustSaved ? "checkmark" : "chevron-forward"}
-                    size={16}
-                    color={colors.text}
-                  />
-                </View>
-              </Pressable>
-            </View>
-
-            <Pressable
-              disabled={!items.length || busy}
-              onPress={onLogMeal}
-              style={({ pressed }) => ({
-                height: 56,
-                borderRadius: 18,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: busy ? 0.7 : 1,
-                transform: [{ scale: pressed ? 0.985 : 1 }],
-                overflow: "hidden",
-              })}
-            >
-              <LinearGradient
-                colors={
-                  items.length
-                    ? [withAlpha("#38bdf8", 0.98), withAlpha(colors.primary, 0.98)]
-                    : [withAlpha(colors.border, 0.45), withAlpha(colors.border, 0.34)]
-                }
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{
-                  flex: 1,
-                  alignSelf: "stretch",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  shadowColor: colors.primary,
-                  shadowOpacity: items.length ? 0.32 : 0,
-                  shadowRadius: 18,
-                  shadowOffset: { width: 0, height: 6 },
-                }}
-              >
-                <Text style={{ color: colors.text, fontWeight: "900", fontSize: 16 }}>
-                  {busy ? "Logging..." : "Log Meal"}
-                </Text>
-              </LinearGradient>
-            </Pressable>
-          </View>
-        </View>
-
-        <PremiumModalSheet
-          visible={inputSheetOpen}
-          onClose={() => setInputSheetOpen(false)}
-          title="More ways to add"
-          subtitle="Search stays fastest. Use these when you need another input method."
-        >
-          {[
-            {
-              key: "scan",
-              title: "Scan food",
-              subtitle: "Camera flow for one or more foods",
-              icon: "camera-outline",
-              onPress: () => openMethod("scan"),
-            },
-            {
-              key: "describe",
-              title: "Describe meal",
-              subtitle: "AI estimate from text",
-              icon: "sparkles-outline",
-              onPress: () => openMethod("describe"),
-            },
-            {
-              key: "barcode",
-              title: "Barcode scan",
-              subtitle: "Find packaged foods quickly",
-              icon: "barcode-outline",
-              onPress: () => openMethod("barcode"),
-            },
-            {
-              key: "manual",
-              title: "Manual entry",
-              subtitle: "Enter macros or food details",
-              icon: "create-outline",
-              onPress: () => openMethod("manual"),
-            },
-          ].map((option) => (
-            <Pressable
-              key={option.key}
-              onPress={option.onPress}
-              style={{
-                borderRadius: 18,
-                paddingHorizontal: 14,
-                paddingVertical: 13,
-                backgroundColor: withAlpha(colors.bg, isDark ? 0.34 : 0.72),
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 14,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: withAlpha(colors.primary, 0.14),
-                }}
-              >
-                <Ionicons
-                  name={option.icon as any}
-                  size={18}
-                  color={colors.text}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}
-                >
-                  {option.title}
-                </Text>
-                <Text
-                  style={{ color: colors.muted, fontWeight: "800", fontSize: 11 }}
-                >
-                  {option.subtitle}
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={colors.muted}
-              />
-            </Pressable>
-          ))}
-        </PremiumModalSheet>
-
-        <PremiumModalSheet
-          visible={!!activeMethod}
-          onClose={closeMethod}
-          title={
-            activeMethod === "scan"
-              ? "Scan food"
-              : activeMethod === "describe"
-                ? "Describe meal"
-                : activeMethod === "barcode"
-                  ? "Barcode scan"
-                  : "Manual entry"
-          }
-          subtitle="Meal Builder"
-          fullScreen
-          scroll={false}
-        >
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-          >
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{
-                paddingBottom: Math.max(insets.bottom, 16) + 18,
-                gap: 14,
-              }}
-            >
-                {methodError ? (
-                  <View
-                    style={{
-                      borderRadius: 16,
-                      paddingHorizontal: 12,
-                      paddingVertical: 10,
-                      backgroundColor: withAlpha("#ef4444", 0.14),
-                    }}
-                  >
-                    <Text style={{ color: colors.text, fontWeight: "800" }}>
-                      {methodError}
-                    </Text>
-                  </View>
-                ) : null}
-
-                {activeMethod === "scan" ? (
-                  <Panel colors={colors}>
-                    <SectionHeader
-                      colors={colors}
-                      title="Photo scan"
-                      subtitle="Capture or pick a meal photo, then add the detected foods."
-                    />
-
-                    <View style={{ flexDirection: "row", gap: 10 }}>
-                      <Pressable
-                        onPress={() => pickScanPhoto("camera")}
-                        style={methodActionButton(colors, true)}
-                      >
-                        <Ionicons name="camera-outline" size={18} color={colors.text} />
-                        <Text style={methodActionText(colors)}>Take photo</Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() => pickScanPhoto("library")}
-                        style={methodActionButton(colors, false)}
-                      >
-                        <Ionicons name="images-outline" size={18} color={colors.text} />
-                        <Text style={methodActionText(colors)}>Choose photo</Text>
-                      </Pressable>
-                    </View>
-
-                    {scanPhotoUri ? (
-                      <Text
-                        style={{ color: colors.muted, fontWeight: "800", fontSize: 12 }}
-                      >
-                        Photo ready. {methodBusy ? "Scanning..." : "Review and add."}
-                      </Text>
-                    ) : null}
-
-                    {scanResults.length ? (
-                      <View style={{ gap: 8 }}>
-                        {scanResults.map((food, idx) => (
-                          <View
-                            key={`${food.name}:${idx}`}
-                            style={{
-                              borderRadius: 16,
-                              padding: 12,
-                              backgroundColor: withAlpha(colors.bg, isDark ? 0.35 : 0.72),
-                              gap: 4,
-                            }}
-                          >
-                            <Text
-                              style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}
-                            >
-                              {food.name}
-                            </Text>
-                            <Text
-                              style={{ color: colors.muted, fontWeight: "800", fontSize: 11 }}
-                            >
-                              {Math.round(food.qty)} {food.unit} • {fmtMacroRow(food)}
-                            </Text>
-                          </View>
-                        ))}
-                        <Pressable
-                          onPress={() => {
-                            appendFoods(scanResults, null);
-                            closeMethod();
-                          }}
-                          style={primaryMethodButton(colors, scanResults.length > 0)}
-                        >
-                          <Text style={primaryMethodText(colors)}>
-                            Add {scanResults.length} food
-                            {scanResults.length === 1 ? "" : "s"}
-                          </Text>
-                        </Pressable>
-                      </View>
-                    ) : null}
-                  </Panel>
-                ) : null}
-
-                {activeMethod === "describe" ? (
-                  <Panel colors={colors}>
-                    <SectionHeader
-                      colors={colors}
-                      title="Describe the meal"
-                      subtitle="Type what’s in the meal and return the detected foods."
-                    />
-                    <TextInput
-                      value={describeText}
-                      onChangeText={setDescribeText}
-                      placeholder="2 eggs, toast with butter, and orange juice"
-                      placeholderTextColor={colors.placeholder}
-                      multiline
-                      style={{
-                        minHeight: 110,
-                        textAlignVertical: "top",
-                        borderRadius: 16,
-                        padding: 14,
-                        color: colors.text,
-                        fontWeight: "800",
-                        backgroundColor: withAlpha(colors.bg, isDark ? 0.35 : 0.72),
-                      }}
-                    />
-                    <Pressable
-                      onPress={runDescribe}
-                      disabled={!describeText.trim() || methodBusy}
-                      style={primaryMethodButton(colors, !!describeText.trim() && !methodBusy)}
-                    >
-                      <Text style={primaryMethodText(colors)}>
-                        {methodBusy ? "Analyzing..." : "Analyze"}
-                      </Text>
-                    </Pressable>
-                    {describeResults.length ? (
-                      <View style={{ gap: 8 }}>
-                        {describeResults.map((food, idx) => (
-                          <View
-                            key={`${food.name}:${idx}`}
-                            style={{
-                              borderRadius: 16,
-                              padding: 12,
-                              backgroundColor: withAlpha(colors.bg, isDark ? 0.35 : 0.72),
-                              gap: 4,
-                            }}
-                          >
-                            <Text
-                              style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}
-                            >
-                              {food.name}
-                            </Text>
-                            <Text
-                              style={{ color: colors.muted, fontWeight: "800", fontSize: 11 }}
-                            >
-                              {Math.round(food.qty)} {food.unit} • {fmtMacroRow(food)}
-                            </Text>
-                          </View>
-                        ))}
-                        <Pressable
-                          onPress={submitDescribeFoods}
-                          style={primaryMethodButton(colors, true)}
-                        >
-                          <Text style={primaryMethodText(colors)}>
-                            Add to current meal
-                          </Text>
-                        </Pressable>
-                      </View>
-                    ) : null}
-                  </Panel>
-                ) : null}
-
-                {activeMethod === "barcode" ? (
-                  <Panel colors={colors}>
-                    <SectionHeader
-                      colors={colors}
-                      title="Barcode scan"
-                      subtitle="Scan a packaged food or enter the code manually."
-                    />
-
-                    <View
-                      style={{
-                        borderRadius: 18,
-                        overflow: "hidden",
-                        backgroundColor: withAlpha(colors.bg, 0.5),
-                        height: 210,
-                      }}
-                    >
-                      {cameraPermission?.granted ? (
-                        <CameraView
-                          style={{ flex: 1 }}
-                          facing="back"
-                          onBarcodeScanned={({ data }) => onInlineBarcodeScanned(data)}
-                          barcodeScannerSettings={{
-                            barcodeTypes: [
-                              "ean13",
-                              "ean8",
-                              "upc_a",
-                              "upc_e",
-                              "code128",
-                              "code39",
-                            ],
-                          }}
-                        />
-                      ) : (
-                        <View
-                          style={{
-                            flex: 1,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            padding: 18,
-                            gap: 10,
-                          }}
-                        >
-                          <Text
-                            style={{ color: colors.muted, fontWeight: "800", textAlign: "center" }}
-                          >
-                            Camera access is needed for live barcode scanning.
-                          </Text>
-                          <Pressable
-                            onPress={ensureCameraAccess}
-                            style={primaryMethodButton(colors, true)}
-                          >
-                            <Text style={primaryMethodText(colors)}>Enable camera</Text>
-                          </Pressable>
-                        </View>
-                      )}
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        gap: 10,
-                        alignItems: "center",
-                      }}
-                    >
-                      <TextInput
-                        value={barcodeInput}
-                        onChangeText={setBarcodeInput}
-                        placeholder="Enter barcode"
-                        placeholderTextColor={colors.placeholder}
-                        keyboardType="number-pad"
-                        style={{
-                          flex: 1,
-                          color: colors.text,
-                          fontWeight: "800",
-                          borderRadius: 16,
-                          paddingHorizontal: 14,
-                          paddingVertical: 12,
-                          backgroundColor: withAlpha(colors.bg, isDark ? 0.35 : 0.72),
-                        }}
-                      />
-                      <Pressable
-                        onPress={() => runBarcodeLookup()}
-                        disabled={!barcodeInput.trim() || methodBusy}
-                        style={primaryMethodButton(colors, !!barcodeInput.trim() && !methodBusy, {
-                          width: 104,
-                        })}
-                      >
-                        <Text style={primaryMethodText(colors)}>
-                          {methodBusy ? "Looking..." : "Lookup"}
-                        </Text>
-                      </Pressable>
-                    </View>
-
-                    {barcodeCandidates.length ? (
-                      <View style={{ gap: 8 }}>
-                        {barcodeCandidates.map((candidate, idx) => (
-                          <Pressable
-                            key={`${candidate.name}:${candidate.brand || ""}:${idx}`}
-                            onPress={() => {
-                              appendFoods([candidate], null);
-                              closeMethod();
-                            }}
-                            style={{
-                              borderRadius: 16,
-                              padding: 12,
-                              backgroundColor: withAlpha(colors.bg, isDark ? 0.35 : 0.72),
-                              gap: 4,
-                            }}
-                          >
-                            <Text
-                              style={{ color: colors.text, fontWeight: "900", fontSize: 14 }}
-                              numberOfLines={1}
-                            >
-                              {candidate.name}
-                            </Text>
-                            <Text
-                              style={{ color: colors.muted, fontWeight: "800", fontSize: 11 }}
-                              numberOfLines={1}
-                            >
-                              {candidate.brand ? `${candidate.brand} • ` : ""}
-                              {Math.round(candidate.qty)} {candidate.unit} •{" "}
-                              {fmtMacroRow(candidate)}
-                            </Text>
-                          </Pressable>
-                        ))}
-                      </View>
-                    ) : null}
-                  </Panel>
-                ) : null}
-
-                {activeMethod === "manual" ? (
-                  <Panel colors={colors}>
-                    <SectionHeader
-                      colors={colors}
-                      title="Manual entry"
-                      subtitle="Enter the food and macros, then append it to the meal."
-                    />
-
-                    <TextInput
-                      value={manualDraft.name}
-                      onChangeText={(text) =>
-                        setManualDraft((curr) => ({ ...curr, name: text }))
-                      }
-                      placeholder="Food name"
-                      placeholderTextColor={colors.placeholder}
-                      style={methodInput(colors)}
-                    />
-
-                    <View style={{ flexDirection: "row", gap: 10 }}>
-                      <TextInput
-                        value={manualDraft.qty}
-                        onChangeText={(text) =>
-                          setManualDraft((curr) => ({
-                            ...curr,
-                            qty: text.replace(/[^0-9.]/g, ""),
-                          }))
-                        }
-                        placeholder="Qty"
-                        placeholderTextColor={colors.placeholder}
-                        keyboardType="decimal-pad"
-                        style={[methodInput(colors), { flex: 1 }]}
-                      />
-                      <TextInput
-                        value={manualDraft.unit}
-                        onChangeText={(text) =>
-                          setManualDraft((curr) => ({ ...curr, unit: text }))
-                        }
-                        placeholder="Unit"
-                        placeholderTextColor={colors.placeholder}
-                        style={[methodInput(colors), { flex: 1 }]}
-                      />
-                    </View>
-
-                    <View style={{ flexDirection: "row", gap: 10 }}>
-                      {(["calories", "protein", "carbs", "fat"] as const).map((key) => (
-                        <TextInput
-                          key={key}
-                          value={manualDraft[key]}
-                          onChangeText={(text) =>
-                            setManualDraft((curr) => ({
-                              ...curr,
-                              [key]: text.replace(/[^0-9.]/g, ""),
-                            }))
-                          }
-                          placeholder={key[0].toUpperCase() + key.slice(1)}
-                          placeholderTextColor={colors.placeholder}
-                          keyboardType="decimal-pad"
-                          style={[methodInput(colors), { flex: 1, fontSize: 12 }]}
-                        />
-                      ))}
-                    </View>
-
-                    <Pressable
-                      onPress={submitManualFood}
-                      style={primaryMethodButton(colors, true)}
-                    >
-                      <Text style={primaryMethodText(colors)}>Add to current meal</Text>
-                    </Pressable>
-                  </Panel>
-                ) : null}
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </PremiumModalSheet>
-      </KeyboardAvoidingView>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {MEAL_TYPES.map(m => <Choice key={m.key} label={m.label} selected={mealType === m.key} onPress={() => setMealType(m.key)} />)}
     </View>
-  );
-}
 
-function Panel({
-  colors,
-  children,
-}: {
-  colors: any;
-  children: React.ReactNode;
-}) {
-  return (
-    <View
-      style={{
-        borderRadius: 22,
-        padding: 12,
-        backgroundColor: withAlpha(colors.card, 0.42),
-        shadowColor: "#000",
-        shadowOpacity: 0.12,
-        shadowRadius: 14,
-        shadowOffset: { width: 0, height: 8 },
-        elevation: 6,
-        gap: 12,
-      }}
-    >
-      {children}
-    </View>
-  );
-}
+    <Panel accent>
+      <Text style={F.eyebrow}>MEAL TOTAL</Text>
+      <Text style={{ ...F.value, fontSize: 44 }}>{Math.round(totals.calories)}<Text style={F.caption}> kcal</Text></Text>
+      <Text style={F.body}>Protein {Math.round(totals.protein)} g · Carbs {Math.round(totals.carbs)} g · Fat {Math.round(totals.fat)} g</Text>
+      <Text style={F.caption}>Meal guide: {macroTargets.calories} kcal · P {macroTargets.protein} g · C {macroTargets.carbs} g · F {macroTargets.fat} g. These are meal-builder guides, not your active daily targets.</Text>
+    </Panel>
 
-function SectionHeader({
-  colors,
-  title,
-  subtitle,
-}: {
-  colors: any;
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <View style={{ gap: 3 }}>
-      <Text style={{ color: colors.text, fontWeight: "900", fontSize: 16 }}>
-        {title}
-      </Text>
-      <Text
-        style={{
-          color: withAlpha(colors.text, 0.62),
-          fontWeight: "800",
-          fontSize: 12,
-          lineHeight: 17,
-        }}
-      >
-        {subtitle}
-      </Text>
-    </View>
-  );
-}
+    <Field label="Meal name · optional" value={mealName} onChangeText={setMealName} />
 
-function BucketPill({ colors, label }: { colors: any; label: string }) {
-  return (
-    <View
-      style={{
-        paddingHorizontal: 7,
-        paddingVertical: 3,
-        borderRadius: 999,
-        backgroundColor: withAlpha(colors.primary, 0.14),
-      }}
-    >
-      <Text style={{ color: colors.text, fontWeight: "900", fontSize: 10 }}>
-        {label}
-      </Text>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {(['scan', 'describe', 'barcode', 'manual'] as const).map(m => <Button key={m} label={m === 'scan' ? 'Photo' : m === 'describe' ? 'Describe' : m === 'barcode' ? 'Barcode' : 'Manual'} onPress={() => openMethod(m)} />)}
     </View>
+
+    <Heading title="Ingredients" detail="Adjust portions and arrange foods before logging." />
+    {handoffNotice && <Panel><Text accessibilityLiveRegion="polite" style={F.body}>{handoffNotice}</Text><Button label={handoffCanRetry ? "Retry scan transfer" : "Dismiss"} onPress={() => handoffCanRetry ? setHandoffRetry(n => n + 1) : setHandoffNotice(null)} /></Panel>}
+    {!items.length && <Empty title="Your meal starts here" detail="Add a food below or use a capture method above." />}
+
+    {items.map((item, i) => <Panel key={item.id}>
+      <Heading title={item.name} detail={fmtMacroRow(item)} />
+      <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-end' }}>
+        <IconButton icon="remove" label={`Reduce ${item.name}`} onPress={() => updateQty(item.id, Math.max(0, item.qty - quantityStep(item)))} />
+        <Field label="Quantity" keyboardType="decimal-pad" value={String(item.qty)} onChangeText={text => updateQty(item.id, Number(text.replace(/[^0-9.]/g, '')) || 0)} />
+        <IconButton icon="add" label={`Increase ${item.name}`} onPress={() => updateQty(item.id, item.qty + quantityStep(item))} />
+      </View>
+      <Field label="Unit" value={item.unit} onChangeText={text => updateUnit(item.id, text)} />
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        <IconButton icon="arrow-up" label="Move earlier" disabled={i === 0} onPress={() => moveItem(item.id, 'up')} />
+        <IconButton icon="arrow-down" label="Move later" disabled={i === items.length - 1} onPress={() => moveItem(item.id, 'down')} />
+        <IconButton icon="trash-outline" label={`Remove ${item.name}`} onPress={() => removeItem(item.id)} />
+      </View>
+    </Panel>)}
+
+    <Field label="Search foods" value={query} onChangeText={setQuery} placeholder="Find an ingredient" />
+    {suggestedResults.map(row => <Item key={row.key} title={row.item.name} detail={`${fmtMacroRow(row.item)}${lastAddedKey === row.key ? ' · Added' : ''}`} onPress={() => addFood(row.item)} />)}
+
+    {!suggestedResults.length && <Empty title="No matching foods" detail="Try another search or enter food manually." />}
+
+    <Button label={presetBusy ? 'Saving…' : presetJustSaved ? 'Preset saved' : 'Save as a meal preset'} disabled={presetBusy} onPress={onSavePreset} />
+    <Button label={showPresets ? 'Hide meal presets' : 'Browse meal presets'} onPress={() => setShowPresets(v => !v)} />
+    {(showPresets ? presets : presetPreview).map(p => <Item key={p.id} title={p.name} detail={`${p.items.length} foods`} onPress={() => applyPreset(p)} />)}
+
+  </TaskPage><TaskSheet title={activeMethod === 'scan' ? 'Capture food' : activeMethod === 'describe' ? 'Describe your meal' : activeMethod === 'barcode' ? 'Scan a barcode' : 'Manual food'} visible={!!activeMethod} onClose={closeMethod}>
+
+      {!!methodError && <Empty title="Could not add food" detail={methodError} />}
+      {methodBusy && <Text accessibilityLiveRegion="polite" style={F.body}>Working…</Text>}
+
+      {activeMethod === 'scan' && <><View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+        <Button label="Take photo" disabled={methodBusy} onPress={() => pickScanPhoto('camera')} />
+        <Button label="Choose photo" disabled={methodBusy} onPress={() => pickScanPhoto('library')} />
+      </View>{scanResults.map((food, i) => <Item key={i} title={food.name} detail={`${food.qty} ${food.unit} · ${fmtMacroRow(food)}`} />)}{!!scanResults.length && <Button primary label="Add detected foods" onPress={() => { appendFoods(scanResults, null); closeMethod(); }} />}</>}
+
+      {activeMethod === 'describe' && <><Field label="What did you eat?" multiline value={describeText} onChangeText={setDescribeText} /><Button label="Calculate nutrition" disabled={methodBusy || !describeText.trim()} onPress={runDescribe} />{describeResults.map((food, i) => <Item key={i} title={food.name} detail={`${food.qty} ${food.unit} · ${fmtMacroRow(food)}`} />)}{!!describeResults.length && <Button primary label="Add foods" onPress={submitDescribeFoods} />}</>}
+
+      {activeMethod === 'barcode' && <>{cameraPermission?.granted ? <CameraView style={{ height: 220, borderRadius: 18 }} facing="back" barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'code39'] }} onBarcodeScanned={({ data }) => onInlineBarcodeScanned(data)} /> : <Button label="Enable camera" onPress={ensureCameraAccess} />}<Field label="Barcode" value={barcodeInput} onChangeText={setBarcodeInput} keyboardType="number-pad" /><Button label="Look up barcode" disabled={methodBusy || !barcodeInput.trim()} onPress={() => runBarcodeLookup()} />{barcodeCandidates.map((food, i) => <Item key={i} title={food.name} detail={fmtMacroRow(food)} onPress={() => { appendFoods([food], null); closeMethod(); }} />)}</>}
+
+      {activeMethod === 'manual' && <>{(['name', 'qty', 'unit', 'calories', 'protein', 'carbs', 'fat'] as const).map(k => <Field key={k} label={k} value={manualDraft[k]} keyboardType={k === 'name' || k === 'unit' ? 'default' : 'decimal-pad'} onChangeText={text => setManualDraft(v => ({ ...v, [k]: text }))} />)}<Button primary label="Add food" onPress={submitManualFood} /></>}
+    </TaskSheet></>
   );
 }
 

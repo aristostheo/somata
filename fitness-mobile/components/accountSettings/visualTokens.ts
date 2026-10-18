@@ -1,6 +1,14 @@
 import { withAlpha } from "@/lib/color";
 
-export function visualTokens(isDark: boolean, primary: string, accent: string) {
+export function visualTokens(isDark: boolean, primary: string, accent: string, preview = false) {
+  if (preview) return {
+    canvas: "#080A09", card: "#1A1E1C", raised: "#242B26",
+    text: "#F7F8F4", secondary: "#AFBAB1", border: "#303932",
+    primary, accent,
+    primaryTint: withAlpha(primary, 0.2), accentTint: withAlpha(accent, 0.16),
+    heroStart: "#163D36", heroMiddle: "#17493A", heroEnd: "#293E2A",
+    gold: "#D4EF78", coral: "#65CDB9", dark: true,
+  };
   const canvas = isDark ? "#090E20" : "#F6F1EA";
   const card = isDark ? "#16213A" : "#FFFCF8";
   const raised = isDark ? "#20304D" : "#EFE8F5";

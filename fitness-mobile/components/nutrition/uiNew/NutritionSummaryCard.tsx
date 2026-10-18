@@ -3,6 +3,7 @@ import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassCard } from "./GlassCard";
 import { AnimatedRing } from "./AnimatedRing";
+import { remainingNutritionTargets } from "@/services/nutritionTargets";
 
 function withAlpha(color: string, alpha = 0.2) {
   if (!color) return `rgba(0,0,0,${alpha})`;
@@ -32,7 +33,7 @@ export function NutritionSummaryCard({
   totals: { calories: number; protein: number; carbs: number; fat: number };
   onPressLog: () => void;
 }) {
-  const remaining = Math.max(0, Math.round(goals.calories - totals.calories));
+  const remaining = remainingNutritionTargets(goals, totals).calories;
 
   return (
     <GlassCard colors={colors} isDark={isDark} radius={22} pad={14}>

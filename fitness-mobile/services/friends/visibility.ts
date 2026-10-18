@@ -29,6 +29,15 @@ export const DEFAULT_FRIEND_VISIBILITY: FriendVisibility = {
 };
 
 export function getFriendVisibility(profile: Profile | null | undefined): FriendVisibility {
+  // Missing/loading/permission-denied is not evidence of consent. In particular,
+  // a denied private-profile read must never activate default sharing switches.
+  if (!profile) return {
+    enabled: false,
+    nutrition: { mealsLoggedToday: false, dailyCaloriesTotal: false, macroBreakdown: false, streakStatus: false },
+    workouts: { workoutsLogged: false, workoutDetails: false, personalRecords: false, weeklyVolume: false },
+    progress: { consistencyStreak: false, badgeCollection: false, weeklyReportCard: false, weightTrend: false },
+    activity: { stepCount: false, cardioSessions: false },
+  };
   const v = profile?.friendVisibility || {};
   return {
     enabled: v.enabled ?? DEFAULT_FRIEND_VISIBILITY.enabled,
@@ -71,4 +80,16 @@ export function friendTrendLabel(profile: Profile | null | undefined) {
   if (weight > target) return "Trending down ↓";
   if (weight < target) return "Trending up ↑";
   return "On track";
+}
+
+// Matches the trusted summary boundary: defaults are suggestions, not recorded consent.
+export function getSavedFriendVisibility(profile: Profile | null | undefined): FriendVisibility {
+  const result = getFriendVisibility(null);
+  const saved = profile?.friendVisibility;
+  result.enabled = saved?.enabled === true;
+  for (const group of ["nutrition", "workouts", "progress", "activity"] as const) {
+    const fields = result[group] as Record<string, boolean>;
+    for (const key of Object.keys(fields)) fields[key] = (saved?.[group] as Record<string, unknown> | undefined)?.[key] === true;
+  }
+  return result;
 }

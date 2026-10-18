@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { accountStorage, type AccountStore } from '@/services/local/accountStore';
 import {
   collection,
   getDocs,
@@ -258,10 +258,10 @@ function formatSleepSourceDate(snapshot: IntegrationSnapshot) {
   return ymd(new Date(end));
 }
 
-async function getHydrationRange(uid: string, dateKeys: string[]) {
+async function getHydrationRange(uid: string, dateKeys: string[], localStore: AccountStore = accountStorage()) {
   const entries = await Promise.all(
     dateKeys.map(async (date) => {
-      const raw = await AsyncStorage.getItem(`@water:${date}`);
+      const raw = await localStore.getItem(`@water:${date}`);
       return [date, num(raw)] as const;
     })
   );
@@ -327,25 +327,24 @@ export async function getCalendarRangeData(
   uid: string,
   startDate: string,
   endDate: string,
-  profile: Profile | null
+  profile: Profile | null, localStore: AccountStore = accountStorage()
 ) {
+  localStore.assertCurrent();
+  if (localStore.uid !== uid) throw new Error("Account mismatch");
   const stepsUpdatedAt = (profile as any)?.stepsUpdatedAt ?? 0;
-  const cacheKey = [uid, startDate, endDate, stepsUpdatedAt, JSON.stringify(profile?.activeFitAdaptTargets)].join(":");
+  const effective = nutritionTargets(profile);
+  const cacheKey = [uid, startDate, endDate, stepsUpdatedAt, JSON.stringify(effective)].join(":");
   const now = Date.now();
   const existing = cache.get(cacheKey);
   if (existing && existing.expiresAt > now) {
-    return existing.promise;
+    const result = await existing.promise;
+    localStore.assertCurrent();
+    return result;
   }
 
   const promise = (async () => {
     const dateKeys = buildDateKeys(startDate, endDate);
     const stepsMap = (((profile as any)?.steps ?? {}) as Record<string, number>) || {};
-    const effective = nutritionTargets(profile, {
-      calories: num(profile?.goalResult?.dailyCalories ?? profile?.dailyCaloriesTarget ?? profile?.calorieGoal, 2400),
-      protein: num(profile?.goalResult?.protein ?? profile?.dailyProteinTarget ?? profile?.proteinGoal, 150),
-      carbs: num(profile?.goalResult?.carbs ?? profile?.carbGoal, 220),
-      fat: num(profile?.goalResult?.fat ?? profile?.fatGoal, 70),
-    });
     const { calories: calorieGoal, protein: proteinGoal, carbs: carbsGoal, fat: fatGoal } = effective;
     const hydrationGoal = num(
       (profile as any)?.waterGoalMl ?? (profile as any)?.dailyWaterTargetMl ?? (profile as any)?.hydrationGoalMl,
@@ -357,9 +356,9 @@ export async function getCalendarRangeData(
       getFoodsInRange(uid, startDate, endDate),
       getWorkoutRowsInRange(uid, startDate, endDate),
       getActivityRowsInRange(uid, startDate, endDate),
-      getHydrationRange(uid, dateKeys),
-      loadBodyMetricsHistory(),
-      getIntegrationSnapshot(),
+      getHydrationRange(uid, dateKeys, localStore),
+      loadBodyMetricsHistory(localStore),
+      getIntegrationSnapshot(localStore),
     ]);
 
     const sessions = buildWorkoutSessions(workouts);

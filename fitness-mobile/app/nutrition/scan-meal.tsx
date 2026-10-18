@@ -1,4 +1,10 @@
+import { useAccountStorage } from '@/services/local/accountStore';
+import { queueNutritionHandoff } from "@/services/queueNutritionHandoff";
+import { ScanItems } from "@/components/somata/ScanItems";
+import { Button, Choice, Field as FormField, Heading, IconButton, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import { dayKey } from "@/utils/date";
+import { Image } from "react-native";
 // app/scan-meal.tsx
 // Premium Scan Meal UI ✅ wired to your existing backend logic:
 // - Uses AsyncStorage batch handoff: @pending_add_meal_batch_v1
@@ -8,7 +14,13 @@ import { dayKey } from "@/utils/date";
 // - Converts sodiumMg -> sodium in payload
 // - No logMeal.ts dependency
 
-import React, {
+import { PENDING_MEAL_BUILDER_ADDITIONS_KEY } from "@/services/mealBuilder";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import {
   useCallback,
   useEffect,
   useMemo,
@@ -16,23 +28,13 @@ import React, {
   useState,
 } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Modal,
-  TextInput,
   ActivityIndicator,
   Alert,
+  Modal,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import * as ImagePicker from "expo-image-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { PENDING_MEAL_BUILDER_ADDITIONS_KEY } from "@/services/mealBuilder";
-import { BlurView } from "expo-blur";
-import { useRouter, useLocalSearchParams } from "expo-router";
 
 import { useTheme } from "@/content/ThemeProvider";
 import { callOpenAIJson } from "@/services/openai";
@@ -46,28 +48,20 @@ import {
   roundTo,
 } from "@/components/scanMeal/new/types";
 
-import ScanMealHeader from "@/components/scanMeal/new/ScanMealHeader";
-import PhotoCard from "@/components/scanMeal/new/PhotoCard";
-import ConfidenceLegend from "@/components/scanMeal/new/ConfidenceLegend";
-import DetectedFoodList from "@/components/scanMeal/new/DetectedFoodList";
-import MacroSummaryCard from "@/components/scanMeal/new/MacroSummaryCard";
-import BottomActionBar from "@/components/scanMeal/new/BottomActionBar";
-import ExplainAIButton from "@/components/scanMeal/new/ExplainAIButton";
-import ExplainAIModal from "@/components/scanMeal/new/ExplainAIModal";
-import EditFoodSheet from "@/components/scanMeal/new/EditFoodSheet";
 import AddFoodSheet from "@/components/scanMeal/new/AddFoodSheet";
-import Toast from "@/components/scanMeal/new/Toast";
-import MealCategoryPills, {
+import EditFoodSheet from "@/components/scanMeal/new/EditFoodSheet";
+import ExplainAIModal from "@/components/scanMeal/new/ExplainAIModal";
+import {
   type MealCategory,
 } from "@/components/scanMeal/new/MealCategoryPills";
 import {
   getScanQuotaStatus,
-  reserveScanToken,
   refundScanToken,
+  reserveScanToken,
 } from "@/services/scanMeal/scanQuota";
 
-import { scanMealFromImage } from "@/components/scanMeal/new/services/scanMealService";
 import { computeTotals } from "@/components/scanMeal/new/services/macroMath";
+import { scanMealFromImage } from "@/components/scanMeal/new/services/scanMealService";
 
 type MealKey = "breakfast" | "lunch" | "dinner" | "snacks";
 type AddPayload = {
@@ -256,27 +250,31 @@ ${query}
 }`,
       },
     ],
-    { maxTokens: 700, temperature: 0.3 }
+    { operation: "foodMacros", maxTokens: 700, temperature: 0.3 }
   );
   if (!parsed) return null;
 
   const macros = normalizeDescribeMacros(parsed);
   const hasAny =
     (macros.calories || 0) +
-      (macros.protein || 0) +
-      (macros.carbs || 0) +
-      (macros.fat || 0) >
+    (macros.protein || 0) +
+    (macros.carbs || 0) +
+    (macros.fat || 0) >
     0;
 
   return hasAny ? macros : null;
 }
 
 export default function ScanMealScreen() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const params = useLocalSearchParams<{
     meal?: string;
     date?: string;
     returnTo?: string;
+    builderSessionId?: string;
   }>();
   const { colors, isDark } = useTheme();
 
@@ -284,6 +282,7 @@ export default function ScanMealScreen() {
     (params.date as string) || dayKey(new Date());
   const initialMealKey = safeMealKey(params.meal);
   const returnTo = String(params.returnTo || "");
+  const builderSessionId = String(params.builderSessionId || "");
 
   const [state, setState] = useState<ScanState>("idle");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -299,6 +298,7 @@ export default function ScanMealScreen() {
   });
 
   const [isLogging, setIsLogging] = useState(false);
+  const confirmInFlight = useRef(false);
 
   const [showExplain, setShowExplain] = useState(false);
   const [editFood, setEditFood] = useState<DetectedFood | null>(null);
@@ -335,7 +335,7 @@ export default function ScanMealScreen() {
     });
   }, []);
   useEffect(() => {
-    refreshQuota().catch(() => {});
+    refreshQuota().catch(() => { });
   }, [refreshQuota]);
 
   // ✅ prevent state updates if user backs out mid-scan
@@ -347,7 +347,7 @@ export default function ScanMealScreen() {
     };
   }, []);
 
-  const showToast = useCallback((t: { title: string; subtitle?: string }) => {
+  const showToast = useCallback((t: { title: string; subtitle?: string; }) => {
     setToast(t);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2400);
@@ -375,7 +375,7 @@ export default function ScanMealScreen() {
   }, []);
 
   const onReset = useCallback(async () => {
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     setState("idle");
     setPhotoUri(null);
     setFoods([]);
@@ -387,7 +387,7 @@ export default function ScanMealScreen() {
     const ok = await requestImagePerms();
     if (!ok) return;
 
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     const res = await ImagePicker.launchCameraAsync({
       mediaTypes: ["images"],
       quality: 0.9,
@@ -410,7 +410,7 @@ export default function ScanMealScreen() {
     const ok = await requestImagePerms();
     if (!ok) return;
 
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       quality: 0.9,
@@ -438,7 +438,7 @@ export default function ScanMealScreen() {
     if (!reservation.allowed) {
       await Haptics.notificationAsync(
         Haptics.NotificationFeedbackType.Warning,
-      ).catch(() => {});
+      ).catch(() => { });
 
       setQuota({
         remaining: reservation.unlimited ? 999999 : reservation.remaining,
@@ -464,7 +464,7 @@ export default function ScanMealScreen() {
     });
 
     try {
-      await Haptics.selectionAsync().catch(() => {});
+      await Haptics.selectionAsync().catch(() => { });
       setState("analyzing");
 
       const result: ScanMealResult = await scanMealFromImage(photoUri);
@@ -520,8 +520,8 @@ export default function ScanMealScreen() {
       if (!aliveRef.current) return;
 
       // ✅ optional refund if scan failed (keeps UX fair)
-      await refundScanToken({ limit: DAILY_SCAN_LIMIT }).catch(() => {});
-      await refreshQuota().catch(() => {});
+      await refundScanToken({ limit: DAILY_SCAN_LIMIT }).catch(() => { });
+      await refreshQuota().catch(() => { });
 
       console.warn(e);
       setState("photo_ready");
@@ -533,13 +533,13 @@ export default function ScanMealScreen() {
   }, [photoUri, showToast, refreshQuota]);
 
   const onOpenEdit = useCallback(async (food: DetectedFood) => {
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     setEditFood(food);
   }, []);
 
   const onRemove = useCallback(
     async (id: string) => {
-      await Haptics.selectionAsync().catch(() => {});
+      await Haptics.selectionAsync().catch(() => { });
       setFoods((prev) => prev.filter((f) => f.id !== id));
       showToast({ title: "Removed item" });
     },
@@ -548,7 +548,7 @@ export default function ScanMealScreen() {
 
   const onUpdateFood = useCallback(
     async (next: DetectedFood) => {
-      await Haptics.selectionAsync().catch(() => {});
+      await Haptics.selectionAsync().catch(() => { });
       const originalName = editFood?.name?.trim() ?? "";
       const nextName = next.name.trim();
       const didRename =
@@ -596,7 +596,7 @@ export default function ScanMealScreen() {
 
   const onAddFood = useCallback(
     async (food: DetectedFood) => {
-      await Haptics.selectionAsync().catch(() => {});
+      await Haptics.selectionAsync().catch(() => { });
       setFoods((prev) => [food, ...prev]);
       setShowAdd(false);
       setState("review");
@@ -637,7 +637,7 @@ export default function ScanMealScreen() {
   // Portion +/- scales item totals by ratio (macros here are already totals for the current portion)
   const onQuickAdjustPortion = useCallback(
     async (id: string, delta: number) => {
-      await Haptics.selectionAsync().catch(() => {});
+      await Haptics.selectionAsync().catch(() => { });
 
       setFoods((prev) =>
         prev.map((f) => {
@@ -682,10 +682,12 @@ export default function ScanMealScreen() {
       return;
     }
 
+    if (confirmInFlight.current) return;
+    confirmInFlight.current = true;
     setIsLogging(true);
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
-        () => {},
+        () => { },
       );
 
       const chosenMeal = categoryToMealKey(category);
@@ -736,28 +738,27 @@ export default function ScanMealScreen() {
           ? PENDING_MEAL_BUILDER_ADDITIONS_KEY
           : PENDING_BATCH_KEY;
 
-      await AsyncStorage.setItem(
-        targetKey,
-        JSON.stringify({ date: dateStr, meal: chosenMeal, items }),
-      );
+      await queueNutritionHandoff(targetKey, { date: dateStr, meal: chosenMeal, items, ...(returnTo === "meal-builder" ? { builderSessionId } : {}) }, localStore);
 
-      await AsyncStorage.setItem("@badges_dirty", "1").catch(() => {});
+      await localStore.setItem("@badges_dirty", "1").catch(() => { });
 
       await Haptics.notificationAsync(
         Haptics.NotificationFeedbackType.Success,
-      ).catch(() => {});
+      ).catch(() => { });
 
+      localStore.assertCurrent();
       router.back();
     } catch (e: any) {
       await Haptics.notificationAsync(
         Haptics.NotificationFeedbackType.Error,
-      ).catch(() => {});
+      ).catch(() => { });
+      confirmInFlight.current = false;
       Alert.alert("Couldn’t log meal", e?.message ?? "Try again.");
       setState("review");
     } finally {
       setIsLogging(false);
     }
-  }, [hasFoods, foods, dateStr, category, router]);
+  }, [hasFoods, foods, dateStr, category, returnTo, builderSessionId, localStore, router]);
 
   const primaryLabel = useMemo(() => {
     if (state === "idle") return "Take a photo";
@@ -798,276 +799,46 @@ export default function ScanMealScreen() {
     return undefined;
   }, [state, onReset]);
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={[styles.container, { backgroundColor: colors.bg }]}>
-        <ScanMealHeader
-          title="Scan a Meal"
-          subtitle="Photo → Review → Log"
-          onClose={() => router.back()}
-          onExplain={() => setShowExplain(true)}
-        />
-        <View style={{ paddingHorizontal: 16, paddingTop: 6 }}>
-          <Text
-            style={{ color: colors.muted, fontSize: 12.5, fontWeight: "700" }}
-          >
-            {quota.unlimited
-              ? "Unlimited scans enabled"
-              : `Scans left today: ${Math.max(0, quota.remaining)} / ${
-                  quota.limit
-                }`}
-          </Text>
-        </View>
+  return (<>
+    <TaskPage title={state === 'review' ? 'Review your meal.' : 'A photo, then your review.'} section="Nutrition / photo capture" onBack={() => router.back()}
+      action={<IconButton label="How scanning works" icon="information-circle-outline" onPress={() => setShowExplain(true)} />}
+      footer={<><Button label={primaryLabel} primary disabled={!primaryAction || state === 'analyzing' || isLogging || isReanalyzing} onPress={() => primaryAction?.()} />
+        {!!secondaryAction && <Button label={secondaryLabel!} onPress={secondaryAction} />} {!!tertiaryAction && <Button label={tertiaryLabel!} onPress={tertiaryAction} />}</>}>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <PhotoCard
-            state={state}
-            photoUri={photoUri}
-            onTakePhoto={pickFromCamera}
-            onPickLibrary={pickFromLibrary}
-            onScan={onAnalyze}
-          />
+      <Text style={F.caption}>{quota.unlimited ? 'Unlimited scans enabled' : `${Math.max(0, quota.remaining)} / ${quota.limit} scans left today`}</Text>
 
-          {state === "review" ? (
-            <View
-              style={[
-                styles.hero,
-                { backgroundColor: colors.surface, borderColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.heroTitle, { color: colors.text }]}>
-                Review & confirm
-              </Text>
-              <Text style={[styles.heroSub, { color: colors.muted }]}>
-                Everything is editable. Macros are estimates based on your
-                portions.
-              </Text>
+      {!!photoUri && <Image source={{ uri: photoUri }} accessibilityLabel="Meal photo for review" style={{ height: 220, width: '100%', borderRadius: 24 }} />}
 
-              {lowConfidenceCount > 0 ? (
-                <View
-                  style={[
-                    styles.banner,
-                    {
-                      backgroundColor: isDark
-                        ? "rgba(245,158,11,0.14)"
-                        : "rgba(217,119,6,0.16)",
-                      borderColor: isDark
-                        ? "rgba(245,158,11,0.28)"
-                        : "rgba(217,119,6,0.26)",
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="alert-circle-outline"
-                    size={18}
-                    color={colors.warning}
-                    style={{ marginRight: 10 }}
-                  />
-                  <Text style={[styles.bannerText, { color: colors.text }]}>
-                    We’re not fully sure about {lowConfidenceCount} item
-                    {lowConfidenceCount > 1 ? "s" : ""}. Please confirm.
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
+      {state === 'idle' && <Panel accent>
+        <Ionicons name="camera-outline" size={48} color={D.teal} />
+        <Heading title="Bring the whole plate into view" detail="Use good lighting and avoid harsh shadows. You can take a photo or select one from your library." />
+      </Panel>}
 
-          <View style={styles.sectionRow}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Detected items
-            </Text>
-            <ExplainAIButton onPress={() => setShowExplain(true)} />
-          </View>
+      {state === 'photo_ready' && <Text style={F.body}>Scan this photo to identify foods and estimate portions. Nothing is logged until you confirm.</Text>}
 
-          {state === "review" ? <ConfidenceLegend /> : null}
-
-          {state === "review" ? (
-            <DetectedFoodList
-              foods={foods}
-              onPressItem={onOpenEdit}
-              onRemove={onRemove}
-              onQuickAdjust={onQuickAdjustPortion}
-              onAdd={() => setShowAdd(true)}
-            />
-          ) : (
-            <View
-              style={[
-                styles.placeholderCard,
-                { backgroundColor: colors.surface, borderColor: colors.border },
-              ]}
-            >
-              <Ionicons
-                name="sparkles-outline"
-                size={18}
-                color={colors.muted}
-                style={{ marginRight: 10 }}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.placeholderTitle, { color: colors.text }]}>
-                  Transparent AI, every time
-                </Text>
-                <Text style={[styles.placeholderSub, { color: colors.muted }]}>
-                  We’ll show detected items, confidence, and let you edit
-                  anything before logging.
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {state === "review" ? (
-            <>
-              <View style={{ height: 10 }} />
-              <MacroSummaryCard totals={totals} />
-
-              <View style={{ height: 12 }} />
-              <View style={styles.sectionRow}>
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  Meal type
-                </Text>
-                <Text style={[styles.sectionHint, { color: colors.muted }]}>
-                  Can change anytime
-                </Text>
-              </View>
-              <MealCategoryPills value={category} onChange={setCategory} />
-
-              <View
-                style={[
-                  styles.notesCard,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                  },
-                ]}
-              >
-                <View style={styles.notesHeader}>
-                  <Ionicons
-                    name="chatbubble-ellipses-outline"
-                    size={18}
-                    color={colors.muted}
-                  />
-                  <Text style={[styles.notesTitle, { color: colors.text }]}>
-                    Notes
-                  </Text>
-                  <Text style={[styles.notesHint, { color: colors.muted }]}>
-                    Optional
-                  </Text>
-                </View>
-
-                <TextInput
-                  value={notes}
-                  onChangeText={setNotes}
-                  placeholder="E.g., extra sauce on the side…"
-                  placeholderTextColor={colors.placeholder}
-                  style={[
-                    styles.notesInput,
-                    {
-                      color: colors.text,
-                      borderColor: colors.border,
-                      backgroundColor: colors.inputBg,
-                    },
-                  ]}
-                  multiline
-                />
-              </View>
-
-              <View style={{ height: 18 }} />
-            </>
-          ) : null}
-
-          <View style={{ height: 110 }} />
-        </ScrollView>
-
-        {/* Processing overlay */}
-        <Modal
-          transparent
-          visible={state === "analyzing" || isLogging || isReanalyzing}
-        >
-          <View style={styles.overlayWrap}>
-            <BlurView
-              intensity={35}
-              tint={isDark ? "dark" : "light"}
-              style={styles.overlayBlur}
-            />
-            <View
-              style={[
-                styles.overlayCard,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <View style={styles.overlayRow}>
-                <ActivityIndicator />
-                <View style={{ marginLeft: 12, flex: 1 }}>
-                  <Text style={[styles.overlayTitle, { color: colors.text }]}>
-                    {state === "analyzing"
-                      ? "Scanning meal"
-                      : isLogging
-                        ? "Logging meal"
-                        : "Reanalyzing item"}
-                  </Text>
-                  <Text style={[styles.overlaySub, { color: colors.muted }]}>
-                    {state === "analyzing"
-                      ? "Detecting foods and estimating macros."
-                      : isLogging
-                        ? "Saving to your diary…"
-                        : "Updating calories and macros for your edits."}
-                  </Text>
-                </View>
-              </View>
-
-              <View
-                style={[
-                  styles.overlayDivider,
-                  { backgroundColor: colors.border },
-                ]}
-              />
-
-              <Text style={[styles.overlayFoot, { color: colors.muted }]}>
-                You’ll review everything before it’s final.
-              </Text>
-            </View>
-          </View>
-        </Modal>
-
-        <BottomActionBar
-          primaryLabel={primaryLabel}
-          primaryDisabled={!primaryAction || state === "analyzing" || isLogging}
-          onPrimary={primaryAction}
-          secondaryLabel={secondaryLabel}
-          onSecondary={secondaryAction}
-          tertiaryLabel={tertiaryLabel}
-          onTertiary={tertiaryAction}
-        />
-
-        <ExplainAIModal
-          visible={showExplain}
-          onClose={() => setShowExplain(false)}
-        />
-
-        <EditFoodSheet
-          visible={!!editFood}
-          food={editFood}
-          onClose={() => setEditFood(null)}
-          onSave={onUpdateFood}
-          onRemove={editFood ? () => onRemove(editFood.id) : undefined}
-        />
-
-        <AddFoodSheet
-          visible={showAdd}
-          onClose={() => setShowAdd(false)}
-          onAdd={onAddFood}
-        />
-
-        <Toast
-          visible={!!toast}
-          title={toast?.title ?? ""}
-          subtitle={toast?.subtitle}
-          onHide={() => setToast(null)}
-        />
+      {state === 'review' && <><View style={F.wrap}>
+        {(['Breakfast', 'Lunch', 'Dinner', 'Snack'] as MealCategory[]).map(value => <Choice key={value} label={value} selected={category === value} onPress={() => setCategory(value)} />)}
       </View>
-    </SafeAreaView>
+        {lowConfidenceCount > 0 && <Text style={{ ...F.body, color: D.amber }}>Please check {lowConfidenceCount} low-confidence {lowConfidenceCount === 1 ? 'item' : 'items'}.</Text>}
+        <ScanItems foods={foods} totals={totals} onEdit={onOpenEdit} onRemove={onRemove} onAdjust={onQuickAdjustPortion} onAdd={() => setShowAdd(true)} />
+        <FormField label="Notes (optional)" value={notes} onChangeText={setNotes} multiline />
+      </>}
+
+      {!!toast && <Text accessibilityLiveRegion="polite" style={{ ...F.body, color: D.lime }}>{toast.title}{toast.subtitle ? ` · ${toast.subtitle}` : ''}</Text>}
+    </TaskPage>
+    <Modal transparent visible={state === 'analyzing' || isLogging || isReanalyzing}>
+      <View style={{ flex: 1, justifyContent: 'center', padding: 26, backgroundColor: '#000000B3' }}>
+
+        <Panel>
+          <ActivityIndicator color={D.teal} />
+          <Heading title={state === 'analyzing' ? 'Scanning meal' : isLogging ? 'Logging meal' : 'Reanalyzing item'} detail="Your changes are being processed." />
+        </Panel>
+      </View>
+    </Modal>
+    <ExplainAIModal visible={showExplain} onClose={() => setShowExplain(false)} />
+    <EditFoodSheet visible={!!editFood} food={editFood} onClose={() => setEditFood(null)} onSave={onUpdateFood} onRemove={editFood ? () => onRemove(editFood.id) : undefined} />
+    <AddFoodSheet visible={showAdd} onClose={() => setShowAdd(false)} onAdd={onAddFood} />
+  </>
   );
 }
 

@@ -1,55 +1,15 @@
 import * as ImageManipulator from "expo-image-manipulator";
-
-const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
-const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
-
-export interface OpenAIMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
+import { httpsCallable } from "firebase/functions";
+import { auth, functions } from "@/lib/firebase";
+import { requestAIContent, type AIRequest, type AIOperation } from "./aiTransport";
+export interface OpenAIMessage { role: "system" | "user" | "assistant"; content: string }
+type OpenAIOptions = { operation?: Exclude<AIOperation, "photo">; model?: string; maxTokens?: number; temperature?: number; retryTemperature?: number };
+const invoke = (request: AIRequest) => httpsCallable<AIRequest, unknown>(functions, "generateSomataAI", { timeout: 35000 })(request);
+/** Compatibility adapter for existing presentation flows; system instructions live on the server. */
+export async function callOpenAI(messages: OpenAIMessage[], options?: OpenAIOptions): Promise<string> {
+  return requestAIContent({ operation: options?.operation ?? "meal",
+    text: messages.filter(message => message.role === "user").map(message => message.content).join("\n") }, invoke, !!auth.currentUser);
 }
-
-type OpenAIOptions = {
-  model?: string;
-  maxTokens?: number;
-  temperature?: number;
-};
-
-function getApiKey() {
-  if (!OPENAI_API_KEY) {
-    throw new Error(
-      "OpenAI API key not configured. Add EXPO_PUBLIC_OPENAI_API_KEY to your .env file."
-    );
-  }
-  return OPENAI_API_KEY;
-}
-
-export async function callOpenAI(
-  messages: OpenAIMessage[],
-  options?: OpenAIOptions
-): Promise<string> {
-  const response = await fetch(OPENAI_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${getApiKey()}`,
-    },
-    body: JSON.stringify({
-      model: options?.model ?? "gpt-4o-mini",
-      max_tokens: options?.maxTokens ?? 1500,
-      temperature: options?.temperature ?? 0.7,
-      messages,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => null);
-    throw new Error(error?.error?.message ?? `OpenAI error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content ?? "";
-}
-
 function safeJsonParse(raw: string) {
   try {
     return JSON.parse(raw);
@@ -82,89 +42,22 @@ export function extractJsonFromText(text: string): any | null {
   return null;
 }
 
-export async function callOpenAIJson<T = any>(
-  messages: OpenAIMessage[],
-  options?: OpenAIOptions & { retryTemperature?: number }
-): Promise<T> {
-  const raw = await callOpenAI(messages, options);
-  const parsed = extractJsonFromText(raw);
-  if (parsed) return parsed as T;
 
-  const retryRaw = await callOpenAI(messages, {
-    ...options,
-    temperature: options?.retryTemperature ?? 0.3,
-  });
-  const retryParsed = extractJsonFromText(retryRaw);
-  if (retryParsed) return retryParsed as T;
-
-  throw new Error("OpenAI returned invalid JSON.");
+export async function callOpenAIJson<T = any>(messages: OpenAIMessage[], options?: OpenAIOptions): Promise<T> {
+  // No automatic retries: one user action means at most one provider request.
+  return JSON.parse(await callOpenAI(messages, options)) as T;
 }
-
-async function imageUriToDataUrl(uri: string) {
-  const out = await ImageManipulator.manipulateAsync(
-    uri,
-    [{ resize: { width: 1280 } }],
-    {
-      compress: 0.85,
-      format: ImageManipulator.SaveFormat.JPEG,
-      base64: true,
-    }
-  );
-  if (!out.base64) throw new Error("Failed to convert image to base64");
-  return `data:image/jpeg;base64,${out.base64}`;
-}
-
 export async function callOpenAIImageJson<T = any>(args: {
-  imageUri: string;
-  systemPrompt: string;
-  userPrompt: string;
-  model?: string;
-  maxTokens?: number;
-  temperature?: number;
-  retryTemperature?: number;
+  imageUri: string; systemPrompt: string; userPrompt: string; model?: string;
+  maxTokens?: number; temperature?: number; retryTemperature?: number;
 }): Promise<T> {
-  const imageUrl = await imageUriToDataUrl(args.imageUri);
-  const body = {
-    model: args.model ?? "gpt-4o-mini",
-    max_tokens: args.maxTokens ?? 1500,
-    temperature: args.temperature ?? 0.4,
-    messages: [
-      { role: "system", content: args.systemPrompt },
-      {
-        role: "user",
-        content: [
-          { type: "text", text: args.userPrompt },
-          { type: "image_url", image_url: { url: imageUrl } },
-        ],
-      },
-    ],
-  };
-
-  const request = async (temperature: number) => {
-    const response = await fetch(OPENAI_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getApiKey()}`,
-      },
-      body: JSON.stringify({ ...body, temperature }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => null);
-      throw new Error(error?.error?.message ?? `OpenAI error: ${response.status}`);
-    }
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content ?? "";
-  };
-
-  const first = await request(args.temperature ?? 0.4);
-  const parsed = extractJsonFromText(first);
-  if (parsed) return parsed as T;
-
-  const second = await request(args.retryTemperature ?? 0.2);
-  const retryParsed = extractJsonFromText(second);
-  if (retryParsed) return retryParsed as T;
-
-  throw new Error("OpenAI returned invalid JSON.");
+  if (!auth.currentUser) throw new Error("Sign in again to use AI.");
+  const out = await ImageManipulator.manipulateAsync(args.imageUri, [{ resize: { width: 1280 } }], {
+    compress: 0.85, format: ImageManipulator.SaveFormat.JPEG, base64: true,
+  });
+  if (!out.base64) throw new Error("Could not read this photo. Choose another image.");
+  if (out.base64.length > Math.ceil(1024 * 1024 / 3) * 4) throw new Error("Choose a smaller meal photo (up to 1 MiB).");
+  const content = await requestAIContent({ operation: "photo", text: "Estimate the foods and portions in this meal photo.",
+    imageDataUrl: `data:image/jpeg;base64,${out.base64}` }, invoke, !!auth.currentUser);
+  return JSON.parse(content) as T;
 }

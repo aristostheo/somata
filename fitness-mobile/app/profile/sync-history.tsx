@@ -1,8 +1,10 @@
-import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
-import React, { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useAccountStorage } from '@/services/local/accountStore';
+import { Button, Empty, Heading, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
@@ -10,10 +12,9 @@ import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlow
 import {
   clearSyncHistory,
   formatLastSync,
-  getIntegrationSnapshot,
   INTEGRATIONS,
   subscribeIntegrations,
-  type IntegrationSnapshot,
+  type IntegrationSnapshot
 } from "@/services/integrations";
 
 function useC() {
@@ -41,170 +42,49 @@ function alpha(hex: string, a: number) {
 }
 
 export default function SyncHistoryScreen() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const C = useC();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [snapshot, setSnapshot] = useState<IntegrationSnapshot | null>(null);
 
-  useEffect(() => subscribeIntegrations(setSnapshot), []);
+  useEffect(() => subscribeIntegrations(setSnapshot, localStore), []);
 
   const history = snapshot?.settings.history || [];
 
-  return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <FlowAtmosphere />
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: 20,
-          paddingHorizontal: 20,
-          paddingBottom: insets.bottom + 32,
-          gap: 16,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <Pressable
-            onPress={() => router.back()}
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
-              alignItems: "center",
-              justifyContent: "center",
-              borderWidth: 0,
-              borderColor: C.hairline,
-              backgroundColor: C.card2,
-            }}
-          >
-            <Ionicons name="chevron-back" size={20} color={C.text} />
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: C.text, fontWeight: "600", fontSize: 28 }}>
-              Sync history
-            </Text>
-            <Text style={{ color: C.muted, fontWeight: "500", marginTop: 3 }}>
-              Recent sync events across all integrations
-            </Text>
+  return (<TaskPage title="Your sync journal." section="Connections / history" onBack={() => router.back()}
+    footer={history.length ? <Button label="Clear history" danger icon="trash-outline" onPress={() => clearSyncHistory(localStore)} /> : undefined}>
+
+    {!snapshot ? <Empty title="Loading sync events…" /> : !history.length ? <Empty title="No sync history yet" detail="Connect a source and run a sync to see its recorded events." /> : <>
+      <View style={F.wrap}>
+        <Metric label="Recorded events" value={String(history.length)} />
+      </View>
+      <View>
+        {history.map(event => <View key={event.id} style={{ flexDirection: 'row', gap: 16 }}>
+
+          <View style={{ alignItems: 'center', width: 24 }}>
+            <Ionicons name={event.failed.length ? 'alert-circle-outline' : 'checkmark-circle'} color={event.failed.length ? D.amber : D.teal} size={23} />
+            <View style={{ flex: 1, width: 1, backgroundColor: D.line }} />
           </View>
-        </View>
 
-        {history.length ? (
-          <>
-            {history.map((event) => {
-              const failed = event.failed.length > 0;
-              return (
-                <View
-                  key={event.id}
-                  style={{
-                    borderRadius: 16,
-                    backgroundColor: C.card,
-                    borderWidth: 0,
-                    borderColor: failed ? alpha(C.red, 0.26) : C.hairline,
-                    padding: 14,
-                    gap: 10,
-                  }}
-                >
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                    <View
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 999,
-                        backgroundColor: failed ? C.red : C.green,
-                      }}
-                    />
-                    <Text style={{ color: C.text, fontWeight: "600", flex: 1 }}>
-                      {event.reason.replace("_", " ")}
-                    </Text>
-                    <Text style={{ color: C.muted, fontWeight: "500" }}>
-                      {formatLastSync(event.finishedAt)}
-                    </Text>
-                  </View>
-                  <Text style={{ color: C.muted, fontWeight: "500" }}>
-                    {event.integrations
-                      .map((id) => INTEGRATIONS.find((x) => x.id === id)?.name || id)
-                      .join(" · ")}
-                  </Text>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                    <Pill text={`${event.dataPointsReceived} data points`} tone="neutral" />
-                    <Pill text={`${Math.max(1, Math.round(event.durationMs / 1000))}s`} tone="neutral" />
-                    <Pill text={failed ? `${event.failed.length} failed` : "Successful"} tone={failed ? "error" : "success"} />
-                  </View>
-                  {failed ? (
-                    <Text style={{ color: C.red, fontWeight: "500" }}>
-                      Failed:{" "}
-                      {event.failed
-                        .map((id) => INTEGRATIONS.find((x) => x.id === id)?.name || id)
-                        .join(", ")}
-                    </Text>
-                  ) : null}
-                </View>
-              );
-            })}
+          <View style={{ flex: 1, gap: 12, paddingBottom: 24 }}>
+            <Text style={F.caption}>{formatLastSync(event.finishedAt)}</Text>
+            <Heading title={event.reason.replace('_', ' ')}
+              detail={event.integrations.map(id => INTEGRATIONS.find(x => x.id === id)?.name || id).join(' · ')} />
 
-            <Pressable
-              onPress={() => clearSyncHistory()}
-              style={{
-                minHeight: 44,
-                borderRadius: 14,
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 0,
-                borderColor: alpha(C.red, 0.28),
-                backgroundColor: alpha(C.red, 0.08),
-              }}
-            >
-              <Text style={{ color: C.red, fontWeight: "600" }}>Clear history</Text>
-            </Pressable>
-          </>
-        ) : (
-          <View
-            style={{
-              borderRadius: 18,
-              backgroundColor: C.card,
-              borderWidth: 0,
-              borderColor: C.hairline,
-              padding: 18,
-              gap: 10,
-              alignItems: "center",
-            }}
-          >
-            <Ionicons name="sync-outline" size={28} color={C.muted} />
-            <Text style={{ color: C.text, fontWeight: "600", fontSize: 18 }}>
-              No sync history yet
-            </Text>
-            <Text style={{ color: C.muted, fontWeight: "500", textAlign: "center" }}>
-              Connect a source and run a sync to start logging integration
-              history here.
-            </Text>
+            <Panel>
+              <Text style={{ ...F.heading, color: event.failed.length ? D.amber : D.lime }}>{event.failed.length ? `${event.failed.length} failed` : 'Successful'}</Text>
+
+              <Text style={F.body}>{event.dataPointsReceived} data points · {Math.max(1, Math.round(event.durationMs / 1000))}s</Text>
+
+              {!!event.failed.length && <Text style={F.caption}>Failed: {event.failed.map(id => INTEGRATIONS.find(x => x.id === id)?.name || id).join(', ')}</Text>}
+            </Panel>
           </View>
-        )}
-      </ScrollView>
-    </View>
-  );
-}
 
-function Pill({
-  text,
-  tone,
-}: {
-  text: string;
-  tone: "neutral" | "success" | "error";
-}) {
-  const C = useC();
-  const color = tone === "success" ? C.green : tone === "error" ? C.red : C.amber;
-  return (
-    <View
-      style={{
-        borderRadius: 999,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        backgroundColor: alpha(color, 0.12),
-        borderWidth: 0,
-        borderColor: alpha(color, 0.26),
-      }}
-    >
-      <Text style={{ color: C.text, fontWeight: "600", fontSize: 11 }}>{text}</Text>
-    </View>
+        </View>)}
+      </View></>}
+  </TaskPage>
   );
 }

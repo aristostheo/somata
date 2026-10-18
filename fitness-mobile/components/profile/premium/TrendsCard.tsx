@@ -1,3 +1,4 @@
+import { useAccountStorage } from '@/services/local/accountStore';
 // // components/profile/premium/TrendsCard.tsx
 // import React, { useMemo } from "react";
 // import { View, Text, StyleSheet, Pressable } from "react-native";
@@ -470,6 +471,7 @@ export function LongTermProgressCard(props: {
   showConfidence?: boolean; // default true
   onPressAddCheckIn?: () => void; // optional (wire to your Body Metrics editor)
 }) {
+  const localStore = useAccountStorage();
   const router = useRouter();
   const { colors } = useTheme();
 
@@ -488,8 +490,8 @@ export function LongTermProgressCard(props: {
 
     (async () => {
       try {
-        const history = await loadBodyMetricsHistory();
-        const current = await loadBodyMetrics();
+        const history = await loadBodyMetricsHistory(localStore);
+        const current = await loadBodyMetrics(localStore);
 
         const pts: SeriesPoint[] = history
           .filter((p) => Number.isFinite(p.weightLb))

@@ -1,3 +1,5 @@
+import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
+import { Button, Choice, Empty, Field, Heading, IconButton, Item, TaskPage } from "@/components/somata/TaskUI";
 // app/session/exercise-browser.tsx
 // Modal Exercise Browser (opened from session.tsx)
 // - Firestore-first (subscribeExercises) + seed fallback
@@ -5,7 +7,9 @@
 // - Preview sheet with GIF + instructions
 // - On "Use Exercise": returns the selected exerciseId via router params
 
-import React, {
+import * as Haptics from "expo-haptics";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import {
   useCallback,
   useEffect,
   useMemo,
@@ -13,29 +17,18 @@ import React, {
   useState,
 } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  TextInput,
   FlatList,
-  Platform,
-  StatusBar,
   Keyboard,
+  Platform,
+  StyleSheet,
+  TextInput,
+  View
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { MotiView, AnimatePresence } from "moti";
-import { useRouter, useLocalSearchParams } from "expo-router";
 
 import { useTheme } from "@/content/ThemeProvider";
-import { withAlpha } from "@/lib/color";
 
-import type { ExerciseDoc, ExerciseFilters } from "@/services/exercises/types";
-import { EXERCISE_SEED } from "@/services/exercises/seed";
 import { subscribeExercises } from "@/services/exercises/firestore";
+import { EXERCISE_SEED } from "@/services/exercises/seed";
 import {
   addRecent,
   clearRecents,
@@ -43,11 +36,10 @@ import {
   loadRecents,
   toggleFavorite,
 } from "@/services/exercises/store";
+import type { ExerciseDoc, ExerciseFilters } from "@/services/exercises/types";
 
-import { ExerciseCard } from "@/components/exercises/ExerciseCard";
-import { FilterBar } from "@/components/exercises/FilterBar";
 import { ExercisePreviewSheet } from "@/components/exercises/ExercisePreviewSheet";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FilterBar } from "@/components/exercises/FilterBar";
 
 type Scope = "all" | "favorites" | "recent";
 
@@ -98,8 +90,9 @@ function sectionTitle(scope: Scope, count: number) {
 }
 
 export default function ExerciseBrowserModal() {
+  const localStore = useAccountStorage();
   const router = useRouter();
-  const params = useLocalSearchParams<{ returnTo?: string }>();
+  const params = useLocalSearchParams<{ returnTo?: string; }>();
   const { colors, isDark } = useTheme();
 
   const [scope, setScope] = useState<Scope>("all");
@@ -122,8 +115,8 @@ export default function ExerciseBrowserModal() {
 
   useEffect(() => {
     (async () => {
-      const favs = await loadFavorites();
-      const rec = await loadRecents();
+      const favs = await loadFavorites(localStore);
+      const rec = await loadRecents(localStore);
       setFavorites(favs);
       setRecents(rec);
     })();
@@ -163,9 +156,9 @@ export default function ExerciseBrowserModal() {
   const openPreview = useCallback(async (e: ExerciseDoc) => {
     setPreview(e);
     setPreviewOpen(true);
-    const next = await addRecent(e.id);
+    const next = await addRecent(e.id, localStore);
     setRecents(next);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
   }, []);
 
   const closePreview = useCallback(() => {
@@ -175,7 +168,7 @@ export default function ExerciseBrowserModal() {
 
   const onToggleFavorite = useCallback(
     async (id: string) => {
-      const next = await toggleFavorite(id, favorites);
+      const next = await toggleFavorite(id, favorites, localStore);
       setFavorites(next);
     },
     [favorites]
@@ -183,9 +176,9 @@ export default function ExerciseBrowserModal() {
 
   const onClearRecents = useCallback(async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
-      () => {}
+      () => { }
     );
-    await clearRecents();
+    await clearRecents(localStore);
     setRecents([]);
   }, []);
 
@@ -195,7 +188,7 @@ export default function ExerciseBrowserModal() {
       if (!pickedName) return;
 
       // Write selection for the CURRENT session page to consume
-      await AsyncStorage.setItem(
+      await localStore.setItem(
         "session:browsePick",
         JSON.stringify({
           name: pickedName,
@@ -229,313 +222,22 @@ export default function ExerciseBrowserModal() {
     []
   );
 
-  return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+  return (<><TaskPage scroll={false} title="Find your next movement" section="Exercise library" onBack={() => router.back()} action={scope === 'recent' ? <IconButton icon="trash-outline" label="Clear recent exercises" onPress={onClearRecents} /> : undefined}>
 
-      <LinearGradient
-        colors={
-          isDark
-            ? ["rgba(0,0,0,0.0)", "rgba(0,0,0,0.25)"]
-            : ["rgba(255,255,255,0.0)", "rgba(0,0,0,0.03)"]
-        }
-        style={StyleSheet.absoluteFill}
-      />
+    <Field ref={inputRef} label="Search the library" value={query} onChangeText={setQuery} placeholder="Exercise, muscle, equipment" onSubmitEditing={() => Keyboard.dismiss()} />
 
-      <View style={styles.topPad} />
-
-      {/* Modal Header */}
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={10}
-          style={({ pressed }) => [
-            styles.headerBtn,
-            {
-              borderColor: withAlpha(colors.border, 0.7),
-              backgroundColor: withAlpha(colors.card, pressed ? 0.22 : 0.16),
-            },
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Close exercise browser"
-        >
-          <Ionicons
-            name="close"
-            size={18}
-            color={withAlpha(colors.text, 0.82)}
-          />
-        </Pressable>
-
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={[styles.h1, { color: colors.text }]}>Browse</Text>
-          <Text style={[styles.h2, { color: withAlpha(colors.text, 0.65) }]}>
-            {sectionTitle(scope, activeCount)}
-          </Text>
-        </View>
-
-        {scope === "recent" ? (
-          <Pressable
-            onPress={onClearRecents}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.headerBtn,
-              {
-                borderColor: withAlpha(colors.border, 0.7),
-                backgroundColor: withAlpha(colors.card, pressed ? 0.22 : 0.16),
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Clear recent exercises"
-          >
-            <Ionicons
-              name="trash-outline"
-              size={18}
-              color={withAlpha(colors.text, 0.8)}
-            />
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={() => inputRef.current?.focus()}
-            hitSlop={10}
-            style={({ pressed }) => [
-              styles.headerBtn,
-              {
-                borderColor: withAlpha(colors.border, 0.7),
-                backgroundColor: withAlpha(colors.card, pressed ? 0.22 : 0.16),
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Focus search"
-          >
-            <Ionicons
-              name="search-outline"
-              size={18}
-              color={withAlpha(colors.text, 0.8)}
-            />
-          </Pressable>
-        )}
-      </View>
-
-      {/* Segmented */}
-      <BlurView
-        intensity={isDark ? 20 : 32}
-        tint={isDark ? "dark" : "light"}
-        style={[
-          styles.segmentWrap,
-          {
-            borderColor: withAlpha(colors.border, isDark ? 0.55 : 0.7),
-            backgroundColor: withAlpha(colors.card, isDark ? 0.25 : 0.5),
-          },
-        ]}
-      >
-        {segmented.map((s) => {
-          const active = scope === s.key;
-          return (
-            <Pressable
-              key={s.key}
-              onPress={() => {
-                Haptics.selectionAsync().catch(() => {});
-                setScope(s.key);
-              }}
-              style={({ pressed }) => [
-                styles.segment,
-                active && {
-                  backgroundColor: withAlpha(colors.card, isDark ? 0.5 : 0.8),
-                  borderColor: withAlpha(colors.border, 0.8),
-                },
-                { transform: [{ scale: pressed ? 0.98 : 1 }] },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={`${s.label} tab`}
-            >
-              <Ionicons
-                name={s.icon}
-                size={16}
-                color={withAlpha(colors.text, active ? 0.92 : 0.6)}
-                style={{ marginRight: 7 }}
-              />
-              <Text
-                style={[
-                  styles.segmentText,
-                  { color: withAlpha(colors.text, active ? 0.92 : 0.65) },
-                ]}
-              >
-                {s.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </BlurView>
-
-      {/* Search + Filters */}
-      <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
-        <BlurView
-          intensity={isDark ? 18 : 30}
-          tint={isDark ? "dark" : "light"}
-          style={[
-            styles.searchWrap,
-            {
-              borderColor: withAlpha(colors.border, isDark ? 0.55 : 0.7),
-              backgroundColor: withAlpha(colors.card, isDark ? 0.22 : 0.45),
-            },
-          ]}
-        >
-          <Ionicons
-            name="search"
-            size={18}
-            color={withAlpha(colors.text, 0.55)}
-            style={{ marginRight: 10 }}
-          />
-          <TextInput
-            ref={inputRef}
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Search exercises, muscles, equipment…"
-            placeholderTextColor={withAlpha(colors.text, 0.45)}
-            style={[styles.searchInput, { color: colors.text }]}
-            returnKeyType="search"
-            onSubmitEditing={() => Keyboard.dismiss()}
-            accessibilityLabel="Search exercises"
-          />
-          <AnimatePresence>
-            {query.length > 0 ? (
-              <MotiView
-                key="clear"
-                from={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ type: "timing", duration: 150 }}
-              >
-                <Pressable
-                  onPress={() => {
-                    Haptics.selectionAsync().catch(() => {});
-                    setQuery("");
-                  }}
-                  hitSlop={10}
-                  accessibilityRole="button"
-                  accessibilityLabel="Clear search"
-                  style={({ pressed }) => [
-                    styles.clearBtn,
-                    {
-                      backgroundColor: withAlpha(
-                        colors.card,
-                        pressed ? 0.22 : 0.16
-                      ),
-                      borderColor: withAlpha(colors.border, 0.7),
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="close"
-                    size={16}
-                    color={withAlpha(colors.text, 0.75)}
-                  />
-                </Pressable>
-              </MotiView>
-            ) : null}
-          </AnimatePresence>
-        </BlurView>
-
-        <FilterBar
-          filters={filters}
-          onChange={(next) => {
-            Haptics.selectionAsync().catch(() => {});
-            setFilters(next);
-          }}
-        />
-      </View>
-
-      {/* List */}
-      <FlatList
-        data={data}
-        keyExtractor={(it) => it.id}
-        contentContainerStyle={{
-          padding: 16,
-          paddingTop: 14,
-          paddingBottom: 28,
-        }}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        initialNumToRender={10}
-        windowSize={10}
-        removeClippedSubviews={Platform.OS === "android"}
-        renderItem={({ item }) => (
-          <ExerciseCard
-            item={item}
-            isFavorite={favorites.has(item.id)}
-            onPress={() => openPreview(item)}
-            onToggleFavorite={() => onToggleFavorite(item.id)}
-          />
-        )}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons
-              name="sparkles-outline"
-              size={22}
-              color={withAlpha(colors.text, 0.5)}
-              style={{ marginBottom: 8 }}
-            />
-            <Text
-              style={[
-                styles.emptyTitle,
-                { color: withAlpha(colors.text, 0.85) },
-              ]}
-            >
-              Nothing matches yet
-            </Text>
-            <Text
-              style={[styles.emptySub, { color: withAlpha(colors.text, 0.6) }]}
-            >
-              Try a shorter search, or broaden filters.
-            </Text>
-
-            <Pressable
-              onPress={() => {
-                Haptics.selectionAsync().catch(() => {});
-                setQuery("");
-                setFilters({ muscle: "all", equipment: "all", hasDemo: false });
-              }}
-              style={({ pressed }) => [
-                styles.resetBtn,
-                {
-                  borderColor: withAlpha(colors.border, 0.7),
-                  backgroundColor: withAlpha(
-                    colors.card,
-                    pressed ? 0.24 : 0.18
-                  ),
-                },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel="Reset filters"
-            >
-              <Ionicons
-                name="refresh"
-                size={16}
-                color={withAlpha(colors.text, 0.75)}
-                style={{ marginRight: 8 }}
-              />
-              <Text
-                style={[
-                  styles.resetText,
-                  { color: withAlpha(colors.text, 0.85) },
-                ]}
-              >
-                Reset
-              </Text>
-            </Pressable>
-          </View>
-        }
-      />
-
-      <ExercisePreviewSheet
-        visible={previewOpen}
-        exercise={preview}
-        isFavorite={preview ? favorites.has(preview.id) : false}
-        onClose={closePreview}
-        onToggleFavorite={() => preview && onToggleFavorite(preview.id)}
-        onUse={() => preview && onUseExercise(preview)}
-      />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {segmented.map(s => <Choice key={s.key} label={s.label} selected={scope === s.key} onPress={() => { Haptics.selectionAsync().catch(() => { }); setScope(s.key); }} />)}
     </View>
+
+    <FilterBar filters={filters} onChange={setFilters} />
+    <Heading title={sectionTitle(scope, activeCount)} />
+
+    <FlatList style={{ flex: 1 }} keyboardShouldPersistTaps="handled" data={data} keyExtractor={e => e.id} renderItem={({ item: e }) => <Item title={e.name} detail={[...(e.primaryMuscles ?? []), ...(e.equipment ?? [])].join(' · ')} onPress={() => openPreview(e)} action={<IconButton icon={favorites.has(e.id) ? 'heart' : 'heart-outline'} label={favorites.has(e.id) ? `Unfavorite ${e.name}` : `Favorite ${e.name}`} onPress={() => onToggleFavorite(e.id)} />} />} ListEmptyComponent={<Empty title="No matching movements" detail="Try another search or broaden your filters." />} />
+
+    <Button label="Reset search and filters" onPress={() => { setQuery(''); setFilters({ muscle: 'all', equipment: 'all', hasDemo: false }); }} />
+
+  </TaskPage><ExercisePreviewSheet visible={previewOpen} exercise={preview} isFavorite={preview ? favorites.has(preview.id) : false} onClose={closePreview} onToggleFavorite={() => preview && onToggleFavorite(preview.id)} onUse={() => preview && onUseExercise(preview)} /></>
   );
 }
 

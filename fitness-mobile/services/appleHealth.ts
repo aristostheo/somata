@@ -1,3 +1,4 @@
+import { accountStorage, type AccountStore } from '@/services/local/accountStore';
 import { Platform } from "react-native";
 
 import { addActivity, type ActivityType } from "@/services/activity";
@@ -265,7 +266,7 @@ function mapWorkoutType(name: string): ActivityType {
   return "other";
 }
 
-export async function syncAppleHealthToApp(uid: string, days = 14): Promise<AppleHealthSyncResult> {
+export async function syncAppleHealthToApp(uid: string, days = 14, localStore: AccountStore = accountStorage()): Promise<AppleHealthSyncResult> {
   const auth = await requestAppleHealthPermissions();
   if (!auth.ok) {
     return {
@@ -341,7 +342,7 @@ export async function syncAppleHealthToApp(uid: string, days = 14): Promise<Appl
     getLatestBodyFatPct(HK),
   ]);
 
-  const current = (await loadBodyMetrics()) || {};
+  const current = (await loadBodyMetrics(localStore)) || {};
   const patch: Record<string, number> = {};
   let weightLb: number | undefined;
 
@@ -354,12 +355,12 @@ export async function syncAppleHealthToApp(uid: string, days = 14): Promise<Appl
   }
 
   if (Object.keys(patch).length) {
-    await saveBodyMetrics({ ...current, ...patch });
+    await saveBodyMetrics({ ...current, ...patch }, localStore);
     await appendBodyMetricsHistory({
       t: Date.now(),
       weightLb: patch.weightLb ?? current.weightLb,
       bodyFatPct: patch.bodyFatPct ?? current.bodyFatPct,
-    });
+    }, localStore);
     await updateProfile(
       uid,
       {

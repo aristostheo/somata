@@ -3,8 +3,7 @@ import React from "react";
 import GoalBar from "./GoalBar";
 
 export default function TodayVsGoal({
-  calGoal,
-  profile,
+  targets,
   todayFoods,
   todayExercise,
 }) {
@@ -14,25 +13,25 @@ export default function TodayVsGoal({
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <GoalBar
           label="Calories"
-          goal={calGoal}
+          goal={targets.calories}
           actual={(todayFoods.calories || 0) - (todayExercise || 0)}
           unit="kcal"
         />
         <GoalBar
           label="Protein"
-          goal={profile?.proteinGoal}
+          goal={targets.protein}
           actual={todayFoods.protein}
           unit="g"
         />
         <GoalBar
           label="Carbs"
-          goal={profile?.carbGoal}
+          goal={targets.carbs}
           actual={todayFoods.carbs}
           unit="g"
         />
         <GoalBar
           label="Fat"
-          goal={profile?.fatGoal}
+          goal={targets.fat}
           actual={todayFoods.fat}
           unit="g"
         />

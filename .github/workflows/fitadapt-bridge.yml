@@ -5,6 +5,12 @@ on:
     paths:
       - ".github/workflows/fitadapt-bridge.yml"
       - "fitness-web/firebase.json"
+      - "fitness-web/firebase.staging.json"
+      - "fitness-web/staging.example.json"
+      - "fitness-web/scripts/*staging*.cjs"
+      - "fitness-mobile/config/**"
+      - "fitness-mobile/eas.json"
+      - "fitness-web/storage.rules"
       - "fitness-web/firestore.rules"
       - "fitness-web/functions/**"
       - "fitness-web/test/**"
@@ -14,6 +20,12 @@ on:
     paths:
       - ".github/workflows/fitadapt-bridge.yml"
       - "fitness-web/firebase.json"
+      - "fitness-web/firebase.staging.json"
+      - "fitness-web/staging.example.json"
+      - "fitness-web/scripts/*staging*.cjs"
+      - "fitness-mobile/config/**"
+      - "fitness-mobile/eas.json"
+      - "fitness-web/storage.rules"
       - "fitness-web/firestore.rules"
       - "fitness-web/functions/**"
       - "fitness-web/test/**"
@@ -34,20 +46,23 @@ jobs:
           version: 10.18.0
       - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
           cache: pnpm
           cache-dependency-path: fitness-web/pnpm-lock.yaml
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
+      - name: Validate staging guardrails with synthetic configuration (offline)
+        run: node --test fitness-web/test/staging-preflight.test.cjs
       - run: pnpm --dir fitness-web install --frozen-lockfile
       - run: pnpm --dir fitness-web/functions run build
-      - run: node --test fitness-web/functions/test/fitadapt.test.js
+      - run: node --test fitness-web/functions/test/*.test.js
       - run: npm install --global firebase-tools@14.20.0
       - name: Test owner-only Firestore rules in a demo project
         working-directory: fitness-web
         env:
+          GCLOUD_PROJECT: demo-somata-fitadapt
           FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
           FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
-        run: firebase emulators:exec --project demo-somata-fitadapt --only auth,firestore "pnpm test:rules"
+        run: firebase emulators:exec --project demo-somata-fitadapt --only auth,firestore "pnpm test:rules && node --test functions/test/fitadapt-automatic.test.js"

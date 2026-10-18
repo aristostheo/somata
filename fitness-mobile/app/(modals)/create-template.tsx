@@ -1,21 +1,16 @@
-import React, { useMemo, useState } from "react";
+import { Button, Empty, Field, Heading, IconButton, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import { useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
+  Alert,
   Platform,
   StatusBar,
-  TextInput,
-  ScrollView,
-  Modal,
-  Alert,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
 
 import { useAuth } from "@/content/AuthContext";
 import { updateWorkoutTemplate } from "@/services/templates";
@@ -38,42 +33,14 @@ type TemplateItem = {
   notes?: string;
 };
 
-function GlassCard({
-  children,
-  style,
-  intensity = 34,
-}: {
-  children: React.ReactNode;
-  style?: any;
-  intensity?: number;
-}) {
-  return (
-    <View style={[styles.cardWrap, style]}>
-      <View style={styles.cardBorder} pointerEvents="none" />
-      <BlurView intensity={intensity} tint="dark" style={styles.cardBlur}>
-        <LinearGradient
-          colors={[
-            withAlpha("#FFFFFF", 0.1),
-            withAlpha("#FFFFFF", 0.06),
-            withAlpha("#000000", 0.06),
-          ]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardInner}
-        >
-          {children}
-        </LinearGradient>
-      </BlurView>
-    </View>
-  );
-}
-
 function n(v: any, fallback: number) {
   const x = Number(v);
   return Number.isFinite(x) ? x : fallback;
 }
 
 export default function CreateTemplateModal() {
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const { user } = useAuth();
   const uid = user?.uid;
@@ -102,7 +69,7 @@ export default function CreateTemplateModal() {
   const haptic = async () => {
     try {
       await Haptics.selectionAsync();
-    } catch {}
+    } catch { }
   };
 
   const close = () => router.back();
@@ -195,322 +162,44 @@ export default function CreateTemplateModal() {
       Alert.alert(
         "Could not save template",
         e?.message ||
-          "Your template write method may be using updateDoc (requires existing doc). If so, change updateWorkoutTemplate to use setDoc so new templates can be created."
+        "Your template write method may be using updateDoc (requires existing doc). If so, change updateWorkoutTemplate to use setDoc so new templates can be created."
       );
     }
   };
 
-  return (
-    <View style={styles.root}>
-      <LinearGradient
-        colors={["#070A12", "#050711", "#03040A"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.9, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+  return (<><TaskPage title="Build your routine" section="New template" onBack={close} footer={<Button primary label="Save template" onPress={saveTemplate} disabled={!canSave || !uid} />}>
 
-      {/* Header */}
-      <View style={{ paddingTop: topInset + 10, paddingHorizontal: 12 }}>
-        <BlurView intensity={28} tint="dark" style={styles.headerBlur}>
-          <View style={styles.headerRow}>
-            <View style={styles.headerIcon}>
-              <Ionicons
-                name="albums-outline"
-                size={18}
-                color={withAlpha("#FFFFFF", 0.92)}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Create template</Text>
-              <Text style={styles.sub}>Build a reusable workout plan</Text>
-            </View>
-            <Pressable
-              onPress={close}
-              style={({ pressed }) => [
-                styles.closeBtn,
-                pressed && { opacity: 0.8 },
-              ]}
-            >
-              <Ionicons
-                name="close"
-                size={18}
-                color={withAlpha("#FFFFFF", 0.86)}
-              />
-            </Pressable>
-          </View>
-        </BlurView>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <GlassCard intensity={34} style={{ borderRadius: 22 }}>
-          <View style={{ gap: 12 }}>
-            <View style={styles.row}>
-              <View style={styles.smallIcon}>
-                <Text style={{ fontSize: 16 }}>{emoji || "⭐️"}</Text>
-              </View>
-              <TextInput
-                value={emoji}
-                onChangeText={setEmoji}
-                placeholder="⭐️"
-                placeholderTextColor={withAlpha("#FFFFFF", 0.45)}
-                style={[styles.input, { maxWidth: 70, textAlign: "center" }]}
-              />
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder="Template name (e.g., Push Strength)"
-                placeholderTextColor={withAlpha("#FFFFFF", 0.45)}
-                style={[styles.input, { flex: 1 }]}
-              />
-            </View>
-
-            <View style={styles.row}>
-              <View style={styles.smallIcon}>
-                <Ionicons
-                  name="pricetag-outline"
-                  size={16}
-                  color={withAlpha("#FFFFFF", 0.84)}
-                />
-              </View>
-              <TextInput
-                value={tagText}
-                onChangeText={setTagText}
-                placeholder='Tags (e.g., "Upper • Strength")'
-                placeholderTextColor={withAlpha("#FFFFFF", 0.45)}
-                style={[styles.input, { flex: 1 }]}
-              />
-            </View>
-
-            <Pressable
-              onPress={openAdd}
-              style={({ pressed }) => [
-                styles.addBtn,
-                pressed && { opacity: 0.92 },
-              ]}
-            >
-              <Ionicons
-                name="add"
-                size={18}
-                color={withAlpha("#FFFFFF", 0.92)}
-              />
-              <Text style={styles.addBtnText}>Add exercise</Text>
-            </Pressable>
-          </View>
-        </GlassCard>
-
-        {/* Items */}
-        <View style={{ marginTop: 12 }}>
-          <Text style={styles.sectionTitle}>Exercises</Text>
-
-          {items.length === 0 ? (
-            <Text style={styles.helper}>
-              Add at least one exercise to save.
-            </Text>
-          ) : (
-            <View style={{ gap: 10, marginTop: 10 }}>
-              {items.map((it, idx) => (
-                <GlassCard
-                  key={`${it.exercise}-${idx}`}
-                  intensity={28}
-                  style={{ borderRadius: 18 }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 10,
-                    }}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.itemTitle} numberOfLines={1}>
-                        {it.exercise}
-                      </Text>
-                      <Text style={styles.itemSub}>
-                        {it.sets}×{it.reps}
-                        {typeof it.weightKg === "number"
-                          ? ` • ${Math.round(it.weightKg)} kg`
-                          : ""}
-                        {it.notes ? ` • ${it.notes}` : ""}
-                      </Text>
-                    </View>
-
-                    <View style={{ flexDirection: "row", gap: 8 }}>
-                      <Pressable
-                        onPress={() => moveItem(idx, -1)}
-                        disabled={idx === 0}
-                        style={({ pressed }) => [
-                          styles.iconBtn,
-                          idx === 0 && { opacity: 0.35 },
-                          pressed && idx !== 0 && { opacity: 0.85 },
-                        ]}
-                      >
-                        <Ionicons
-                          name="chevron-up"
-                          size={16}
-                          color={withAlpha("#FFFFFF", 0.86)}
-                        />
-                      </Pressable>
-
-                      <Pressable
-                        onPress={() => moveItem(idx, 1)}
-                        disabled={idx === items.length - 1}
-                        style={({ pressed }) => [
-                          styles.iconBtn,
-                          idx === items.length - 1 && { opacity: 0.35 },
-                          pressed &&
-                            idx !== items.length - 1 && { opacity: 0.85 },
-                        ]}
-                      >
-                        <Ionicons
-                          name="chevron-down"
-                          size={16}
-                          color={withAlpha("#FFFFFF", 0.86)}
-                        />
-                      </Pressable>
-
-                      <Pressable
-                        onPress={() => removeItem(idx)}
-                        style={({ pressed }) => [
-                          styles.iconBtnDanger,
-                          pressed && { opacity: 0.85 },
-                        ]}
-                      >
-                        <Ionicons
-                          name="trash-outline"
-                          size={16}
-                          color={withAlpha("#FF5C6A", 0.95)}
-                        />
-                      </Pressable>
-                    </View>
-                  </View>
-                </GlassCard>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Save */}
-        <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
-          <Pressable
-            onPress={saveTemplate}
-            disabled={!canSave}
-            style={({ pressed }) => [
-              styles.saveBtn,
-              !canSave && { opacity: 0.55 },
-              pressed && canSave && { opacity: 0.92 },
-            ]}
-          >
-            <Ionicons
-              name="save-outline"
-              size={16}
-              color={withAlpha("#111", 0.92)}
-            />
-            <Text style={styles.saveText}>Save template</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={close}
-            style={({ pressed }) => [
-              styles.ghostBtn,
-              pressed && { opacity: 0.9 },
-            ]}
-          >
-            <Text style={styles.ghostText}>Cancel</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-
-      {/* Add exercise modal */}
-      <Modal
-        visible={addOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setAddOpen(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => setAddOpen(false)}
-          />
-          <View style={styles.modalWrap}>
-            <GlassCard intensity={40} style={{ borderRadius: 22 }}>
-              <Text style={styles.modalTitle}>Add exercise</Text>
-
-              <View style={{ gap: 10, marginTop: 10 }}>
-                <TextInput
-                  value={exName}
-                  onChangeText={setExName}
-                  placeholder="Exercise name (e.g., Bench Press)"
-                  placeholderTextColor={withAlpha("#FFFFFF", 0.45)}
-                  style={styles.modalInput}
-                />
-
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  <TextInput
-                    value={sets}
-                    onChangeText={setSets}
-                    placeholder="Sets"
-                    placeholderTextColor={withAlpha("#FFFFFF", 0.45)}
-                    keyboardType="number-pad"
-                    style={[styles.modalInput, { flex: 1 }]}
-                  />
-                  <TextInput
-                    value={reps}
-                    onChangeText={setReps}
-                    placeholder="Reps"
-                    placeholderTextColor={withAlpha("#FFFFFF", 0.45)}
-                    keyboardType="number-pad"
-                    style={[styles.modalInput, { flex: 1 }]}
-                  />
-                  <TextInput
-                    value={weightKg}
-                    onChangeText={setWeightKg}
-                    placeholder="kg"
-                    placeholderTextColor={withAlpha("#FFFFFF", 0.45)}
-                    keyboardType="numeric"
-                    style={[styles.modalInput, { flex: 1 }]}
-                  />
-                </View>
-
-                <TextInput
-                  value={notes}
-                  onChangeText={setNotes}
-                  placeholder="Notes (optional)"
-                  placeholderTextColor={withAlpha("#FFFFFF", 0.45)}
-                  style={styles.modalInput}
-                />
-
-                <View style={{ flexDirection: "row", gap: 10, marginTop: 4 }}>
-                  <Pressable
-                    onPress={addItem}
-                    disabled={!exName.trim()}
-                    style={({ pressed }) => [
-                      styles.modalPrimary,
-                      !exName.trim() && { opacity: 0.55 },
-                      pressed && exName.trim() && { opacity: 0.92 },
-                    ]}
-                  >
-                    <Text style={styles.modalPrimaryText}>Add</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => setAddOpen(false)}
-                    style={({ pressed }) => [
-                      styles.modalGhost,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Text style={styles.modalGhostText}>Cancel</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </GlassCard>
-          </View>
-        </View>
-      </Modal>
+    <Field label="Routine name" value={name} onChangeText={setName} placeholder="My training routine" />
+    <View style={{ flexDirection: 'row', gap: 10 }}>
+      <Field label="Emoji" value={emoji} onChangeText={setEmoji} />
+      <Field label="Tags · separate with •" value={tagText} onChangeText={setTagText} />
     </View>
+
+    <Heading title="Exercise order" detail="Arrange the routine in the order you want to train." />
+    {!items.length && <Empty title="Start with one movement" detail="Add exercises and their planned sets below." />}
+
+    {items.map((it, i) => <Panel key={i}>
+      <Text style={F.eyebrow}>{String(i + 1).padStart(2, '0')}</Text>
+      <Heading title={it.exercise} detail={`${it.sets} × ${it.reps}${it.weightKg != null ? ` · ${it.weightKg} kg` : ''}`} />
+      {!!it.notes && <Text style={F.body}>{it.notes}</Text>}
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <IconButton icon="arrow-up" label="Move earlier" disabled={i === 0} onPress={() => moveItem(i, -1)} />
+        <IconButton icon="arrow-down" label="Move later" disabled={i === items.length - 1} onPress={() => moveItem(i, 1)} />
+        <IconButton icon="trash-outline" label={`Remove ${it.exercise}`} onPress={() => removeItem(i)} />
+      </View>
+    </Panel>)}
+    <Button label="Add exercise" icon="add" onPress={openAdd} />
+
+  </TaskPage><TaskSheet title="Add an exercise" visible={addOpen} onClose={() => setAddOpen(false)}>
+      <Field label="Exercise" value={exName} onChangeText={setExName} />
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <Field label="Sets" value={sets} onChangeText={setSets} keyboardType="number-pad" />
+        <Field label="Reps" value={reps} onChangeText={setReps} keyboardType="number-pad" />
+      </View>
+      <Field label="Weight · kg · optional" value={weightKg} onChangeText={setWeightKg} keyboardType="decimal-pad" />
+      <Field label="Notes" value={notes} onChangeText={setNotes} multiline />
+      <Button primary label="Add to routine" onPress={addItem} disabled={!exName.trim()} />
+    </TaskSheet></>
   );
 }
 

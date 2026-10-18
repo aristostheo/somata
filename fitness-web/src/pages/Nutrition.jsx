@@ -623,7 +623,6 @@ export default function Nutrition() {
 //   };
 
 //   // ---- AI analyze -> open modal ----
-//   const AI_URL = process.env.REACT_APP_AI_PARSE_URL || "/parseMeal";
 
 //   async function onCalculateFromAI() {
 //     setAiError("");

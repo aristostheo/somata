@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { accountStorage, type AccountStore } from '@/services/local/accountStore';
 
 import {
   cancelAllNotifications,
@@ -110,9 +110,9 @@ function mergeSettings(
   };
 }
 
-export async function loadNotificationSettings(): Promise<NotificationSettings> {
+export async function loadNotificationSettings(localStore: AccountStore = accountStorage()): Promise<NotificationSettings> {
   try {
-    const raw = await AsyncStorage.getItem(KEY);
+    const raw = await localStore.getItem(KEY);
     if (!raw) return DEFAULT_SETTINGS;
     return mergeSettings(DEFAULT_SETTINGS, JSON.parse(raw));
   } catch {
@@ -121,17 +121,17 @@ export async function loadNotificationSettings(): Promise<NotificationSettings> 
 }
 
 export async function saveNotificationSettings(
-  settings: NotificationSettings
+  settings: NotificationSettings, localStore: AccountStore = accountStorage()
 ): Promise<void> {
-  await AsyncStorage.setItem(KEY, JSON.stringify(settings));
-  await syncScheduledNotifications(settings);
+  await localStore.setItem(KEY, JSON.stringify(settings));
+  await syncScheduledNotifications(settings, localStore);
 }
 
 export async function syncScheduledNotifications(
-  settings: NotificationSettings
+  settings: NotificationSettings, localStore: AccountStore = accountStorage()
 ): Promise<void> {
   if (!settings.enabled) {
-    await cancelAllNotifications();
+    await cancelAllNotifications(localStore);
     return;
   }
 
@@ -167,9 +167,9 @@ export async function syncScheduledNotifications(
         hour: reminder.hour,
         minute: reminder.minute,
         channelId: "reminders",
-      });
+      }, localStore);
     } else {
-      await cancelNotification(id);
+      await cancelNotification(id, localStore);
     }
   }
 
@@ -181,9 +181,9 @@ export async function syncScheduledNotifications(
       hour: settings.proteinReminder.hour,
       minute: settings.proteinReminder.minute,
       channelId: "goals",
-    });
+    }, localStore);
   } else {
-    await cancelNotification("protein_reminder");
+    await cancelNotification("protein_reminder", localStore);
   }
 
   if (settings.streakReminder.enabled) {
@@ -194,9 +194,9 @@ export async function syncScheduledNotifications(
       hour: settings.streakReminder.hour,
       minute: settings.streakReminder.minute,
       channelId: "reminders",
-    });
+    }, localStore);
   } else {
-    await cancelNotification("streak_reminder");
+    await cancelNotification("streak_reminder", localStore);
   }
 
   if (settings.weeklyCheckinReminder) {
@@ -207,8 +207,8 @@ export async function syncScheduledNotifications(
       hour: 9,
       minute: 0,
       channelId: "reminders",
-    });
+    }, localStore);
   } else {
-    await cancelNotification("weekly_checkin_probe");
+    await cancelNotification("weekly_checkin_probe", localStore);
   }
 }

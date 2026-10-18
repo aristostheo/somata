@@ -1,34 +1,29 @@
+import { useAccountStorage } from "@/services/local/accountStore";
+import { queueNutritionHandoff } from "@/services/queueNutritionHandoff";
+import { ScanItems } from "@/components/somata/ScanItems";
+import { Button, Choice, Heading, IconButton, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import { dayKey } from "@/utils/date";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Alert,
-  Image,
-  LayoutAnimation,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import { MotiView } from "moti";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator, Alert,
+  Image,
+  LayoutAnimation, Modal, StyleSheet,
+  Text,
+  View
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "@/content/ThemeProvider";
-import { callOpenAIJson } from "@/services/openai";
-import PremiumModalSheet, {
-  PremiumActionButton,
-} from "@/components/ui/PremiumModalSheet";
-import ExplainAIModal from "@/components/scanMeal/new/ExplainAIModal";
-import EditFoodSheet from "@/components/scanMeal/new/EditFoodSheet";
 import AddFoodSheet from "@/components/scanMeal/new/AddFoodSheet";
+import EditFoodSheet from "@/components/scanMeal/new/EditFoodSheet";
+import ExplainAIModal from "@/components/scanMeal/new/ExplainAIModal";
+import { computeTotals } from "@/components/scanMeal/new/services/macroMath";
+import { scanMealFromImage } from "@/components/scanMeal/new/services/scanMealService";
 import {
   type DetectedFood,
   type MacroTotals,
@@ -37,14 +32,14 @@ import {
   clamp,
   roundTo,
 } from "@/components/scanMeal/new/types";
-import { scanMealFromImage } from "@/components/scanMeal/new/services/scanMealService";
-import { computeTotals } from "@/components/scanMeal/new/services/macroMath";
+import { useTheme } from "@/content/ThemeProvider";
+import { PENDING_MEAL_BUILDER_ADDITIONS_KEY } from "@/services/mealBuilder";
+import { callOpenAIJson } from "@/services/openai";
 import {
   getScanQuotaStatus,
   refundScanToken,
   reserveScanToken,
 } from "@/services/scanMeal/scanQuota";
-import { PENDING_MEAL_BUILDER_ADDITIONS_KEY } from "@/services/mealBuilder";
 
 type MealKey = "breakfast" | "lunch" | "dinner" | "snacks";
 type AddPayload = {
@@ -233,15 +228,15 @@ ${query}
 }`,
       },
     ],
-    { maxTokens: 700, temperature: 0.3 }
+    { operation: "foodMacros", maxTokens: 700, temperature: 0.3 }
   );
   if (!parsed) return null;
   const macros = normalizeDescribeMacros(parsed);
   const hasAny =
     (macros.calories || 0) +
-      (macros.protein || 0) +
-      (macros.carbs || 0) +
-      (macros.fat || 0) >
+    (macros.protein || 0) +
+    (macros.carbs || 0) +
+    (macros.fat || 0) >
     0;
   return hasAny ? macros : null;
 }
@@ -285,6 +280,9 @@ function normalizeScanFoods(result: ScanMealResult) {
 }
 
 export default function ScanMealV2Screen() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme() as any;
@@ -292,6 +290,7 @@ export default function ScanMealV2Screen() {
     meal?: string;
     date?: string;
     returnTo?: string;
+    builderSessionId?: string;
   }>();
 
   const cameraRef = useRef<any>(null);
@@ -302,6 +301,7 @@ export default function ScanMealV2Screen() {
     (params.date as string) || dayKey(new Date());
   const initialMealKey = safeMealKey(params.meal);
   const returnTo = String(params.returnTo || "");
+  const builderSessionId = String(params.builderSessionId || "");
 
   const [state, setState] = useState<ScanState>("idle");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -314,6 +314,7 @@ export default function ScanMealV2Screen() {
     return guessCategoryByTime();
   });
   const [isLogging, setIsLogging] = useState(false);
+  const confirmInFlight = useRef(false);
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [showExplain, setShowExplain] = useState(false);
   const [editFood, setEditFood] = useState<DetectedFood | null>(null);
@@ -346,12 +347,12 @@ export default function ScanMealV2Screen() {
   }, []);
 
   useEffect(() => {
-    refreshQuota().catch(() => {});
+    refreshQuota().catch(() => { });
   }, [refreshQuota]);
 
   useEffect(() => {
     if (cameraPermission?.granted != null) return;
-    requestCameraPermission().catch(() => {});
+    requestCameraPermission().catch(() => { });
   }, [cameraPermission?.granted, requestCameraPermission]);
 
   const totals: MacroTotals = useMemo(() => computeTotals(foods), [foods]);
@@ -380,7 +381,7 @@ export default function ScanMealV2Screen() {
       if (!reservation.allowed) {
         await Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Warning,
-        ).catch(() => {});
+        ).catch(() => { });
         setQuota({
           remaining: reservation.unlimited ? 999999 : reservation.remaining,
           used: reservation.used,
@@ -415,11 +416,11 @@ export default function ScanMealV2Screen() {
         setState("review");
         await Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Success,
-        ).catch(() => {});
+        ).catch(() => { });
       } catch (e: any) {
         if (!aliveRef.current) return;
-        await refundScanToken({ limit: DAILY_SCAN_LIMIT }).catch(() => {});
-        await refreshQuota().catch(() => {});
+        await refundScanToken({ limit: DAILY_SCAN_LIMIT }).catch(() => { });
+        await refreshQuota().catch(() => { });
         setState("idle");
         setPhotoUri(null);
         Alert.alert(
@@ -439,7 +440,7 @@ export default function ScanMealV2Screen() {
     if (!cameraRef.current || state === "analyzing") return;
 
     try {
-      await Haptics.selectionAsync().catch(() => {});
+      await Haptics.selectionAsync().catch(() => { });
       const shot = await cameraRef.current.takePictureAsync({
         quality: 0.85,
         skipProcessing: true,
@@ -466,12 +467,12 @@ export default function ScanMealV2Screen() {
     if (res.canceled) return;
     const uri = res.assets?.[0]?.uri;
     if (!uri) return;
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     await analyzePhoto(uri);
   }, [analyzePhoto, requestLibraryPerms]);
 
   const onReset = useCallback(async () => {
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setState("idle");
     setPhotoUri(null);
@@ -479,18 +480,18 @@ export default function ScanMealV2Screen() {
   }, []);
 
   const onOpenEdit = useCallback(async (food: DetectedFood) => {
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     setEditFood(food);
   }, []);
 
   const onRemove = useCallback(async (id: string) => {
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setFoods((prev) => prev.filter((f) => f.id !== id));
   }, []);
 
   const onQuickAdjustPortion = useCallback(async (id: string, delta: number) => {
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setFoods((prev) =>
       prev.map((f) => {
@@ -521,7 +522,7 @@ export default function ScanMealV2Screen() {
 
   const onUpdateFood = useCallback(
     async (next: DetectedFood) => {
-      await Haptics.selectionAsync().catch(() => {});
+      await Haptics.selectionAsync().catch(() => { });
       const originalName = editFood?.name?.trim() ?? "";
       const nextName = next.name.trim();
       const didRename =
@@ -542,18 +543,18 @@ export default function ScanMealV2Screen() {
             f.id !== next.id
               ? f
               : {
-                  ...f,
-                  macros: {
-                    calories: macros.calories ?? f.macros.calories,
-                    protein: macros.protein ?? f.macros.protein,
-                    carbs: macros.carbs ?? f.macros.carbs,
-                    fat: macros.fat ?? f.macros.fat,
-                    fiber: macros.fiber ?? f.macros.fiber,
-                    sugar: macros.sugar ?? f.macros.sugar,
-                    sodiumMg: macros.sodiumMg ?? f.macros.sodiumMg,
-                    satFat: macros.satFat ?? f.macros.satFat,
-                  },
+                ...f,
+                macros: {
+                  calories: macros.calories ?? f.macros.calories,
+                  protein: macros.protein ?? f.macros.protein,
+                  carbs: macros.carbs ?? f.macros.carbs,
+                  fat: macros.fat ?? f.macros.fat,
+                  fiber: macros.fiber ?? f.macros.fiber,
+                  sugar: macros.sugar ?? f.macros.sugar,
+                  sodiumMg: macros.sodiumMg ?? f.macros.sodiumMg,
+                  satFat: macros.satFat ?? f.macros.satFat,
                 },
+              },
           ),
         );
       } catch (e) {
@@ -566,7 +567,7 @@ export default function ScanMealV2Screen() {
   );
 
   const onAddFood = useCallback(async (food: DetectedFood) => {
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setFoods((prev) => [food, ...prev]);
     setShowAdd(false);
@@ -579,6 +580,8 @@ export default function ScanMealV2Screen() {
       return;
     }
 
+    if (confirmInFlight.current) return;
+    confirmInFlight.current = true;
     setIsLogging(true);
     try {
       const chosenMeal = categoryToMealKey(category);
@@ -605,591 +608,77 @@ export default function ScanMealV2Screen() {
           ? PENDING_MEAL_BUILDER_ADDITIONS_KEY
           : PENDING_BATCH_KEY;
 
-      await AsyncStorage.setItem(
-        targetKey,
-        JSON.stringify({ date: dateStr, meal: chosenMeal, items }),
-      );
+      await queueNutritionHandoff(targetKey, { date: dateStr, meal: chosenMeal, items, ...(returnTo === "meal-builder" ? { builderSessionId } : {}) }, localStore);
       await Haptics.notificationAsync(
         Haptics.NotificationFeedbackType.Success,
-      ).catch(() => {});
+      ).catch(() => { });
+      localStore.assertCurrent();
       router.back();
     } catch (e: any) {
+      confirmInFlight.current = false;
       Alert.alert("Couldn’t add scanned meal", e?.message ?? "Try again.");
     } finally {
       setIsLogging(false);
     }
-  }, [category, dateStr, foods, hasFoods, returnTo, router]);
+  }, [category, dateStr, foods, hasFoods, returnTo, builderSessionId, localStore, router]);
 
   const showResultsSheet = state === "review";
   const showProcessing = state === "analyzing" || isLogging || isReanalyzing;
 
-  return (
-    <SafeAreaView
-      edges={["left", "right"]}
-      style={{ flex: 1, backgroundColor: "#05070c" }}
-    >
-      <View style={{ flex: 1, backgroundColor: "#05070c" }}>
-        <View style={StyleSheet.absoluteFill}>
-          {photoUri ? (
-            <Image source={{ uri: photoUri }} style={styles.cameraFill} />
-          ) : cameraPermission?.granted ? (
-            <CameraView
-              ref={cameraRef}
-              style={styles.cameraFill}
-              facing="back"
-              enableTorch={torch}
-            />
-          ) : (
-            <LinearGradient
-              colors={["#05070c", "#0b1220", "#12172a"]}
-              style={StyleSheet.absoluteFill}
-            />
-          )}
-
-          <LinearGradient
-            colors={["rgba(3,6,12,0.92)", "rgba(3,6,12,0.28)", "rgba(3,6,12,0.78)"]}
-            locations={[0, 0.28, 1]}
-            style={StyleSheet.absoluteFill}
-          />
-        </View>
-
-        <View
-          style={{
-            flex: 1,
-            paddingTop: Math.max(insets.top, 12),
-            paddingBottom: Math.max(insets.bottom, 18),
-          }}
-        >
-          <View
-            style={{
-              paddingHorizontal: 18,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <CircleIconButton
-              colors={colors}
-              icon="close"
-              onPress={() => router.back()}
-            />
-
-            <View style={{ alignItems: "center", gap: 4 }}>
-              <Text style={{ color: withAlpha("#ffffff", 0.56), fontSize: 11, fontWeight: "800" }}>
-                Scan Meal v2
-              </Text>
-              <Text style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>
-                Scan Meal
-              </Text>
-            </View>
-
-            <CircleIconButton
-              colors={colors}
-              icon={torch ? "flash" : "flash-off"}
-              onPress={() => setTorch((v) => !v)}
-            />
+  return (<>
+    <TaskPage title={showResultsSheet ? 'Review your meal.' : 'Frame your food.'} section="Nutrition / live capture" onBack={() => router.back()}
+      action={<IconButton label="How scanning works" icon="information-circle-outline" onPress={() => setShowExplain(true)} />}
+      footer={showResultsSheet ? <Button label={isLogging ? 'Logging…' : 'Add to meal'} primary disabled={showProcessing || !hasFoods} onPress={onConfirm} /> :
+        <View style={F.wrap}>
+          <View style={{ flex: 1 }}>
+            <Button label="Library" icon="images-outline" disabled={showProcessing} onPress={onPickLibrary} />
           </View>
 
-          <View style={{ flex: 1, justifyContent: "space-between" }}>
-            <View style={{ paddingHorizontal: 22, paddingTop: 22 }}>
-              <View
-                style={{
-                  alignSelf: "flex-start",
-                  borderRadius: 999,
-                  paddingHorizontal: 12,
-                  paddingVertical: 7,
-                  backgroundColor: "rgba(255,255,255,0.08)",
-                }}
-              >
-                <Text style={{ color: "#fff", fontSize: 11, fontWeight: "800" }}>
-                  {quota.unlimited
-                    ? "Unlimited scans"
-                    : `${Math.max(0, quota.remaining)} scans left today`}
-                </Text>
-              </View>
-
-              <Text
-                style={{
-                  marginTop: 18,
-                  color: "#fff",
-                  fontSize: 28,
-                  lineHeight: 32,
-                  fontWeight: "900",
-                  letterSpacing: -0.5,
-                }}
-              >
-                {showResultsSheet
-                  ? "Review the scan"
-                  : photoUri && showProcessing
-                    ? "Analyzing your meal"
-                    : "Point camera at your meal"}
-              </Text>
-              <Text
-                style={{
-                  marginTop: 8,
-                  color: withAlpha("#ffffff", 0.66),
-                  fontSize: 13,
-                  lineHeight: 18,
-                  fontWeight: "700",
-                  maxWidth: 260,
-                }}
-              >
-                {showResultsSheet
-                  ? "Edit anything before it gets added back into your meal."
-                  : photoUri && showProcessing
-                    ? "Hold tight while we detect foods and estimate macros."
-                    : "Keep the whole plate in frame for the cleanest detection."}
-              </Text>
-            </View>
-
-            {!showResultsSheet ? (
-              <View style={{ paddingHorizontal: 22, gap: 16 }}>
-                <View
-                  style={{
-                    alignSelf: "center",
-                    borderRadius: 999,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    backgroundColor: "rgba(255,255,255,0.07)",
-                  }}
-                >
-                  <Text style={{ color: withAlpha("#ffffff", 0.78), fontSize: 12, fontWeight: "800" }}>
-                    {showProcessing ? "Analyzing..." : "Tap to capture"}
-                  </Text>
-                </View>
-
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Pressable
-                    onPress={onPickLibrary}
-                    disabled={showProcessing}
-                    style={({ pressed }) => ({
-                      width: 54,
-                      height: 54,
-                      borderRadius: 18,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "rgba(255,255,255,0.09)",
-                      opacity: showProcessing ? 0.45 : pressed ? 0.84 : 1,
-                    })}
-                  >
-                    <Ionicons name="images-outline" size={22} color="#fff" />
-                  </Pressable>
-
-                  <Pressable
-                    onPress={onCapture}
-                    disabled={showProcessing}
-                    style={({ pressed }) => ({
-                      width: 88,
-                      height: 88,
-                      borderRadius: 999,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transform: [{ scale: pressed ? 0.97 : 1 }],
-                      opacity: showProcessing ? 0.55 : 1,
-                    })}
-                  >
-                    <LinearGradient
-                      colors={["rgba(56,189,248,0.96)", colors.primary, "#4f46e5"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={{
-                        width: 88,
-                        height: 88,
-                        borderRadius: 999,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        shadowColor: "#38bdf8",
-                        shadowOpacity: 0.45,
-                        shadowRadius: 20,
-                        shadowOffset: { width: 0, height: 10 },
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 68,
-                          height: 68,
-                          borderRadius: 999,
-                          backgroundColor: "rgba(255,255,255,0.16)",
-                          borderWidth: 2,
-                          borderColor: "rgba(255,255,255,0.78)",
-                        }}
-                      />
-                    </LinearGradient>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => setShowExplain(true)}
-                    style={({ pressed }) => ({
-                      width: 54,
-                      height: 54,
-                      borderRadius: 18,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "rgba(255,255,255,0.09)",
-                      opacity: pressed ? 0.84 : 1,
-                    })}
-                  >
-                    <Ionicons name="sparkles-outline" size={22} color="#fff" />
-                  </Pressable>
-                </View>
-              </View>
-            ) : null}
+          <View style={{ flex: 1 }}>
+            <Button label="Capture" icon="camera-outline" primary disabled={showProcessing} onPress={onCapture} />
           </View>
-        </View>
+        </View>}>
 
-        {showProcessing ? (
-          <View style={StyleSheet.absoluteFill}>
-            <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-            <View style={styles.processingWrap}>
-              <LinearGradient
-                colors={["rgba(9,14,25,0.86)", "rgba(18,24,38,0.82)"]}
-                style={styles.processingCard}
-              >
-                <Text style={{ color: "#fff", fontSize: 19, fontWeight: "900" }}>
-                  {state === "analyzing"
-                    ? "Analyzing your meal..."
-                    : isLogging
-                      ? "Adding to Meal Builder..."
-                      : "Refreshing macros..."}
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 8,
-                    color: withAlpha("#ffffff", 0.64),
-                    fontSize: 13,
-                    lineHeight: 18,
-                    fontWeight: "700",
-                    textAlign: "center",
-                  }}
-                >
-                  {state === "analyzing"
-                    ? "Detecting foods and estimating calories, protein, carbs, and fat."
-                    : isLogging
-                      ? "Your scanned foods will be appended into the current meal."
-                      : "Updating the item after your edits."}
-                </Text>
+      <Text style={F.caption}>{quota.unlimited ? 'Unlimited scans enabled' : `${Math.max(0, quota.remaining)} scans left today`}</Text>
 
-                <View style={{ flexDirection: "row", gap: 10, marginTop: 18 }}>
-                  {[0, 1, 2].map((idx) => (
-                    <MotiView
-                      key={idx}
-                      from={{ opacity: 0.35, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1.14 }}
-                      transition={{
-                        loop: true,
-                        type: "timing",
-                        duration: 620,
-                        delay: idx * 120,
-                      }}
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 999,
-                        backgroundColor: idx === 1 ? "#38bdf8" : "#7c83ff",
-                      }}
-                    />
-                  ))}
-                </View>
-              </LinearGradient>
-            </View>
-          </View>
-        ) : null}
+      <View style={{ height: 300, borderRadius: 26, overflow: 'hidden', backgroundColor: D.card }}>
 
-        <MotiView
-          animate={{
-            translateY: showResultsSheet ? 0 : 420,
-            opacity: showResultsSheet ? 1 : 0,
-          }}
-          transition={{ type: "timing", duration: 320 }}
-          pointerEvents={showResultsSheet ? "auto" : "none"}
-          style={[
-            styles.resultsSheetWrap,
-            { paddingBottom: Math.max(insets.bottom, 14) },
-          ]}
-        >
-          <LinearGradient
-            colors={[
-              withAlpha(colors.primary, 0.18),
-              withAlpha("#38bdf8", 0.08),
-              withAlpha(colors.card, 0.94),
-            ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
+        {photoUri ? <Image source={{ uri: photoUri }} style={{ flex: 1 }} /> : cameraPermission?.granted ? <CameraView ref={cameraRef} facing="back" enableTorch={torch} style={{ flex: 1 }} /> :
+          <View style={{ padding: 22, gap: 18 }}>
+            <Text style={F.body}>Allow camera access to capture a meal.</Text>
+            <Button label="Enable camera" onPress={() => requestCameraPermission()} />
+          </View>}
 
-          <View style={styles.handle} />
-
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "flex-start",
-              justifyContent: "space-between",
-              gap: 12,
-            }}
-          >
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ color: "#fff", fontSize: 22, fontWeight: "900" }}>
-                Scan results
-              </Text>
-              <Text
-                style={{
-                  color: withAlpha("#ffffff", 0.62),
-                  fontSize: 12.5,
-                  lineHeight: 18,
-                  fontWeight: "700",
-                }}
-              >
-                {foods.length} item{foods.length === 1 ? "" : "s"} detected. Edit,
-                remove, or add anything missing before confirming.
-              </Text>
-            </View>
-
-            <Pressable onPress={onReset} style={styles.subtlePill}>
-              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 12 }}>
-                Rescan
-              </Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.macroHero}>
-            <MacroStat label="Calories" value={`${Math.round(totals.calories || 0)}`} />
-            <MacroStat label="Protein" value={`${Math.round(totals.protein || 0)}g`} />
-            <MacroStat label="Carbs" value={`${Math.round(totals.carbs || 0)}g`} />
-            <MacroStat label="Fat" value={`${Math.round(totals.fat || 0)}g`} />
-          </View>
-
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            {(["Breakfast", "Lunch", "Dinner", "Snack"] as MealCategory[]).map(
-              (option) => (
-                <Pressable
-                  key={option}
-                  onPress={() => setCategory(option)}
-                  style={[
-                    styles.categoryPill,
-                    {
-                      backgroundColor:
-                        option === category
-                          ? withAlpha(colors.primary, 0.24)
-                          : "rgba(255,255,255,0.06)",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: "#fff",
-                      fontSize: 12,
-                      fontWeight: "800",
-                    }}
-                  >
-                    {option}
-                  </Text>
-                </Pressable>
-              ),
-            )}
-          </View>
-
-          {lowConfidenceCount ? (
-            <View
-              style={{
-                borderRadius: 18,
-                padding: 12,
-                backgroundColor: "rgba(245,158,11,0.14)",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              <Ionicons name="alert-circle-outline" size={18} color="#f59e0b" />
-              <Text style={{ color: "#fff", flex: 1, fontWeight: "700", fontSize: 12.5 }}>
-                {lowConfidenceCount} low-confidence item{lowConfidenceCount > 1 ? "s" : ""}
-                . Review before confirming.
-              </Text>
-            </View>
-          ) : null}
-
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ gap: 10, paddingBottom: 8 }}
-          >
-            {foods.map((food) => (
-              <Pressable
-                key={food.id}
-                onPress={() => onOpenEdit(food)}
-                style={styles.foodCard}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                  <View
-                    style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: 14,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: confidenceTint(food.confidence),
-                    }}
-                  >
-                    <Ionicons
-                      name={
-                        food.confidence === "low"
-                          ? "help-circle-outline"
-                          : "sparkles-outline"
-                      }
-                      size={18}
-                      color="#fff"
-                    />
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text
-                      style={{ color: "#fff", fontSize: 15, fontWeight: "900" }}
-                      numberOfLines={1}
-                    >
-                      {food.name}
-                    </Text>
-                    <Text
-                      style={{
-                        color: withAlpha("#ffffff", 0.58),
-                        fontSize: 11.5,
-                        fontWeight: "700",
-                      }}
-                      numberOfLines={1}
-                    >
-                      {Math.round(food.portion.amount * 10) / 10} {food.portion.unit} •{" "}
-                      {Math.round(food.macros.calories || 0)} kcal • P{" "}
-                      {Math.round(food.macros.protein || 0)} • C{" "}
-                      {Math.round(food.macros.carbs || 0)} • F{" "}
-                      {Math.round(food.macros.fat || 0)}
-                    </Text>
-                  </View>
-                  <Pressable onPress={() => onRemove(food.id)} hitSlop={8}>
-                    <Ionicons name="trash-outline" size={18} color={withAlpha("#ffffff", 0.7)} />
-                  </Pressable>
-                </View>
-
-                <View
-                  style={{
-                    marginTop: 10,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <View style={{ flexDirection: "row", gap: 10 }}>
-                    <QtyButton label="−" onPress={() => onQuickAdjustPortion(food.id, -0.5)} />
-                    <View style={styles.qtyReadout}>
-                      <Text style={{ color: "#fff", fontWeight: "900", fontSize: 13 }}>
-                        {Math.round(food.portion.amount * 10) / 10} {food.portion.unit}
-                      </Text>
-                    </View>
-                    <QtyButton label="+" onPress={() => onQuickAdjustPortion(food.id, 0.5)} />
-                  </View>
-
-                  <Text style={{ color: withAlpha("#ffffff", 0.52), fontWeight: "800", fontSize: 11 }}>
-                    Tap row to edit
-                  </Text>
-                </View>
-              </Pressable>
-            ))}
-          </ScrollView>
-
-          <View style={{ gap: 10 }}>
-            <PremiumActionButton label="Add missing item" onPress={() => setShowAdd(true)} secondary />
-            <PremiumActionButton label="Add to Meal" onPress={onConfirm} disabled={isLogging || !hasFoods} />
-          </View>
-        </MotiView>
-
-        <ExplainAIModal visible={showExplain} onClose={() => setShowExplain(false)} />
-        <EditFoodSheet
-          visible={!!editFood}
-          food={editFood}
-          onClose={() => setEditFood(null)}
-          onSave={onUpdateFood}
-          onRemove={editFood ? () => onRemove(editFood.id) : undefined}
-        />
-        <AddFoodSheet visible={showAdd} onClose={() => setShowAdd(false)} onAdd={onAddFood} />
-
-        {!cameraPermission?.granted ? (
-          <PremiumModalSheet
-            visible
-            onClose={() => router.back()}
-            title="Camera access needed"
-            subtitle="Scan Meal v2 uses a live camera preview for capture."
-            detached
-            footer={
-              <PremiumActionButton label="Enable camera" onPress={() => requestCameraPermission()} />
-            }
-          >
-            <Text style={{ color: colors.text, fontSize: 13, lineHeight: 18, fontWeight: "700" }}>
-              Allow camera access to use the immersive capture experience, or close
-              and use the original scan flow instead.
-            </Text>
-          </PremiumModalSheet>
-        ) : null}
       </View>
-    </SafeAreaView>
-  );
-}
 
-function CircleIconButton({
-  colors,
-  icon,
-  onPress,
-}: {
-  colors: any;
-  icon: any;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => ({
-        width: 42,
-        height: 42,
-        borderRadius: 16,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(255,255,255,0.08)",
-        opacity: pressed ? 0.84 : 1,
-      })}
-    >
-      <Ionicons name={icon} size={18} color={colors.text} />
-    </Pressable>
-  );
-}
+      <View style={F.wrap}>
+        {!photoUri && <Choice label={torch ? 'Flash on' : 'Flash off'} selected={torch} onPress={() => setTorch(value => !value)} />}
 
-function MacroStat({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={{ flex: 1, gap: 3 }}>
-      <Text style={{ color: withAlpha("#ffffff", 0.52), fontSize: 10.5, fontWeight: "800" }}>
-        {label}
-      </Text>
-      <Text style={{ color: "#fff", fontSize: 17, fontWeight: "900" }}>{value}</Text>
-    </View>
-  );
-}
+        {!!photoUri && <Button label="Start over" disabled={showProcessing} onPress={onReset} />}
+      </View>
 
-function QtyButton({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => ({
-        width: 34,
-        height: 34,
-        borderRadius: 12,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(255,255,255,0.08)",
-        opacity: pressed ? 0.84 : 1,
-      })}
-    >
-      <Text style={{ color: "#fff", fontSize: 17, fontWeight: "900" }}>{label}</Text>
-    </Pressable>
+      {showProcessing && <Panel>
+        <Heading title={isLogging ? 'Logging meal' : isReanalyzing ? 'Updating food' : 'Scanning photo'} detail="Please wait for this operation to finish." />
+      </Panel>}
+
+      {showResultsSheet && <><View style={F.wrap}>
+        {(['Breakfast', 'Lunch', 'Dinner', 'Snack'] as MealCategory[]).map(value => <Choice key={value} label={value} selected={category === value} onPress={() => setCategory(value)} />)}
+      </View>
+        {lowConfidenceCount > 0 && <Text style={{ ...F.body, color: D.amber }}>Check the {lowConfidenceCount} low-confidence items before logging.</Text>}
+        <ScanItems step={0.5} foods={foods} totals={totals} onEdit={onOpenEdit} onRemove={onRemove} onAdjust={onQuickAdjustPortion} onAdd={() => setShowAdd(true)} /></>}
+    </TaskPage>
+    <Modal visible={showProcessing} transparent>
+      <View style={{ flex: 1, justifyContent: 'center', padding: 25, backgroundColor: '#000000B3' }}>
+        <Panel>
+          <ActivityIndicator color={D.teal} />
+          <Heading title={isLogging ? 'Logging meal' : isReanalyzing ? 'Updating food' : 'Scanning photo'} detail="Please wait for this operation to finish." />
+        </Panel>
+      </View>
+    </Modal>
+    <ExplainAIModal visible={showExplain} onClose={() => setShowExplain(false)} />
+    <EditFoodSheet visible={!!editFood} food={editFood} onClose={() => setEditFood(null)} onSave={onUpdateFood} onRemove={editFood ? () => onRemove(editFood.id) : undefined} />
+    <AddFoodSheet visible={showAdd} onClose={() => setShowAdd(false)} onAdd={onAddFood} />
+  </>
   );
 }
 

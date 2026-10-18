@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAccountStorage } from "@/services/local/accountStore";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useAuth } from "@/content/AuthContext";
@@ -75,6 +75,7 @@ export default function NutritionScreen() {
   const colors = useMemo(() => getNutritionTheme(isDark), [isDark]);
 
   const { user } = useAuth();
+  const localStore = useAccountStorage();
 
   // dateISO is the selected day (YYYY-MM-DD)
   const [dateISO, setDateISO] = useState<string>(localDateKey(new Date()));
@@ -103,7 +104,7 @@ export default function NutritionScreen() {
     let mounted = true;
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(waterKey);
+        const raw = await localStore.getItem(waterKey);
         if (!mounted) return;
         setWaterMl(raw ? Math.max(0, Number(raw) || 0) : 0);
       } catch {
@@ -118,7 +119,7 @@ export default function NutritionScreen() {
   const setWaterAndStore = (next: number) => {
     const clamped = Math.max(0, Math.round(next));
     setWaterMl(clamped);
-    AsyncStorage.setItem(waterKey, String(clamped)).catch(() => {});
+    localStore.setItem(waterKey, String(clamped)).catch(() => {});
   };
 
   // Sheets

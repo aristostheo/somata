@@ -1,24 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { Button, Empty, Field, Heading, Item, TaskPage } from "@/components/somata/TaskUI";
+import * as Haptics from "expo-haptics";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
+  Alert,
   Platform,
   StatusBar,
-  TextInput,
-  ScrollView,
-  Alert,
+  StyleSheet
 } from "react-native";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import * as Haptics from "expo-haptics";
 
 import { useAuth } from "@/content/AuthContext";
-import { subscribeWorkouts, type Workout } from "@/services/workouts";
 import { updateWorkoutTemplate } from "@/services/templates";
+import { subscribeWorkouts, type Workout } from "@/services/workouts";
 
 const withAlpha = (hex: string, a: number) => {
   const h = hex.replace("#", "");
@@ -37,36 +30,6 @@ function createdAtMs(r: any) {
   if (typeof c?.toMillis === "function") return c.toMillis();
   if (typeof c?.seconds === "number") return c.seconds * 1000;
   return 0;
-}
-
-function GlassCard({
-  children,
-  style,
-  intensity = 34,
-}: {
-  children: React.ReactNode;
-  style?: any;
-  intensity?: number;
-}) {
-  return (
-    <View style={[styles.cardWrap, style]}>
-      <View style={styles.cardBorder} pointerEvents="none" />
-      <BlurView intensity={intensity} tint="dark" style={styles.cardBlur}>
-        <LinearGradient
-          colors={[
-            withAlpha("#FFFFFF", 0.1),
-            withAlpha("#FFFFFF", 0.06),
-            withAlpha("#000000", 0.06),
-          ]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardInner}
-        >
-          {children}
-        </LinearGradient>
-      </BlurView>
-    </View>
-  );
 }
 
 export default function SaveWorkoutAsTemplateModal() {
@@ -137,7 +100,7 @@ export default function SaveWorkoutAsTemplateModal() {
   const haptic = async () => {
     try {
       await Haptics.selectionAsync();
-    } catch {}
+    } catch { }
   };
 
   const close = () => router.back();
@@ -168,152 +131,20 @@ export default function SaveWorkoutAsTemplateModal() {
       Alert.alert(
         "Could not save template",
         e?.message ||
-          "Your template write method may be using updateDoc (requires existing doc). If so, change updateWorkoutTemplate to use setDoc so new templates can be created."
+        "Your template write method may be using updateDoc (requires existing doc). If so, change updateWorkoutTemplate to use setDoc so new templates can be created."
       );
     }
   };
 
-  return (
-    <View style={styles.root}>
-      <LinearGradient
-        colors={["#070A12", "#050711", "#03040A"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.9, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+  return (<TaskPage title="Make it repeatable" section="Save workout template" onBack={close} footer={<Button primary label="Save template" onPress={save} disabled={!canSave || !uid} />}>
 
-      <View style={{ paddingTop: topInset + 10, paddingHorizontal: 12 }}>
-        <BlurView intensity={28} tint="dark" style={styles.headerBlur}>
-          <View style={styles.headerRow}>
-            <View style={styles.headerIcon}>
-              <Ionicons
-                name="bookmark-outline"
-                size={18}
-                color={withAlpha("#FFFFFF", 0.92)}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Save as template</Text>
-              <Text style={styles.sub}>
-                Turn this workout into a reusable plan
-              </Text>
-            </View>
-            <Pressable
-              onPress={close}
-              style={({ pressed }) => [
-                styles.closeBtn,
-                pressed && { opacity: 0.8 },
-              ]}
-            >
-              <Ionicons
-                name="close"
-                size={18}
-                color={withAlpha("#FFFFFF", 0.86)}
-              />
-            </Pressable>
-          </View>
-        </BlurView>
-      </View>
+    <Field label="Template name" value={name} onChangeText={setName} />
+    <Field label="Emoji" value={emoji} onChangeText={setEmoji} />
+    <Heading title={`${mappedItems.length} exercises`} detail="Review the workout that will become your template." />
 
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <GlassCard intensity={34} style={{ borderRadius: 22 }}>
-          <View style={{ gap: 12 }}>
-            <View style={styles.row}>
-              <View style={styles.smallIcon}>
-                <Text style={{ fontSize: 16 }}>{emoji || "⭐️"}</Text>
-              </View>
-              <TextInput
-                value={emoji}
-                onChangeText={setEmoji}
-                placeholder="⭐️"
-                placeholderTextColor={withAlpha("#FFFFFF", 0.45)}
-                style={[styles.input, { maxWidth: 70, textAlign: "center" }]}
-              />
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder="Template name"
-                placeholderTextColor={withAlpha("#FFFFFF", 0.45)}
-                style={[styles.input, { flex: 1 }]}
-              />
-            </View>
-
-            <View style={styles.summaryPill}>
-              <Ionicons
-                name="layers-outline"
-                size={14}
-                color={withAlpha("#FFFFFF", 0.82)}
-              />
-              <Text style={styles.summaryText}>
-                {mappedItems.length} exercises will be saved
-              </Text>
-            </View>
-          </View>
-        </GlassCard>
-
-        <View style={{ marginTop: 12 }}>
-          <Text style={styles.sectionTitle}>Preview</Text>
-
-          {mappedItems.length === 0 ? (
-            <Text style={styles.helper}>
-              No exercises found for this session.
-            </Text>
-          ) : (
-            <View style={{ gap: 10, marginTop: 10 }}>
-              {mappedItems.map((it: any, idx: number) => (
-                <GlassCard
-                  key={`${it.exercise}-${idx}`}
-                  intensity={28}
-                  style={{ borderRadius: 18 }}
-                >
-                  <Text style={styles.itemTitle} numberOfLines={1}>
-                    {it.exercise}
-                  </Text>
-                  <Text style={styles.itemSub}>
-                    {it.sets}×{it.reps} • {Math.round(it.weightKg || 0)} kg
-                    {it.notes ? ` • ${it.notes}` : ""}
-                  </Text>
-                </GlassCard>
-              ))}
-            </View>
-          )}
-        </View>
-
-        <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
-          <Pressable
-            onPress={save}
-            disabled={!canSave}
-            style={({ pressed }) => {
-              const base = [styles.saveBtn] as const;
-              const disabledStyle = !canSave ? { opacity: 0.55 } : null;
-              const pressedStyle =
-                pressed && canSave ? { opacity: 0.92 } : null;
-              return [...base, disabledStyle, pressedStyle];
-            }}
-          >
-            <Ionicons
-              name="save-outline"
-              size={16}
-              color={withAlpha("#111", 0.92)}
-            />
-            <Text style={styles.saveText}>Save template</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={close}
-            style={({ pressed }) => [
-              styles.ghostBtn,
-              pressed && { opacity: 0.9 },
-            ]}
-          >
-            <Text style={styles.ghostText}>Cancel</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </View>
+    {!mappedItems.length && <Empty title="No matching workout records" detail="Return to the workout and check that the session is available." />}
+    {mappedItems.map((it, i) => <Item key={i} title={`${i + 1}. ${it.exercise}`} detail={`${it.sets} × ${it.reps} · ${it.weightKg} kg${it.notes ? ` · ${it.notes}` : ''}`} />)}
+  </TaskPage>
   );
 }
 

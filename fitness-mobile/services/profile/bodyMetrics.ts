@@ -1,5 +1,5 @@
+import { accountStorage, type AccountStore } from '@/services/local/accountStore';
 // services/bodyMetrics.ts
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type BodyMetrics = {
   weightLb?: number; // store canonical in lb for simplicity
@@ -20,8 +20,8 @@ export type BodyMetricPoint = {
 const KEY_METRICS = "@body_metrics:v1";
 const KEY_HISTORY = "@body_metrics_history:v1";
 
-export async function loadBodyMetrics(): Promise<BodyMetrics | null> {
-  const raw = await AsyncStorage.getItem(KEY_METRICS);
+export async function loadBodyMetrics(localStore: AccountStore = accountStorage()): Promise<BodyMetrics | null> {
+  const raw = await localStore.getItem(KEY_METRICS);
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -30,16 +30,16 @@ export async function loadBodyMetrics(): Promise<BodyMetrics | null> {
   }
 }
 
-export async function saveBodyMetrics(next: BodyMetrics): Promise<void> {
+export async function saveBodyMetrics(next: BodyMetrics, localStore: AccountStore = accountStorage()): Promise<void> {
   const payload: BodyMetrics = {
     ...next,
     updatedAt: Date.now(),
   };
-  await AsyncStorage.setItem(KEY_METRICS, JSON.stringify(payload));
+  await localStore.setItem(KEY_METRICS, JSON.stringify(payload));
 }
 
-export async function loadBodyMetricsHistory(): Promise<BodyMetricPoint[]> {
-  const raw = await AsyncStorage.getItem(KEY_HISTORY);
+export async function loadBodyMetricsHistory(localStore: AccountStore = accountStorage()): Promise<BodyMetricPoint[]> {
+  const raw = await localStore.getItem(KEY_HISTORY);
   if (!raw) return [];
   try {
     const arr = JSON.parse(raw);
@@ -53,8 +53,8 @@ export async function loadBodyMetricsHistory(): Promise<BodyMetricPoint[]> {
  * Append a new history point.
  * - Dedupes if last point is same-day and values are identical-ish.
  */
-export async function appendBodyMetricsHistory(point: BodyMetricPoint) {
-  const history = await loadBodyMetricsHistory();
+export async function appendBodyMetricsHistory(point: BodyMetricPoint, localStore: AccountStore = accountStorage()) {
+  const history = await loadBodyMetricsHistory(localStore);
   const last = history[history.length - 1];
 
   const sameDay = (a: number, b: number) => {
@@ -88,5 +88,5 @@ export async function appendBodyMetricsHistory(point: BodyMetricPoint) {
 
   // Keep last 180 points to stay light.
   const trimmed = history.slice(Math.max(0, history.length - 180));
-  await AsyncStorage.setItem(KEY_HISTORY, JSON.stringify(trimmed));
+  await localStore.setItem(KEY_HISTORY, JSON.stringify(trimmed));
 }

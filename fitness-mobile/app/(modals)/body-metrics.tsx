@@ -1,37 +1,32 @@
-import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
+import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
+import { Button, Choice, Empty, Heading, IconButton, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import { Trend } from "@/components/somata/Trend";
+import { Alert } from "react-native";
 // app/(modals)/body-metrics.tsx — Premium health dashboard redesign
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import * as Haptics from "expo-haptics";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
-  Modal,
-  PanResponder,
-  Platform,
-  Pressable,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   useWindowDimensions,
-  View,
+  View
 } from "react-native";
-import Svg, { Circle, Line, Path } from "react-native-svg";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useReducedMotion } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { useProfileFlowTheme as useTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import MetricPickerSheet from "@/components/profile/premium/bodyMetrics/MetricPickerSheet";
 import { useAuth } from "@/content/AuthContext";
-import { subscribeProfile, updateProfile, type Profile } from "@/services/profile";
 import {
   buildGoalInputsFromProfile,
   buildGoalProfilePatch,
   shouldRecalculate,
 } from "@/services/macroCalculator";
-import { useProfileFlowTheme as useTheme } from "@/components/accountSettings/useProfileFlowTheme";
-import MetricPickerSheet from "@/components/profile/premium/bodyMetrics/MetricPickerSheet";
-import { withAlpha } from "@/components/profile/premium/ui";
+import { acceptedNutritionTargets } from "@/services/nutritionTargets";
+import { subscribeProfile, updateProfile, type Profile } from "@/services/profile";
 import {
   appendBodyMetricsHistory,
   loadBodyMetrics,
@@ -74,7 +69,7 @@ function navyBodyFat(
   waistCm: number,
   neckCm: number,
   heightCm: number,
-  hipCm?: number,
+  hipCm?: number
 ): number | null {
   if (waistCm <= neckCm || heightCm <= 0) return null;
   if (sex === "female" || sex === "other") {
@@ -105,7 +100,7 @@ function fmtDate(ms: number): string {
 function weeksToGoalCalc(
   history: BodyMetricPoint[],
   currentLb: number,
-  targetLb: number,
+  targetLb: number
 ): number | null {
   const recent = history
     .filter((p) => p.weightLb && p.t > Date.now() - 60 * 86400000)
@@ -161,8 +156,8 @@ function draftFromProfile(profile: Profile | null): Draft {
         : undefined,
     bodyFatPct:
       profile.bodyFatPct != null &&
-      Number.isFinite(profile.bodyFatPct) &&
-      profile.bodyFatPct > 0
+        Number.isFinite(profile.bodyFatPct) &&
+        profile.bodyFatPct > 0
         ? profile.bodyFatPct
         : undefined,
     waistCm:
@@ -186,6 +181,9 @@ function draftFromProfile(profile: Profile | null): Draft {
 // ─── main screen ─────────────────────────────────────────────────────────────
 
 export default function BodyMetricsEditorScreen() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const { colors, isDark } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
@@ -235,9 +233,8 @@ export default function BodyMetricsEditorScreen() {
     (async () => {
       try {
         const [m, h, savedUnit] = await Promise.all([
-          loadBodyMetrics(),
-          loadBodyMetricsHistory(),
-          AsyncStorage.getItem(UNIT_KEY),
+          loadBodyMetrics(localStore),
+          loadBodyMetricsHistory(localStore), localStore.getItem(UNIT_KEY),
         ]);
         if (!mounted) return;
 
@@ -320,7 +317,7 @@ export default function BodyMetricsEditorScreen() {
       heightCm: next.heightCm,
       bodyFatPct: next.bodyFatPct,
       waistCm: next.waistCm,
-    }).catch(() => {});
+    }, localStore).catch(() => { });
   }, [profile, dirty]);
 
   const bmi = useMemo(() => computeBMI(draft.weightLb, draft.heightCm), [draft.weightLb, draft.heightCm]);
@@ -417,7 +414,7 @@ export default function BodyMetricsEditorScreen() {
 
   const setUnit = useCallback(async (u: UnitMode) => {
     setUnitMode(u);
-    await AsyncStorage.setItem(UNIT_KEY, u).catch(() => {});
+    await localStore.setItem(UNIT_KEY, u).catch(() => { });
   }, []);
 
   const confirmBack = () => {
@@ -427,7 +424,7 @@ export default function BodyMetricsEditorScreen() {
 
   const onSave = async () => {
     if (!user?.uid || bodyFatError) return;
-    try { await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+    try { await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch { }
 
     const nextWeightKg = draft.weightLb != null ? round1(lbToKg(draft.weightLb)) : undefined;
     const nextTargetKg = draft.targetWeightLb != null ? round1(lbToKg(draft.targetWeightLb)) : undefined;
@@ -461,14 +458,14 @@ export default function BodyMetricsEditorScreen() {
       bodyFatPct:
         draft.bodyFatPct != null && draft.bodyFatPct > 0 ? draft.bodyFatPct : undefined,
       waistCm: draft.waistCm,
-    });
+    }, localStore);
 
     await appendBodyMetricsHistory({
       t: Date.now(),
       weightLb: draft.weightLb,
       waistCm: draft.waistCm,
       bodyFatPct: draft.bodyFatPct != null && draft.bodyFatPct > 0 ? draft.bodyFatPct : undefined,
-    });
+    }, localStore);
 
     setHistory((h) => {
       const point: BodyMetricPoint = {
@@ -535,731 +532,201 @@ export default function BodyMetricsEditorScreen() {
 
   // ── render ────────────────────────────────────────────────────────────────
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <Stack.Screen options={{ presentation: "modal", headerShown: false }} />
-      </View>
-    );
-  }
+  if (loading) return <TaskPage title="Body measurements" section="Profile" onBack={() => router.back()}><Empty title="Loading your measurements…" /></TaskPage>;
 
-  return (
-    <>
-      <Stack.Screen options={{ presentation: "modal", headerShown: false }} />
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+  return (<><TaskPage title="A record of you" section="Body measurements" onBack={confirmBack} footer={<><Button primary label="Save measurements" disabled={!dirty || !!bodyFatError} onPress={onSave} />{savedToast && <Text accessibilityLiveRegion="polite" style={F.body}>Saved</Text>}</>}>
 
-      <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <FlowAtmosphere />
-        {/* ── Top bar ── */}
-        <View style={[styles.topBar, {
-          paddingTop: 12,
-          borderBottomColor: colors.border,
-          backgroundColor: colors.background,
-        }]}>
-          <Pressable onPress={confirmBack} style={[styles.iconBtn, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-            <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
-          </Pressable>
+    <View style={{ flexDirection: 'row', gap: 8 }}>
+      {(['imperial', 'metric'] as UnitMode[]).map(u => <Choice key={u} label={u === 'imperial' ? 'lb / in' : 'kg / cm'} selected={unitMode === u} onPress={() => setUnit(u)} />)}
+    </View>
 
-          <Text style={[styles.navTitle, { color: colors.textPrimary }]}>Body Metrics</Text>
+    <Panel accent>
+      <Text style={F.eyebrow}>CURRENT WEIGHT</Text>
+      <Text style={{ ...F.value, fontSize: 48 }}>{draft.weightLb == null ? 'Not set' : fmtWeight(draft.weightLb, unitMode)}</Text>
+      <Button label="Update weight" onPress={() => setSheet('weight')} />
+    </Panel>
 
-          <Pressable
-            disabled={!dirty || !!bodyFatError}
-            onPress={onSave}
-            style={[
-              styles.saveBtn,
-              { backgroundColor: dirty && !bodyFatError ? colors.accent : colors.surface2 },
-            ]}
-          >
-            <Text style={[styles.saveText, { color: dirty && !bodyFatError ? (colors as any).buttonText ?? "#fff" : colors.textTertiary }]}>
-              Save
-            </Text>
-          </Pressable>
-        </View>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Metric label="BMI · calculated" value={bmi == null ? '—' : bmi.toFixed(1)} detail={bmi == null ? undefined : bmiDescriptor(bmi)} />
+      <Metric label="Lean mass · calculated" value={leanMass == null ? '—' : fmtWeight(leanMass.lb, unitMode)} />
+    </View>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 48, gap: 20 }}
-        >
-          {/* ── Hero ── */}
-          <HeroCard
-            bmi={bmi}
-            ring1={ring1}
-            ring2={ring2}
-            ring3={ring3}
-            ring2Color={ring2Color}
-            ring3Color={ring3Color}
-            coachNote={coachNote}
-            colors={colors}
-            isDark={isDark}
-          />
+    <Heading title="Your measurement desk" />
+    {([{ key: 'target', title: 'Goal weight', value: draft.targetWeightLb == null ? 'Not set' : fmtWeight(draft.targetWeightLb, unitMode) }, { key: 'height', title: 'Height', value: draft.heightCm == null ? 'Not set' : fmtHeight(draft.heightCm, unitMode) }, { key: 'age', title: 'Age', value: draft.age == null ? 'Not set' : String(draft.age) }, { key: 'bodyfat', title: 'Body fat', value: draft.bodyFatPct == null ? 'Not set' : `${draft.bodyFatPct}%` }, { key: 'waist', title: 'Waist', value: draft.waistCm == null ? 'Not set' : `${round1(unitMode === 'imperial' ? draft.waistCm * 0.393701 : draft.waistCm)} ${unitMode === 'imperial' ? 'in' : 'cm'}` }, { key: 'neck', title: 'Neck', value: draft.neckCm == null ? 'Not set' : `${round1(unitMode === 'imperial' ? draft.neckCm * 0.393701 : draft.neckCm)} ${unitMode === 'imperial' ? 'in' : 'cm'}` }]).map(m => <Item key={m.key} title={m.title} value={m.value} onPress={() => setSheet(m.key as SheetKey)} />)}
 
-          {/* ── Unit toggle ── */}
-          <UnitToggle unit={unitMode} onToggle={setUnit} colors={colors} />
+    <Heading title="Equation sex" />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {(['male', 'female', 'other'] as SexType[]).map(sex => <Choice key={sex} label={sex} selected={draft.sex === sex} onPress={() => setDraft(d => ({ ...d, sex }))} />)}
+    </View>
+    {(draft.sex === 'female' || draft.sex === 'other') && <Item title="Hip circumference" value={draft.hipCm == null ? 'Not set' : `${round1(unitMode === 'imperial' ? draft.hipCm * 0.393701 : draft.hipCm)} ${unitMode === 'imperial' ? 'in' : 'cm'}`} onPress={() => setSheet('hip')} />}
+    {bodyFatError && <Text style={F.caption}>{bodyFatError}</Text>}
+    {navyEst != null && <Text style={F.caption}>Navy body-fat estimate · {navyEst.toFixed(1)}%</Text>}
+    {weeksToGoal != null && <Text style={F.caption}>Saved-goal estimate · {weeksToGoal} weeks</Text>}
+    <Text style={F.body}>{coachNote}</Text>
 
-          {/* ── SECTION 1: Primary Metrics ── */}
-          <SectionLabel title="PRIMARY METRICS" colors={colors} />
+    <Heading title="Connected vitals" />
+    {profile?.restingHeartRateBpm ? <Item title="Resting heart rate" value={`${Math.round(profile.restingHeartRateBpm)} bpm`} detail={profile.healthLastUpdatedVia} /> : null}
+    {profile?.hrvMs ? <Item title="HRV" value={`${Math.round(profile.hrvMs)} ms`} detail={profile.healthLastUpdatedVia} /> : null}
+    {profile?.bloodOxygenPct ? <Item title="Blood oxygen" value={`${Math.round(profile.bloodOxygenPct)}%`} detail={profile.healthLastUpdatedVia} /> : null}
+    <Heading title="Measured history" detail="History stored on this device" />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {(['30D', '90D', 'all'] as HistoryRange[]).map(r => <Choice key={r} label={r} selected={historyRange === r} onPress={() => setHistoryRange(r)} />)}
+    </View>
+    <WeightTrendChart history={history} range={historyRange} unit={unitMode} goalLb={draft.targetWeightLb} colors={colors} isDark={isDark} />
 
-          <View style={[styles.sectionCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-            <MetricRowTappable
-              label="Current weight"
-              context="Updates your calorie targets"
-              value={draft.weightLb ? fmtWeight(draft.weightLb, unitMode) : "Not set"}
-              source={profile?.healthLastUpdatedVia ? `via ${profile.healthLastUpdatedVia}` : undefined}
-              onPress={() => setSheet("weight")}
-              colors={colors}
-            />
-            <Divider colors={colors} />
-            <MetricRowTappable
-              label="Goal weight"
-              context="Used for progress projections"
-              value={draft.targetWeightLb ? fmtWeight(draft.targetWeightLb, unitMode) : "Not set"}
-              hint={weeksToGoal ? `~${weeksToGoal} weeks at current pace` : undefined}
-              onPress={() => setSheet("target")}
-              colors={colors}
-            />
-            <Divider colors={colors} />
-            <MetricRowTappable
-              label="Height"
-              context="Used for BMI and calorie calculations"
-              value={draft.heightCm ? fmtHeight(draft.heightCm, unitMode) : "Not set"}
-              onPress={() => setSheet("height")}
-              colors={colors}
-            />
-            <Divider colors={colors} />
-            <MetricRowTappable
-              label="Age"
-              context="Improves calorie calculation accuracy"
-              value={draft.age ? `${draft.age}` : "Not set"}
-              onPress={() => setSheet("age")}
-              colors={colors}
-            />
-            <Divider colors={colors} />
-            <SexSelector
-              value={draft.sex}
-              onChange={(s) => setDraft((d) => ({ ...d, sex: s }))}
-              colors={colors}
-              isDark={isDark}
-            />
-          </View>
+    {visibleHistory.map((point, i) => <Item key={`${point.t}-${i}`} title={fmtDate(point.t)} value={point.weightLb == null ? 'Not recorded' : fmtWeight(point.weightLb, unitMode)} detail={[point.bodyFatPct == null ? '' : `${point.bodyFatPct}% body fat`, point.waistCm == null ? '' : `${point.waistCm} cm waist`].filter(Boolean).join(' · ')} action={<IconButton icon="trash-outline" label="Remove check-in" onPress={() => Alert.alert('Delete check-in?', 'This removes the entry from this history view.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => deleteCheckIn(filteredHistory.indexOf(point)) }])} />} />)}
+    {!visibleHistory.length && <Empty title="No measurements recorded yet" />}
+    <Button label={showAllHistory ? 'Show recent records' : 'Show all history'} onPress={() => setShowAllHistory(v => !v)} />
+    <Button label="Health connections" onPress={() => router.push('/profile/integrations')} />
 
-          {/* ── SECTION 2: Body Composition ── */}
-          <SectionLabel title="BODY COMPOSITION" colors={colors} />
-          <Text style={[styles.sectionSub, { color: colors.textTertiary }]}>
-            Optional. More data = more accurate insights.
-          </Text>
-
-          <View style={[styles.sectionCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-            <MetricRowTappable
-              label="Body fat %"
-              context="Enables lean mass-based protein targets"
-              value={draft.bodyFatPct != null && draft.bodyFatPct > 0 ? `${round1(draft.bodyFatPct)}%` : "—"}
-              hint={leanMass ? `Lean mass: ~${leanMass.kg} kg / ${leanMass.lb} lb` : undefined}
-              hintColor={colors.accent}
-              onPress={() => setSheet("bodyfat")}
-              colors={colors}
-            />
-            {bodyFatError ? (
-              <Text style={[styles.fieldError, { color: colors.danger }]}>{bodyFatError}</Text>
-            ) : null}
-            <Divider colors={colors} />
-            <MetricRowTappable
-              label="Waist"
-              context="Useful for tracking body recomposition"
-              value={draft.waistCm ? `${unitMode === "metric" ? round1(draft.waistCm) + " cm" : Math.round(draft.waistCm * 0.393701) + " in"}` : "—"}
-              onPress={() => setSheet("waist")}
-              colors={colors}
-            />
-            <Divider colors={colors} />
-            <MetricRowTappable
-              label="Neck"
-              context="Optional. Used for Navy body fat estimate"
-              value={draft.neckCm ? `${unitMode === "metric" ? round1(draft.neckCm) + " cm" : Math.round(draft.neckCm * 0.393701) + " in"}` : "—"}
-              onPress={() => setSheet("neck")}
-              colors={colors}
-            />
-            {(draft.sex === "female" || draft.sex === "other") && (
-              <>
-                <Divider colors={colors} />
-                <MetricRowTappable
-                  label="Hip"
-                  context="Used in body fat estimation"
-                  value={draft.hipCm ? `${unitMode === "metric" ? round1(draft.hipCm) + " cm" : Math.round(draft.hipCm * 0.393701) + " in"}` : "—"}
-                  onPress={() => setSheet("hip")}
-                  colors={colors}
-                />
-              </>
-            )}
-            {navyEst != null && (
-              <Text style={[styles.navyNote, { color: colors.textTertiary }]}>
-                Navy body fat estimate: ~{navyEst}%
-              </Text>
-            )}
-          </View>
-
-          {/* ── SECTION 3: Vitals ── */}
-          <SectionLabel title="VITALS" colors={colors} />
-          <Text style={[styles.sectionSub, { color: colors.textTertiary }]}>
-            Auto-updated from Apple Health / RingConn
-          </Text>
-
-          <View style={[styles.sectionCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-            {profile?.restingHeartRateBpm || profile?.hrvMs || profile?.bloodOxygenPct ? (
-              <>
-                {profile.restingHeartRateBpm ? (
-                  <VitalRow
-                    icon="heart-outline"
-                    label="Resting heart rate"
-                    value={`${Math.round(profile.restingHeartRateBpm)} bpm`}
-                    source={profile.healthLastUpdatedVia}
-                    colors={colors}
-                  />
-                ) : null}
-                {profile.hrvMs ? (
-                  <>
-                    <Divider colors={colors} />
-                    <VitalRow
-                      icon="pulse-outline"
-                      label="HRV"
-                      value={`${Math.round(profile.hrvMs)} ms`}
-                      source={profile.healthLastUpdatedVia}
-                      colors={colors}
-                    />
-                  </>
-                ) : null}
-                {profile.bloodOxygenPct ? (
-                  <>
-                    <Divider colors={colors} />
-                    <VitalRow
-                      icon="water-outline"
-                      label="Blood oxygen"
-                      value={`${Math.round(profile.bloodOxygenPct)}%`}
-                      source={profile.healthLastUpdatedVia}
-                      colors={colors}
-                    />
-                  </>
-                ) : null}
-              </>
-            ) : (
-              <Pressable
-                onPress={() => router.push("/(modals)/integrations" as any)}
-                style={styles.connectRow}
-              >
-                <Ionicons name="link-outline" size={16} color={colors.accent} />
-                <Text style={[styles.connectText, { color: colors.accent }]}>
-                  Connect Apple Health to auto-fill vitals →
-                </Text>
-              </Pressable>
-            )}
-          </View>
-
-          {/* ── SECTION 4: Weight Trend ── */}
-          <SectionLabel title="WEIGHT TREND" colors={colors} />
-
-          <View style={[styles.sectionCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-            <View style={styles.trendHeader}>
-              <Text style={[styles.trendTitle, { color: colors.textPrimary }]}>Weight over time</Text>
-              <HistoryRangeToggle range={historyRange} onChange={setHistoryRange} colors={colors} />
-            </View>
-
-            <WeightTrendChart
-              history={history}
-              goalLb={draft.targetWeightLb}
-              unit={unitMode}
-              range={historyRange}
-              colors={colors}
-              isDark={isDark}
-            />
-
-            {filteredHistory.length > 0 && (
-              <Text style={[styles.lastCheckin, { color: colors.textTertiary }]}>
-                Last check-in: {fmtDate(filteredHistory[0].t)} · {fmtWeight(filteredHistory[0].weightLb!, unitMode)}
-              </Text>
-            )}
-          </View>
-
-          {/* ── SECTION 5: Check-in History ── */}
-          <SectionLabel title="CHECK-IN HISTORY" colors={colors} />
-
-          <View style={[styles.sectionCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-            {visibleHistory.length === 0 ? (
-              <Text style={[styles.emptyText, { color: colors.textTertiary }]}>No weight history yet.</Text>
-            ) : (
-              <>
-                {visibleHistory.map((point, i) => {
-                  const prev = filteredHistory[i + 1];
-                  const delta = prev?.weightLb ? (point.weightLb! - prev.weightLb) : null;
-                  return (
-                    <React.Fragment key={`ci-${point.t}-${i}`}>
-                      {i > 0 && <Divider colors={colors} />}
-                      <SwipeableRow
-                        onDelete={() => deleteCheckIn(filteredHistory.indexOf(point))}
-                        colors={colors}
-                      >
-                        <View style={styles.checkInRow}>
-                          <Text style={[styles.checkInDate, { color: colors.textTertiary }]}>
-                            {fmtDate(point.t)}
-                          </Text>
-                          <Text style={[styles.checkInWeight, { color: colors.textPrimary }]}>
-                            {fmtWeight(point.weightLb!, unitMode)}
-                          </Text>
-                          {delta != null && (
-                            <Text style={[styles.checkInDelta, {
-                              color: delta < -0.1 ? colors.success : delta > 0.1 ? colors.danger : colors.textTertiary,
-                            }]}>
-                              {delta < -0.1 ? "↓ " : delta > 0.1 ? "↑ " : "· "}
-                              {fmtWeight(Math.abs(delta), unitMode)}
-                            </Text>
-                          )}
-                        </View>
-                      </SwipeableRow>
-                    </React.Fragment>
-                  );
-                })}
-                {filteredHistory.length > 10 && !showAllHistory && (
-                  <Pressable onPress={() => setShowAllHistory(true)} style={styles.seeAllBtn}>
-                    <Text style={[styles.seeAllText, { color: colors.accent }]}>
-                      See all {filteredHistory.length} entries →
-                    </Text>
-                  </Pressable>
-                )}
-              </>
-            )}
-          </View>
-
-          {/* ── Privacy note ── */}
-          <View style={[styles.privacyCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-            <Ionicons name="heart-outline" size={16} color={colors.textTertiary} />
-            <Text style={[styles.privacyText, { color: colors.textTertiary }]}>
-              You can clear any metric anytime. Missing data is fine — this app never judges you for it.
-            </Text>
-          </View>
-        </ScrollView>
-
-        {/* ── Pickers ── */}
-        <MetricPickerSheet
-          open={sheet === "weight"}
-          title="Current weight"
-          subtitle="Updates your calorie targets"
-          unitLabel={unitMode === "imperial" ? "lb" : "kg"}
-          values={weightValues}
-          value={weightPickerValue}
-          formatValue={formatWeightPicker}
-          allowNull
-          nullLabel="Not set"
-          step={unitMode === "imperial" ? 1 : 0.5}
-          onChange={(v) => setDraft((d) => ({
-            ...d,
-            weightLb: v == null ? undefined : unitMode === "imperial" ? v : round1(kgToLb(v)),
-          }))}
-          onClose={() => setSheet(null)}
-        />
-
-        <MetricPickerSheet
-          open={sheet === "target"}
-          title="Goal weight"
-          subtitle="Used for progress projections"
-          unitLabel={unitMode === "imperial" ? "lb" : "kg"}
-          values={weightValues}
-          value={targetPickerValue}
-          formatValue={formatWeightPicker}
-          allowNull
-          nullLabel="Not set"
-          step={unitMode === "imperial" ? 1 : 0.5}
-          onChange={(v) => setDraft((d) => ({
-            ...d,
-            targetWeightLb: v == null ? undefined : unitMode === "imperial" ? v : round1(kgToLb(v)),
-          }))}
-          onClose={() => setSheet(null)}
-        />
-
-        <MetricPickerSheet
-          open={sheet === "height"}
-          title="Height"
-          subtitle="Used for BMI and calorie calculations"
-          unitLabel={unitMode === "imperial" ? "" : "cm"}
-          values={heightValues}
-          value={draft.heightCm == null ? null : Math.round(draft.heightCm)}
-          formatValue={(v) => fmtHeight(v, unitMode)}
-          allowNull
-          nullLabel="Not set"
-          step={1}
-          min={120}
-          max={220}
-          onChange={(v) => setDraft((d) => ({ ...d, heightCm: v ?? undefined }))}
-          onClose={() => setSheet(null)}
-        />
-
-        <MetricPickerSheet
-          open={sheet === "age"}
-          title="Age"
-          subtitle="Improves calorie calculation accuracy"
-          unitLabel="yrs"
-          values={ageValues}
-          value={draft.age ?? null}
-          formatValue={(v) => `${v}`}
-          allowNull
-          nullLabel="Not set"
-          step={1}
-          min={13}
-          max={100}
-          onChange={(v) => setDraft((d) => ({ ...d, age: v ?? undefined }))}
-          onClose={() => setSheet(null)}
-        />
-
-        <MetricPickerSheet
-          open={sheet === "bodyfat"}
-          title="Body fat %"
-          subtitle="Optional. Estimates are totally fine."
-          unitLabel="%"
-          values={bodyFatValues}
-          value={draft.bodyFatPct != null && draft.bodyFatPct > 0 ? round1(draft.bodyFatPct) : null}
-          formatValue={(v) => `${round1(v)}`}
-          allowNull
-          nullLabel="Not set"
-          step={0.5}
-          min={3}
-          max={50}
-          onChange={(v) => setDraft((d) => ({ ...d, bodyFatPct: v == null || v <= 0 ? undefined : v }))}
-          onClose={() => setSheet(null)}
-        />
-
-        <MetricPickerSheet
-          open={sheet === "waist"}
-          title="Waist"
-          subtitle="Useful for tracking body recomposition"
-          unitLabel={unitMode === "imperial" ? "in" : "cm"}
-          values={waistNeckHipValues}
-          value={draft.waistCm == null ? null : round1(unitMode === "imperial" ? draft.waistCm * 0.393701 : draft.waistCm)}
-          formatValue={(v) => `${round1(v)}`}
-          allowNull
-          nullLabel="Not set"
-          step={0.5}
-          onChange={(v) => setDraft((d) => ({
-            ...d,
-            waistCm: v == null ? undefined : unitMode === "imperial" ? round1(v / 0.393701) : v,
-          }))}
-          onClose={() => setSheet(null)}
-        />
-
-        <MetricPickerSheet
-          open={sheet === "neck"}
-          title="Neck circumference"
-          subtitle="Used for Navy body fat estimate"
-          unitLabel={unitMode === "imperial" ? "in" : "cm"}
-          values={waistNeckHipValues}
-          value={draft.neckCm == null ? null : round1(unitMode === "imperial" ? draft.neckCm * 0.393701 : draft.neckCm)}
-          formatValue={(v) => `${round1(v)}`}
-          allowNull
-          nullLabel="Not set"
-          step={0.5}
-          onChange={(v) => setDraft((d) => ({
-            ...d,
-            neckCm: v == null ? undefined : unitMode === "imperial" ? round1(v / 0.393701) : v,
-          }))}
-          onClose={() => setSheet(null)}
-        />
-
-        <MetricPickerSheet
-          open={sheet === "hip"}
-          title="Hip circumference"
-          subtitle="Used in body fat estimation"
-          unitLabel={unitMode === "imperial" ? "in" : "cm"}
-          values={waistNeckHipValues}
-          value={draft.hipCm == null ? null : round1(unitMode === "imperial" ? draft.hipCm * 0.393701 : draft.hipCm)}
-          formatValue={(v) => `${round1(v)}`}
-          allowNull
-          nullLabel="Not set"
-          step={0.5}
-          onChange={(v) => setDraft((d) => ({
-            ...d,
-            hipCm: v == null ? undefined : unitMode === "imperial" ? round1(v / 0.393701) : v,
-          }))}
-          onClose={() => setSheet(null)}
-        />
-
-        {/* ── Dialogs ── */}
-        <LuxuryDialog
-          visible={discardOpen}
-          title="Discard changes?"
-          body="You have unsaved changes in this screen."
-          icon="close-circle-outline"
-          primaryLabel="Discard"
-          primaryDanger
-          secondaryLabel="Keep editing"
-          onPrimary={() => { setDiscardOpen(false); router.back(); }}
-          onSecondary={() => setDiscardOpen(false)}
-          onClose={() => setDiscardOpen(false)}
-          colors={colors}
-        />
-
-        <LuxuryDialog
-          visible={recalcOpen}
-          title="Weight changed"
-          body={
-            pendingRecalc
-              ? `You logged ${fmtWeight(kgToLb(pendingRecalc.newWeightKg), unitMode)}. Recalculate macros to stay on track?`
-              : ""
-          }
-          icon="scale-outline"
-          primaryLabel="Recalculate goals →"
-          secondaryLabel="Keep current goals"
-          onPrimary={handleRecalculate}
-          onSecondary={handleKeepGoals}
-          onClose={handleKeepGoals}
-          colors={colors}
-        />
-
-        {/* ── Saved toast ── */}
-        {savedToast && (
-          <View pointerEvents="none" style={styles.toastWrap}>
-            <View style={[styles.toast, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-              <Ionicons name="checkmark-circle-outline" size={14} color={colors.success} />
-              <Text style={[styles.toastText, { color: colors.textPrimary }]}>Saved ✓</Text>
-            </View>
-          </View>
-        )}
-      </View>
-    </>
+  </TaskPage>
+    <MetricPickerSheet
+      open={sheet === "weight"}
+      title="Current weight"
+      subtitle="Updates your calorie targets"
+      unitLabel={unitMode === "imperial" ? "lb" : "kg"}
+      values={weightValues}
+      value={weightPickerValue}
+      formatValue={formatWeightPicker}
+      allowNull
+      nullLabel="Not set"
+      step={unitMode === "imperial" ? 1 : 0.5}
+      onChange={(v) => setDraft((d) => ({
+        ...d,
+        weightLb: v == null ? undefined : unitMode === "imperial" ? v : round1(kgToLb(v)),
+      }))}
+      onClose={() => setSheet(null)}
+    />
+    <MetricPickerSheet
+      open={sheet === "target"}
+      title="Goal weight"
+      subtitle="Used for progress projections"
+      unitLabel={unitMode === "imperial" ? "lb" : "kg"}
+      values={weightValues}
+      value={targetPickerValue}
+      formatValue={formatWeightPicker}
+      allowNull
+      nullLabel="Not set"
+      step={unitMode === "imperial" ? 1 : 0.5}
+      onChange={(v) => setDraft((d) => ({
+        ...d,
+        targetWeightLb: v == null ? undefined : unitMode === "imperial" ? v : round1(kgToLb(v)),
+      }))}
+      onClose={() => setSheet(null)}
+    />
+    <MetricPickerSheet
+      open={sheet === "height"}
+      title="Height"
+      subtitle="Used for BMI and calorie calculations"
+      unitLabel={unitMode === "imperial" ? "" : "cm"}
+      values={heightValues}
+      value={draft.heightCm == null ? null : Math.round(draft.heightCm)}
+      formatValue={(v) => fmtHeight(v, unitMode)}
+      allowNull
+      nullLabel="Not set"
+      step={1}
+      min={120}
+      max={220}
+      onChange={(v) => setDraft((d) => ({ ...d, heightCm: v ?? undefined }))}
+      onClose={() => setSheet(null)}
+    />
+    <MetricPickerSheet
+      open={sheet === "age"}
+      title="Age"
+      subtitle="Improves calorie calculation accuracy"
+      unitLabel="yrs"
+      values={ageValues}
+      value={draft.age ?? null}
+      formatValue={(v) => `${v}`}
+      allowNull
+      nullLabel="Not set"
+      step={1}
+      min={13}
+      max={100}
+      onChange={(v) => setDraft((d) => ({ ...d, age: v ?? undefined }))}
+      onClose={() => setSheet(null)}
+    />
+    <MetricPickerSheet
+      open={sheet === "bodyfat"}
+      title="Body fat %"
+      subtitle="Optional. Estimates are totally fine."
+      unitLabel="%"
+      values={bodyFatValues}
+      value={draft.bodyFatPct != null && draft.bodyFatPct > 0 ? round1(draft.bodyFatPct) : null}
+      formatValue={(v) => `${round1(v)}`}
+      allowNull
+      nullLabel="Not set"
+      step={0.5}
+      min={3}
+      max={50}
+      onChange={(v) => setDraft((d) => ({ ...d, bodyFatPct: v == null || v <= 0 ? undefined : v }))}
+      onClose={() => setSheet(null)}
+    />
+    <MetricPickerSheet
+      open={sheet === "waist"}
+      title="Waist"
+      subtitle="Useful for tracking body recomposition"
+      unitLabel={unitMode === "imperial" ? "in" : "cm"}
+      values={waistNeckHipValues}
+      value={draft.waistCm == null ? null : round1(unitMode === "imperial" ? draft.waistCm * 0.393701 : draft.waistCm)}
+      formatValue={(v) => `${round1(v)}`}
+      allowNull
+      nullLabel="Not set"
+      step={0.5}
+      onChange={(v) => setDraft((d) => ({
+        ...d,
+        waistCm: v == null ? undefined : unitMode === "imperial" ? round1(v / 0.393701) : v,
+      }))}
+      onClose={() => setSheet(null)}
+    />
+    <MetricPickerSheet
+      open={sheet === "neck"}
+      title="Neck circumference"
+      subtitle="Used for Navy body fat estimate"
+      unitLabel={unitMode === "imperial" ? "in" : "cm"}
+      values={waistNeckHipValues}
+      value={draft.neckCm == null ? null : round1(unitMode === "imperial" ? draft.neckCm * 0.393701 : draft.neckCm)}
+      formatValue={(v) => `${round1(v)}`}
+      allowNull
+      nullLabel="Not set"
+      step={0.5}
+      onChange={(v) => setDraft((d) => ({
+        ...d,
+        neckCm: v == null ? undefined : unitMode === "imperial" ? round1(v / 0.393701) : v,
+      }))}
+      onClose={() => setSheet(null)}
+    />
+    <MetricPickerSheet
+      open={sheet === "hip"}
+      title="Hip circumference"
+      subtitle="Used in body fat estimation"
+      unitLabel={unitMode === "imperial" ? "in" : "cm"}
+      values={waistNeckHipValues}
+      value={draft.hipCm == null ? null : round1(unitMode === "imperial" ? draft.hipCm * 0.393701 : draft.hipCm)}
+      formatValue={(v) => `${round1(v)}`}
+      allowNull
+      nullLabel="Not set"
+      step={0.5}
+      onChange={(v) => setDraft((d) => ({
+        ...d,
+        hipCm: v == null ? undefined : unitMode === "imperial" ? round1(v / 0.393701) : v,
+      }))}
+      onClose={() => setSheet(null)}
+    />
+    <TaskSheet title="Discard changes?" visible={discardOpen} onClose={() => setDiscardOpen(false)}>
+      <Text style={F.body}>You have unsaved measurements.</Text>
+      <Button danger label="Discard" onPress={() => { setDiscardOpen(false); router.back(); }} />
+      <Button label="Keep editing" onPress={() => setDiscardOpen(false)} />
+    </TaskSheet>
+    <TaskSheet title="Weight changed" visible={recalcOpen} onClose={handleKeepGoals}>
+      <Text style={F.body}>{pendingRecalc ? `You logged ${fmtWeight(kgToLb(pendingRecalc.newWeightKg), unitMode)}. Recalculate saved goals?` : ''}{acceptedNutritionTargets(profile) ? ' Your accepted FitAdapt targets stay active until you accept a new proposal on Profile.' : ''}</Text>
+      <Button primary label="Recalculate saved goals" onPress={handleRecalculate} />
+      <Button label="Keep current goals" onPress={handleKeepGoals} />
+    </TaskSheet></>
   );
 }
 
 // ─── sub-components ───────────────────────────────────────────────────────────
-
-function HeroCard({
-  bmi, ring1, ring2, ring3, ring2Color, ring3Color, coachNote, colors, isDark,
-}: {
-  bmi: number | null;
-  ring1: number;
-  ring2: number;
-  ring3: number;
-  ring2Color: string;
-  ring3Color: string;
-  coachNote: string;
-  colors: ReturnType<typeof useTheme>["colors"];
-  isDark: boolean;
-}) {
-  const ringSize = 110;
-  const cx = ringSize / 2;
-  const r1 = 46, r2 = 34, r3 = 22;
-  const sw = 4;
-  const c1 = 2 * Math.PI * r1;
-  const c2 = 2 * Math.PI * r2;
-  const c3 = 2 * Math.PI * r3;
-
-  return (
-    <View style={[styles.heroCard, {
-      backgroundColor: withAlpha(colors.accent, isDark ? 0.08 : 0.05),
-      borderColor: withAlpha(colors.accent, isDark ? 0.22 : 0.15),
-    }]}>
-      <View style={styles.heroInner}>
-        {/* Left: BMI info */}
-        <View style={styles.heroLeft}>
-          <Text style={[styles.heroBmiNum, { color: colors.textPrimary }]}>
-            {bmi != null ? bmi.toFixed(1) : "—"}
-          </Text>
-          <Text style={[styles.heroBmiLabel, { color: colors.textTertiary }]}>BMI</Text>
-          {bmi != null && (
-            <View style={[styles.heroBadge, { backgroundColor: withAlpha(bmiColor(bmi, colors), 0.14) }]}>
-              <Text style={[styles.heroBadgeText, { color: bmiColor(bmi, colors) }]}>
-                {bmiDescriptor(bmi)}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Right: 3-ring SVG */}
-        <Svg width={ringSize} height={ringSize}>
-          {/* Ring 1 (weight vs target) — accent */}
-          <Circle cx={cx} cy={cx} r={r1} stroke={withAlpha(colors.accent, 0.18)} strokeWidth={sw} fill="none" />
-          <Circle cx={cx} cy={cx} r={r1} stroke={colors.accent} strokeWidth={sw} fill="none"
-            strokeDasharray={`${c1} ${c1}`}
-            strokeDashoffset={c1 * (1 - ring1)}
-            strokeLinecap="round" rotation="-90" originX={cx} originY={cx} />
-
-          {/* Ring 2 (BMI) — dynamic color */}
-          <Circle cx={cx} cy={cx} r={r2} stroke={withAlpha(ring2Color, 0.18)} strokeWidth={sw} fill="none" />
-          <Circle cx={cx} cy={cx} r={r2} stroke={ring2Color} strokeWidth={sw} fill="none"
-            strokeDasharray={`${c2} ${c2}`}
-            strokeDashoffset={c2 * (1 - ring2)}
-            strokeLinecap="round" rotation="-90" originX={cx} originY={cx} />
-
-          {/* Ring 3 (body fat) — dynamic color */}
-          <Circle cx={cx} cy={cx} r={r3} stroke={withAlpha(ring3Color, 0.18)} strokeWidth={sw} fill="none" />
-          <Circle cx={cx} cy={cx} r={r3} stroke={ring3Color} strokeWidth={sw} fill="none"
-            strokeDasharray={`${c3} ${c3}`}
-            strokeDashoffset={c3 * (1 - ring3)}
-            strokeLinecap="round" rotation="-90" originX={cx} originY={cx} />
-        </Svg>
-      </View>
-
-      <Text style={[styles.coachNote, { color: colors.textSecondary }]}>{coachNote}</Text>
-    </View>
-  );
-}
-
-function UnitToggle({
-  unit,
-  onToggle,
-  colors,
-}: {
-  unit: UnitMode;
-  onToggle: (u: UnitMode) => void;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  return (
-    <View style={[styles.segWrap, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-      {(["imperial", "metric"] as UnitMode[]).map((u) => (
-        <Pressable
-          key={u}
-          onPress={() => { Haptics.selectionAsync(); onToggle(u); }}
-          style={[
-            styles.segBtn,
-            u === unit
-              ? { backgroundColor: colors.accent }
-              : { backgroundColor: "transparent" },
-          ]}
-        >
-          <Text style={[styles.segText, { color: u === unit ? "#FFFFFF" : colors.textSecondary }]}>
-            {u === "imperial" ? "Imperial (lb / ft)" : "Metric (kg / cm)"}
-          </Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
-
-function SectionLabel({ title, colors }: { title: string; colors: ReturnType<typeof useTheme>["colors"] }) {
-  return (
-    <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>{title}</Text>
-  );
-}
-
-function Divider({ colors }: { colors: ReturnType<typeof useTheme>["colors"] }) {
-  return <View style={[styles.divider, { backgroundColor: colors.border }]} />;
-}
-
-function MetricRowTappable({
-  label, context, value, source, hint, hintColor, onPress, colors,
-}: {
-  label: string;
-  context: string;
-  value: string;
-  source?: string;
-  hint?: string;
-  hintColor?: string;
-  onPress: () => void;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  return (
-    <Pressable
-      onPress={async () => { try { await Haptics.selectionAsync(); } catch {} onPress(); }}
-      style={({ pressed }) => [styles.metricRow, { opacity: pressed ? 0.7 : 1 }]}
-    >
-      <View style={styles.metricRowLeft}>
-        <Text style={[styles.metricLabel, { color: colors.textPrimary }]}>{label}</Text>
-        <Text style={[styles.metricContext, { color: colors.textTertiary }]}>{context}</Text>
-        {source && (
-          <Text style={[styles.metricSource, { color: colors.textTertiary }]}>{source}</Text>
-        )}
-        {hint && (
-          <Text style={[styles.metricHint, { color: hintColor ?? colors.accent }]}>{hint}</Text>
-        )}
-      </View>
-      <View style={styles.metricRowRight}>
-        <Text style={[styles.metricValue, { color: colors.textPrimary }]}>{value}</Text>
-        <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
-      </View>
-    </Pressable>
-  );
-}
-
-function SexSelector({
-  value, onChange, colors, isDark,
-}: {
-  value?: SexType;
-  onChange: (s: SexType) => void;
-  colors: ReturnType<typeof useTheme>["colors"];
-  isDark: boolean;
-}) {
-  const options: { key: SexType; label: string }[] = [
-    { key: "male", label: "Male" },
-    { key: "female", label: "Female" },
-    { key: "other", label: "Other" },
-  ];
-  return (
-    <View style={styles.sexRow}>
-      <View style={styles.sexLeft}>
-        <Text style={[styles.metricLabel, { color: colors.textPrimary }]}>Biological sex</Text>
-        <Text style={[styles.metricContext, { color: colors.textTertiary }]}>Used for BMR calculation</Text>
-        <Text style={[styles.metricSource, { color: colors.textTertiary }]}>Used only for calorie math. Never shared.</Text>
-      </View>
-      <View style={styles.sexBtns}>
-        {options.map((o) => (
-          <Pressable
-            key={o.key}
-            onPress={() => { Haptics.selectionAsync(); onChange(o.key); }}
-            style={[
-              styles.sexBtn,
-              {
-                backgroundColor: value === o.key ? withAlpha(colors.accent, 0.18) : colors.surface2,
-                borderColor: value === o.key ? colors.accent : colors.border,
-              },
-            ]}
-          >
-            <Text style={[styles.sexBtnText, { color: value === o.key ? colors.accent : colors.textSecondary }]}>
-              {o.label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-    </View>
-  );
-}
-
-function VitalRow({
-  icon, label, value, source, colors,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  value: string;
-  source?: string;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  return (
-    <View style={styles.vitalRow}>
-      <Ionicons name={icon} size={16} color={colors.textTertiary} />
-      <View style={styles.vitalLeft}>
-        <Text style={[styles.vitalLabel, { color: colors.textPrimary }]}>{label}</Text>
-        {source && <Text style={[styles.metricSource, { color: colors.textTertiary }]}>via {source}</Text>}
-      </View>
-      <Text style={[styles.vitalValue, { color: colors.textPrimary }]}>{value}</Text>
-    </View>
-  );
-}
-
-function HistoryRangeToggle({
-  range, onChange, colors,
-}: {
-  range: HistoryRange;
-  onChange: (r: HistoryRange) => void;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  return (
-    <View style={styles.rangeRow}>
-      {(["30D", "90D", "all"] as HistoryRange[]).map((r) => (
-        <Pressable
-          key={r}
-          onPress={() => onChange(r)}
-          style={[styles.rangeBtn, { backgroundColor: range === r ? colors.accent : "transparent" }]}
-        >
-          <Text style={[styles.rangeBtnText, { color: range === r ? "#FFFFFF" : colors.textSecondary }]}>
-            {r}
-          </Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
 
 function WeightTrendChart({
   history, goalLb, unit, range, colors, isDark,
@@ -1271,6 +738,7 @@ function WeightTrendChart({
   colors: ReturnType<typeof useTheme>["colors"];
   isDark: boolean;
 }) {
+  const localStore = useAccountStorage();
   const { width: screenW } = useWindowDimensions();
   const reduceMotion = useReducedMotion();
   const chartW = screenW - 32 - 32; // account for outer padding + card padding
@@ -1304,18 +772,7 @@ function WeightTrendChart({
     });
   }, [points]);
 
-  if (points.length < 2) {
-    return (
-      <View style={[styles.chartEmpty, { borderColor: colors.border }]}>
-        <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
-          Log your weight a few times to see your trend.
-        </Text>
-        <Pressable onPress={() => { /* scroll to save */ }}>
-          <Text style={[styles.seeAllText, { color: colors.accent, marginTop: 6 }]}>Log now →</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  if (points.length < 2) return <Empty title="More measurements needed" detail="Record at least two weights to see a measured trend." />;
 
   const minT = points[0].t;
   const maxT = points[points.length - 1].t;
@@ -1340,7 +797,7 @@ function WeightTrendChart({
     .join(" ");
 
   // 4 evenly-spaced x-axis labels
-  const xLabels: { t: number; x: number; label: string }[] = [];
+  const xLabels: { t: number; x: number; label: string; }[] = [];
   if (points.length >= 2) {
     for (let k = 0; k < 4; k++) {
       const t = minT + (k / 3) * (maxT - minT);
@@ -1359,177 +816,10 @@ function WeightTrendChart({
 
   const fmtY = (w: number) => unit === "imperial" ? `${Math.round(w)}` : `${round1(w)}`;
 
-  return (
-    <Animated.View style={{ opacity: fadeAnim }}>
-      <Svg width={chartW} height={chartH}>
-        {/* Grid lines */}
-        {yLabels.map((yl, i) => (
-          <Line
-            key={`yl-${i}`}
-            x1={PAD.l} y1={yl.y} x2={chartW - PAD.r} y2={yl.y}
-            stroke={withAlpha(colors.border, 0.5)} strokeWidth={0.5}
-          />
-        ))}
-
-        {/* Goal dashed line */}
-        {goalY != null && goalY >= PAD.t && goalY <= chartH - PAD.b && (
-          <Line
-            x1={PAD.l} y1={goalY} x2={chartW - PAD.r} y2={goalY}
-            stroke={colors.accent} strokeWidth={1.5} strokeDasharray="5 4" strokeOpacity={0.55}
-          />
-        )}
-
-        {/* Rolling average line (subtle) */}
-        {rollingAvg.length >= 2 && (
-          <Path d={avgPath} stroke={withAlpha(colors.accent, 0.35)} strokeWidth={1.5} fill="none" />
-        )}
-
-        {/* Main line */}
-        <Path d={linePath} stroke={colors.accent} strokeWidth={2} fill="none" />
-
-        {/* Dots */}
-        {points.map((p, i) => (
-          <Circle key={`dot-${i}`} cx={toX(p.t)} cy={toY(p.w)} r={3} fill={colors.accent} />
-        ))}
-
-        {/* Y-axis tick marks */}
-        {yLabels.map((yl, i) => (
-          <Line
-            key={`ylabel-${i}`}
-            x1={PAD.l - 4} y1={yl.y} x2={PAD.l} y2={yl.y}
-            stroke={colors.textTertiary} strokeWidth={1}
-          />
-        ))}
-
-        {/* X-axis labels (rendered as separate text) */}
-      </Svg>
-
-      {/* Y labels (outside SVG for font rendering) */}
-      <View style={[styles.yAxisWrap, { height: chartH, width: PAD.l }]}>
-        {yLabels.map((yl, i) => (
-          <Text
-            key={`yt-${i}`}
-            style={[styles.axisLabel, { color: colors.textTertiary, top: yl.y - 6 }]}
-          >
-            {fmtY(yl.w)}
-          </Text>
-        ))}
-      </View>
-
-      {/* X labels */}
-      <View style={[styles.xAxisWrap, { paddingLeft: PAD.l, paddingRight: PAD.r }]}>
-        {xLabels.map((xl, i) => (
-          <Text key={`xt-${i}`} style={[styles.axisLabel, { color: colors.textTertiary }]}>
-            {xl.label}
-          </Text>
-        ))}
-      </View>
-    </Animated.View>
-  );
-}
-
-function SwipeableRow({
-  onDelete, children, colors,
-}: {
-  onDelete: () => void;
-  children: React.ReactNode;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const DELETE_WIDTH = 72;
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy),
-      onPanResponderMove: (_, g) => {
-        if (g.dx < 0) translateX.setValue(Math.max(g.dx, -DELETE_WIDTH));
-      },
-      onPanResponderRelease: (_, g) => {
-        if (g.dx < -DELETE_WIDTH * 0.5) {
-          Animated.spring(translateX, { toValue: -DELETE_WIDTH, useNativeDriver: true, tension: 80, friction: 10 }).start();
-        } else {
-          Animated.spring(translateX, { toValue: 0, useNativeDriver: true, tension: 80, friction: 10 }).start();
-        }
-      },
-    })
-  ).current;
-
-  const handleDelete = () => {
-    Animated.timing(translateX, { toValue: -300, duration: 200, useNativeDriver: true }).start(() => onDelete());
-  };
-
-  return (
-    <View style={{ overflow: "hidden" }}>
-      {/* Delete button behind */}
-      <View style={[styles.deleteBtn, { backgroundColor: colors.danger, width: DELETE_WIDTH }]}>
-        <Pressable onPress={handleDelete} style={styles.deleteBtnInner}>
-          <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
-        </Pressable>
-      </View>
-      <Animated.View style={{ transform: [{ translateX }] }} {...panResponder.panHandlers}>
-        {children}
-      </Animated.View>
-    </View>
-  );
-}
-
-function LuxuryDialog({
-  visible, title, body, icon, primaryLabel, secondaryLabel,
-  onPrimary, onSecondary, onClose, colors, primaryDanger,
-}: {
-  visible: boolean;
-  title: string;
-  body: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  primaryLabel: string;
-  secondaryLabel: string;
-  onPrimary: () => void;
-  onSecondary: () => void;
-  onClose: () => void;
-  colors: ReturnType<typeof useTheme>["colors"];
-  primaryDanger?: boolean;
-}) {
-  const translateY = useRef(new Animated.Value(300)).current;
-  const reduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (!visible) { translateY.setValue(300); return; }
-    if (reduceMotion) { translateY.setValue(0); return; }
-    Animated.spring(translateY, { toValue: 0, damping: 18, mass: 0.9, stiffness: 180, useNativeDriver: true }).start();
-  }, [visible, translateY, reduceMotion]);
-
-  if (!visible) return null;
-
-  return (
-    <Modal transparent animationType={reduceMotion ? "none" : "fade"} visible={visible} onRequestClose={onClose}>
-      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: withAlpha(colors.background, 0.6) }}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <Animated.View style={[styles.dialogSheet, {
-          backgroundColor: colors.surface2,
-          borderColor: colors.borderElevated,
-          transform: [{ translateY }],
-        }]}>
-          <View style={[styles.dialogHandle, { backgroundColor: colors.surface3 }]} />
-          <Ionicons name={icon} size={24} color={colors.textTertiary} style={{ alignSelf: "center", marginBottom: 10 }} />
-          <Text style={[styles.dialogTitle, { color: colors.textPrimary }]}>{title}</Text>
-          <Text style={[styles.dialogBody, { color: colors.textSecondary }]}>{body}</Text>
-          <View style={styles.dialogBtns}>
-            <Pressable
-              onPress={onPrimary}
-              style={[styles.dialogPrimary, { backgroundColor: primaryDanger ? colors.danger : colors.accent }]}
-            >
-              <Text style={[styles.dialogPrimaryText, { color: "#FFFFFF" }]}>{primaryLabel}</Text>
-            </Pressable>
-            <Pressable
-              onPress={onSecondary}
-              style={[styles.dialogSecondary, { borderColor: colors.border }]}
-            >
-              <Text style={[styles.dialogSecondaryText, { color: colors.textSecondary }]}>{secondaryLabel}</Text>
-            </Pressable>
-          </View>
-        </Animated.View>
-      </View>
-    </Modal>
+  return (<Panel>
+    <Heading title="Weight / seven-day average" detail="Teal · recorded weight. Lime · rolling average." />
+    <Trend values={points.map(p => p.w)} second={rollingAvg.map(p => p.avg)} labels={points.map(p => fmtDate(p.t))} goal={goalLb == null ? undefined : unit === 'imperial' ? goalLb : lbToKg(goalLb)} unit={unit === 'imperial' ? 'lb' : 'kg'} />
+  </Panel>
   );
 }
 

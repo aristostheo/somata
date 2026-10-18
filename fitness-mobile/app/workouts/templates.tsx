@@ -1,15 +1,13 @@
+import { Button, Choice, Empty, Field, Heading, Item, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
   ScrollView,
-  TextInput,
+  StyleSheet,
+  Text
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useAuth } from "@/content/AuthContext";
 import { useTheme } from "@/content/ThemeProvider";
@@ -46,6 +44,8 @@ function extractTags(template: DbWorkoutTemplate) {
 }
 
 export default function TemplatesLibraryScreen() {
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const { user } = useAuth();
   const { colors } = useTheme();
@@ -94,8 +94,8 @@ export default function TemplatesLibraryScreen() {
     const items = Array.isArray(template.items)
       ? template.items
       : Array.isArray((template as any).exercises)
-      ? (template as any).exercises
-      : [];
+        ? (template as any).exercises
+        : [];
     const seed = {
       title: template.name,
       exercises: items.map((item: any) => ({
@@ -120,125 +120,20 @@ export default function TemplatesLibraryScreen() {
     } as any);
   }
 
-  return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={18} color="#FFFFFF" />
-        </Pressable>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Templates</Text>
-          <Text style={styles.subtitle}>Search and filter your saved workout templates</Text>
-        </View>
-      </View>
-
-      <View style={[styles.searchWrap, { borderColor: withAlpha("#FFFFFF", 0.08) }]}>
-        <Ionicons name="search" size={16} color={withAlpha("#FFFFFF", 0.58)} />
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Search templates"
-          placeholderTextColor={withAlpha("#FFFFFF", 0.38)}
-          style={styles.searchInput}
-        />
-      </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
-        {TAGS.map((tag) => {
-          const active = tag === filter;
-          return (
-            <Pressable
-              key={tag}
-              onPress={() => setFilter(tag)}
-              style={[
-                styles.filterChip,
-                {
-                  backgroundColor: active ? colors.primary || "#6C63FF" : "#1A1A24",
-                  borderColor: active
-                    ? colors.primary || "#6C63FF"
-                    : withAlpha("#FFFFFF", 0.08),
-                },
-              ]}
-            >
-              <Text style={[styles.filterChipText, { color: "#FFFFFF" }]}>{tag}</Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
-        {rows.map((template) => (
-          <Pressable
-            key={template.id}
-            onPress={() => startFromTemplate(template as any)}
-            style={[styles.card, { borderColor: withAlpha("#FFFFFF", 0.08) }]}
-          >
-            <View style={styles.cardTop}>
-              <View style={styles.iconBox}>
-                <Text style={styles.iconText}>
-                  {template.name.slice(0, 2).toUpperCase()}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>{template.name}</Text>
-                <Text style={styles.cardSub}>
-                  {template.exercises} exercises
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={withAlpha("#FFFFFF", 0.42)} />
-            </View>
-            <View style={styles.tagRow}>
-              {template.tags.length ? (
-                template.tags.slice(0, 4).map((tag) => (
-                  <View key={`${template.id}-${tag}`} style={styles.tagChip}>
-                    <Text style={styles.tagText}>{tag}</Text>
-                  </View>
-                ))
-              ) : (
-                <View style={styles.tagChip}>
-                  <Text style={styles.tagText}>General</Text>
-                </View>
-              )}
-            </View>
-          </Pressable>
-        ))}
-
-        {!rows.length ? (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No matching templates</Text>
-            <Text style={styles.emptySub}>Try a different filter or save a workout as a template first.</Text>
-          </View>
-        ) : null}
-
-        {archivedRows.length ? (
-          <View style={styles.archivedSection}>
-            <Text style={styles.archivedTitle}>Archived</Text>
-            {archivedRows.map((template) => (
-              <View
-                key={`archived-${template.id}`}
-                style={[styles.card, { borderColor: withAlpha("#FFFFFF", 0.08), opacity: 0.72 }]}
-              >
-                <View style={styles.cardTop}>
-                  <View style={styles.iconBox}>
-                    <Text style={styles.iconText}>
-                      {template.name.slice(0, 2).toUpperCase()}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.cardTitle}>{template.name}</Text>
-                    <Text style={styles.cardSub}>Archived template</Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </View>
-        ) : null}
-      </ScrollView>
-    </View>
+  return (<TaskPage title="Training, on repeat" section="Template library" onBack={() => router.back()}>
+    <Field label="Search templates" value={query} onChangeText={setQuery} />
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+      {TAGS.map(t => <Choice key={t} label={t} selected={filter === t} onPress={() => setFilter(t)} />)}
+    </ScrollView>
+    <Heading title="Ready to train" detail="Choose a routine to start a session." />
+    {rows.map(t => <Panel key={t.id}>
+      <Text style={F.eyebrow}>{t.tags.join(' · ') || 'GENERAL'}</Text>
+      <Heading title={t.name} detail={`${t.exercises} exercises`} />
+      <Button primary label="Start routine" icon="play" onPress={() => startFromTemplate(t as any)} />
+    </Panel>)}
+    {!rows.length && <Empty title="No matching templates" detail="Try another filter or save a workout as a template." />}
+    {!!archivedRows.length && <><Heading title="Archived" />{archivedRows.map(t => <Item key={t.id} title={t.name} detail="Archived template" />)}</>}
+  </TaskPage>
   );
 }
 

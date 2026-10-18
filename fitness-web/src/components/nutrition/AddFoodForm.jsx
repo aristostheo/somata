@@ -1,12 +1,11 @@
+import { requestMealEstimate } from "../../services/aiMeal";
 import { dayKey } from "../../utils/date";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { getAuth } from "firebase/auth";
 import { searchUsdaFoods } from "../../services/fooddb";
 import { getRecentFoods } from "../../services/nutrition";
 import { unscaleFromTotals } from "../../utils/nutritionMath";
 
 /* ---------- helpers ---------- */
-const AI_URL = process.env.REACT_APP_AI_PARSE_URL;
 const MEALS = ["breakfast", "lunch", "dinner", "snacks"];
 const todayStr = () => dayKey(new Date());
 
@@ -157,35 +156,16 @@ export default function AddFoodForm({
     }
     setAiLoading(true);
     try {
-      const token = getAuth().currentUser?.getIdToken
-        ? await getAuth().currentUser.getIdToken()
-        : null;
-
       const body = {
         text: raw,
         qty: aiQty ? Number(aiQty) : null,
         unit: aiUnit || null,
       };
 
-      const res = await fetch(AI_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data?.totals) {
-        // bubble a toast upstream (optional)
-        setAiError(data?.error || "AI parse failed");
-        return;
-      }
+      const data = await requestMealEstimate(body);
       onAiApplyToForm({ aiResponse: data });
     } catch (e) {
-      console.error("AI parse failed:", e);
-      setAiError("Couldn’t parse that. Try adding portion details.");
+      setAiError(e instanceof Error ? e.message : "Couldn’t connect. Please try again.");
     } finally {
       setAiLoading(false);
     }
@@ -562,11 +542,9 @@ export default function AddFoodForm({
 
 // // src/components/nutrition/AddFoodForm.jsx
 // import { useMemo, useState, useEffect } from "react";
-// import { getAuth } from "firebase/auth";
-// import { searchUsdaFoods } from "../../services/fooddb";
+// // import { searchUsdaFoods } from "../../services/fooddb";
 // import { scaleNutrients, unscaleFromTotals } from "../../utils/nutritionMath";
 
-// const AI_URL = process.env.REACT_APP_AI_PARSE_URL || "/parseMeal";
 
 // const MEALS = ["breakfast", "lunch", "dinner", "snacks"];
 

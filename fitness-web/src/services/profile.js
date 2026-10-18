@@ -1,61 +1,73 @@
-// src/services/profile.js
-import { doc, getDoc, setDoc, onSnapshot, updateDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig";
-import { withAcceptedTargets } from "./targetProjection";
+// The authenticated users/{uid} document is shared with the mobile app.
+// profiles/{uid} is retained read-only solely for an explicit legacy import.
+import { doc, getDoc, onSnapshot, runTransaction, setDoc } from "firebase/firestore";
+import { auth, db } from "../firebaseConfig";
+import { withoutFitAdaptState } from "./targetProjection";
+import { legacyProfilePatch, matchingPatchFields } from "./legacyProfileImport";
 
-// Subscribe to a user's profile
-export function subscribeProfile(uid, cb) {
-  let legacy;
-  let mobile;
-  let legacyReady = false;
-  let mobileReady = false;
-  const publish = () => {
-    if (!legacyReady || !mobileReady) return;
-    cb(withAcceptedTargets(legacy, mobile));
-  };
-  const unsubscribeLegacy = onSnapshot(doc(db, "profiles", uid), (snap) => {
-    legacy = snap.exists() ? { id: snap.id, ...snap.data() } : null;
-    legacyReady = true;
-    publish();
-  });
-  const unsubscribeMobile = onSnapshot(doc(db, "users", uid), (snap) => {
-    mobile = snap.exists() ? snap.data() : null;
-    mobileReady = true;
-    publish();
-  }, () => { mobile = null; mobileReady = true; publish(); });
-  return () => { unsubscribeLegacy(); unsubscribeMobile(); };
-}
+const userRef = (uid) => doc(db, "users", uid);
+const legacyRef = (uid) => doc(db, "profiles", uid);
 
-/**
- * Ensure a profile doc exists.
- * Pass optional seed fields (e.g., { email }) from the caller.
- */
-export async function ensureProfile(uid, seed = {}) {
-  const ref = doc(db, "profiles", uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    const def = {
-      email: seed.email ?? "",
-      weightUnit: "kg",
-      sex: "male",
-      age: 25,
-      heightCm: 175,
-      weightKg: 75,
-      activityLevel: "moderate", // sedentary|light|moderate|active|athlete
-      goal: "maintain", // cut|maintain|bulk
-      calorieGoal: 2200,
-      proteinGoal: 135,
-      carbGoal: 240,
-      fatGoal: 73,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-    await setDoc(ref, { ...def, ...seed });
+function requireOwnAccount(uid) {
+  if (!auth.currentUser || auth.currentUser.uid !== uid) {
+    throw new Error("Sign in to your own account before editing your profile.");
   }
 }
 
-// Patch/update profile fields
+export function subscribeProfile(uid, cb) {
+  requireOwnAccount(uid);
+  return onSnapshot(userRef(uid), (snap) => {
+    cb(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+  }, () => cb(null));
+}
+
+// Create the same minimal defaults as mobile, only if no canonical document exists.
+// An older profiles/{uid} document is never silently copied or changed here.
+export async function ensureProfile(uid) {
+  requireOwnAccount(uid);
+  const email = auth.currentUser.email ?? "";
+  const ref = userRef(uid);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) {
+      const now = Date.now();
+      tx.set(ref, {
+        email, weightUnit: "kg",
+        calorieGoal: 2200, dailyCaloriesTarget: 2200, dailyProteinTarget: 130,
+        createdAt: now, updatedAt: now,
+      });
+    }
+  });
+}
+
 export async function updateProfile(uid, patch) {
-  const ref = doc(db, "profiles", uid);
-  await updateDoc(ref, { ...patch, updatedAt: Date.now() });
+  requireOwnAccount(uid);
+  await setDoc(userRef(uid), { ...withoutFitAdaptState(patch), updatedAt: Date.now() }, { merge: true });
+}
+
+// Owner-readable legacy data is only used to prepare a reviewable import.
+export async function loadLegacyProfileImport(uid) {
+  requireOwnAccount(uid);
+  const snap = await getDoc(legacyRef(uid));
+  return snap.exists() ? legacyProfilePatch(snap.data()) : null;
+}
+
+// One user action imports only validated fields. The transaction refuses stale
+// previews so an intervening mobile edit cannot be overwritten unnoticed.
+export async function importLegacyProfile(uid, expectedLegacy, expectedCurrent) {
+  requireOwnAccount(uid);
+  return runTransaction(db, async (tx) => {
+    const oldSnap = await tx.get(legacyRef(uid));
+    const currentSnap = await tx.get(userRef(uid));
+    if (!oldSnap.exists()) throw new Error("Earlier web profile is no longer available. Refresh and try again.");
+    const candidate = legacyProfilePatch(oldSnap.data());
+    if (!Object.keys(candidate).length) throw new Error("Earlier web profile has no supported fields to import.");
+    if (!matchingPatchFields(candidate, expectedLegacy) || !matchingPatchFields(expectedLegacy, candidate) ||
+        !matchingPatchFields(currentSnap.exists() ? currentSnap.data() : null, expectedCurrent)) {
+      throw new Error("Your profile changed. Refresh the import preview before trying again.");
+    }
+    if (matchingPatchFields(currentSnap.exists() ? currentSnap.data() : null, candidate)) return false;
+    tx.set(userRef(uid), { ...candidate, updatedAt: Date.now() }, { merge: true });
+    return true;
+  });
 }

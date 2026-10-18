@@ -1,44 +1,43 @@
+import { Button, Choice, Field, Heading, IconButton, Item, Panel, TaskPage } from "@/components/somata/TaskUI";
 // app/(modals)/diet-preferences.tsx
 // Drop-in ✅
 // Full-screen premium editor for Diet Preferences
 // Depends on: expo-router, expo-linear-gradient, expo-blur, expo-haptics, @expo/vector-icons
 // Uses your ThemeProvider + profile service
 
-import React, { useCallback, useMemo, useRef, useState } from "react";
-import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  TextInput,
-  Platform,
-  KeyboardAvoidingView,
-} from "react-native";
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import React, { useCallback, useMemo, useState } from "react";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
+} from "react-native";
 
 import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { withAlpha } from "@/components/profile/premium/ui";
 import { useAuth } from "@/content/AuthContext";
 import {
   ensureProfile,
   subscribeProfile,
   updateProfile,
 } from "@/services/profile";
-import { withAlpha } from "@/components/profile/premium/ui";
 
 import {
-  type DietPreferences,
-  DEFAULT_DIET_PREFERENCES,
-  type DietRestriction,
   type Allergy,
-  type MoreOfGoal,
   type AvoidLimitGoal,
-  uniqTokens,
-  normalizeToken,
   computeDietPrefsCompletion,
+  DEFAULT_DIET_PREFERENCES,
+  type DietPreferences,
+  type DietRestriction,
+  type MoreOfGoal,
+  normalizeToken,
+  uniqTokens,
 } from "@/services/profile/dietPreferences";
 
 type ChipOption<T extends string> = {
@@ -109,15 +108,19 @@ function Section({
   const { colors } = useProfileFlowTheme();
   return (
     <View style={{ marginTop: 14, gap: 8 }}>
+
       <Text style={{ color: colors.text, fontWeight: "600", fontSize: 13 }}>
         {title}
       </Text>
+
       {subtitle ? (
         <Text style={{ color: colors.muted, fontSize: 12.5, lineHeight: 17 }}>
           {subtitle}
         </Text>
       ) : null}
+
       {children}
+
     </View>
   );
 }
@@ -156,15 +159,17 @@ function Chip({
           backgroundColor: selected
             ? withAlpha(colors.primary, pressed ? 0.22 : 0.16)
             : pressed
-            ? colors.surface2
-            : colors.surface,
+              ? colors.surface2
+              : colors.surface,
         },
       ]}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       accessibilityLabel={label}
     >
+
       {icon}
+
       <Text
         style={{
           color: selected ? colors.text : colors.muted,
@@ -174,14 +179,17 @@ function Chip({
       >
         {label}
       </Text>
+
     </Pressable>
   );
 }
 
-function ChipWrap({ children }: { children: React.ReactNode }) {
+function ChipWrap({ children }: { children: React.ReactNode; }) {
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+
       {children}
+
     </View>
   );
 }
@@ -208,54 +216,10 @@ function TokenInput({
     onAdd(t);
   };
 
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 10,
-        borderWidth: 1,
-        borderColor: withAlpha(colors.border, 0.55),
-        backgroundColor: colors.surface,
-        borderRadius: 14,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-      }}
-    >
-      <Ionicons name="add-circle-outline" size={18} color={colors.muted} />
-      <TextInput
-        value={text}
-        onChangeText={setText}
-        placeholder={placeholder}
-        placeholderTextColor={withAlpha(colors.muted, 0.7)}
-        style={{
-          flex: 1,
-          color: colors.text,
-          fontWeight: "500",
-          fontSize: 13,
-          paddingVertical: 0,
-        }}
-        returnKeyType="done"
-        onSubmitEditing={submit}
-      />
-      <Pressable
-        onPress={submit}
-        style={({ pressed }) => ({
-          paddingHorizontal: 10,
-          minHeight: 44,
-          justifyContent: "center",
-          borderRadius: 12,
-          backgroundColor: withAlpha(colors.primary, pressed ? 0.22 : 0.16),
-          borderWidth: 1,
-          borderColor: withAlpha(colors.primary, 0.35),
-        })}
-      >
-        <Text style={{ color: colors.text, fontWeight: "600", fontSize: 12 }}>
-          Add
-        </Text>
-      </Pressable>
-    </View>
-  );
+  return (<View style={{ gap: 10 }}>
+    <Field label={placeholder} value={text} onChangeText={setText} onSubmitEditing={submit} />
+    <Button label="Add" onPress={submit} />
+  </View>);
 }
 
 export default function DietPreferencesModal() {
@@ -272,7 +236,7 @@ export default function DietPreferencesModal() {
   React.useEffect(() => {
     if (!user?.uid) return;
 
-    ensureProfile(user.uid).catch(() => {});
+    ensureProfile(user.uid).catch(() => { });
     return subscribeProfile(user.uid, (p) => {
       const from = (p as any)?.dietPreferences as DietPreferences | undefined;
       if (!hydrated) {
@@ -341,7 +305,9 @@ export default function DietPreferencesModal() {
         backgroundColor: colors.background,
       }}
     >
+
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+
         <Pressable
           onPress={() => {
             Haptics.selectionAsync();
@@ -360,16 +326,21 @@ export default function DietPreferencesModal() {
           accessibilityRole="button"
           accessibilityLabel="Close"
         >
+
           <Ionicons name="close" size={18} color={colors.text} />
+
         </Pressable>
 
         <View style={{ flex: 1 }}>
+
           <Text style={{ color: colors.text, fontWeight: "700", fontSize: 20 }}>
             Diet Preferences
           </Text>
+
           <Text style={{ color: colors.muted, fontSize: 12.5 }}>
             Choose what fits you — we’ll adapt suggestions.
           </Text>
+
         </View>
 
         <Pressable
@@ -387,14 +358,19 @@ export default function DietPreferencesModal() {
           accessibilityRole="button"
           accessibilityLabel="Save diet preferences"
         >
+
           <Text style={{ color: colors.text, fontWeight: "600", fontSize: 13 }}>
             {saving ? "Saving…" : "Save"}
           </Text>
+
         </Pressable>
+
       </View>
 
       {/* Search */}
+
       <View style={{ marginTop: 12 }}>
+
         <View
           style={{
             flexDirection: "row",
@@ -408,7 +384,9 @@ export default function DietPreferencesModal() {
             paddingVertical: 10,
           }}
         >
+
           <Ionicons name="search" size={18} color={colors.muted} />
+
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -423,6 +401,7 @@ export default function DietPreferencesModal() {
             }}
             returnKeyType="search"
           />
+
           {query ? (
             <Pressable
               onPress={() => {
@@ -441,22 +420,30 @@ export default function DietPreferencesModal() {
               accessibilityRole="button"
               accessibilityLabel="Clear search"
             >
+
               <Ionicons name="close-circle" size={18} color={colors.muted} />
+
             </Pressable>
           ) : null}
+
         </View>
+
       </View>
 
       {/* Completion microcopy */}
+
       <View style={{ marginTop: 10 }}>
+
         <Text style={{ color: colors.muted, fontSize: 12.5 }}>
           {completion.state === "empty"
             ? "Optional — add anything that helps us avoid misses."
             : completion.state === "partial"
-            ? `Nice. ${completion.filled}/${completion.total} sections set.`
-            : "Set. Recommendations can match you more closely."}
+              ? `Nice. ${completion.filled}/${completion.total} sections set.`
+              : "Set. Recommendations can match you more closely."}
         </Text>
+
       </View>
+
     </View>
   );
 
@@ -473,6 +460,7 @@ export default function DietPreferencesModal() {
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
     >
+
       {renderSearchResults ? (
         <View
           style={{
@@ -483,9 +471,11 @@ export default function DietPreferencesModal() {
             padding: 12,
           }}
         >
+
           <Text style={{ color: colors.text, fontWeight: "600", fontSize: 13 }}>
             Search results
           </Text>
+
           <Text style={{ color: colors.muted, fontSize: 12.5, marginTop: 4 }}>
             Tap to toggle. We’ll place it in the right section.
           </Text>
@@ -493,15 +483,16 @@ export default function DietPreferencesModal() {
           <View style={{ height: 10 }} />
 
           <ChipWrap>
+
             {filtered!.slice(0, 18).map((x) => {
               const selected =
                 x.group === "Restrictions"
                   ? prefs.restrictions.includes(x.key as any)
                   : x.group === "Allergies"
-                  ? prefs.allergies.includes(x.key as any)
-                  : x.group === "More of"
-                  ? prefs.moreOf.includes(x.key as any)
-                  : prefs.avoidLimit.includes(x.key as any);
+                    ? prefs.allergies.includes(x.key as any)
+                    : x.group === "More of"
+                      ? prefs.moreOf.includes(x.key as any)
+                      : prefs.avoidLimit.includes(x.key as any);
 
               return (
                 <Chip
@@ -550,6 +541,7 @@ export default function DietPreferencesModal() {
                         borderColor: withAlpha(colors.border, 0.35),
                       }}
                     >
+
                       <Text
                         style={{
                           color: colors.muted,
@@ -559,12 +551,15 @@ export default function DietPreferencesModal() {
                       >
                         {x.group[0]}
                       </Text>
+
                     </View>
                   }
                 />
               );
             })}
+
           </ChipWrap>
+
         </View>
       ) : null}
 
@@ -572,7 +567,9 @@ export default function DietPreferencesModal() {
         title="Dietary restrictions"
         subtitle="Choose what you follow. If it’s not strict, you can still select it — we’ll treat it as a preference."
       >
+
         <ChipWrap>
+
           {RESTRICTIONS.map((o) => (
             <Chip
               key={o.key}
@@ -586,14 +583,18 @@ export default function DietPreferencesModal() {
               }
             />
           ))}
+
         </ChipWrap>
+
       </Section>
 
       <Section
         title="Allergies"
         subtitle="Safety first. If you’re unsure, skip it — you can always add later."
       >
+
         <ChipWrap>
+
           {ALLERGIES.map((o) => (
             <Chip
               key={o.key}
@@ -607,13 +608,16 @@ export default function DietPreferencesModal() {
               }
             />
           ))}
+
         </ChipWrap>
+
       </Section>
 
       <Section
         title="Dislikes"
         subtitle="Foods you’d rather not see in suggestions. Add in your own words."
       >
+
         <TokenInput
           placeholder='Add a dislike (e.g. "mushrooms")'
           onAdd={(t) =>
@@ -623,7 +627,9 @@ export default function DietPreferencesModal() {
             }))
           }
         />
+
         <ChipWrap>
+
           {(prefs.dislikes || []).map((t) => (
             <Chip
               key={`d:${t.toLowerCase()}`}
@@ -638,13 +644,16 @@ export default function DietPreferencesModal() {
               icon={<Ionicons name="close" size={16} color={colors.muted} />}
             />
           ))}
+
         </ChipWrap>
+
       </Section>
 
       <Section
         title="Likes / favorites"
         subtitle="Foods you enjoy. We’ll bias suggestions toward these."
       >
+
         <TokenInput
           placeholder='Add a favorite (e.g. "chicken")'
           onAdd={(t) =>
@@ -654,7 +663,9 @@ export default function DietPreferencesModal() {
             }))
           }
         />
+
         <ChipWrap>
+
           {(prefs.likes || []).map((t) => (
             <Chip
               key={`l:${t.toLowerCase()}`}
@@ -669,14 +680,18 @@ export default function DietPreferencesModal() {
               icon={<Ionicons name="close" size={16} color={colors.muted} />}
             />
           ))}
+
         </ChipWrap>
+
       </Section>
 
       <Section
         title="More of"
         subtitle="Gentle goals — we’ll tilt recommendations in this direction."
       >
+
         <ChipWrap>
+
           {MORE_OF.map((o) => (
             <Chip
               key={o.key}
@@ -690,14 +705,18 @@ export default function DietPreferencesModal() {
               }
             />
           ))}
+
         </ChipWrap>
+
       </Section>
 
       <Section
         title="Avoid / limit"
         subtitle="Optional. This helps us reduce suggestions you’d rather not see often."
       >
+
         <ChipWrap>
+
           {AVOID_LIMIT.map((o) => (
             <Chip
               key={o.key}
@@ -711,13 +730,16 @@ export default function DietPreferencesModal() {
               }
             />
           ))}
+
         </ChipWrap>
+
       </Section>
 
       <Section
         title="Notes"
         subtitle="Anything else? Example: “no spicy”, “simple meals”, “quick prep”."
       >
+
         <View
           style={{
             borderWidth: 1,
@@ -728,6 +750,7 @@ export default function DietPreferencesModal() {
             paddingVertical: 10,
           }}
         >
+
           <TextInput
             value={prefs.notes || ""}
             onChangeText={(t) => setPrefs((p) => ({ ...p, notes: t }))}
@@ -742,7 +765,9 @@ export default function DietPreferencesModal() {
             }}
             multiline
           />
+
         </View>
+
       </Section>
 
       <Pressable
@@ -763,9 +788,11 @@ export default function DietPreferencesModal() {
         accessibilityRole="button"
         accessibilityLabel="Reset preferences"
       >
+
         <Text style={{ color: colors.muted, fontWeight: "600" }}>
           Reset to empty
         </Text>
+
       </Pressable>
 
       <Text
@@ -779,17 +806,51 @@ export default function DietPreferencesModal() {
         Microcopy promise: This is for personalization, not judgment. You can
         leave anything blank.
       </Text>
+
     </ScrollView>
   );
 
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <FlowAtmosphere />
-      {TopBar}
-      {Body}
-    </KeyboardAvoidingView>
-  );
+  return (<TaskPage title="Make food feel like you" section="Diet preferences" subtitle="Optional preferences for meal suggestions. Leave anything blank." onBack={() => router.back()} footer={<Button primary label={saving ? "Saving…" : "Save preferences"} disabled={saving} onPress={onSave} />}>
+    <Field label="Find a preference" value={query} onChangeText={setQuery} />
+    <View style={{ gap: 12 }}>
+      <Heading title="Dietary restrictions" />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {RESTRICTIONS.filter(o => !query.trim() || o.label.toLowerCase().includes(query.toLowerCase())).map(o => <Choice key={o.key} label={o.label} selected={prefs.restrictions.includes(o.key)} onPress={() => setPrefs(p => ({ ...p, restrictions: toggleInList(p.restrictions, o.key) }))} />)}
+      </View>
+    </View>
+    <View style={{ gap: 12 }}>
+      <Heading title="Allergies" />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {ALLERGIES.filter(o => !query.trim() || o.label.toLowerCase().includes(query.toLowerCase())).map(o => <Choice key={o.key} label={o.label} selected={prefs.allergies.includes(o.key)} onPress={() => setPrefs(p => ({ ...p, allergies: toggleInList(p.allergies, o.key) }))} />)}
+      </View>
+    </View>
+    <View style={{ gap: 12 }}>
+      <Heading title="More of" />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {MORE_OF.filter(o => !query.trim() || o.label.toLowerCase().includes(query.toLowerCase())).map(o => <Choice key={o.key} label={o.label} selected={prefs.moreOf.includes(o.key)} onPress={() => setPrefs(p => ({ ...p, moreOf: toggleInList(p.moreOf, o.key) }))} />)}
+      </View>
+    </View>
+    <View style={{ gap: 12 }}>
+      <Heading title="Avoid or limit" />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {AVOID_LIMIT.filter(o => !query.trim() || o.label.toLowerCase().includes(query.toLowerCase())).map(o => <Choice key={o.key} label={o.label} selected={prefs.avoidLimit.includes(o.key)} onPress={() => setPrefs(p => ({ ...p, avoidLimit: toggleInList(p.avoidLimit, o.key) }))} />)}
+      </View>
+    </View>
+    <Panel>
+      <Heading title="Foods you enjoy" />
+      <TokenInput placeholder="Add a food" onAdd={t => setPrefs(p => ({ ...p, likes: uniqTokens([...(p.likes || []), t]) }))} />
+      <View style={{ gap: 8 }}>
+        {(prefs.likes || []).map(t => <Item key={t} title={t} action={<IconButton icon="close" label={`Remove ${t}`} onPress={() => setPrefs(p => ({ ...p, likes: (p.likes || []).filter(x => x !== t) }))} />} />)}
+      </View>
+    </Panel>
+    <Panel>
+      <Heading title="Foods you prefer to skip" />
+      <TokenInput placeholder="Add a food" onAdd={t => setPrefs(p => ({ ...p, dislikes: uniqTokens([...(p.dislikes || []), t]) }))} />
+      <View style={{ gap: 8 }}>
+        {(prefs.dislikes || []).map(t => <Item key={t} title={t} action={<IconButton icon="close" label={`Remove ${t}`} onPress={() => setPrefs(p => ({ ...p, dislikes: (p.dislikes || []).filter(x => x !== t) }))} />} />)}
+      </View>
+    </Panel>
+    <Field label="Notes" multiline value={prefs.notes || ""} onChangeText={notes => setPrefs(p => ({ ...p, notes }))} />
+    <Button label="Reset to empty" onPress={() => { Haptics.selectionAsync(); setPrefs(DEFAULT_DIET_PREFERENCES); }} />
+  </TaskPage>);
 }

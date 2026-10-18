@@ -1,8 +1,4 @@
-// services/ai.ts
-import { getAuth } from "firebase/auth";
-
-const AI_URL = process.env.AI_PARSE_URL;
-
+import { callOpenAIJson } from "./openai";
 export type AiMealResponse = {
   suggestedName: string | null;
   qty: number | null;
@@ -17,32 +13,8 @@ export type AiMealResponse = {
   };
 };
 
-export async function parseMealRemote(
-  text: string,
-  opts?: { qty?: number | null; unit?: string | null },
-): Promise<AiMealResponse> {
-  console.log("AI_URL =", process.env.AI_PARSE_URL);
 
-  if (!AI_URL) throw new Error("Missing AI_PARSE_URL");
-
-  const token = await getAuth().currentUser?.getIdToken?.();
-
-  const res = await fetch(AI_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify({
-      text,
-      qty: opts?.qty ?? null,
-      unit: opts?.unit ?? null,
-    }),
-  });
-
-  const data = await res.json();
-  if (!res.ok || !data?.totals) {
-    throw new Error(data?.error || "AI parse failed");
-  }
-  return data as AiMealResponse;
+export async function parseMealRemote(text: string, opts?: { qty?: number | null; unit?: string | null }): Promise<AiMealResponse> {
+  const meal = await callOpenAIJson<any>([{ role: "user", content: `${text}\nQuantity: ${opts?.qty ?? "as described"}; unit: ${opts?.unit ?? "as described"}` }]);
+  return { suggestedName: meal.name, qty: meal.qty, unit: meal.unit, totals: meal };
 }

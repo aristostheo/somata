@@ -1,12 +1,12 @@
-import React, { useMemo, useRef, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
+import { Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import { useAuth } from "@/content/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
-import { useAuth } from "@/content/AuthContext";
+import { useRouter } from "expo-router";
+import { useMemo, useRef, useState } from "react";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 const withAlpha = (hex: string, a: number) => {
   const h = hex.replace("#", "");
@@ -18,31 +18,11 @@ const withAlpha = (hex: string, a: number) => {
   return `rgba(${r},${g},${b},${alpha})`;
 };
 
-function GlassCard({ children, intensity = 32, style }: any) {
-  return (
-    <View style={[styles.cardWrap, style]}>
-      <View style={styles.cardBorder} pointerEvents="none" />
-      <BlurView intensity={intensity} tint="dark" style={styles.cardBlur}>
-        <LinearGradient
-          colors={[
-            withAlpha("#FFFFFF", 0.1),
-            withAlpha("#FFFFFF", 0.06),
-            withAlpha("#000000", 0.06),
-          ]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardInner}
-        >
-          {children}
-        </LinearGradient>
-      </BlurView>
-    </View>
-  );
-}
-
-type HydrationLog = { ts: number; ml: number };
+type HydrationLog = { ts: number; ml: number; };
 
 export default function QuickHydrationModal() {
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const { user } = useAuth();
   const uid = user?.uid;
@@ -59,7 +39,7 @@ export default function QuickHydrationModal() {
   const haptic = async () => {
     try {
       await Haptics.selectionAsync();
-    } catch {}
+    } catch { }
   };
 
   const key = (u: string) => `hydration:quickLogs:${u}`;
@@ -88,7 +68,7 @@ export default function QuickHydrationModal() {
       const arr: HydrationLog[] = raw ? JSON.parse(raw) : [];
       arr.push({ ts: Date.now(), ml });
       await AsyncStorage.setItem(key(uid), JSON.stringify(arr));
-    } catch {}
+    } catch { }
 
     showToast(`Logged ${ml} ml`);
     setBusy(false);
@@ -97,93 +77,32 @@ export default function QuickHydrationModal() {
     setTimeout(close, 420);
   }
 
-  return (
-    <View style={styles.root}>
-      <LinearGradient
-        colors={["#070A12", "#050711", "#03040A"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.8, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <View
-        style={[
-          styles.glow,
-          { top: -140, left: -90, backgroundColor: withAlpha(accent, 0.16) },
-        ]}
-        pointerEvents="none"
-      />
+  return (<TaskPage title="A moment to hydrate." section="Quick log / water" onBack={close}
+    subtitle="Choose the amount you drank. A tap saves your entry and closes this screen.">
 
-      <View style={{ paddingTop: topPad, paddingHorizontal: 16 }}>
-        <View style={styles.headerRow}>
-          <Pressable
-            onPress={close}
-            style={({ pressed }) => [
-              styles.iconBtn,
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={18}
-              color={withAlpha("#FFF", 0.9)}
-            />
-          </Pressable>
+    <Panel accent>
+      <Ionicons name="water-outline" size={48} color={D.teal} />
+      <Text style={F.heading}>How much did you drink?</Text>
 
-          <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Quick Hydration</Text>
-            <Text style={styles.subtitle}>
-              1 tap to log. Closes automatically.
-            </Text>
-          </View>
-        </View>
+      <Text style={F.body}>Quick water entries are saved on this device for your account.</Text>
+    </Panel>
 
-        <GlassCard style={{ marginTop: 14 }} intensity={34}>
-          <Text style={styles.sectionLabel}>AMOUNT</Text>
+    <View style={{ gap: 10 }}>
+      {sizes.map((ml, index) => <Pressable key={ml} disabled={busy || !uid}
+        accessibilityRole="button" accessibilityLabel={`Log ${ml} milliliters`} accessibilityState={{ disabled: busy || !uid }} onPress={() => add(ml)}
+        style={({ pressed }) => ({ ...F.row, padding: 18, minHeight: 75, borderRadius: 20, backgroundColor: D.card, opacity: pressed || busy ? 0.6 : 1 })}>
 
-          <View style={styles.grid}>
-            {sizes.map((ml) => (
-              <Pressable
-                key={ml}
-                onPress={() => add(ml)}
-                style={({ pressed }) => [
-                  styles.tile,
-                  pressed && { opacity: 0.88 },
-                ]}
-              >
-                <View style={styles.tileIcon}>
-                  <Ionicons
-                    name="water-outline"
-                    size={18}
-                    color={withAlpha("#FFF", 0.9)}
-                  />
-                </View>
-                <Text style={styles.tileText}>{ml} ml</Text>
-                <Text style={styles.tileSub}>
-                  {ml >= 750 ? "big drink" : "quick sip"}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+        <Text style={F.eyebrow}>{String(index + 1).padStart(2, "0")}</Text>
+        <Text style={{ ...F.value, flex: 1 }}>{ml} <Text style={F.body}>ml</Text></Text>
 
-          {!!toast && (
-            <View style={styles.toastRow}>
-              <Ionicons
-                name="checkmark-circle"
-                size={16}
-                color={withAlpha("#7CFFB5", 0.95)}
-              />
-              <Text style={styles.toastText}>{toast}</Text>
-            </View>
-          )}
-        </GlassCard>
-
-        <Text style={styles.foot}>
-          (This logs locally in AsyncStorage. If you want it in your
-          Nutrition/Hydration backend, tell me your current hydration storage
-          pattern and I’ll wire it.)
-        </Text>
-      </View>
+        <Ionicons name="add-circle" color={D.lime} size={30} />
+      </Pressable>)}
     </View>
+
+    {!!toast && <Text accessibilityLiveRegion="polite" style={{ ...F.body, color: D.lime }}>{toast}</Text>}
+
+    {!uid && <Text style={F.body}>Sign in to save a water entry.</Text>}
+  </TaskPage>
   );
 }
 

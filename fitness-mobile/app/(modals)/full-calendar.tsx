@@ -1,4 +1,10 @@
+import { useAccountStorage } from '@/services/local/accountStore';
+import { CalendarRecord } from "@/components/somata/CalendarRecord";
+import { Button, Choice, Heading, IconButton, Metric, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
@@ -7,13 +13,10 @@ import {
   PanResponder,
   Pressable,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
-  View,
+  View
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import DayDetailSheet from "@/components/calendar/DayDetailSheet";
@@ -161,7 +164,7 @@ function buildYearCells(year: number) {
 
 function activityDotsForDay(day: DayData | null, colors: ReturnType<typeof useTheme>["colors"]) {
   if (!day) return [];
-  const dots: Array<{ key: string; color: string }> = [];
+  const dots: Array<{ key: string; color: string; }> = [];
   if (day.nutrition?.logged) dots.push({ key: "nutrition", color: colors.accent });
   if (day.workout) dots.push({ key: "workout", color: colors.warning });
   if (day.hydration && day.hydration.logged >= day.hydration.goal) dots.push({ key: "hydration", color: colors.info || colors.accent });
@@ -257,33 +260,10 @@ type StatTileProps = {
   rightAdornment?: React.ReactNode;
 };
 
-function StatTile({ label, value, icon, colors, isDark, accent, rightAdornment }: StatTileProps) {
-  return (
-    <View
-      style={[
-        styles.statTile,
-        {
-          backgroundColor: colors.surface1,
-          borderColor: colors.border,
-          shadowColor: isDark ? undefined : "#000000",
-          shadowOpacity: isDark ? undefined : 0.04,
-          shadowRadius: isDark ? undefined : 8,
-          shadowOffset: isDark ? undefined : { width: 0, height: 1 },
-          elevation: isDark ? 0 : 1,
-        },
-      ]}
-    >
-      <Text style={[styles.label, { color: colors.textTertiary }]}>{label}</Text>
-      <View style={styles.tileValueRow}>
-        {icon ? <Ionicons name={icon} size={14} color={accent || colors.textSecondary} /> : null}
-        <Text style={[styles.tileValue, { color: colors.textPrimary }]}>{value}</Text>
-        {rightAdornment}
-      </View>
-    </View>
-  );
-}
-
 export default function FullCalendarScreen() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
@@ -319,7 +299,7 @@ export default function FullCalendarScreen() {
         });
       }
     });
-    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => {});
+    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => { });
     const sub = (AccessibilityInfo as any).addEventListener?.("reduceMotionChanged", setReduceMotion);
     return () => sub?.remove?.();
   }, []);
@@ -339,7 +319,7 @@ export default function FullCalendarScreen() {
   useEffect(() => {
     if (!user?.uid) return;
     let active = true;
-    getCalendarRangeData(user.uid, loadRange.start, loadRange.end, profile).then((next) => {
+    getCalendarRangeData(user.uid, loadRange.start, loadRange.end, profile, localStore).then((next) => {
       if (active) setDays(next);
     });
     return () => {
@@ -420,7 +400,7 @@ export default function FullCalendarScreen() {
 
   const switchView = useCallback((next: CalendarView, animated = true) => {
     setView(next);
-    AsyncStorage.setItem(VIEW_KEY, next).catch(() => {});
+    AsyncStorage.setItem(VIEW_KEY, next).catch(() => { });
     const index = next === "month" ? 0 : next === "week" ? 1 : 2;
     pagerRef.current?.scrollTo({ x: index * SCREEN_WIDTH, animated });
   }, []);
@@ -482,750 +462,123 @@ export default function FullCalendarScreen() {
     router.push(`/(modals)/add-meal?date=${sheetDate || selectedDate}` as any);
   }
 
-  return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      <View
-        style={{
-          paddingTop: insets.top + 8,
-          paddingHorizontal: 16,
-          paddingBottom: 12,
-          gap: 14,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-          backgroundColor: colors.background,
-        }}
-      >
-        <View style={styles.headerTopRow}>
-          <Pressable onPress={() => router.back()} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
-            <Ionicons name="close" size={18} color={colors.textSecondary} />
-          </Pressable>
+  return (<>
+    <TaskPage title={headerTitle} section="Calendar / your records" onBack={() => router.back()}
+      action={<Button label="Today" onPress={jumpToToday} />}>
 
-          <View style={{ flex: 1, alignItems: "center", gap: 4 }}>
-            <Text style={[styles.label, { color: colors.textTertiary }]}>CALENDAR</Text>
-            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>{headerTitle}</Text>
+      <View style={F.row}>
+        <IconButton icon="chevron-back" label="Previous period" onPress={() => navigatePeriod(-1)} />
+
+        <View style={{ ...F.wrap, flex: 1, justifyContent: "center" }}>
+          {(["week", "month", "year"] as CalendarView[]).map(value => <Choice key={value} label={value[0].toUpperCase() + value.slice(1)} selected={view === value} onPress={() => switchView(value)} />)}
+        </View>
+
+        <IconButton icon="chevron-forward" label="Next period" onPress={() => navigatePeriod(1)} />
+      </View>
+
+      {view === 'month' && <>
+        <View {...monthPan.panHandlers} style={{ gap: 8 }}>
+
+          <View style={{ flexDirection: 'row' }}>
+            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((label, i) => <Text key={i} style={{ ...F.caption, width: '14.28%', textAlign: 'center' }}>{label}</Text>)}
           </View>
 
-          <View style={styles.headerActionRight}>
-            <Pressable onPress={() => navigatePeriod(-1)} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
-              <Ionicons name="chevron-back" size={16} color={colors.textSecondary} />
-            </Pressable>
-            <Pressable onPress={() => navigatePeriod(1)} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
-              <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-            </Pressable>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+            {monthCells.map(({ date, inMonth }) => {
+              const key = ymd(date); const day = days[key]; const active = selectedDate === key;
+              return <Pressable key={key} accessibilityRole="button" accessibilityLabel={`${formatNiceDate(key)}${hasAnyData(day) ? ', has records' : ''}${day?.prs?.length ? ', personal record' : ''}`}
+                accessibilityState={{ selected: active }} onPress={() => selectDay(key)} onLongPress={() => openDay(key)}
+                style={{ width: '14.28%', minHeight: 61, padding: 3, opacity: inMonth ? 1 : 0.4 }}>
+
+                <View style={{
+                  flex: 1, borderRadius: 15, backgroundColor: active ? D.lime : key === todayKey ? '#24483A' : D.card, alignItems: 'center', justifyContent: 'center', gap: 6,
+                  borderWidth: day?.prs?.length ? 1 : 0, borderColor: D.amber
+                }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: active ? D.ink : D.text }}>{date.getDate()}</Text>
+
+                  <View style={{ flexDirection: 'row', gap: 3 }}>
+                    {activityDotsForDay(day, colors).map(dot => <View key={dot.key} style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: active ? D.ink : D.teal }} />)}
+                  </View>
+
+                </View>
+              </Pressable>;
+            })}
           </View>
+
         </View>
+        <Text style={F.caption}>Dots mark logged activity. Outlined dates have personal records. Hold a date for its full record.</Text>
+        <View style={F.wrap}>
+          <Metric label="Nutrition days" value={`${monthStats.logged}/${Math.max(monthStats.total, 1)}`} />
+          <Metric label="Logging score" value={`${monthStats.percent}%`} />
 
-        <View style={styles.todayRow}>
-          <Pressable
-            onPress={jumpToToday}
-            style={[
-              styles.todayPill,
-              {
-                borderColor: withAlpha(colors.accent, 0.36),
-                backgroundColor: withAlpha(colors.accent, 0.08),
-              },
-            ]}
-          >
-            <Text style={[styles.todayText, { color: colors.accent }]}>Today</Text>
-          </Pressable>
+          <Metric label="Current streak" value={`${monthStats.streak}d`} />
+          <Metric label="Best streak" value={`${monthStats.best}d`} />
         </View>
+      </>}
 
-        <View style={[styles.segmentWrap, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-          {(["month", "week", "year"] as CalendarView[]).map((item) => {
-            const active = view === item;
-            return (
-              <Pressable
-                key={item}
-                onPress={() => switchView(item)}
-                style={[
-                  styles.segment,
-                  active
-                    ? { backgroundColor: colors.accent, borderColor: colors.accent }
-                    : { backgroundColor: "transparent", borderColor: "transparent" },
-                ]}
-              >
-                <Text style={[styles.segmentText, { color: active ? "#FFFFFF" : colors.textSecondary }]}>
-                  {item[0].toUpperCase() + item.slice(1)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
+      {view === 'week' && <View {...weekPan.panHandlers} style={{ gap: 10 }}>
+        {weekDates.map(date => {
+          const key = ymd(date), day = days[key]; return <Pressable key={key}
+            accessibilityRole="button" accessibilityState={{ selected: selectedDate === key }} onPress={() => setSelectedDate(key)} onLongPress={() => openDay(key)}
+            style={{ padding: 17, borderRadius: 19, backgroundColor: selectedDate === key ? D.tint : D.card, gap: 10 }}>
 
-      <Animated.ScrollView
-        ref={pagerRef}
-        horizontal
-        pagingEnabled
-        snapToInterval={SCREEN_WIDTH}
-        decelerationRate="fast"
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(event) => {
-          const index = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-          const next: CalendarView = index <= 0 ? "month" : index === 1 ? "week" : "year";
-          if (next !== view) switchView(next, false);
-        }}
-      >
-        <ScrollView
-          style={{ width: SCREEN_WIDTH }}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 36, gap: 16 }}
-        >
-          <Animated.View style={{ opacity: monthOpacity }} {...monthPan.panHandlers}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-              <StatTile
-                label="STREAK"
-                value={`${monthStats.streak}d`}
-                icon="flame-outline"
-                colors={colors}
-                isDark={isDark}
-                accent={colors.warning}
-              />
-              <StatTile
-                label="BEST"
-                value={`${monthStats.best}d`}
-                colors={colors}
-                isDark={isDark}
-              />
-              <StatTile
-                label="LOGGED"
-                value={`${monthStats.logged}/${Math.max(monthStats.total, 1)}`}
-                colors={colors}
-                isDark={isDark}
-              />
-              <StatTile
-                label="SCORE"
-                value={`${monthStats.percent}%`}
-                colors={colors}
-                isDark={isDark}
-                rightAdornment={<MiniArc percent={monthStats.percent} colors={colors} />}
-              />
-            </ScrollView>
+            <Text style={F.heading}>{formatNiceDate(key)}</Text>
+            <Text style={F.body}>{day?.nutrition?.logged ? `${fmt(day.nutrition.calories)} kcal · ${fmt(day.nutrition.protein)} g protein` : 'No nutrition logged'}</Text>
 
-            <Text style={[styles.motivation, { color: colors.textTertiary }]}>
-              {monthMotivation(monthStats.percent)}
-            </Text>
+            {!!day?.nutrition?.logged && <View style={{ height: 7, borderRadius: 4, backgroundColor: D.raised }}>
+              <View style={{ height: 7, borderRadius: 4, width: `${clamp(day.nutrition.calories / weekCalorieMax * 100, 0, 100)}%`, backgroundColor: D.teal }} />
+            </View>}
 
-            <View style={styles.weekdayHeader}>
-              {["M", "T", "W", "T", "F", "S", "S"].map((label, i) => (
-                <Text key={i} style={[styles.weekdayLabel, { color: colors.textTertiary }]}>
-                  {label}
-                </Text>
-              ))}
-            </View>
+            {!!day?.nutrition?.logged && <View style={{ height: 7, borderRadius: 4, backgroundColor: D.raised }}>
+              <View style={{ height: 7, borderRadius: 4, width: `${clamp(day.nutrition.protein / weekProteinMax * 100, 0, 100)}%`, backgroundColor: D.lime }} />
+            </View>}
+            <Text style={F.caption}>{day?.steps ? `${fmt(day.steps.count)} steps` : 'No steps recorded'}{day?.workout ? ` · ${day.workout.name}` : ''}</Text>
 
-            <View style={styles.monthGrid}>
-              {monthCells.map(({ date, inMonth }) => {
-                const key = ymd(date);
-                const day = days[key] || null;
-                const selected = selectedDate === key;
-                const isToday = key === todayKey;
-                const isFuture = date > new Date();
-                const perfect = dayIsPerfect(day);
-                const prDay = (day?.prs?.length || 0) > 0;
-                const dots = activityDotsForDay(day, colors);
-                const barColor = calorieBarColor(day, colors);
-                return (
-                  <Pressable
-                    key={key}
-                    onPress={() => selectDay(key)}
-                    onLongPress={() => openDay(key)}
-                    style={({ pressed }) => [
-                      styles.dayCell,
-                      {
-                        backgroundColor: selected
-                          ? withAlpha(colors.accent, 0.18)
-                          : isToday
-                          ? withAlpha(colors.accent, 0.12)
-                          : hasAnyData(day)
-                          ? colors.surface2
-                          : colors.surface1,
-                        borderColor: prDay
-                          ? colors.warning
-                          : selected
-                          ? colors.accent
-                          : isToday
-                          ? withAlpha(colors.accent, 0.5)
-                          : colors.border,
-                        borderWidth: selected ? 2 : isToday ? 1.5 : 1,
-                        opacity: inMonth ? 1 : 0.5,
-                        shadowColor: perfect && !isDark ? colors.success : undefined,
-                        shadowOpacity: perfect && !isDark ? 0.18 : 0,
-                        shadowRadius: perfect && !isDark ? 8 : 0,
-                        shadowOffset: perfect && !isDark ? { width: 0, height: 0 } : undefined,
-                        elevation: perfect && isDark ? 2 : 0,
-                        transform: [{ scale: pressed ? 0.95 : 1 }],
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.dayNumber,
-                        {
-                          color: isFuture
-                            ? colors.textTertiary
-                            : selected || isToday
-                            ? colors.textPrimary
-                            : inMonth
-                            ? colors.textPrimary
-                            : colors.textSecondary,
-                        },
-                      ]}
-                    >
-                      {date.getDate()}
-                    </Text>
-                    <View style={[styles.microBarTrack, { backgroundColor: colors.surface3 }]}>
-                      <View
-                        style={[
-                          styles.microBarFill,
-                          {
-                            backgroundColor: barColor,
-                            width: `${clamp(
-                              day?.nutrition?.calorieGoal ? (day.nutrition.calories / day.nutrition.calorieGoal) * 100 : 0,
-                              0,
-                              100
-                            )}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <View style={styles.dotRow}>
-                      {dots.length ? (
-                        dots.map((dot) => <View key={dot.key} style={[styles.activityDot, { backgroundColor: dot.color }]} />)
-                      ) : (
-                        <View style={[styles.activityDot, { backgroundColor: "transparent" }]} />
-                      )}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <View style={styles.legendWrap}>
-              <IndicatorChip label="Nutrition logged" color={colors.accent} colors={colors} />
-              <IndicatorChip label="Workout logged" color={colors.warning} colors={colors} />
-              <IndicatorChip label="Hydration goal hit" color={colors.info || colors.accent} colors={colors} />
-              <IndicatorChip label="Steps goal hit" color={colors.success} colors={colors} />
-            </View>
-            <View style={styles.legendWrap}>
-              <IndicatorChip label="Calorie goal hit" color={colors.success} colors={colors} line />
-              <IndicatorChip label="Personal record" color={colors.warning} colors={colors} borderOnly />
-              <IndicatorChip label="Perfect day" color={colors.success} colors={colors} glow />
-            </View>
-            <Text style={[styles.legendFootnote, { color: colors.textTertiary }]}>
-              Tap any day to see your full breakdown.
-            </Text>
-          </Animated.View>
-        </ScrollView>
-
-        <ScrollView
-          style={{ width: SCREEN_WIDTH }}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 36, gap: 16 }}
-        >
-          <Animated.View style={{ opacity: weekOpacity }} {...weekPan.panHandlers}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-              {weekDates.map((date) => {
-                const key = ymd(date);
-                const day = days[key] || null;
-                const active = selectedDate === key;
-                return (
-                  <Pressable
-                    key={key}
-                    onPress={() => setSelectedDate(key)}
-                    onLongPress={() => openDay(key)}
-                    style={[
-                      styles.weekPill,
-                      {
-                        backgroundColor: active ? colors.accent : colors.surface1,
-                        borderColor: active ? colors.accent : colors.border,
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.weekPillDay, { color: active ? "#FFFFFF" : colors.textTertiary }]}>
-                      {formatShortDay(date)}
-                    </Text>
-                    <Text style={[styles.weekPillDate, { color: active ? "#FFFFFF" : colors.textPrimary }]}>
-                      {date.getDate()}
-                    </Text>
-                    <View style={[styles.microBarTrack, { backgroundColor: active ? withAlpha("#FFFFFF", 0.24) : colors.surface3 }]}>
-                      <View
-                        style={[
-                          styles.microBarFill,
-                          {
-                            backgroundColor: active ? "#FFFFFF" : calorieBarColor(day, colors),
-                            width: `${clamp(
-                              day?.nutrition?.calorieGoal ? (day.nutrition.calories / day.nutrition.calorieGoal) * 100 : 0,
-                              0,
-                              100
-                            )}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-
-            <View style={[styles.panel, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-              <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
-                {formatFullDate(weekSelectedDate)}
-              </Text>
-
-              <View style={styles.weekDetailGrid}>
-                <View style={[styles.weekMiniCard, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-                  <Text style={[styles.label, { color: colors.textTertiary }]}>NUTRITION</Text>
-                  <View style={styles.weekRingWrap}>
-                    <MiniRing
-                      progress={selectedDay?.nutrition?.calorieGoal ? selectedDay.nutrition.calories / selectedDay.nutrition.calorieGoal : 0}
-                      value={`${Math.round(selectedDay?.nutrition?.calories || 0)}`}
-                      subtitle="kcal"
-                      colors={colors}
-                    />
-                  </View>
-                  <View style={{ gap: 8 }}>
-                    {[
-                      { label: "P", value: selectedDay?.nutrition?.protein || 0, goal: selectedDay?.nutrition?.proteinGoal || 0, color: colors.accent },
-                      { label: "C", value: selectedDay?.nutrition?.carbs || 0, goal: selectedDay?.nutrition?.carbsGoal || 0, color: colors.info || colors.accent },
-                      { label: "F", value: selectedDay?.nutrition?.fat || 0, goal: selectedDay?.nutrition?.fatGoal || 0, color: colors.warning },
-                    ].map((macro) => (
-                      <View key={macro.label} style={{ gap: 4 }}>
-                        <View style={styles.rowBetween}>
-                          <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>{macro.label}</Text>
-                          <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>
-                            {fmt(macro.value)}g / {fmt(macro.goal)}g
-                          </Text>
-                        </View>
-                        <View style={[styles.inlineTrack, { backgroundColor: colors.surface3 }]}>
-                          <View
-                            style={[
-                              styles.inlineFill,
-                              { width: `${clamp(macro.goal ? (macro.value / macro.goal) * 100 : 0, 0, 100)}%`, backgroundColor: macro.color },
-                            ]}
-                          />
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                  <MealTimeline meals={selectedDay?.nutrition?.meals || []} colors={colors} />
-                </View>
-
-                <View style={[styles.weekMiniCard, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-                  <Text style={[styles.label, { color: colors.textTertiary }]}>WORKOUT</Text>
-                  {selectedDay?.workout ? (
-                    <View style={{ gap: 10 }}>
-                      <Text style={[styles.rowTitle, { color: colors.textPrimary }]}>{selectedDay.workout.name}</Text>
-                      <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-                        {selectedDay.workout.duration} min · {fmt(selectedDay.workout.volume)} kg · {selectedDay.workout.exercises} exercises
-                      </Text>
-                      <MiniRing
-                        progress={(selectedDay.workout.score || 0) / 100}
-                        value={`${selectedDay.workout.score || 0}`}
-                        subtitle="score"
-                        colors={colors}
-                        size={56}
-                      />
-                    </View>
-                  ) : (
-                    <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>Rest day</Text>
-                  )}
-                </View>
-
-                <View style={[styles.weekMiniCard, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-                  <Text style={[styles.label, { color: colors.textTertiary }]}>HYDRATION</Text>
-                  <Text style={[styles.rowTitle, { color: colors.textPrimary }]}>
-                    {fmt(selectedDay?.hydration?.logged || 0)} / {fmt(selectedDay?.hydration?.goal || 2400)}ml
-                  </Text>
-                  <View style={[styles.inlineTrack, { backgroundColor: colors.surface3 }]}>
-                    <View
-                      style={[
-                        styles.inlineFill,
-                        {
-                          width: `${clamp(
-                            selectedDay?.hydration?.goal
-                              ? (selectedDay.hydration.logged / selectedDay.hydration.goal) * 100
-                              : 0,
-                            0,
-                            100
-                          )}%`,
-                          backgroundColor: colors.info || colors.accent,
-                        },
-                      ]}
-                    />
-                  </View>
-                </View>
-
-                <View style={[styles.weekMiniCard, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-                  <Text style={[styles.label, { color: colors.textTertiary }]}>RECOVERY</Text>
-                  {selectedDay?.sleep ? (
-                    <View style={{ gap: 8 }}>
-                      <Text style={[styles.rowTitle, { color: colors.textPrimary }]}>
-                        {Math.floor(selectedDay.sleep.duration / 60)}h {selectedDay.sleep.duration % 60}m sleep
-                      </Text>
-                      <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-                        Score {selectedDay.sleep.score}
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>No recovery data</Text>
-                  )}
-                </View>
-              </View>
-
-              <View style={[styles.panel, { backgroundColor: colors.surface2, borderColor: colors.border, marginTop: 12 }]}>
-                <Text style={[styles.label, { color: colors.textTertiary }]}>STEPS</Text>
-                <Text style={[styles.rowTitle, { color: colors.textPrimary }]}>
-                  {fmt(selectedDay?.steps?.count || 0)} / {fmt(selectedDay?.steps?.goal || 8000)}
-                </Text>
-                <View style={[styles.inlineTrack, { backgroundColor: colors.surface3 }]}>
-                  <View
-                    style={[
-                      styles.inlineFill,
-                      {
-                        width: `${clamp(
-                          selectedDay?.steps?.goal ? (selectedDay.steps.count / selectedDay.steps.goal) * 100 : 0,
-                          0,
-                          100
-                        )}%`,
-                        backgroundColor: colors.success,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-                  {weekActivitySummary}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.sparklineRow}>
-              <SmallBarChart
-                title="Calories this week"
-                dates={weekDates.map((date) => ymd(date))}
-                values={weekDates.map((date) => days[ymd(date)]?.nutrition?.calories || 0)}
-                goals={weekDates.map((date) => days[ymd(date)]?.nutrition?.calorieGoal || 0)}
-                colors={colors}
-                accent={colors.accent}
-                maxValue={weekCalorieMax}
-              />
-              <SmallBarChart
-                title="Protein this week"
-                dates={weekDates.map((date) => ymd(date))}
-                values={weekDates.map((date) => days[ymd(date)]?.nutrition?.protein || 0)}
-                goals={weekDates.map((date) => days[ymd(date)]?.nutrition?.proteinGoal || 0)}
-                colors={colors}
-                accent={colors.info || colors.accent}
-                maxValue={weekProteinMax}
-              />
-            </View>
-          </Animated.View>
-        </ScrollView>
-
-        <ScrollView
-          style={{ width: SCREEN_WIDTH }}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 36, gap: 16 }}
-        >
-          <Animated.View style={{ opacity: yearOpacity }}>
-            <View style={[styles.panel, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View style={{ gap: 10 }}>
-                  <View style={styles.yearMonthLabels}>
-                    {yearWeeks.map((week, index) => {
-                      const first = week[0];
-                      const show = first.getDate() <= 7;
-                      return (
-                        <View key={`m-${index}`} style={{ width: 12, marginRight: 2 }}>
-                          {show ? (
-                            <Text style={[styles.yearMonthText, { color: colors.textTertiary }]}>
-                              {first.toLocaleDateString(undefined, { month: "short" }).slice(0, 1)}
-                            </Text>
-                          ) : null}
-                        </View>
-                      );
-                    })}
-                  </View>
-                  <View style={styles.yearGrid}>
-                    {yearWeeks.map((week, weekIndex) => (
-                      <View key={`week-${weekIndex}`} style={styles.yearColumn}>
-                        {week.map((date, dayIndex) => {
-                          const key = ymd(date);
-                          const day = days[key] || null;
-                          const inYear = date.getFullYear() === yearCursor;
-                          const perfect = dayIsPerfect(day);
-                          const level = day?.overallScore || 0;
-                          const fill = !inYear
-                            ? withAlpha(colors.surface3, 0.4)
-                            : level >= 100
-                            ? colors.accent
-                            : level >= 80
-                            ? withAlpha(colors.accent, 0.85)
-                            : level >= 50
-                            ? withAlpha(colors.accent, 0.6)
-                            : level > 0
-                            ? withAlpha(colors.accent, 0.25)
-                            : colors.surface3;
-                          const activeTooltip = tooltipDate === key;
-                          return (
-                            <Pressable
-                              key={`${key}-${dayIndex}`}
-                              onPress={() => {
-                                if (activeTooltip) openDay(key);
-                                else setTooltipDate(key);
-                              }}
-                              style={[
-                                styles.yearCell,
-                                {
-                                  backgroundColor: fill,
-                                  borderColor: day?.prs?.length ? colors.warning : "transparent",
-                                  shadowColor: perfect && !isDark ? colors.success : undefined,
-                                  shadowOpacity: perfect && !isDark ? 0.18 : 0,
-                                  shadowRadius: perfect && !isDark ? 4 : 0,
-                                  elevation: perfect && isDark ? 1 : 0,
-                                },
-                              ]}
-                            />
-                          );
-                        })}
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              </ScrollView>
-
-              {tooltipDate && days[tooltipDate] ? (
-                <View style={[styles.tooltip, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-                  <Text style={[styles.rowTitle, { color: colors.textPrimary }]}>{formatNiceDate(tooltipDate)}</Text>
-                  <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-                    Score {days[tooltipDate].overallScore} · {days[tooltipDate].workout ? "Workout" : "No workout"}
-                    {days[tooltipDate].steps?.count
-                      ? ` · ${fmt(days[tooltipDate].steps!.count)} steps`
-                      : ""}
-                  </Text>
-                </View>
-              ) : null}
-
-              <View style={styles.yearStatsRow}>
-                <MetaChip label={`${Object.values(days).filter((day) => day.nutrition?.logged).length} total logged days`} colors={colors} />
-                <MetaChip label={`${bestNutritionStreak(days)} day best streak`} colors={colors} />
-                <MetaChip label={`${Object.values(days).filter((day) => day.workout).length} workouts`} colors={colors} />
-                <MetaChip label={`${Object.values(days).filter((day) => day.overallScore >= 90).length} goals hit`} colors={colors} />
-              </View>
-            </View>
-          </Animated.View>
-        </ScrollView>
-      </Animated.ScrollView>
-
-      <DayDetailSheet
-        visible={!!sheetDate}
-        onClose={() => setSheetDate(null)}
-        day={sheetDate ? days[sheetDate] || null : null}
-        isToday={sheetDate === todayKey}
-        onLogNutrition={openNutritionLogForSelected}
-      />
-    </View>
-  );
-}
-
-function MiniArc({
-  percent,
-  colors,
-}: {
-  percent: number;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  return (
-    <View style={[styles.arcTrack, { borderColor: colors.surface3 }]}>
-      <View
-        style={[
-          styles.arcFill,
-          {
-            width: `${clamp(percent, 0, 100)}%`,
-            backgroundColor: scoreTone(percent, colors),
-          },
-        ]}
-      />
-    </View>
-  );
-}
-
-function IndicatorChip({
-  label,
-  color,
-  colors,
-  line,
-  borderOnly,
-  glow,
-}: {
-  label: string;
-  color: string;
-  colors: ReturnType<typeof useTheme>["colors"];
-  line?: boolean;
-  borderOnly?: boolean;
-  glow?: boolean;
-}) {
-  return (
-    <View style={[styles.indicatorChip, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-      {line ? (
-        <View style={[styles.lineSwatch, { backgroundColor: color }]} />
-      ) : borderOnly ? (
-        <View style={[styles.borderSwatch, { borderColor: color }]} />
-      ) : glow ? (
-        <View style={[styles.glowSwatch, { backgroundColor: color }]} />
-      ) : (
-        <View style={[styles.dotSwatch, { backgroundColor: color }]} />
-      )}
-      <Text style={[styles.indicatorText, { color: colors.textSecondary }]}>{label}</Text>
-    </View>
-  );
-}
-
-function MetaChip({
-  label,
-  colors,
-}: {
-  label: string;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  return (
-    <View style={[styles.metaChip, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-      <Text style={[styles.metaChipText, { color: colors.textSecondary }]}>{label}</Text>
-    </View>
-  );
-}
-
-function MiniRing({
-  progress,
-  value,
-  subtitle,
-  colors,
-  size = 60,
-}: {
-  progress: number;
-  value: string;
-  subtitle: string;
-  colors: ReturnType<typeof useTheme>["colors"];
-  size?: number;
-}) {
-  const safe = clamp(progress, 0, 1);
-  const track = colors.surface3;
-  return (
-    <View style={[styles.ringWrap, { width: size, height: size }]}>
-      <View
-        style={[
-          styles.ringTrack,
-          {
-            width: size,
-            height: size,
-            borderColor: track,
-          },
-        ]}
-      />
-      <View
-        style={[
-          styles.ringFill,
-          {
-            width: size,
-            height: size,
-            borderColor: colors.accent,
-            opacity: safe,
-          },
-        ]}
-      />
-      <View style={styles.ringCenter}>
-        <Text style={[styles.ringValue, { color: colors.textPrimary }]}>{value}</Text>
-        <Text style={[styles.ringSub, { color: colors.textTertiary }]}>{subtitle}</Text>
-      </View>
-    </View>
-  );
-}
-
-function MealTimeline({
-  meals,
-  colors,
-}: {
-  meals: { name: string; time: string; calories: number }[];
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  const width = SCREEN_WIDTH - 76;
-  const entries = meals.map((meal) => {
-    const parsed = new Date(`1970-01-01 ${meal.time}`);
-    const hour = Number.isNaN(parsed.getTime()) ? 12 : parsed.getHours() + parsed.getMinutes() / 60;
-    const clampedHour = clamp(hour, 6, 22);
-    const left = ((clampedHour - 6) / 16) * width;
-    const size = clamp(8 + meal.calories / 120, 8, 16);
-    return { ...meal, left, size };
-  });
-  return (
-    <View style={{ marginTop: 8, gap: 8 }}>
-      <View style={[styles.timelineTrack, { backgroundColor: colors.surface3 }]} />
-      <View style={styles.timelineOverlay}>
-        {entries.map((meal, index) => (
-          <View
-            key={`${meal.name}-${index}`}
-            style={[
-              styles.timelineDot,
-              {
-                left: meal.left,
-                width: meal.size,
-                height: meal.size,
-                backgroundColor: colors.accent,
-              },
-            ]}
-          />
-        ))}
-      </View>
-    </View>
-  );
-}
-
-function SmallBarChart({
-  title,
-  dates,
-  values,
-  goals,
-  colors,
-  accent,
-  maxValue,
-}: {
-  title: string;
-  dates: string[];
-  values: number[];
-  goals: number[];
-  colors: ReturnType<typeof useTheme>["colors"];
-  accent: string;
-  maxValue: number;
-}) {
-  return (
-    <View style={[styles.chartCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{title}</Text>
-      <View style={styles.chartBars}>
-        {values.map((value, index) => {
-          const goal = goals[index] || 0;
-          const hit = goal > 0 && value >= goal * 0.9;
-          const height = Math.max(8, Math.round((value / Math.max(1, maxValue)) * 72));
-          return (
-            <View key={dates[index]} style={styles.chartBarWrap}>
-              <View style={[styles.goalLine, { borderColor: colors.border }]} />
-              <View
-                style={[
-                  styles.chartBar,
-                  {
-                    height,
-                    backgroundColor: hit ? accent : colors.surface3,
-                  },
-                ]}
-              />
-              <Text style={[styles.chartLabel, { color: colors.textTertiary }]}>
-                {formatShortDay(parseYmd(dates[index]))[0]}
-              </Text>
-            </View>
-          );
+          </Pressable>;
         })}
-      </View>
-    </View>
+        <Text style={F.caption}>Teal shows energy; the second bar shows protein. Each metric shares its weekly scale. Swipe to change weeks.</Text>
+      </View>}
+
+      {view === 'year' && <>
+        <Heading title="The year in records" detail="Scroll across weeks. Tap a date to inspect its record." />
+        <ScrollView horizontal>
+          <View style={{ flexDirection: 'row', gap: 5 }}>
+            {yearWeeks.map((week, i) => <View key={i} style={{ gap: 5 }}>
+              {week.map(date => {
+                const key = ymd(date), day = days[key]; return <Pressable key={key}
+                  accessibilityRole="button" accessibilityLabel={`${formatNiceDate(key)}${day ? `, score ${day.overallScore}` : ''}`} onPress={() => { setTooltipDate(key); setSelectedDate(key); }}
+                  onLongPress={() => openDay(key)} style={{
+                    width: 46, minHeight: 46, borderRadius: 13, backgroundColor: selectedDate === key ? D.lime : hasAnyData(day) ? D.tint : D.card,
+                    opacity: date.getFullYear() === yearCursor ? 1 : 0.3, alignItems: 'center', justifyContent: 'center'
+                  }}>
+
+                  <Text style={{ color: selectedDate === key ? D.ink : D.text, fontSize: 12 }}>{date.getDate()}</Text>
+                  <Text style={{ color: selectedDate === key ? D.ink : D.muted, fontSize: 9 }}>{date.toLocaleDateString(undefined, { month: 'short' })}</Text>
+
+                </Pressable>;
+              })}
+            </View>)}
+          </View>
+        </ScrollView>
+        <View style={F.wrap}>
+          <Metric label="Logged days in loaded records" value={String(Object.values(days).filter(day => day.nutrition?.logged).length)} />
+
+          <Metric label="Best logging streak" value={`${bestNutritionStreak(days)}d`} />
+          <Metric label="Workouts in loaded records" value={String(Object.values(days).filter(day => day.workout).length)} />
+
+          <Metric label="Scores of 90+" value={String(Object.values(days).filter(day => day.overallScore >= 90).length)} />
+        </View>
+      </>}
+
+      <Heading title={formatNiceDate(selectedDate)} detail="Selected day" action={<IconButton icon="expand-outline" label="Open selected day" onPress={() => openDay(selectedDate)} />} />
+
+      <CalendarRecord day={selectedDay} />
+
+      {view === 'week' && !!weekActivitySummary && <Text style={F.caption}>{weekActivitySummary}</Text>}
+    </TaskPage>
+    <DayDetailSheet visible={!!sheetDate} onClose={() => setSheetDate(null)} day={sheetDate ? days[sheetDate] || null : null}
+      isToday={sheetDate === todayKey} onLogNutrition={openNutritionLogForSelected} />
+  </>
   );
 }
 

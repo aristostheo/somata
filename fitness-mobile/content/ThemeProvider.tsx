@@ -78,6 +78,7 @@ type ThemeAccents = {
 type ThemeContextShape = {
   colors: ThemeColors;
   isDark: boolean;
+  previewVisual: boolean;
   modeSetting: ThemeMode;
   setModeSetting: (m: ThemeMode) => void;
   themeReady: boolean;
@@ -467,6 +468,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const value: ThemeContextShape = {
     colors,
     isDark,
+    previewVisual: false,
     modeSetting,
     setModeSetting: setModePersist,
     themeReady,
@@ -486,4 +488,38 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
+}
+
+/** A presentation-only override. Theme choices and persistence stay with the parent provider. */
+export function PreviewThemeScope({ children }: { children: React.ReactNode }) {
+  const parent = useTheme();
+  const value = useMemo<ThemeContextShape>(() => ({
+    ...parent,
+    previewVisual: true,
+    isDark: true,
+    colors: {
+      ...parent.colors,
+      background: "#080A09", bg: "#080A09",
+      card: "#1A1E1C", surface: "#1A1E1C", surface1: "#1A1E1C",
+      surface2: "#222824", surface3: "#2C332E",
+      text: "#F7F8F4", textPrimary: "#F7F8F4",
+      muted: "#ABB5AD", textSecondary: "#ABB5AD",
+      placeholder: "#89958B", textTertiary: "#89958B",
+      border: "#303932", borderElevated: "#3B463D",
+      glass: "rgba(19,24,21,0.9)", glassBorder: "#364238",
+      inputBg: "#222824", inputBorder: "#3B463D",
+      primary: "#55C8B0", accent: "#D4EF78", accentMuted: "#D4EF78",
+      accentDim: "#263C31", accentSubtle: "#304537", accentForeground: "#0B1510",
+      chipActiveBg: "#304537", chipActiveText: "#E8F8E6",
+      buttonBg: "#55C8B0", buttonText: "#071713",
+      chartPrimary: "#55C8B0", chartSecondary: "#D4EF78",
+      ringTrack: "#303932", shadow: "#000000",
+      success: "#BDEB79", warning: "#F3C779", danger: "#FF8D82", info: "#55C8B0",
+    },
+    themeAccents: {
+      ...parent.themeAccents,
+      dark: { ...parent.themeAccents.dark, primary: "#55C8B0", accent: "#D4EF78" },
+    },
+  }), [parent]);
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

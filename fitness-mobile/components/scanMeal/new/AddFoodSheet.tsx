@@ -1,13 +1,11 @@
-import React, { useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Button, Choice, Field, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import { useMemo, useState } from "react";
+import { Text, View } from "react-native";
 
-import { useTheme } from "@/content/ThemeProvider";
 import type { DetectedFood } from "@/components/scanMeal/new/types";
 import { clamp, roundTo } from "@/components/scanMeal/new/types";
-import PremiumModalSheet, {
-  PremiumActionButton,
-} from "@/components/ui/PremiumModalSheet";
+import { useTheme } from "@/content/ThemeProvider";
 
 export default function AddFoodSheet({
   visible,
@@ -18,6 +16,8 @@ export default function AddFoodSheet({
   onClose: () => void;
   onAdd: (food: DetectedFood) => void;
 }) {
+  const { D, F } = useSomataTheme();
+
   const { colors } = useTheme() as any;
 
   const [name, setName] = useState("");
@@ -52,73 +52,21 @@ export default function AddFoodSheet({
     setUnknownQty(false);
   };
 
-  return (
-    <PremiumModalSheet
-      visible={visible}
-      onClose={onClose}
-      title="Add item"
-      subtitle="Manually add anything the scan missed."
-      footer={
-        <PremiumActionButton label="Add item" onPress={commit} disabled={!canAdd} />
-      }
-    >
-      <FieldLabel label="Name" colors={colors} />
-      <TextInput
-        value={name}
-        onChangeText={setName}
-        placeholder="E.g., sweet potato"
-        placeholderTextColor={colors.muted}
-        style={inputStyle(colors)}
-      />
+  return (<TaskSheet visible={visible} onClose={onClose} title="Add a missing item">
 
-      <FieldLabel label="Quantity" colors={colors} />
-      <TextInput
-        value={amt}
-        onChangeText={setAmt}
-        keyboardType="decimal-pad"
-        editable={!unknownQty}
-        style={[inputStyle(colors), { opacity: unknownQty ? 0.55 : 1 }]}
-      />
+    <Text style={F.body}>Name the food and the amount. You’ll review the estimate before logging.</Text>
 
-      <Pressable
-        onPress={() => setUnknownQty((v) => !v)}
-        style={{
-          borderRadius: 18,
-          paddingVertical: 12,
-          paddingHorizontal: 12,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 10,
-          backgroundColor: withAlpha(colors.card, 0.4),
-        }}
-      >
-        <View
-          style={{
-            width: 22,
-            height: 22,
-            borderRadius: 8,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: unknownQty ? colors.primary : withAlpha(colors.text, 0.08),
-          }}
-        >
-          {unknownQty ? (
-            <Ionicons name="checkmark" size={14} color="white" />
-          ) : null}
-        </View>
-        <Text style={{ color: colors.text, fontSize: 13, fontWeight: "800" }}>
-          Quantity unknown
-        </Text>
-      </Pressable>
-    </PremiumModalSheet>
-  );
-}
+    <Field label="Food name" value={name} onChangeText={setName} placeholder="What was missed?" />
 
-function FieldLabel({ label, colors }: { label: string; colors: any }) {
-  return (
-    <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "800" }}>
-      {label}
-    </Text>
+    <View style={F.wrap}>
+      <Choice label="I know the quantity" selected={!unknownQty} onPress={() => setUnknownQty(false)} />
+      <Choice label="Quantity unknown" selected={unknownQty} onPress={() => setUnknownQty(true)} />
+    </View>
+
+    {!unknownQty && <Field label="Quantity" value={amt} onChangeText={setAmt} keyboardType="decimal-pad" />}
+
+    <Button label="Add item" primary disabled={!canAdd} onPress={commit} />
+  </TaskSheet>
   );
 }
 

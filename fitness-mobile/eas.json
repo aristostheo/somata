@@ -12,6 +12,18 @@
       "distribution": "internal",
       "channel": "preview"
     },
+    "testflight": {
+      "extends": "production",
+      "distribution": "store",
+      "environment": "preview",
+      "channel": "testflight-staging",
+      "env": {
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATORS": "false",
+        "SOMATA_RELEASE_BUILD": "true",
+        "SOMATA_CHECKOUT_ENABLED": "false",
+        "EXPO_PUBLIC_SOMATA_BACKEND_ENV": "staging"
+      }
+    },
     "production": {
       "autoIncrement": true,
       "channel": "production"

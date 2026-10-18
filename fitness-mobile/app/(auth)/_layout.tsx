@@ -1,16 +1,16 @@
 // app/(auth)/_layout.tsx
 import React from "react";
 import { Stack } from "expo-router";
-import { useTheme } from "@/content/ThemeProvider";
+import { useSomataTheme } from "@/components/somata/theme";
 
 export default function AuthLayout() {
-  const { colors } = useTheme();
+  const { D } = useSomataTheme();
   return (
     <Stack
       screenOptions={{
         headerShown: false,
         // keep the background consistent with your theme
-        contentStyle: { backgroundColor: colors.background },
+        contentStyle: { backgroundColor: D.bg },
       }}
     />
   );

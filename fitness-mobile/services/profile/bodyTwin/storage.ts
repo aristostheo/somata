@@ -1,12 +1,12 @@
+import { accountStorage, type AccountStore } from '@/services/local/accountStore';
 // services/bodyTwin/storage.ts
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { BodyTwinState } from "./types";
 
 const KEY = "bodyTwin:v1";
 
-export async function loadBodyTwinState(): Promise<BodyTwinState | null> {
+export async function loadBodyTwinState(localStore: AccountStore = accountStorage()): Promise<BodyTwinState | null> {
   try {
-    const raw = await AsyncStorage.getItem(KEY);
+    const raw = await localStore.getItem(KEY);
     if (!raw) return null;
     return JSON.parse(raw) as BodyTwinState;
   } catch {
@@ -14,16 +14,16 @@ export async function loadBodyTwinState(): Promise<BodyTwinState | null> {
   }
 }
 
-export async function saveBodyTwinState(state: BodyTwinState): Promise<void> {
+export async function saveBodyTwinState(state: BodyTwinState, localStore: AccountStore = accountStorage()): Promise<void> {
   try {
-    await AsyncStorage.setItem(KEY, JSON.stringify(state));
+    await localStore.setItem(KEY, JSON.stringify(state));
   } catch {
     // swallow to avoid breaking UI
   }
 }
 
-export async function clearBodyTwinState(): Promise<void> {
+export async function clearBodyTwinState(localStore: AccountStore = accountStorage()): Promise<void> {
   try {
-    await AsyncStorage.removeItem(KEY);
+    await localStore.removeItem(KEY);
   } catch {}
 }

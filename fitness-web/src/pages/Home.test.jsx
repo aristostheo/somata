@@ -48,3 +48,15 @@ test('shows saved profile goals and counts actual workouts beyond seven days', a
   });
   expect(screen.getAllByText('10 days')).toHaveLength(2);
 });
+
+test('home rings use accepted targets and ignore a pending proposal', async () => {
+  subscribeProfile.mockImplementation((uid, cb) => {
+    cb({ calorieGoal: 2100, proteinGoal: 120,
+      activeFitAdaptTargets: { calories: 2300, protein: 145, carbs: 260, fat: 70 },
+      pending: { targets: { calories: 2500, protein: 170, carbs: 280, fat: 75 } } });
+    return jest.fn();
+  });
+  render(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}><Home /></MemoryRouter>);
+  expect(await screen.findByText('Calorie Goal: 2300')).toBeInTheDocument();
+  expect(screen.getByText('Protein Goal: 145')).toBeInTheDocument();
+});

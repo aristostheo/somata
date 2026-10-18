@@ -1,16 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Button, Choice, Field, Heading, Panel, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Keyboard,
-  Modal,
-  Platform,
   Pressable,
-  ScrollView,
   Text,
-  TextInput,
-  View,
+  View
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "@/content/ThemeProvider";
 import type { FoodEntry } from "@/services/nutrition";
@@ -90,6 +86,8 @@ export default function EditFoodSheet({
   saving?: boolean;
   deleting?: boolean;
 }) {
+  const { D, F } = useSomataTheme();
+
   const { colors } = useTheme() as any;
   const [values, setValues] = useState<EditValues>({
     qty: "1",
@@ -195,290 +193,37 @@ export default function EditFoodSheet({
     });
   }
 
-  return (
-    <Modal
-      visible={open}
-      transparent
-      animationType="fade"
-      presentationStyle="overFullScreen"
-      onRequestClose={onClose}
-    >
-      <Pressable
-        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.42)", justifyContent: "flex-end" }}
-        onPress={() => {
-          Keyboard.dismiss();
-          onClose();
-        }}
-      >
-        <Pressable
-          onPress={() => {}}
-          style={{
-            backgroundColor: colors.surface2,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            borderWidth: 1,
-            borderColor: colors.border,
-            paddingTop: 8,
-            maxHeight: "84%",
-            ...(Platform.OS === "ios"
-              ? { shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 24, shadowOffset: { width: 0, height: -8 } }
-              : {}),
-          }}
-        >
-          <View style={{ alignItems: "center", paddingBottom: 8 }}>
-            <View
-              style={{
-                width: 32,
-                height: 4,
-                borderRadius: 999,
-                backgroundColor: colors.surface,
-              }}
-            />
-          </View>
+  return (<TaskSheet title={item.name} visible={open} onClose={() => { Keyboard.dismiss(); onClose(); }}>
 
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, gap: 16 }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{ color: colors.text, fontSize: 20, fontWeight: "500", lineHeight: 26 }}
-                  numberOfLines={2}
-                >
-                  {item.name}
-                </Text>
-                <Text style={{ color: colors.placeholder, fontSize: 12, fontWeight: "300", marginTop: 4 }}>
-                  {sourceLabel(item)}
-                </Text>
-              </View>
-              <Pressable
-                onPress={onClose}
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: colors.surface,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Ionicons name="close" size={16} color={colors.placeholder} />
-              </Pressable>
-            </View>
+    <Text style={F.caption}>{sourceLabel(item)}</Text>
+    <Heading title="Portion" detail="Changing quantity scales calories and macros from the original portion." />
 
-            <View style={{ gap: 8 }}>
-              <Text
-                style={{
-                  color: colors.placeholder,
-                  fontSize: 11,
-                  fontWeight: "500",
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                }}
-              >
-                Serving Size
-              </Text>
-              <View style={{ alignItems: "center" }}>
-                <Text style={{ color: colors.text, fontSize: 36, fontWeight: "200" }}>
-                  {scaleText(toNum(values.qty, 1))}{" "}
-                  <Text style={{ color: colors.placeholder, fontSize: 12, fontWeight: "300" }}>
-                    {values.unit}
-                  </Text>
-                </Text>
-              </View>
-
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12 }}>
-                {[-0.5, 0.5].map((delta) => {
-                  const icon = delta < 0 ? "remove" : "add";
-                  return (
-                    <Pressable
-                      key={icon}
-                      onPress={() => nudgeQty(delta)}
-                      onLongPress={() => startHold(delta)}
-                      onPressOut={stopHold}
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 12,
-                        backgroundColor: colors.surface,
-                        borderWidth: 1,
-                        borderColor: colors.border,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Ionicons name={icon as any} size={18} color={colors.muted} />
-                    </Pressable>
-                  );
-                })}
-                <TextInput
-                  value={values.qty}
-                  onChangeText={applyQty}
-                  keyboardType="decimal-pad"
-                  style={{
-                    width: 80,
-                    height: 44,
-                    borderRadius: 12,
-                    backgroundColor: colors.glass,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    color: colors.text,
-                    textAlign: "center",
-                    fontSize: 24,
-                    fontWeight: "200",
-                  }}
-                />
-              </View>
-            </View>
-
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              {UNIT_OPTIONS.map((option) => {
-                const active = option === values.unit;
-                return (
-                  <Pressable
-                    key={option}
-                    onPress={() => setValues((prev) => ({ ...prev, unit: option }))}
-                    style={{
-                      minHeight: 32,
-                      paddingHorizontal: 12,
-                      borderRadius: 999,
-                      backgroundColor: active ? colors.chipActiveBg : colors.surface,
-                      borderWidth: 1,
-                      borderColor: active ? colors.primary : colors.border,
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: active ? colors.primary : colors.muted,
-                        fontSize: 12,
-                        fontWeight: "300",
-                      }}
-                    >
-                      {option}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: colors.border,
-                padding: 12,
-                flexDirection: "row",
-                alignItems: "center",
-              }}
-            >
-              {preview.map((metric, index) => (
-                <React.Fragment key={metric.label}>
-                  {index > 0 ? (
-                    <View style={{ width: 1, height: 32, backgroundColor: colors.border, marginHorizontal: 12 }} />
-                  ) : null}
-                  <View style={{ flex: 1, alignItems: "center" }}>
-                    <Text style={{ color: colors.text, fontSize: 14, fontWeight: "500" }}>
-                      {metric.value}
-                    </Text>
-                    <Text style={{ color: colors.placeholder, fontSize: 11, fontWeight: "300", marginTop: 4 }}>
-                      {metric.label}
-                    </Text>
-                  </View>
-                </React.Fragment>
-              ))}
-            </View>
-
-            <View style={{ gap: 8 }}>
-              <Text
-                style={{
-                  color: colors.placeholder,
-                  fontSize: 11,
-                  fontWeight: "500",
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                }}
-              >
-                Add To
-              </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                {MEAL_OPTIONS.map((meal) => {
-                  const active = values.meal === meal;
-                  return (
-                    <Pressable
-                      key={meal}
-                      onPress={() => setValues((prev) => ({ ...prev, meal }))}
-                      style={{
-                        minHeight: 34,
-                        paddingHorizontal: 12,
-                        borderRadius: 999,
-                        backgroundColor: active ? colors.primary : colors.surface,
-                        borderWidth: 1,
-                        borderColor: active ? colors.primary : colors.border,
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Text style={{ color: active ? "#FFFFFF" : colors.muted, fontSize: 12, fontWeight: active ? "500" : "300" }}>
-                        {mealLabel(meal)}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-
-            <View style={{ gap: 8 }}>
-              <Pressable
-                onPress={submit}
-                disabled={!!saving || !!deleting}
-                style={{
-                  height: 44,
-                  borderRadius: 999,
-                  backgroundColor: colors.primary,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: saving || deleting ? 0.72 : 1,
-                }}
-              >
-                {saving ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "500" }}>
-                    Save changes
-                  </Text>
-                )}
-              </Pressable>
-
-              <Pressable
-                onPress={() => item.id && onDelete?.(item.id)}
-                disabled={!onDelete || !!saving || !!deleting}
-                style={{
-                  height: 44,
-                  borderRadius: 999,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: onDelete && !saving && !deleting ? 1 : 0.56,
-                }}
-              >
-                {deleting ? (
-                  <ActivityIndicator color={colors.danger} />
-                ) : (
-                  <Text style={{ color: colors.danger, fontSize: 14, fontWeight: "400" }}>
-                    Remove from log
-                  </Text>
-                )}
-              </Pressable>
-            </View>
-          </ScrollView>
-        </Pressable>
+    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
+      {[-0.1, 0.1].slice(0, 1).map(d => <Pressable key={d} accessibilityRole="button" accessibilityLabel="Decrease portion" onPress={() => nudgeQty(d)} onLongPress={() => startHold(d)} onPressOut={stopHold} style={{ padding: 16, backgroundColor: D.raised, borderRadius: 16 }}>
+        <Text style={F.heading}>−</Text>
+      </Pressable>)}
+      <Field label="Quantity" keyboardType="decimal-pad" value={values.qty} onChangeText={applyQty} />
+      <Pressable accessibilityRole="button" accessibilityLabel="Increase portion" onPress={() => nudgeQty(0.1)} onLongPress={() => startHold(0.1)} onPressOut={stopHold} style={{ padding: 16, backgroundColor: D.raised, borderRadius: 16 }}>
+        <Text style={F.heading}>+</Text>
       </Pressable>
-    </Modal>
+    </View>
+
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {UNIT_OPTIONS.map(unit => <Choice key={unit} label={unit} selected={values.unit === unit} onPress={() => setValues(v => ({ ...v, unit }))} />)}
+    </View>
+    <Field label="Unit" value={values.unit} onChangeText={unit => setValues(v => ({ ...v, unit }))} />
+
+    <Heading title="Meal" />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {MEAL_OPTIONS.map(meal => <Choice key={meal} label={mealLabel(meal)} selected={values.meal === meal} onPress={() => setValues(v => ({ ...v, meal }))} />)}
+    </View>
+
+    <Panel>
+      <Heading title="Nutrition" />
+      {(['calories', 'protein', 'carbs', 'fat'] as const).map(k => <Field key={k} label={`${k} · ${k === 'calories' ? 'kcal' : 'g'}`} keyboardType="decimal-pad" value={values[k]} onChangeText={s => setValues(v => ({ ...v, [k]: numOnly(s) }))} />)}
+    </Panel>
+    <Button primary disabled={saving || deleting} label={saving ? 'Saving…' : 'Save changes'} onPress={submit} />
+    {onDelete && <Button danger disabled={saving || deleting} label={deleting ? 'Deleting…' : 'Delete food'} onPress={() => onDelete(item.id)} />}
+  </TaskSheet>
   );
 }

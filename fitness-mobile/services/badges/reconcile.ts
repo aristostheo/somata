@@ -1,3 +1,4 @@
+import { accountStorage, type AccountStore } from '@/services/local/accountStore';
 // services/badges/reconcile.ts
 import type { BadgeStatsSnapshot } from "./types";
 import { evaluateBadges } from "./engine";
@@ -8,9 +9,9 @@ import {
   saveProgressLocal,
 } from "./store";
 
-export async function reconcileBadgesFromSnapshot(stats: BadgeStatsSnapshot) {
-  const unlocks = await loadUnlocksLocal();
-  const progress = await loadProgressLocal();
+export async function reconcileBadgesFromSnapshot(stats: BadgeStatsSnapshot, localStore: AccountStore = accountStorage()) {
+  const unlocks = await loadUnlocksLocal(localStore);
+  const progress = await loadProgressLocal(localStore);
 
   const res = evaluateBadges({
     event: { type: "SNAPSHOT", timestamp: Date.now(), payload: {} },
@@ -19,8 +20,8 @@ export async function reconcileBadgesFromSnapshot(stats: BadgeStatsSnapshot) {
     progress,
   });
 
-  await saveUnlocksLocal(res.unlocks);
-  await saveProgressLocal(res.progress);
+  await saveUnlocksLocal(res.unlocks, localStore);
+  await saveProgressLocal(res.progress, localStore);
 
   return res;
 }

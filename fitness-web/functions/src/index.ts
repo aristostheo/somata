@@ -1,3 +1,6 @@
+export { deleteSomataAccount } from "./account/function";
+export { getFriendSummary, setFriendSummarySharing } from "./friends/function";
+export { generateSomataAI } from "./ai/function";
 // /**
 //  * Import function triggers from their respective submodules:
 //  *
@@ -10,15 +13,15 @@
 // import { setGlobalOptions } from "firebase-functions";
 // // import { onRequest } from "firebase-functions/https";
 // // import * as logger from "firebase-functions/logger";
-// import { parseMeal } from "../parseMeal";
 // // functions/src/index.ts
 // export { onNutritionEntryCreated } from "./foodHistory";
 
 // // (keep your other exports here)
 
-// export { parseMeal };
 export { describe } from "./describe";
 export { evaluateFitAdapt, getFitAdaptPlan, acceptFitAdaptPlan, declineFitAdaptPlan } from "./fitadapt/function";
+export { onFitAdaptProfileChanged, onFitAdaptNutritionChanged, onFitAdaptWeightChanged,
+  processFitAdaptAutoReviews } from "./fitadapt/automatic";
 
 // // Start writing functions
 // // https://firebase.google.com/docs/functions/typescript

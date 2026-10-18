@@ -1,11 +1,12 @@
+import { useSomataTheme } from "@/components/somata/theme";
 import { useTheme } from "@/content/ThemeProvider";
-import { visualTokens } from "./visualTokens";
 
 /** Visual colors for Profile destinations; the active theme still supplies accents. */
 export function useProfileFlowTheme() {
   const theme = useTheme();
   const { isDark } = theme;
-  const visual = visualTokens(isDark, theme.colors.primary, theme.colors.accent);
+  const { D } = useSomataTheme();
+  const visual = { canvas: D.bg, card: D.card, raised: D.raised, text: D.text, secondary: D.muted, border: D.line };
 
   return {
     ...theme,
@@ -17,7 +18,7 @@ export function useProfileFlowTheme() {
       surface: visual.card,
       surface1: visual.card,
       surface2: visual.raised,
-      surface3: isDark ? "#2A3B5B" : "#E7DCEF",
+      surface3: D.raised,
       text: visual.text,
       textPrimary: visual.text,
       textSecondary: visual.secondary,

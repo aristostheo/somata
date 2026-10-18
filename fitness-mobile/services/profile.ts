@@ -143,8 +143,8 @@ export type Profile = {
       cardioSessions?: boolean;
     };
   };
-  goalInputs?: GoalInputs;
-  goalResult?: MacroResult;
+  goalInputs?: Partial<GoalInputs>;
+  goalResult?: Partial<MacroResult>;
   /** Backend-derived projection; authoritative record lives in fitadaptPlans/{uid}. */
   activeFitAdaptTargets?: { calories: number; protein: number; carbs: number; fat: number };
   goalUpdatedAt?: number;
@@ -156,6 +156,9 @@ export type Profile = {
   manualMacroRatios?: GoalInputs["manualMacroRatios"];
   bmrFormula?: GoalInputs["bmrFormula"];
 };
+
+type EditableProfile = Omit<Profile, "activeFitAdaptTargets">;
+const SERVER_OWNED_PROFILE_FIELDS = new Set(["activeFitAdaptTargets", "currentRecommendation", "pending", "adaptationHistory"]);
 
 const ref = (uid: string) => doc(getFirestore() ?? db, "users", uid);
 
@@ -175,9 +178,10 @@ function sanitizeNested(value: unknown): unknown {
   return next;
 }
 
-function sanitizeProfilePatch(patch: Partial<Profile>) {
+function sanitizeProfilePatch(patch: Partial<EditableProfile>) {
   const next: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(patch)) {
+    if (SERVER_OWNED_PROFILE_FIELDS.has(key)) continue;
     if (value === undefined) {
       next[key] = deleteField();
       continue;
@@ -193,9 +197,10 @@ function sanitizeProfilePatch(patch: Partial<Profile>) {
  * merge any seed values (email, displayName, etc.). If the doc exists,
  * we still merge the provided seed.
  */
-export async function ensureProfile(uid: string, seed: Partial<Profile> = {}) {
+export async function ensureProfile(uid: string, seed: Partial<EditableProfile> = {}) {
   const r = ref(uid);
   const snap = await getDoc(r);
+  const safeSeed = Object.fromEntries(Object.entries(seed).filter(([key]) => !SERVER_OWNED_PROFILE_FIELDS.has(key)));
 
   const baseDefaults: Partial<Profile> = {
     weightUnit: "kg",
@@ -209,18 +214,18 @@ export async function ensureProfile(uid: string, seed: Partial<Profile> = {}) {
       r,
       {
         ...baseDefaults,
-        ...seed,
+        ...safeSeed,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       },
       { merge: true }
     );
-  } else if (Object.keys(seed).length) {
+  } else if (Object.keys(safeSeed).length) {
     // Merge any new info (e.g., email/displayName) if passed
     await setDoc(
       r,
       {
-        ...seed,
+        ...safeSeed,
         updatedAt: Date.now(),
       },
       { merge: true }
@@ -241,7 +246,7 @@ export function subscribeProfile(uid: string, cb: (p: Profile | null) => void) {
   );
 }
 
-export async function updateProfile(uid: string, patch: Partial<Profile>) {
+export async function updateProfile(uid: string, patch: Partial<EditableProfile>) {
   const weight = patch.weightKg;
   if (typeof weight === "number" && Number.isFinite(weight) && weight >= 30 && weight <= 300) {
     const today = new Date();

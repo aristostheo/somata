@@ -37,10 +37,10 @@ import {
   ExerciseBarCard,
 } from "../components/dashboard/Charts";
 import TodayVsGoal from "../components/dashboard/TodayVsGoal";
+import { nutritionTargets } from "../services/targetProjection";
 
 /* constants */
 const DAYS = 14;
-const DEFAULT_CAL_GOAL = 2200;
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -231,7 +231,8 @@ export default function Dashboard() {
     [exerciseData, todayISO]
   );
 
-  const calGoal = Number(profile?.calorieGoal || DEFAULT_CAL_GOAL);
+  const targets = nutritionTargets(profile);
+  const calGoal = targets.calories;
   const lineSeries = useMemo(
     () =>
       days.map((d) => {
@@ -322,8 +323,7 @@ export default function Dashboard() {
         <ExerciseBarCard daysCount={DAYS} data={barSeries} />
       </div>
       <TodayVsGoal
-        calGoal={calGoal}
-        profile={profile}
+        targets={targets}
         todayFoods={todayFoods}
         todayExercise={todayExercise}
       />

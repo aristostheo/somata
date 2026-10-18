@@ -1,25 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
-import Animated, {
-  FadeIn,
-  FadeOut,
-  FadeInDown,
-  FadeOutDown,
-} from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
-import QRCode from "react-native-qrcode-svg";
 import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
-import { withAlpha } from "@/lib/color";
+import { Button, Field, Heading, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
+import { useEffect, useMemo, useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  View
+} from "react-native";
+import QRCode from "react-native-qrcode-svg";
 
 export function FriendsAddSheet({
   open,
@@ -38,6 +28,8 @@ export function FriendsAddSheet({
   privacyNote?: string;
   myUid?: string;
 }) {
+  const { D, F } = useSomataTheme();
+
   const { colors, isDark } = useProfileFlowTheme();
   const [target, setTarget] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -60,131 +52,19 @@ export function FriendsAddSheet({
 
   if (!open) return null;
 
-  return (
-    <Animated.View
-      entering={FadeIn.duration(160)}
-      exiting={FadeOut.duration(140)}
-      style={[styles.overlay, { backgroundColor: withAlpha(colors.textPrimary, isDark ? 0.5 : 0.16) }]}
-    >
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <Animated.View entering={FadeInDown.duration(260)} exiting={FadeOutDown.duration(220)}>
-          <View
-            style={[
-              styles.sheet,
-              {
-                backgroundColor: colors.surface2,
-                borderColor: colors.borderElevated,
-                shadowColor: colors.textPrimary,
-                shadowOpacity: 0,
-                shadowRadius: isDark ? 0 : 18,
-                shadowOffset: { width: 0, height: 8 },
-                elevation: 0,
-              },
-            ]}
-          >
-            <View style={[styles.handle, { backgroundColor: colors.surface3 }]} />
-
-            <View style={styles.headerRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.title, { color: colors.textPrimary }]}>Add friend</Text>
-                <Text style={[styles.subtitle, { color: colors.textTertiary }]}>
-                  {privacyNote || "Requests are private. No public search directory."}
-                </Text>
-              </View>
-              <Pressable
-                onPress={onClose}
-                style={[styles.closeButton, { backgroundColor: colors.surface3, borderColor: colors.border }]}
-              >
-                <Ionicons name="close" size={16} color={colors.textSecondary} />
-              </Pressable>
-            </View>
-
-            <View style={styles.utilityRow}>
-              <Pressable
-                onPress={async () => {
-                  if (!myUid) return;
-                  await Clipboard.setStringAsync(myUid);
-                  Haptics.selectionAsync().catch(() => {});
-                }}
-                style={[styles.utilityButton, { backgroundColor: colors.surface2, borderColor: colors.border }]}
-              >
-                <Ionicons name="copy-outline" size={14} color={colors.textSecondary} />
-                <Text style={[styles.utilityText, { color: colors.textSecondary }]}>Copy my UID</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setShowQr((value) => !value)}
-                style={[styles.utilityButton, { backgroundColor: colors.surface2, borderColor: colors.border }]}
-              >
-                <Ionicons name="qr-code-outline" size={14} color={colors.textSecondary} />
-                <Text style={[styles.utilityText, { color: colors.textSecondary }]}>Show my QR</Text>
-              </Pressable>
-            </View>
-
-            {showQr && myUid ? (
-              <View style={[styles.qrWrap, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-                <QRCode value={myUid} size={156} backgroundColor={colors.surface1} color={colors.textPrimary} />
-                <Text style={[styles.qrUid, { color: colors.textTertiary }]} numberOfLines={1}>
-                  {myUid}
-                </Text>
-              </View>
-            ) : null}
-
-            <Text style={[styles.label, { color: colors.textTertiary }]}>EMAIL OR UID</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
-              <TextInput
-                value={target}
-                onChangeText={setTarget}
-                placeholder="name@email.com or user UID"
-                placeholderTextColor={colors.textTertiary}
-                autoCapitalize="none"
-                autoCorrect={false}
-                style={[styles.input, { color: colors.textPrimary }]}
-              />
-            </View>
-
-            <Text style={[styles.label, { color: colors.textTertiary }]}>DISPLAY NAME</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
-              <TextInput
-                value={displayName}
-                onChangeText={setDisplayName}
-                placeholder="Your nickname for them (only you see this)"
-                placeholderTextColor={colors.textTertiary}
-                style={[styles.input, { color: colors.textPrimary }]}
-              />
-            </View>
-
-            <Pressable
-              disabled={!canSend || sending}
-              onPress={async () => {
-                Haptics.selectionAsync().catch(() => {});
-                await onSend(target, displayName);
-              }}
-              style={[
-                styles.sendButton,
-                {
-                  backgroundColor: canSend && !sending ? colors.accent : colors.surface3,
-                  borderColor: canSend && !sending ? colors.accent : colors.border,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.sendText,
-                  { color: canSend && !sending ? colors.surface1 : colors.textTertiary },
-                ]}
-              >
-                {sending ? "Sending…" : "Send request"}
-              </Text>
-            </Pressable>
-
-            <Text style={[styles.privacyHint, { color: colors.textTertiary }]}>
-              Tip: Share your UID privately with someone you trust.
-            </Text>
-          </View>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Animated.View>
+  return (<TaskSheet title="Grow your circle" visible={open} onClose={onClose}>
+    <Text style={F.body}>{privacyNote || 'Connect using an email or UID. Share your UID only with someone you trust.'}</Text>
+    <Field label="Email or UID" value={target} onChangeText={setTarget} autoCapitalize="none" autoCorrect={false} />
+    <Field label="Nickname · visible only to you" value={displayName} onChangeText={setDisplayName} />
+    <Button primary disabled={!canSend || sending} label={sending ? 'Sending…' : 'Send request'} onPress={async () => { Haptics.selectionAsync().catch(() => { }); await onSend(target, displayName); }} />
+    <Heading title="Let someone find you" />
+    <Button label="Copy my UID" onPress={async () => { if (!myUid) return; await Clipboard.setStringAsync(myUid); Haptics.selectionAsync().catch(() => { }); }} />
+    <Button label={showQr ? 'Hide my QR' : 'Show my QR'} onPress={() => setShowQr(v => !v)} />
+    {showQr && myUid && <View style={{ alignItems: 'center', gap: 12, padding: 20, backgroundColor: '#FFFFFF', borderRadius: 20 }}>
+      <QRCode value={myUid} size={156} backgroundColor="#FFFFFF" color="#111111" />
+      <Text selectable style={{ color: '#111111' }}>{myUid}</Text>
+    </View>}
+  </TaskSheet>
   );
 }
 

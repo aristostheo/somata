@@ -1,3 +1,5 @@
+import type { AccountStore } from "./local/accountStore";
+import { queueNutritionHandoff } from "@/services/queueNutritionHandoff";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type MealBuilderMealType =
@@ -94,18 +96,7 @@ export function presetId() {
   return `meal-preset-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 }
 
-export function sumMealItems(items: MealBuilderFoodItem[]) {
-  return items.reduce(
-    (acc, item) => {
-      acc.calories += Number(item.calories || 0);
-      acc.protein += Number(item.protein || 0);
-      acc.carbs += Number(item.carbs || 0);
-      acc.fat += Number(item.fat || 0);
-      return acc;
-    },
-    { calories: 0, protein: 0, carbs: 0, fat: 0 }
-  );
-}
+export { sumMealItems } from "./mealTotals";
 
 export function applyQtyToMealItem(
   item: MealBuilderFoodItem,
@@ -212,9 +203,9 @@ export function createMealBuilderItem(args: {
 }
 
 export async function writePendingMealBuilderLog(
-  payload: MealBuilderLoggedPayload
+  payload: MealBuilderLoggedPayload, localStore: AccountStore
 ) {
-  await AsyncStorage.setItem(PENDING_MEAL_BUILDER_LOG_KEY, JSON.stringify(payload));
+  await queueNutritionHandoff(PENDING_MEAL_BUILDER_LOG_KEY, payload, localStore);
 }
 
 export async function readMealPresets(uid: string): Promise<MealPreset[]> {

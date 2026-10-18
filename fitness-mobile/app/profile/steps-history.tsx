@@ -1,47 +1,13 @@
-import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
-import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import Svg, { Line, Rect, Text as SvgText } from "react-native-svg";
-
+import { ChoiceRail, FlowNotice, FlowPage, SmallStat } from "@/components/homeFlows/FlowUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import { useAuth } from "@/content/AuthContext";
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { subscribeProfile, type Profile } from "@/services/profile";
+import { recordedStepDays } from "@/services/profile/fitadaptInsightData";
+import { useRouter } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
+import { ScrollView, Text, View, useWindowDimensions } from "react-native";
 
 type RangeKey = 7 | 30 | 90;
-
-function useC() {
-  const { colors, isDark } = useProfileFlowTheme();
-  return {
-    bg: colors.background,
-    card: colors.surface1,
-    card2: colors.surface2,
-    text: colors.textPrimary,
-    muted: colors.textTertiary,
-    hairline: colors.border,
-    purple: colors.primary as string,
-    blue: isDark ? "#B9A4FA" : "#7051B5",
-    teal: colors.accent as string,
-    green: colors.success as string,
-    amber: colors.warning as string,
-    red: colors.danger as string,
-  };
-}
-
-const RANGE_OPTIONS: RangeKey[] = [7, 30, 90];
-const CHART_W = 340;
-const CHART_H = 164;
-
-function alpha(hex: string, a: number) {
-  const h = hex.replace("#", "");
-  if (h.length !== 6) return hex;
-  return `rgba(${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(
-    h.slice(4, 6),
-    16
-  )},${Math.max(0, Math.min(1, a))})`;
-}
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
@@ -87,18 +53,19 @@ function rangeSubtitle(range: RangeKey, dates: string[]) {
 }
 
 export default function StepsHistoryScreen() {
-  const C = useC();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [range, setRange] = useState<RangeKey>(30);
+  const { D, F } = useSomataTheme();
 
+  const router = useRouter();
+  const { user } = useAuth();
+  const { width } = useWindowDimensions();
+  const [ownedProfile, setOwnedProfile] = useState<{ uid: string; value: Profile | null; } | null>(null);
+  const [range, setRange] = useState<RangeKey>(30);
   useEffect(() => {
     if (!user?.uid) return;
-    return subscribeProfile(user.uid, setProfile);
+    const owner = user.uid;
+    return subscribeProfile(owner, (value) => setOwnedProfile({ uid: owner, value }));
   }, [user?.uid]);
-
+  const profile = ownedProfile?.uid === user?.uid ? ownedProfile?.value : undefined;
   const stepsMap = (((profile as any)?.steps ?? {}) as Record<string, number>) || {};
   const stepsGoal = Number((profile as any)?.stepsGoal ?? (profile as any)?.stepsPerDay ?? 8000);
   const today = new Date();
@@ -132,348 +99,150 @@ export default function StepsHistoryScreen() {
   }, [rows]);
 
   const chartMax = Math.max(stepsGoal, best.steps, 1000);
-  const chartBars = rows.map((row, idx) => {
-    const available = CHART_H - 42;
-    const h = row.steps > 0 ? Math.max(8, Math.round((row.steps / chartMax) * available)) : 6;
-    const x = 18 + idx * ((CHART_W - 36) / Math.max(1, rows.length));
-    const w = Math.max(4, Math.min(10, (CHART_W - 48) / Math.max(1, rows.length)));
-    const y = CHART_H - 28 - h;
-    const color =
-      row.steps >= stepsGoal ? C.green : row.steps >= stepsGoal * 0.65 ? C.teal : C.purple;
-    return { ...row, x, y, w, h, color };
-  });
 
-  const summary = useMemo(() => {
-    if (!rows.some((row) => row.steps > 0)) {
-      return "No step history yet. Connect Apple Health or log steps to start building your timeline.";
-    }
-    if (goalHits >= Math.ceil(range * 0.7)) {
-      return `You are consistently hitting your pace. ${goalHits}/${range} days cleared your goal.`;
-    }
-    if (avg < stepsGoal * 0.6) {
-      return `Your recent average is ${avg.toLocaleString()} steps. A short daily walk would move this trend quickly.`;
-    }
-    return `You are building a steady base. ${goalHits}/${range} days hit goal with a best day of ${best.steps.toLocaleString()}.`;
-  }, [avg, best.steps, goalHits, range, rows, stepsGoal]);
+  const recordedDates = new Set(recordedStepDays(stepsMap, dates[0], dates[dates.length - 1]).map((day) => day.date));
+  const recorded = (date: string) => recordedDates.has(date);
+  const hasRecords = rows.some((row) => recorded(row.date));
+  const savedGoal = profile?.stepsGoal != null || (profile as any)?.stepsPerDay != null;
+  const chartWidth = Math.max(width - 80, rows.length * 13);
+  const unavailable = !user?.uid || profile === null;
 
-  return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <FlowAtmosphere />
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: 20,
-          paddingBottom: insets.bottom + 44,
-          paddingHorizontal: 20,
-          gap: 16,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            style={iconButton(C)}
-          >
-            <Ionicons name="chevron-back" size={20} color={C.text} />
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: C.text, fontWeight: "700", fontSize: 30 }}>Steps</Text>
-            <Text style={{ color: C.muted, fontWeight: "400", marginTop: 3 }}>
-              {rangeSubtitle(range, dates)}
-            </Text>
-          </View>
-          <RangePill value={range} onChange={setRange} />
+  return <FlowPage title="Every recorded step." eyebrow="Movement / steps history" onBack={() => router.back()}>
+
+    <ChoiceRail label="Step history period" value={range} onChange={setRange}
+      choices={[{ value: 7, label: "7 days" }, { value: 30, label: "30 days" }, { value: 90, label: "90 days" }]} />
+
+    {unavailable ? <FlowNotice title="Step history unavailable" detail={user?.uid ?
+      "Your saved profile could not be loaded right now." : "Sign in to view steps saved to your account."} error /> :
+      profile === undefined ? <FlowNotice title="Loading your steps…" /> : <>
+        <View style={{ gap: 8 }}>
+
+          <Text style={F.eyebrow}>STEPS IN THIS PERIOD</Text>
+
+          <Text style={{ ...F.value, fontSize: 54, letterSpacing: -2 }}>{hasRecords ? total.toLocaleString() : "—"}</Text>
+
+          <Text style={F.body}>{rangeSubtitle(range, dates)}</Text>
+
         </View>
+        <View style={{ ...F.panel, padding: 16, gap: 20 }}>
 
-        <View style={{ borderRadius: 24 }}>
-          <View
-            style={{
-              borderRadius: 18,
-              backgroundColor: C.card,
-              borderWidth: 0,
-              borderColor: alpha(C.teal, 0.14),
-              padding: 16,
-              gap: 14,
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 12,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: alpha(C.teal, 0.14),
-                }}
-              >
-                <Ionicons name="footsteps-outline" size={19} color={C.teal} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: C.text, fontWeight: "700", fontSize: 18 }}>
-                  Walking rhythm
-                </Text>
-                <Text style={{ color: C.muted, fontWeight: "400", marginTop: 2, lineHeight: 18 }}>
-                  {summary}
-                </Text>
-              </View>
-            </View>
+          <View style={{ ...F.row, flexWrap: "wrap" }}>
 
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <StatCard label="Average" value={avg.toLocaleString()} accent={C.teal} />
-              <StatCard label="Best day" value={best.steps.toLocaleString()} accent={C.green} />
-              <StatCard label="Goal hits" value={`${goalHits}/${range}`} accent={C.purple} />
-            </View>
+            <Text accessibilityRole="header" style={F.heading}>Your rhythm</Text>
 
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <StatCard
-                label="Current streak"
-                value={currentStreak ? `${currentStreak}d` : "None"}
-                accent={currentStreak ? C.amber : C.muted}
-              />
-              <StatCard
-                label="Goal"
-                value={stepsGoal.toLocaleString()}
-                accent={C.blue}
-              />
-            </View>
+            <Text style={F.caption}>{savedGoal ? "Daily goal" : "Default daily goal"} · {stepsGoal.toLocaleString()}</Text>
+
           </View>
-        </View>
 
-        <SectionLabel title="Trend" />
-        <View
-          style={{
-            borderRadius: 18,
-            backgroundColor: C.card,
-            borderWidth: 0,
-            borderColor: C.hairline,
-            padding: 14,
-            gap: 12,
-          }}
-        >
-          <Svg width="100%" height={CHART_H} viewBox={`0 0 ${CHART_W} ${CHART_H}`}>
-            <Line x1="14" y1={CHART_H - 28} x2={CHART_W - 14} y2={CHART_H - 28} stroke={alpha(C.hairline, 0.14)} strokeWidth="1" />
-            <Line
-              x1="14"
-              y1={CHART_H - 28 - ((stepsGoal / chartMax) * (CHART_H - 42))}
-              x2={CHART_W - 14}
-              y2={CHART_H - 28 - ((stepsGoal / chartMax) * (CHART_H - 42))}
-              stroke={alpha(C.teal, 0.6)}
-              strokeWidth="1.5"
-              strokeDasharray="4 4"
-            />
-            <SvgText x="16" y="16" fill={C.muted} fontSize="11" fontWeight="800">
-              {chartMax.toLocaleString()}
-            </SvgText>
-            <SvgText
-              x="16"
-              y={CHART_H - 28 - ((stepsGoal / chartMax) * (CHART_H - 42)) - 6}
-              fill={C.teal}
-              fontSize="11"
-              fontWeight="800"
-            >
-              Goal {stepsGoal.toLocaleString()}
-            </SvgText>
-            <SvgText x="16" y={CHART_H - 10} fill={C.muted} fontSize="11" fontWeight="800">
-              0
-            </SvgText>
-            {chartBars.map((bar, idx) => (
-              <Rect
-                key={`${bar.date}-${idx}`}
-                x={bar.x}
-                y={bar.y}
-                rx="4"
-                width={bar.w}
-                height={bar.h}
-                fill={bar.color}
-              />
-            ))}
-          </Svg>
+          {hasRecords ? <>
+            <ScrollView horizontal showsHorizontalScrollIndicator={range > 7}
+              accessibilityLabel="Dated step counts; swipe horizontally for the full period">
 
-          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
-            <Text style={{ color: C.muted, fontWeight: "500", fontSize: 12 }}>
-              {fmtWeekday(dates[0])}
-            </Text>
-            <Text style={{ color: C.muted, fontWeight: "500", fontSize: 12 }}>
-              {fmtWeekday(dates[Math.floor((dates.length - 1) / 2)])}
-            </Text>
-            <Text style={{ color: C.muted, fontWeight: "500", fontSize: 12 }}>
-              {fmtWeekday(dates[dates.length - 1])}
-            </Text>
-          </View>
-        </View>
+              <View style={{ width: chartWidth, height: 162, flexDirection: "row", alignItems: "flex-end", gap: 4 }}>
 
-        <SectionLabel title="Recent Days" />
-        <View
-          style={{
-            borderRadius: 18,
-            backgroundColor: C.card,
-            borderWidth: 0,
-            borderColor: C.hairline,
-            overflow: "hidden",
-          }}
-        >
-          {rows
-            .slice()
-            .reverse()
-            .slice(0, 20)
-            .map((row, idx) => {
-              const pct = stepsGoal > 0 ? row.steps / stepsGoal : 0;
-              const accent =
-                row.steps >= stepsGoal ? C.green : pct >= 0.65 ? C.teal : pct > 0 ? C.purple : C.card2;
-              return (
-                <View
-                  key={row.date}
-                  style={{
-                    paddingHorizontal: 14,
-                    paddingVertical: 14,
-                    borderTopWidth: idx === 0 ? 0 : 1,
-                    borderTopColor: C.hairline,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 999,
-                      backgroundColor: accent,
-                    }}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: C.text, fontWeight: "600", fontSize: 15 }}>
-                      {new Date(`${row.date}T12:00:00`).toLocaleDateString(undefined, {
-                        weekday: "long",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </Text>
-                    <Text style={{ color: C.muted, fontWeight: "500", marginTop: 3 }}>
-                      {row.steps >= stepsGoal
-                        ? "Goal hit"
-                        : row.steps > 0
-                        ? `${Math.max(0, stepsGoal - row.steps).toLocaleString()} to goal`
-                        : "No steps logged"}
-                    </Text>
+                {rows.map((row) => <View key={row.date} accessible
+                  accessibilityLabel={`${fmtDayLabel(row.date)}: ${recorded(row.date) ? `${row.steps} steps` : "No record"}`}
+                  style={{ flex: 1, height: 162, justifyContent: "flex-end", alignItems: "center", gap: 8 }}>
+
+                  <View style={{ height: 132, width: "100%", justifyContent: "flex-end" }}>
+
+                    {recorded(row.date) && row.steps > 0 && <View style={{
+                      height: Math.max(2, row.steps / chartMax * 132),
+                      borderRadius: 6, backgroundColor: row.steps >= stepsGoal ? D.lime : D.teal
+                    }} />}
+
+                    {recorded(row.date) && row.steps === 0 && <View style={{ height: 2, backgroundColor: D.teal }} />}
+
                   </View>
-                  <View style={{ alignItems: "flex-end", minWidth: 74 }}>
-                    <Text style={{ color: C.text, fontWeight: "600", fontSize: 16 }}>
-                      {row.steps.toLocaleString()}
-                    </Text>
-                    <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>
-                      steps
-                    </Text>
-                  </View>
+
+                  <Text style={{ color: D.muted, fontSize: 10 }}>{range === 7 ? fmtWeekday(row.date).slice(0, 1) : "·"}</Text>
+
+                </View>)}
+
+              </View>
+
+            </ScrollView>
+            <View style={F.row}>
+
+              <Text style={F.caption}>{fmtDayLabel(dates[0])}</Text>
+
+              <Text style={F.caption}>{fmtDayLabel(dates[dates.length - 1])}</Text>
+
+            </View>
+          </> : <Text style={F.body}>No dated step records in this period. Saved steps will appear here.</Text>}
+
+          <View style={F.wrap}>
+
+            <Text style={{ ...F.caption, color: D.teal }}>● Recorded steps</Text>
+
+            <Text style={{ ...F.caption, color: D.lime }}>● Goal reached</Text>
+
+          </View>
+
+        </View>
+        <View style={F.wrap}>
+
+          <SmallStat label="Daily average" value={hasRecords ? avg.toLocaleString() : "—"} detail={`Across all ${range} days`} />
+
+          <SmallStat label="Best day" value={hasRecords ? best.steps.toLocaleString() : "—"}
+            detail={hasRecords && best.steps > 0 ? fmtDayLabel(best.date) : undefined} />
+
+          <SmallStat label="Days at goal" value={hasRecords ? `${goalHits} / ${range}` : "—"} />
+
+          <SmallStat label="Current movement streak" value={hasRecords ? `${currentStreak} days` : "—"} detail="Days with steps, ending today" />
+
+        </View>
+        <Text style={F.caption}>Daily average uses the whole selected period, including days without a log. Blank chart positions mean no record.</Text>
+        <View style={{ gap: 8 }}>
+
+          <Text accessibilityRole="header" style={F.heading}>Daily ledger</Text>
+
+          <Text style={F.caption}>Most recent {Math.min(range, 20)} days · saved account records</Text>
+
+        </View>
+        <View style={{ gap: 18 }}>
+
+          {rows.slice().reverse().slice(0, 20).map((row) => {
+            const known = recorded(row.date);
+            const hit = known && row.steps >= stepsGoal;
+            const fraction = known && stepsGoal > 0 ? Math.max(0, Math.min(1, row.steps / stepsGoal)) : 0;
+            return <View key={row.date} accessibilityLabel={fmtDayLabel(row.date)} style={{
+              flexDirection: "row", gap: 13, paddingBottom: 17,
+              borderBottomWidth: 1, borderBottomColor: D.line
+            }}>
+
+              <View style={{ width: 44, alignItems: "center", gap: 4 }}>
+
+                <Text style={{ ...F.caption, fontSize: 10 }}>{fmtWeekday(row.date).toUpperCase()}</Text>
+
+                <Text style={{ color: D.text, fontWeight: "800", fontSize: 22 }}>{new Date(`${row.date}T12:00:00`).getDate()}</Text>
+
+              </View>
+
+              <View style={{ flex: 1, gap: 8 }}>
+
+                <View style={{ ...F.row, flexWrap: "wrap", gap: 4 }}>
+
+                  <Text style={{ color: D.text, fontSize: 19, fontWeight: "700" }}>{known ? row.steps.toLocaleString() : "—"}</Text>
+
+                  <Text style={{ ...F.caption, color: hit ? D.lime : D.muted }}>{!known ? "No record" : hit ? "Goal reached" :
+                    row.steps > 0 ? `${Math.max(0, stepsGoal - row.steps).toLocaleString()} to goal` : "0 steps recorded"}</Text>
+
                 </View>
-              );
-            })}
+
+                <View style={{ height: 5, borderRadius: 3, backgroundColor: D.raised }}>
+
+                  {known && <View style={{ height: 5, borderRadius: 3, width: `${fraction * 100}%`, backgroundColor: hit ? D.lime : D.teal }} />}
+
+                </View>
+
+              </View>
+
+            </View>;
+          })}
+
         </View>
-      </ScrollView>
-    </View>
-  );
-}
+      </>}
 
-function RangePill({
-  value,
-  onChange,
-}: {
-  value: RangeKey;
-  onChange: (range: RangeKey) => void;
-}) {
-  const C = useC();
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        borderRadius: 999,
-        padding: 3,
-        backgroundColor: C.card2,
-        borderWidth: 0,
-        borderColor: C.hairline,
-      }}
-    >
-      {RANGE_OPTIONS.map((option) => {
-        const active = option === value;
-        return (
-          <Pressable
-            key={option}
-            onPress={() => onChange(option)}
-            style={{
-              paddingHorizontal: 11,
-              minHeight: 44,
-              borderRadius: 999,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: active ? alpha(C.purple, 0.26) : "transparent",
-            }}
-          >
-            <Text style={{ color: C.text, fontWeight: "600", fontSize: 12 }}>
-              {option === 7 ? "7D" : option === 30 ? "30D" : "90D"}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent: string;
-}) {
-  const C = useC();
-  return (
-    <View
-      style={{
-        flex: 1,
-        borderRadius: 14,
-        padding: 12,
-        backgroundColor: C.card2,
-        borderWidth: 0,
-        borderColor: alpha(accent, 0.22),
-        gap: 4,
-      }}
-    >
-      <Text style={{ color: C.muted, fontWeight: "500", fontSize: 11 }}>{label}</Text>
-      <Text style={{ color: C.text, fontWeight: "600", fontSize: 18 }}>{value}</Text>
-    </View>
-  );
-}
-
-function SectionLabel({ title }: { title: string }) {
-  const C = useC();
-  return (
-    <Text
-      style={{
-        color: C.muted,
-        fontWeight: "600",
-        fontSize: 12,
-        textTransform: "uppercase",
-        letterSpacing: 0.8,
-      }}
-    >
-      {title}
-    </Text>
-  );
-}
-
-function iconButton(C: ReturnType<typeof useC>) {
-  return {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
-    borderWidth: 0,
-    borderColor: C.hairline,
-    backgroundColor: C.card2,
-  };
+  </FlowPage>;
 }

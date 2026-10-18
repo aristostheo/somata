@@ -100,6 +100,7 @@ Avoid markdown. JSON only.`;
       { role: "user", content: user },
     ],
     {
+      operation: "macroCompletion",
       model: "gpt-4o-mini",
       maxTokens: 900,
       temperature: args.forceNew ? 0.8 : 0.45,

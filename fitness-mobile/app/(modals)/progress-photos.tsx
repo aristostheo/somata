@@ -1,21 +1,19 @@
-import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useAccountStorage } from '@/services/local/accountStore';
+import { Button, Empty, Field, Heading, IconButton, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Image,
-  Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  View,
+  View
 } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useReducedMotion } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
-import * as ImagePicker from "expo-image-picker";
 
 import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import {
@@ -39,6 +37,9 @@ function wait(ms: number) {
 }
 
 export default function ProgressPhotosScreen() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const { colors } = useProfileFlowTheme();
   const reduceMotion = useReducedMotion();
   const router = useRouter();
@@ -52,15 +53,15 @@ export default function ProgressPhotosScreen() {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   const refresh = useCallback(async () => {
-    const rows = await getPhotos();
+    const rows = await getPhotos(localStore);
     setPhotos(rows);
     setBaselineId((current) => current && rows.some((item) => item.id === current) ? current : rows[0]?.id || null);
     setSelectedId((current) => current && rows.some((item) => item.id === current) ? current : rows[rows.length - 1]?.id || null);
   }, []);
 
   useEffect(() => {
-    refresh().catch(() => {});
-    hasSeenProgressPhotoPrivacyNotice().then((seen) => {
+    refresh().catch(() => { });
+    hasSeenProgressPhotoPrivacyNotice(localStore).then((seen) => {
       if (!seen) setPrivacyOpen(true);
     });
   }, [refresh]);
@@ -91,17 +92,17 @@ export default function ProgressPhotosScreen() {
       const result =
         mode === "camera"
           ? await ImagePicker.launchCameraAsync({
-              mediaTypes: ["images"],
-              allowsEditing: true,
-              aspect: [3, 4],
-              quality: 0.95,
-            })
+            mediaTypes: ["images"],
+            allowsEditing: true,
+            aspect: [3, 4],
+            quality: 0.95,
+          })
           : await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ["images"],
-              allowsEditing: true,
-              aspect: [3, 4],
-              quality: 0.95,
-            });
+            mediaTypes: ["images"],
+            allowsEditing: true,
+            aspect: [3, 4],
+            quality: 0.95,
+          });
 
       if (result.canceled || !result.assets?.[0]?.uri) return;
       setPendingUri(result.assets[0].uri);
@@ -115,13 +116,13 @@ export default function ProgressPhotosScreen() {
 
   async function confirmAdd() {
     if (!pendingUri) return;
-    await addPhoto(pendingUri, note);
+    await addPhoto(pendingUri, note, localStore);
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {}
+    } catch { }
     setPendingUri(null);
     setNote("");
-    refresh().catch(() => {});
+    refresh().catch(() => { });
   }
 
   async function removePhoto(photo: ProgressPhoto) {
@@ -131,9 +132,9 @@ export default function ProgressPhotosScreen() {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
-          await deletePhoto(photo.id);
+          await deletePhoto(photo.id, localStore);
           setViewerIndex(null);
-          refresh().catch(() => {});
+          refresh().catch(() => { });
         },
       },
     ]);
@@ -143,206 +144,51 @@ export default function ProgressPhotosScreen() {
     ? current.weight - baseline.weight
     : null;
 
-  return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <FlowAtmosphere />
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Pressable onPress={() => router.back()} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
-          <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
-        </Pressable>
-        <Text style={[styles.title, { color: colors.textPrimary }]}>Progress Photos</Text>
-        <Pressable
-          onPress={() => setPickerOpen(true)}
-          style={[styles.addPill, { borderColor: colors.border, backgroundColor: colors.surface2 }]}
-        >
-          <Text style={[styles.addPillText, { color: colors.accent }]}>+ Add</Text>
-        </Pressable>
-      </View>
+  return (<><TaskPage title="See your own story" section="Progress photos" subtitle="A private collection stored on this device." onBack={() => router.back()} action={<IconButton label="Add progress photo" icon="add" onPress={() => setPickerOpen(true)} />}>
 
-      <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 32, gap: 18 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {current ? (
-          <View style={{ gap: 12 }}>
-            <View style={styles.compareRow}>
-              <View style={{ flex: 1, gap: 8 }}>
-                <Pressable onLongPress={() => baseline && setBaselineId(current?.id || baseline.id)}>
-                  <Image source={{ uri: baseline?.uri }} style={styles.compareImage} />
-                </Pressable>
-                <View style={[styles.labelChip, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-                  <Text style={[styles.labelChipText, { color: colors.textTertiary }]}>
-                    Start · {baseline ? formatDate(baseline.date) : "—"}
-                  </Text>
-                </View>
-              </View>
-              <View style={{ flex: 1, gap: 8 }}>
-                <Pressable onPress={() => setViewerIndex(Math.max(0, photos.findIndex((item) => item.id === current?.id)))}>
-                  <Image source={{ uri: current.uri }} style={styles.compareImage} />
-                </Pressable>
-                <View style={[styles.labelChip, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-                  <Text style={[styles.labelChipText, { color: colors.textTertiary }]}>
-                    Now · {formatDate(current.date)}
-                  </Text>
-                </View>
-              </View>
-            </View>
-            {weightDelta != null ? (
-              <View
-                style={[
-                  styles.deltaChip,
-                  {
-                    backgroundColor: weightDelta <= 0 ? colors.surface2 : colors.surface2,
-                    borderColor: weightDelta <= 0 ? colors.success : colors.warning,
-                  },
-                ]}
-              >
-                <Text
-                  style={{
-                    color: weightDelta <= 0 ? colors.success : colors.warning,
-                    fontSize: 12,
-                    fontWeight: "500",
-                  }}
-                >
-                  {weightDelta <= 0 ? "↓" : "↑"} {Math.abs(Math.round(weightDelta))} lb
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        ) : (
-          <View style={styles.singleState}>
-            <Ionicons name="camera-outline" size={36} color={colors.textTertiary} />
-            <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
-              Add another photo to see your progress
-            </Text>
-          </View>
-        )}
+    {!photos.length ? <Empty title="Your collection starts with one photo" detail="Choose an image or take a photo when you feel ready." /> : <>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        {[{ label: 'Baseline', photo: baseline }, { label: 'Selected', photo: current }].map(({ label, photo }) => <View key={label} style={{ flex: 1, gap: 8 }}>
+          <Text style={F.eyebrow}>{label}</Text>
+          {photo && <Pressable accessibilityRole="button" accessibilityLabel={`Open ${label} photo`} onPress={() => setViewerIndex(photos.findIndex(p => p.id === photo.id))}>
+            <Image source={{ uri: photo.uri }} style={{ width: '100%', aspectRatio: 0.75, borderRadius: 20 }} />
+          </Pressable>}
+          <Text style={F.caption}>{photo ? formatDate(photo.date) : '—'}</Text>
+        </View>)}
+      </View>{weightDelta != null && <Text style={F.body}>Recorded weight difference · {weightDelta > 0 ? '+' : ''}{weightDelta.toFixed(1)} lb</Text>}
+      <Heading title="Photo journal" detail="Tap to compare. Hold a photo to set it as your baseline." />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+        {photos.map((photo, i) => <View key={photo.id} style={{ width: '47%', gap: 8 }}>
+          <Pressable accessibilityRole="button" accessibilityLabel={`Select photo from ${photo.date}`} onPress={() => setSelectedId(photo.id)} onLongPress={() => setBaselineId(photo.id)}>
+            <Image source={{ uri: photo.uri }} style={{ width: '100%', aspectRatio: 0.75, borderRadius: 16, borderWidth: selectedId === photo.id ? 2 : 0, borderColor: D.lime }} />
+          </Pressable>
+          <Text style={F.caption}>{formatDate(photo.date)}{baselineId === photo.id ? ' · Baseline' : ''}</Text>
+          {!!photo.note && <Text style={F.body}>{photo.note}</Text>}
+          <Button label="Set baseline" onPress={() => setBaselineId(photo.id)} />
+          <Button label="View photo" onPress={() => setViewerIndex(i)} />
+        </View>)}
+      </View></>}
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.timeline}>
-          {photos.map((photo, index) => (
-            <Pressable
-              key={photo.id}
-              onPress={() => setSelectedId(photo.id)}
-              onLongPress={() => setBaselineId(photo.id)}
-              style={{ gap: 6 }}
-            >
-              <Image
-                source={{ uri: photo.uri }}
-                style={[
-                  styles.timelineThumb,
-                  {
-                    borderColor: photo.id === selectedId ? colors.accent : colors.border,
-                    borderWidth: photo.id === selectedId ? 1.5 : 1,
-                  },
-                ]}
-              />
-              <Text style={[styles.timelineDate, { color: colors.textTertiary }]}>{formatDate(photo.date)}</Text>
-              <Text style={[styles.timelineWeight, { color: colors.textSecondary }]}>
-                {photo.weight != null ? `${Math.round(photo.weight)} lb` : "—"}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      </ScrollView>
-
-      <Modal visible={pickerOpen} transparent animationType={reduceMotion ? "none" : "fade"} onRequestClose={() => setPickerOpen(false)}>
-        <View style={styles.modalOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setPickerOpen(false)} />
-          <View style={[styles.sheet, { backgroundColor: colors.surface2, borderColor: colors.borderElevated }]}>
-            <View style={[styles.handle, { backgroundColor: colors.surface3 }]} />
-            <Pressable onPress={() => startAdd("camera")} style={[styles.sheetRow, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-              <Text style={[styles.sheetRowText, { color: colors.textPrimary }]}>Take photo now</Text>
-            </Pressable>
-            <Pressable onPress={() => startAdd("library")} style={[styles.sheetRow, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-              <Text style={[styles.sheetRowText, { color: colors.textPrimary }]}>Choose from library</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={!!pendingUri} animationType={reduceMotion ? "none" : "slide"} onRequestClose={() => setPendingUri(null)}>
-        <View style={[styles.root, { backgroundColor: colors.background }]}>
-          <View style={[styles.header, { borderBottomColor: colors.border }]}>
-            <Pressable onPress={() => setPendingUri(null)} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
-              <Ionicons name="close" size={18} color={colors.textSecondary} />
-            </Pressable>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>Crop & Confirm</Text>
-            <View style={{ width: 72 }} />
-          </View>
-          <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
-            {pendingUri ? <Image source={{ uri: pendingUri }} style={styles.pendingPreview} /> : null}
-            <TextInput
-              value={note}
-              onChangeText={setNote}
-              placeholder="Add a note..."
-              placeholderTextColor={colors.textTertiary}
-              style={[
-                styles.noteInput,
-                { backgroundColor: colors.surface3, color: colors.textPrimary, borderColor: colors.border },
-              ]}
-              multiline
-            />
-            <Pressable onPress={confirmAdd} style={[styles.confirmButton, { backgroundColor: colors.accent }]}>
-              <Text style={styles.confirmButtonText}>Use photo</Text>
-            </Pressable>
-            <Pressable onPress={() => setPendingUri(null)} style={[styles.ghostButton, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-              <Text style={[styles.ghostText, { color: colors.textSecondary }]}>Retake</Text>
-            </Pressable>
-          </ScrollView>
-        </View>
-      </Modal>
-
-      <Modal visible={privacyOpen} transparent animationType={reduceMotion ? "none" : "fade"} onRequestClose={() => setPrivacyOpen(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.noticeCard, { backgroundColor: colors.surface2, borderColor: colors.borderElevated }]}>
-            <Text style={[styles.noticeTitle, { color: colors.textPrimary }]}>Private by default</Text>
-            <Text style={[styles.noticeCopy, { color: colors.textSecondary }]}>
-              Photos are stored only on your device. They are never uploaded or shared.
-            </Text>
-            <Pressable
-              onPress={async () => {
-                await markProgressPhotoPrivacyNoticeSeen();
-                setPrivacyOpen(false);
-              }}
-              style={[styles.confirmButton, { backgroundColor: colors.accent }]}
-            >
-              <Text style={styles.confirmButtonText}>Got it</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={viewerIndex != null} transparent={false} animationType={reduceMotion ? "none" : "fade"} onRequestClose={() => setViewerIndex(null)}>
-        <View style={[styles.viewerRoot, { backgroundColor: colors.background }]}>
-          <View style={styles.viewerHeader}>
-            <Pressable onPress={() => setViewerIndex(null)} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
-              <Ionicons name="close" size={18} color={colors.textSecondary} />
-            </Pressable>
-            <Pressable
-              onPress={() => viewerIndex != null && photos[viewerIndex] && removePhoto(photos[viewerIndex])}
-              style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}
-            >
-              <Ionicons name="trash-outline" size={18} color={colors.danger} />
-            </Pressable>
-          </View>
-          {viewerIndex != null && photos[viewerIndex] ? (
-            <ScrollView
-              horizontal
-              pagingEnabled
-              maximumZoomScale={3}
-              minimumZoomScale={1}
-              contentOffset={{ x: viewerIndex * 1, y: 0 }}
-            >
-              {photos.map((photo) => (
-                <View key={photo.id} style={{ width: "100%" as any, justifyContent: "center", alignItems: "center" }}>
-                  <Image source={{ uri: photo.uri }} style={styles.fullscreenImage} resizeMode="contain" />
-                </View>
-              ))}
-            </ScrollView>
-          ) : null}
-        </View>
-      </Modal>
-    </View>
+  </TaskPage><TaskSheet title="Add to your journal" visible={pickerOpen} onClose={() => setPickerOpen(false)}>
+      <Button label="Take photo" onPress={() => startAdd('camera')} />
+      <Button label="Choose from library" onPress={() => startAdd('library')} />
+    </TaskSheet>
+    <TaskSheet title="Keep this moment" visible={!!pendingUri} onClose={() => setPendingUri(null)}>
+      {pendingUri && <Image source={{ uri: pendingUri }} style={{ width: '100%', height: 260, borderRadius: 20 }} resizeMode="contain" />}
+      <Field label="Note · optional" multiline value={note} onChangeText={setNote} />
+      <Button primary label="Save photo" onPress={confirmAdd} />
+      <Button label="Cancel" onPress={() => setPendingUri(null)} />
+    </TaskSheet>
+    <TaskSheet title="Private by default" visible={privacyOpen} onClose={() => setPrivacyOpen(false)}>
+      <Text style={F.body}>Photos are stored only on your device. They are never uploaded or shared.</Text>
+      <Button primary label="Got it" onPress={async () => { await markProgressPhotoPrivacyNoticeSeen(localStore); setPrivacyOpen(false); }} />
+    </TaskSheet>
+    <TaskSheet title={viewerIndex != null && photos[viewerIndex] ? formatDate(photos[viewerIndex].date) : 'Photo'} visible={viewerIndex != null} onClose={() => setViewerIndex(null)}>
+      {viewerIndex != null && photos[viewerIndex] && <><Image source={{ uri: photos[viewerIndex].uri }} style={{ width: '100%', height: 420, borderRadius: 16 }} resizeMode="contain" /><Text style={F.body}>{photos[viewerIndex].note}</Text><View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <IconButton label="Previous photo" icon="arrow-back" disabled={viewerIndex <= 0} onPress={() => setViewerIndex(viewerIndex - 1)} />
+        <IconButton label="Next photo" icon="arrow-forward" disabled={viewerIndex >= photos.length - 1} onPress={() => setViewerIndex(viewerIndex + 1)} />
+      </View><Button danger label="Delete photo" onPress={() => removePhoto(photos[viewerIndex])} /></>}
+    </TaskSheet></>
   );
 }
 

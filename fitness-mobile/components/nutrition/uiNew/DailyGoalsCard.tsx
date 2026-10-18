@@ -7,6 +7,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { remainingNutritionTargets } from "@/services/nutritionTargets";
 
 const ACircle = Animated.createAnimatedComponent(Circle);
 
@@ -78,12 +79,13 @@ export function DailyGoalsCard({
   const [expanded, setExpanded] = useState(false);
   const accent = colors.primary;
   const kcalNow = Math.round(totals.calories || 0);
-  const kcalGoal = Math.max(1, Math.round(goals.calories || 1));
-  const kcalRemaining = Math.max(0, kcalGoal - kcalNow);
-  const proteinLeft = Math.max(0, Math.round((goals.protein || 0) - (totals.protein || 0)));
-  const pct = clamp01(kcalNow / kcalGoal);
+  const kcalGoal = Math.max(0, Math.round(goals.calories ?? 0));
+  const remaining = remainingNutritionTargets(goals, totals);
+  const kcalRemaining = remaining.calories;
+  const proteinLeft = remaining.protein;
+  const pct = kcalGoal > 0 ? clamp01(kcalNow / kcalGoal) : 0;
   const projection = useMemo(() => {
-    if (!forecast?.enabled) return null;
+    if (!forecast?.enabled || kcalGoal <= 0) return null;
     const now = new Date();
     const hoursElapsed = now.getHours() + now.getMinutes() / 60;
     if (kcalNow <= 0 || hoursElapsed <= 0 || now.getHours() < 8) return null;

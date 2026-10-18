@@ -3,9 +3,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
   ensureProfile,
+  importLegacyProfile,
+  loadLegacyProfileImport,
   subscribeProfile,
   updateProfile,
 } from "../services/profile";
+import { matchingPatchFields, selectedFields } from "../services/legacyProfileImport";
 import { computeTargets } from "../utils/macros";
 
 const toKg = (val, unit) =>
@@ -16,6 +19,9 @@ const fromKg = (kg, unit) =>
 export default function Profile() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
+  const [legacyImport, setLegacyImport] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const [importNote, setImportNote] = useState("");
 
   // local editable state (mirrors profile, with unit-friendly inputs)
   const [sex, setSex] = useState("male");
@@ -91,7 +97,7 @@ export default function Profile() {
     let active = true;
     let unsub;
     (async () => {
-      await ensureProfile(user.uid, { email: user.email });
+      await ensureProfile(user.uid);
       if (!active) return;
       unsub = subscribeProfile(user.uid, (p) => {
         setProfile(p);
@@ -119,6 +125,35 @@ export default function Profile() {
       if (unsub) unsub();
     };
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    loadLegacyProfileImport(user.uid).then((candidate) => {
+      if (active) setLegacyImport(candidate && Object.keys(candidate).length ? candidate : null);
+    }).catch(() => {
+      // The shared users/{uid} profile remains usable before legacy read rules are deployed.
+      if (active) setLegacyImport(null);
+    });
+    return () => { active = false; };
+  }, [user]);
+
+  const onImport = async () => {
+    if (!user || !profile || !legacyImport || importing) return;
+    setImporting(true);
+    setImportNote("");
+    try {
+      const changed = await importLegacyProfile(user.uid, legacyImport, selectedFields(profile, legacyImport));
+      setLegacyImport(null);
+      setImportNote(changed
+        ? "Earlier web profile fields were saved to your shared profile."
+        : "Those values are already in your shared profile.");
+    } catch (error) {
+      setImportNote(error?.message || "Import could not be completed. Refresh and try again.");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const weightKg = useMemo(
     () => toKg(weightInput, weightUnit),
@@ -181,7 +216,9 @@ export default function Profile() {
       fatPct: Number(fatPct),
       // computed targets
       calorieGoal: preview.calorieGoal,
+      dailyCaloriesTarget: preview.calorieGoal,
       proteinGoal: preview.proteinGoal,
+      dailyProteinTarget: preview.proteinGoal,
       carbGoal: preview.carbGoal,
       fatGoal: preview.fatGoal,
       updatedAt: Date.now(),
@@ -205,6 +242,26 @@ export default function Profile() {
         <h1 className="h1">Profile & Goals</h1>
         <div className="subtle">{user?.email}</div>
       </div>
+      {profile.activeFitAdaptTargets && <p className="subtle">An accepted FitAdapt plan sets your current nutrition targets. Changes saved here update your shared saved goals without replacing that plan. To change the active plan, request a FitAdapt review from the mobile Profile and accept its proposal there.</p>}
+      {legacyImport && !matchingPatchFields(profile, legacyImport) && (
+        <section className="card p-6 space-y-3">
+          <h2 className="h2">Earlier web profile</h2>
+          <p className="subtle">Compare your current shared values with the earlier web values before importing. The import replaces the listed saved fields; an accepted FitAdapt plan stays active until you accept a new proposal.</p>
+          <dl className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {Object.entries(legacyImport).filter(([key]) => key !== "dailyCaloriesTarget" && key !== "dailyProteinTarget").map(([key, value]) => (
+              <div key={key}>
+                <dt className="subtle">{legacyFieldLabel(key)}</dt>
+                <dd>Current: {legacyFieldValue(key, currentProfileValue(profile, key))}</dd>
+                <dd>Earlier web: {legacyFieldValue(key, value)}</dd>
+              </div>
+            ))}
+          </dl>
+          <button type="button" className="button" disabled={importing} onClick={onImport}>
+            {importing ? "Importing…" : "Use earlier web values"}
+          </button>
+        </section>
+      )}
+      {importNote && <p role="status" className="subtle">{importNote}</p>}
 
       <form onSubmit={onSave} className="space-y-6">
         {/* Basics */}
@@ -370,7 +427,7 @@ export default function Profile() {
             </div>
           )}
 
-          {/* Live preview */}
+          {/* Saved-goal preview; an accepted FitAdapt plan remains active. */}
           {preview && (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <SummaryCard label="Calories" value={preview.calorieGoal} />
@@ -388,6 +445,29 @@ export default function Profile() {
       </form>
     </div>
   );
+}
+
+const legacyLabels = {
+  calorieGoal: "Daily calories", proteinGoal: "Protein", carbGoal: "Carbs", fatGoal: "Fat",
+  sex: "Equation sex", age: "Age", heightCm: "Height", weightKg: "Weight",
+  weightUnit: "Weight display", activityLevel: "Activity", goal: "Goal", targetMode: "Macro method",
+  proteinPerKg: "Protein per kg", proteinPct: "Protein share", carbPct: "Carb share", fatPct: "Fat share",
+};
+
+function legacyFieldLabel(key) { return legacyLabels[key] || key; }
+function currentProfileValue(profile, key) {
+  if (key === "calorieGoal") return profile.dailyCaloriesTarget ?? profile.calorieGoal;
+  if (key === "proteinGoal") return profile.dailyProteinTarget ?? profile.proteinGoal;
+  return profile[key];
+}
+function legacyFieldValue(key, value) {
+  if (value == null) return "Not saved";
+  if (key === "calorieGoal") return `${value} kcal`;
+  if (["proteinGoal", "carbGoal", "fatGoal"].includes(key)) return `${value} g`;
+  if (key === "heightCm") return `${value} cm`;
+  if (key === "weightKg") return `${value} kg`;
+  if (["proteinPct", "carbPct", "fatPct"].includes(key)) return `${Math.round(value * 100)}%`;
+  return String(value).replaceAll("_", " ");
 }
 
 function PctField({ label, value, onChange }) {

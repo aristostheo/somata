@@ -1,3 +1,4 @@
+import { assertAccountActive } from "../account/guard";
 import { createHash, randomUUID } from "node:crypto";
 import { Firestore } from "firebase-admin/firestore";
 import { BridgeError, type FitAdaptAdaptationEvent, type FitAdaptEvaluation, type FitAdaptRequest, type FitAdaptTargets } from "./contract";
@@ -45,6 +46,7 @@ function state(value: FirebaseFirestore.DocumentData | undefined): PlanState {
 async function clearPending(db: Firestore, uid: string, observedId: string | undefined): Promise<PlanState> {
   const ref = db.collection("fitadaptPlans").doc(uid);
   return db.runTransaction(async (tx) => {
+    await assertAccountActive(db, uid, tx);
     const current = state((await tx.get(ref)).data());
     if (!current.pending || current.pending.id !== observedId) return current;
     tx.set(ref.collection("history").doc(current.pending.id),
@@ -56,6 +58,7 @@ async function clearPending(db: Firestore, uid: string, observedId: string | und
 
 export async function getPlanState(db: Firestore, auth: { uid: string } | null | undefined, data: unknown): Promise<PublicPlanState> {
   const uid = requireAuth(auth);
+  await assertAccountActive(db, uid);
   requireEmpty(data);
   return publicState(state((await db.collection("fitadaptPlans").doc(uid).get()).data()));
 }
@@ -66,6 +69,7 @@ export async function requestPlanEvaluation(db: Firestore, auth: { uid: string }
       { kind: "insufficient_data"; missing: string[]; state: PublicPlanState } |
       { kind: "evaluation"; evaluation: FitAdaptEvaluation; state: PublicPlanState }> {
   const uid = requireAuth(auth);
+  await assertAccountActive(db, uid);
   requireEmpty(data);
   const ref = db.collection("fitadaptPlans").doc(uid);
   const existing = state((await ref.get()).data());
@@ -81,6 +85,7 @@ export async function requestPlanEvaluation(db: Firestore, auth: { uid: string }
   const proposed = evaluation.proposal;
   const fingerprint = sourceFingerprint(inputs.profile);
   const result = await db.runTransaction(async (tx) => {
+    await assertAccountActive(db, uid, tx);
     const [planSnap, profileSnap] = await Promise.all([tx.get(ref), tx.get(db.collection("users").doc(uid))]);
     if (sourceFingerprint(profileSnap.data()) !== fingerprint)
       throw new BridgeError("stale_proposal", "Your goals changed during evaluation. Request a new review.");
@@ -103,6 +108,7 @@ export async function requestPlanEvaluation(db: Firestore, auth: { uid: string }
 export async function resolveProposal(db: Firestore, auth: { uid: string } | null | undefined, data: unknown,
   action: "accept" | "decline", callEngine?: (request: FitAdaptRequest) => Promise<FitAdaptEvaluation>): Promise<PublicPlanState> {
   const uid = requireAuth(auth);
+  await assertAccountActive(db, uid);
   const input = data && typeof data === "object" && !Array.isArray(data) ? data as Record<string, unknown> : null;
   if (!input || Object.keys(input).length !== 1 || typeof input.proposalId !== "string" || !input.proposalId)
     throw new BridgeError("invalid_request", "A proposal ID is required.");
@@ -133,6 +139,7 @@ export async function resolveProposal(db: Firestore, auth: { uid: string } | nul
     activation = verifiedActivation;
   }
   const resolved = await db.runTransaction(async (tx) => {
+    await assertAccountActive(db, uid, tx);
     const userRef = db.collection("users").doc(uid);
     const [planSnap, profileSnap] = await Promise.all([tx.get(ref), tx.get(userRef)]);
     const current = state(planSnap.data());

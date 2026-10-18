@@ -1,3 +1,4 @@
+import { setForActiveAccount } from "./account/guard";
 // functions/src/foodHistory.ts
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
@@ -55,7 +56,7 @@ export const onNutritionEntryCreated = onDocumentCreated(
     const slug = slugify(name);
     const histRef = db.doc(`users/${uid}/foodHistory/${slug}`);
 
-    await histRef.set(
+    await setForActiveAccount(db, uid, histRef,
       {
         name,
         slug,

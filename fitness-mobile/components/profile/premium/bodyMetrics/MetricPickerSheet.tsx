@@ -1,19 +1,18 @@
+import { Button, Choice, Heading, IconButton, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 // components/profile/bodyMetrics/MetricPickerSheet.tsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import * as Haptics from "expo-haptics";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Platform,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
-import * as Haptics from "expo-haptics";
 import { useReducedMotion } from "react-native-reanimated";
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 
 const ITEM_H = 44;
 const VISIBLE = 7; // odd number looks most "wheel-like"
@@ -52,6 +51,8 @@ export default function MetricPickerSheet({
   onClose,
   onChange,
 }: Props) {
+  const { D, F } = useSomataTheme();
+
   const { colors, isDark } = useProfileFlowTheme();
   const reduceMotion = useReducedMotion();
   const listRef = useRef<FlatList<number>>(null);
@@ -96,7 +97,7 @@ export default function MetricPickerSheet({
   const nudge = async (dir: -1 | 1) => {
     try {
       await Haptics.selectionAsync();
-    } catch {}
+    } catch { }
 
     if (internal == null) {
       const fallback = values[0] ?? 0;
@@ -133,192 +134,27 @@ export default function MetricPickerSheet({
     if (picked !== internal) {
       try {
         await Haptics.selectionAsync();
-      } catch {}
+      } catch { }
       setInternal(picked);
       onChange(picked);
     }
   };
 
-  return (
-    <Modal
-      visible={open}
-      transparent
-      animationType={reduceMotion ? "none" : "fade"}
-      onRequestClose={onClose}
-    >
-      <Pressable style={styles.backdrop} onPress={onClose} />
-
-      <View
-        style={[
-          styles.sheet,
-          {
-            backgroundColor: colors.surface1,
-            borderColor: colors.border,
-          },
-        ]}
-      >
-        <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-            {!!subtitle && (
-              <Text style={[styles.subtitle, { color: colors.muted }]}>
-                {subtitle}
-              </Text>
-            )}
-          </View>
-
-          <Pressable
-            onPress={async () => {
-              try {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              } catch {}
-              onClose();
-            }}
-            style={({ pressed }) => [
-              styles.doneBtn,
-              {
-                backgroundColor: pressed
-                  ? isDark
-                    ? "rgba(255,255,255,0.10)"
-                    : "rgba(0,0,0,0.06)"
-                  : isDark
-                  ? "rgba(255,255,255,0.08)"
-                  : "rgba(0,0,0,0.04)",
-              },
-            ]}
-          >
-            <Text style={[styles.doneText, { color: colors.text }]}>Done</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.controls}>
-          <Pressable
-            onPress={() => nudge(-1)}
-            style={({ pressed }) => [
-              styles.stepBtn,
-              {
-                backgroundColor: pressed
-                  ? isDark
-                    ? "rgba(255,255,255,0.10)"
-                    : "rgba(0,0,0,0.06)"
-                  : isDark
-                  ? "rgba(255,255,255,0.07)"
-                  : "rgba(0,0,0,0.03)",
-              },
-            ]}
-          >
-            <Text style={[styles.stepTxt, { color: colors.text }]}>−</Text>
-          </Pressable>
-
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <Text style={[styles.preview, { color: colors.text }]}>
-              {internal == null
-                ? nullLabel
-                : `${display(internal)}${unitLabel ? ` ${unitLabel}` : ""}`}
-            </Text>
-            {!!allowNull && (
-              <Text style={[styles.previewHint, { color: colors.muted }]}>
-                Optional
-              </Text>
-            )}
-          </View>
-
-          <Pressable
-            onPress={() => nudge(1)}
-            style={({ pressed }) => [
-              styles.stepBtn,
-              {
-                backgroundColor: pressed
-                  ? isDark
-                    ? "rgba(255,255,255,0.10)"
-                    : "rgba(0,0,0,0.06)"
-                  : isDark
-                  ? "rgba(255,255,255,0.07)"
-                  : "rgba(0,0,0,0.03)",
-              },
-            ]}
-          >
-            <Text style={[styles.stepTxt, { color: colors.text }]}>+</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.wheelWrap}>
-          <View
-            pointerEvents="none"
-            style={[
-              styles.selectionBand,
-              {
-                borderColor: isDark
-                  ? "rgba(255,255,255,0.12)"
-                  : "rgba(0,0,0,0.10)",
-                backgroundColor: isDark
-                  ? "rgba(255,255,255,0.03)"
-                  : "rgba(0,0,0,0.02)",
-              },
-            ]}
-          />
-          <FlatList
-            ref={listRef}
-            data={values}
-            keyExtractor={(v) => `v:${v}`}
-            showsVerticalScrollIndicator={false}
-            snapToInterval={ITEM_H}
-            decelerationRate={Platform.OS === "ios" ? "fast" : 0.98}
-            contentContainerStyle={{ paddingVertical: PAD }}
-            onMomentumScrollEnd={onMomentumEnd}
-            renderItem={({ item, index }) => {
-              const selected = item === internal;
-              return (
-                <View style={[styles.item, { height: ITEM_H }]}>
-                  <Text
-                    style={[
-                      styles.itemText,
-                      {
-                        color: selected ? colors.text : colors.muted,
-                        opacity: selected ? 1 : 0.65,
-                      },
-                    ]}
-                  >
-                    {display(item)}
-                    {unitLabel ? ` ${unitLabel}` : ""}
-                  </Text>
-                </View>
-              );
-            }}
-          />
-        </View>
-
-        {!!allowNull && (
-          <View style={styles.footer}>
-            <Pressable
-              onPress={async () => {
-                try {
-                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                } catch {}
-                setInternal(null);
-                onChange(null);
-              }}
-              style={({ pressed }) => [
-                styles.clearBtn,
-                {
-                  backgroundColor: pressed
-                    ? isDark
-                      ? "rgba(255,255,255,0.10)"
-                      : "rgba(0,0,0,0.06)"
-                    : isDark
-                    ? "rgba(255,255,255,0.07)"
-                    : "rgba(0,0,0,0.03)",
-                },
-              ]}
-            >
-              <Text style={[styles.clearTxt, { color: colors.text }]}>
-                Clear ({nullLabel})
-              </Text>
-            </Pressable>
-          </View>
-        )}
+  return (<TaskSheet title={title} visible={open} onClose={onClose}>
+    <Text style={F.body}>{subtitle}</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <IconButton icon="remove" label={`Decrease ${title}`} onPress={() => nudge(-1)} />
+      <View style={{ flex: 1, alignItems: 'center', gap: 4 }}>
+        <Text style={{ ...F.value, fontSize: 42 }}>{internal == null ? nullLabel : display(internal)}</Text>
+        <Text style={F.caption}>{unitLabel}</Text>
       </View>
-    </Modal>
+      <IconButton icon="add" label={`Increase ${title}`} onPress={() => nudge(1)} />
+    </View>
+    <Heading title="Choose a value" />
+    <FlatList horizontal data={values} keyExtractor={v => String(v)} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} renderItem={({ item: v }) => <Choice label={display(v)} selected={internal === v} onPress={() => { setInternal(v); onChange(v); Haptics.selectionAsync().catch(() => { }); }} />} />
+    {allowNull && <Button label={nullLabel} onPress={() => { setInternal(null); onChange(null); }} />}
+    <Button primary label="Done" onPress={onClose} />
+  </TaskSheet>
   );
 }
 

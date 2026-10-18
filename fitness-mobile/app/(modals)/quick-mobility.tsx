@@ -1,12 +1,10 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Button, Heading, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useAuth } from "@/content/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
-import { useAuth } from "@/content/AuthContext";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Platform, StyleSheet } from "react-native";
 
 const withAlpha = (hex: string, a: number) => {
   const h = hex.replace("#", "");
@@ -17,28 +15,6 @@ const withAlpha = (hex: string, a: number) => {
   const alpha = Math.max(0, Math.min(1, a));
   return `rgba(${r},${g},${b},${alpha})`;
 };
-
-function GlassCard({ children, intensity = 32, style }: any) {
-  return (
-    <View style={[styles.cardWrap, style]}>
-      <View style={styles.cardBorder} pointerEvents="none" />
-      <BlurView intensity={intensity} tint="dark" style={styles.cardBlur}>
-        <LinearGradient
-          colors={[
-            withAlpha("#FFFFFF", 0.1),
-            withAlpha("#FFFFFF", 0.06),
-            withAlpha("#000000", 0.06),
-          ]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardInner}
-        >
-          {children}
-        </LinearGradient>
-      </BlurView>
-    </View>
-  );
-}
 
 export default function QuickMobilityModal() {
   const router = useRouter();
@@ -54,7 +30,7 @@ export default function QuickMobilityModal() {
   const haptic = async () => {
     try {
       await Haptics.selectionAsync();
-    } catch {}
+    } catch { }
   };
 
   async function seedAndOpen(kind: "10" | "15") {
@@ -85,7 +61,7 @@ export default function QuickMobilityModal() {
 
     try {
       await AsyncStorage.setItem(templateSeedKey(uid), JSON.stringify(seed));
-    } catch {}
+    } catch { }
 
     router.replace({
       pathname: "/workouts/session",
@@ -94,106 +70,16 @@ export default function QuickMobilityModal() {
     setBusy(false);
   }
 
-  return (
-    <View style={styles.root}>
-      <LinearGradient
-        colors={["#070A12", "#050711", "#03040A"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.8, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <View
-        style={[
-          styles.glow,
-          { top: -140, left: -90, backgroundColor: withAlpha(accent, 0.14) },
-        ]}
-        pointerEvents="none"
-      />
-
-      <View style={{ paddingTop: topPad, paddingHorizontal: 16 }}>
-        <View style={styles.headerRow}>
-          <Pressable
-            onPress={() => router.back()}
-            style={({ pressed }) => [
-              styles.iconBtn,
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={18}
-              color={withAlpha("#FFF", 0.9)}
-            />
-          </Pressable>
-
-          <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Quick Mobility</Text>
-            <Text style={styles.subtitle}>
-              2 taps: choose duration → session opens.
-            </Text>
-          </View>
-        </View>
-
-        <GlassCard style={{ marginTop: 14 }} intensity={34}>
-          <Text style={styles.sectionLabel}>DURATION</Text>
-
-          <Pressable
-            onPress={() => seedAndOpen("10")}
-            style={({ pressed }) => [
-              styles.rowBtn,
-              pressed && { opacity: 0.88 },
-            ]}
-          >
-            <View style={styles.rowIcon}>
-              <Ionicons
-                name="time-outline"
-                size={18}
-                color={withAlpha("#FFF", 0.9)}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.rowTitle}>10 min reset</Text>
-              <Text style={styles.rowSub}>hips • t-spine • hamstrings</Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color={withAlpha("#FFF", 0.55)}
-            />
-          </Pressable>
-
-          <Pressable
-            onPress={() => seedAndOpen("15")}
-            style={({ pressed }) => [
-              styles.rowBtn,
-              pressed && { opacity: 0.88 },
-            ]}
-          >
-            <View style={styles.rowIcon}>
-              <Ionicons
-                name="sparkles-outline"
-                size={18}
-                color={withAlpha("#FFF", 0.9)}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.rowTitle}>15 min loosen up</Text>
-              <Text style={styles.rowSub}>same flow • slower pace</Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={16}
-              color={withAlpha("#FFF", 0.55)}
-            />
-          </Pressable>
-        </GlassCard>
-
-        <Text style={styles.foot}>
-          You can add/remove drills in session — this is your fast default.
-        </Text>
-      </View>
-    </View>
-  );
+  return (<TaskPage title="Quick mobility" section="Start moving" subtitle="Choose a starting point, then review and log your session." onBack={() => router.back()}>
+    <Panel accent>
+      <Heading title="10 minutes" detail="Hip opener flow, thoracic rotation, and hamstring stretch." />
+      <Button primary disabled={busy} label="Start 10-minute flow" onPress={() => seedAndOpen('10')} />
+    </Panel>
+    <Panel>
+      <Heading title="15 minutes" detail="Take a little longer with the same mobility sequence." />
+      <Button disabled={busy} label="Start 15-minute flow" onPress={() => seedAndOpen('15')} />
+    </Panel>
+  </TaskPage>);
 }
 
 const styles = StyleSheet.create({

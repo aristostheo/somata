@@ -1,28 +1,26 @@
+import { Button, Choice, Empty, Field, Heading, Item, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   Alert,
-  Animated as RNAnimated,
   Platform,
-  Pressable,
-  ScrollView,
+  Animated as RNAnimated,
   Share,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
-  View,
+  View
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import Body, {
-  type ExtendedBodyPart,
   type Slug as BodySlug,
+  type ExtendedBodyPart,
 } from "react-native-body-highlighter/dist/index";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 
 import { useAuth } from "@/content/AuthContext";
 import { useTheme } from "@/content/ThemeProvider";
@@ -78,12 +76,12 @@ const FATIGUE_OPTIONS: Array<{
   label: string;
   tint: string;
 }> = [
-  { key: "destroyed", label: "Destroyed", tint: "#F87171" },
-  { key: "hard", label: "Hard", tint: "#F59E0B" },
-  { key: "good", label: "Good", tint: "#7B6FFF" },
-  { key: "easy", label: "Easy", tint: "#4ADE80" },
-  { key: "tooEasy", label: "Too easy", tint: "#4ADE80" },
-];
+    { key: "destroyed", label: "Destroyed", tint: "#F87171" },
+    { key: "hard", label: "Hard", tint: "#F59E0B" },
+    { key: "good", label: "Good", tint: "#7B6FFF" },
+    { key: "easy", label: "Easy", tint: "#4ADE80" },
+    { key: "tooEasy", label: "Too easy", tint: "#4ADE80" },
+  ];
 
 const KEY_TO_SLUG: Record<PrimaryMuscleKey, BodySlug> = {
   chest: "chest",
@@ -289,16 +287,18 @@ function enterMotion(reduceMotion: boolean, delay: number, distance = 8) {
   return reduceMotion
     ? FadeIn.duration(220).delay(delay)
     : FadeInDown.duration(320).delay(delay).withInitialValues({
-        opacity: 0,
-        transform: [{ translateY: distance }],
-      });
+      opacity: 0,
+      transform: [{ translateY: distance }],
+    });
 }
 
 export default function WorkoutRecapScreen() {
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const { user } = useAuth();
   const { isDark } = useTheme();
-  const params = useLocalSearchParams<{ sessionKey?: string }>();
+  const params = useLocalSearchParams<{ sessionKey?: string; }>();
   const sessionKey = String(params.sessionKey || "");
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -334,12 +334,12 @@ export default function WorkoutRecapScreen() {
       shadow: isDark
         ? {}
         : {
-            shadowColor: "#000000",
-            shadowOpacity: 0.05,
-            shadowOffset: { width: 0, height: 2 },
-            shadowRadius: 12,
-            elevation: 2,
-          },
+          shadowColor: "#000000",
+          shadowOpacity: 0.05,
+          shadowOffset: { width: 0, height: 2 },
+          shadowRadius: 12,
+          elevation: 2,
+        },
     }),
     [isDark]
   );
@@ -359,7 +359,7 @@ export default function WorkoutRecapScreen() {
   useEffect(() => {
     AccessibilityInfo.isReduceMotionEnabled()
       .then((v) => setReduceMotion(!!v))
-      .catch(() => {});
+      .catch(() => { });
     const sub = (AccessibilityInfo as any).addEventListener?.(
       "reduceMotionChanged",
       (v: boolean) => setReduceMotion(!!v)
@@ -507,9 +507,8 @@ export default function WorkoutRecapScreen() {
     const exDelta = meta.exerciseCount - previousMeta.exerciseCount;
     const arrow = volDelta >= 0 ? "↑" : "↓";
     if (volDelta < 0) {
-      return `${arrow} lighter than last session${
-        exDelta ? ` · ${Math.abs(exDelta)} ${Math.abs(exDelta) === 1 ? "exercise" : "exercises"} difference` : ""
-      }`;
+      return `${arrow} lighter than last session${exDelta ? ` · ${Math.abs(exDelta)} ${Math.abs(exDelta) === 1 ? "exercise" : "exercises"} difference` : ""
+        }`;
     }
     const volText = `${arrow} +${Math.round(volDelta)}% volume`;
     const exText = exDelta
@@ -544,10 +543,10 @@ export default function WorkoutRecapScreen() {
         };
       })
       .filter(Boolean) as Array<{
-      exercise: string;
-      repShape: string;
-      prevWeightKg: number;
-    }>;
+        exercise: string;
+        repShape: string;
+        prevWeightKg: number;
+      }>;
   }, [allRows, exerciseSummaries, meta.startMs, rows, session]);
 
   const score = useMemo(
@@ -558,7 +557,7 @@ export default function WorkoutRecapScreen() {
   const muscleSummary = useMemo(() => {
     const byKey = new Map<
       PrimaryMuscleKey,
-      { sets: number; exercise: string; lastDate: string }
+      { sets: number; exercise: string; lastDate: string; }
     >();
     for (const row of rows) {
       const key = inferPrimaryMuscle(row.exercise || "", row.primaryMuscle);
@@ -587,9 +586,9 @@ export default function WorkoutRecapScreen() {
         styles:
           activeMuscle === key
             ? {
-                stroke: withAlpha("#FFFFFF", 0.32),
-                strokeWidth: 1.25,
-              }
+              stroke: withAlpha("#FFFFFF", 0.32),
+              strokeWidth: 1.25,
+            }
             : undefined,
       };
     });
@@ -612,7 +611,7 @@ export default function WorkoutRecapScreen() {
           noteDraftRef.current = parsed.note;
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [session?.key, user?.uid]);
 
   const persistDraft = useCallback(
@@ -624,7 +623,7 @@ export default function WorkoutRecapScreen() {
       };
       noteDraftRef.current = next.note || "";
       await AsyncStorage.setItem(recapKey(user.uid, session.key), JSON.stringify(next)).catch(
-        () => {}
+        () => { }
       );
     },
     [fatigue, session?.key, user?.uid]
@@ -634,7 +633,7 @@ export default function WorkoutRecapScreen() {
     async (value: FatigueLevel) => {
       setFatigue(value);
       await persistDraft({ fatigue: value });
-      Haptics.selectionAsync().catch(() => {});
+      Haptics.selectionAsync().catch(() => { });
     },
     [persistDraft]
   );
@@ -694,325 +693,63 @@ export default function WorkoutRecapScreen() {
       entering={enterMotion(reduceMotion, 400 + delay, 8)}
       style={[styles.tile, { backgroundColor: surfaces.s1, borderColor: surfaces.border }, surfaces.shadow]}
     >
+
       <Text style={[styles.tileLabel, { color: surfaces.text3 }]}>{label}</Text>
+
       <Text style={[styles.tileValue, { color: surfaces.text }]}>
         {value}
         {inlineUnit ? <Text style={[styles.tileUnit, { color: surfaces.text3 }]}> {inlineUnit}</Text> : null}
       </Text>
+
     </Animated.View>
   );
 
   if (!session) {
-    return (
-      <View style={[styles.root, { backgroundColor: surfaces.bg, paddingTop: topInset + 24 }]}>
-        <Text style={[styles.heroTitle, { color: surfaces.text }]}>Workout complete</Text>
-        <Text style={[styles.heroMeta, { color: surfaces.text3 }]}>
-          This session could not be found.
-        </Text>
-        <View style={{ paddingHorizontal: 16, marginTop: 24 }}>
-          <Pressable
-            onPress={onDone}
-            style={[styles.primaryButton, { backgroundColor: surfaces.accent }]}
-          >
-            <Text style={styles.primaryButtonText}>Done</Text>
-          </Pressable>
-        </View>
-      </View>
-    );
+    return (<TaskPage title="Workout complete" section="Recap" onBack={onDone}>
+      <Empty title="This session could not be found" />
+      <Button label="Done" onPress={onDone} />
+    </TaskPage>);
   }
 
-  return (
-    <View style={[styles.root, { backgroundColor: surfaces.bg }]}>
-      <RNAnimated.View style={[StyleSheet.absoluteFill, { opacity: backgroundOpacity }]} />
-      {showCelebration ? <CelebrationConfetti accent={surfaces.accent} gold={surfaces.warning} /> : null}
+  return (<TaskPage title={meta.title} section="Workout recap" subtitle={formatHeaderDate(meta.dateISO)} onBack={onDone} footer={<><Button label="Session actions · repeat, template or delete" onPress={() => router.push({ pathname: "/workouts/session-detail", params: { sessionKey } })} /><Button primary label="Done" onPress={onDone} /><Button label={sharing ? 'Sharing…' : 'Share summary'} disabled={sharing} onPress={onShare} icon="share-outline" /></>}>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingTop: topInset + 28,
-          paddingHorizontal: 16,
-          paddingBottom: 120,
-          gap: 24,
-        }}
-      >
-        <Animated.View entering={enterMotion(reduceMotion, 300, 12)} style={styles.centerBlock}>
-          <Text style={[styles.heroTitle, { color: surfaces.text }]}>Workout complete</Text>
-          <Text style={[styles.heroMeta, { color: surfaces.text3 }]}>{meta.title}</Text>
-          <Text style={[styles.heroMeta, { color: surfaces.text3 }]}>
-            {formatHeaderDate(meta.dateISO)} · {meta.durationMin} min
-          </Text>
-        </Animated.View>
-
-        <View style={styles.tilesRow}>
-          {renderTile("DURATION", formatDuration(meta.durationMin), 0)}
-          {renderTile("SETS", meta.totalSets ? String(meta.totalSets) : "—", 100)}
-          {renderTile("REPS", meta.totalReps ? String(meta.totalReps) : "—", 200)}
-          {renderTile(
-            "VOLUME",
-            meta.totalVolumeKg ? String(Math.round(toDisplayWeight(meta.totalVolumeKg))) : "—",
-            300,
-            meta.totalVolumeKg ? weightUnit : undefined
-          )}
-        </View>
-
-        {prRows.length ? (
-          <Animated.View
-            entering={enterMotion(reduceMotion, 600, -10)}
-            style={[
-              styles.prCard,
-              {
-                backgroundColor: surfaces.accentDim,
-                borderColor: surfaces.accentBorder,
-              },
-            ]}
-          >
-            <View style={styles.prHeader}>
-              <Ionicons name="trophy-outline" size={20} color={surfaces.warning} />
-              <Text style={[styles.cardTitle, { color: surfaces.text }]}>
-                {prRows.length} new {prRows.length === 1 ? "PR" : "PRs"} this session
-              </Text>
-            </View>
-            <View style={{ gap: 4 }}>
-              {prRows.map((row) => (
-                <Text key={row.exercise} style={[styles.prLine, { color: surfaces.text2 }]}>
-                  {row.exercise} · {row.repShape}
-                  {row.prevWeightKg ? (
-                    <Text style={{ color: surfaces.text3 }}>
-                      {" "}
-                      · prev: {Math.round(toDisplayWeight(row.prevWeightKg))}
-                      {weightUnit}
-                    </Text>
-                  ) : null}
-                </Text>
-              ))}
-            </View>
-          </Animated.View>
-        ) : null}
-
-        <Animated.View
-          entering={enterMotion(reduceMotion, 500)}
-          style={[styles.compareCard, { backgroundColor: surfaces.s1, borderColor: surfaces.border }, surfaces.shadow]}
-        >
-          <Ionicons
-            name={
-              comparisonCopy === "—"
-                ? "remove-outline"
-                : comparisonCopy.startsWith("↑")
-                ? "arrow-up-outline"
-                : "arrow-down-outline"
-            }
-            size={16}
-            color={
-              comparisonCopy === "—"
-                ? surfaces.text3
-                : comparisonCopy.startsWith("↑")
-                ? surfaces.success
-                : surfaces.text2
-            }
-          />
-          <Text style={[styles.compareText, { color: surfaces.text2 }]}>{comparisonCopy}</Text>
-        </Animated.View>
-
-        <Animated.View
-          entering={enterMotion(reduceMotion, 520)}
-          style={[styles.card, { backgroundColor: surfaces.s1, borderColor: surfaces.border }, surfaces.shadow]}
-        >
-          <Text style={[styles.cardTitle, { color: surfaces.text }]}>Muscles worked</Text>
-          <View style={styles.heatmapRow}>
-            <View style={styles.bodyWrap}>
-              <Body
-                data={bodyData}
-                gender={sex}
-                side="front"
-                scale={0.88}
-                border="none"
-                defaultFill={surfaces.s3}
-                colors={BODY_COLORS}
-                onBodyPartPress={(part: ExtendedBodyPart) => {
-                  const slug = part.slug as BodySlug | undefined;
-                  if (!slug) return;
-                  const key = SLUG_TO_KEYS[slug]?.[0];
-                  if (key) setActiveMuscle(key);
-                }}
-              />
-            </View>
-            <View style={styles.bodyWrap}>
-              <Body
-                data={bodyData}
-                gender={sex}
-                side="back"
-                scale={0.88}
-                border="none"
-                defaultFill={surfaces.s3}
-                colors={BODY_COLORS}
-                onBodyPartPress={(part: ExtendedBodyPart) => {
-                  const slug = part.slug as BodySlug | undefined;
-                  if (!slug) return;
-                  const key = SLUG_TO_KEYS[slug]?.[0];
-                  if (key) setActiveMuscle(key);
-                }}
-              />
-            </View>
-          </View>
-          {activeMuscle && activeMuscleDetail ? (
-            <View style={[styles.tooltip, { backgroundColor: surfaces.s2, borderColor: surfaces.borderElev }]}>
-              <Text style={[styles.tooltipText, { color: surfaces.text2 }]}>
-                {REGION_LABELS[activeMuscle]} · {activeMuscleDetail.exercise} · {activeMuscleDetail.sets}{" "}
-                {activeMuscleDetail.sets === 1 ? "set" : "sets"}
-              </Text>
-            </View>
-          ) : null}
-        </Animated.View>
-
-        <Animated.View
-          entering={enterMotion(reduceMotion, 560)}
-          style={[styles.card, { backgroundColor: surfaces.s1, borderColor: surfaces.border }, surfaces.shadow]}
-        >
-          <Text style={[styles.cardTitle, { color: surfaces.text }]}>How did that feel?</Text>
-          <Text style={[styles.cardCaption, { color: surfaces.text3 }]}>
-            This shapes your next recovery suggestion
-          </Text>
-          <View style={styles.fatigueRow}>
-            {FATIGUE_OPTIONS.map((option) => {
-              const selected = fatigue === option.key;
-              return (
-                <Pressable
-                  key={option.key}
-                  onPress={() => onSelectFatigue(option.key)}
-                  style={[
-                    styles.fatigueChip,
-                    selected
-                      ? {
-                          backgroundColor: withAlpha(option.tint, 0.12),
-                          borderColor: option.tint,
-                        }
-                      : {
-                          backgroundColor: surfaces.s2,
-                          borderColor: surfaces.border,
-                        },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.fatigueText,
-                      { color: selected ? option.tint : surfaces.text2 },
-                    ]}
-                  >
-                    {option.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </Animated.View>
-
-        <Animated.View entering={enterMotion(reduceMotion, 600)}>
-          <Pressable onPress={() => setNotesExpanded((v) => !v)} style={styles.noteToggle}>
-            <Ionicons name="create-outline" size={14} color={surfaces.accent} />
-            <Text style={[styles.noteToggleText, { color: surfaces.accent }]}>Add a note →</Text>
-          </Pressable>
-          {notesExpanded ? (
-            <View
-              style={[
-                styles.noteFieldWrap,
-                { backgroundColor: surfaces.s3, borderColor: surfaces.borderElev },
-              ]}
-            >
-              <TextInput
-                multiline
-                value={note}
-                onChangeText={(value) => {
-                  setNote(value);
-                  noteDraftRef.current = value;
-                }}
-                onBlur={onBlurNote}
-                placeholder="How did it go? Form notes, energy levels..."
-                placeholderTextColor={surfaces.text3}
-                style={[styles.noteField, { color: surfaces.text }]}
-                textAlignVertical="top"
-              />
-              <Text style={[styles.noteCount, { color: surfaces.text3 }]}>{note.length}</Text>
-            </View>
-          ) : null}
-        </Animated.View>
-      </ScrollView>
-
-      <Animated.View
-        entering={enterMotion(reduceMotion, 700)}
-        style={[
-          styles.bottomBar,
-          {
-            backgroundColor: surfaces.s1,
-            borderTopColor: surfaces.border,
-          },
-          surfaces.shadow,
-        ]}
-      >
-        <Pressable onPress={onDone} style={[styles.primaryButton, { backgroundColor: surfaces.accent }]}>
-          <Text style={styles.primaryButtonText}>Done</Text>
-        </Pressable>
-        <Pressable
-          onPress={onShare}
-          disabled={sharing}
-          style={[styles.secondaryButton, { borderColor: surfaces.borderElev, backgroundColor: "transparent" }]}
-        >
-          <Text style={[styles.secondaryButtonText, { color: surfaces.text2 }]}>
-            {sharing ? "Sharing..." : "Share session"}
-          </Text>
-        </Pressable>
-      </Animated.View>
+    <View style={{ gap: 8 }}>
+      <Text style={F.eyebrow}>SESSION SCORE</Text>
+      <Text style={{ ...F.value, fontSize: 64, color: D.lime }}>{score}<Text style={F.caption}> / 100</Text></Text>
+      <Text style={F.body}>{comparisonCopy}</Text>
     </View>
-  );
-}
 
-function CelebrationConfetti({ accent, gold }: { accent: string; gold: string }) {
-  const progress = useRef(new RNAnimated.Value(0)).current;
-  useEffect(() => {
-    RNAnimated.timing(progress, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: true,
-    }).start();
-  }, [progress]);
-
-  const particles = Array.from({ length: 24 }, (_, i) => ({
-    id: i,
-    left: `${(i * 37) % 100}%`,
-    color: i % 3 === 0 ? gold : accent,
-    delay: (i % 6) * 40,
-  }));
-
-  return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      {particles.map((p) => {
-        const translateY = progress.interpolate({
-          inputRange: [0, 1],
-          outputRange: [-20 - p.delay, 240 + p.delay],
-        });
-        const opacity = progress.interpolate({
-          inputRange: [0, 0.75, 1],
-          outputRange: [0, 1, 0],
-        });
-        const rotate = progress.interpolate({
-          inputRange: [0, 1],
-          outputRange: ["0deg", `${(p.id % 2 === 0 ? 1 : -1) * 120}deg`],
-        });
-        return (
-          <RNAnimated.View
-            key={p.id}
-            style={[
-              styles.particle,
-              {
-                left: p.left as any,
-                backgroundColor: p.color,
-                opacity,
-                transform: [{ translateY }, { rotate }],
-              },
-            ]}
-          />
-        );
-      })}
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Metric label="Duration" value={formatDuration(meta.durationMin)} />
+      <Metric label="Volume" value={formatVolume(Math.round(toDisplayWeight(meta.totalVolumeKg)), weightUnit)} />
+      <Metric label="Sets / reps" value={`${meta.totalSets} / ${meta.totalReps}`} />
+      <Metric label="Exercises" value={String(meta.exerciseCount)} />
     </View>
+
+    {!!prRows.length && <Panel accent>
+      <Heading title="Personal records" />
+      {prRows.map((p, i) => <Item key={i} title={p.exercise} value={p.repShape} detail={`Previous best · ${Math.round(toDisplayWeight(p.prevWeightKg))} ${weightUnit}`} />)}
+    </Panel>}
+
+    <Heading title="How did that feel?" />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {FATIGUE_OPTIONS.map(o => <Choice key={o.key} label={o.label} selected={fatigue === o.key} onPress={() => onSelectFatigue(o.key)} />)}
+    </View>
+
+    <Button label={notesExpanded ? 'Close session note' : 'Add a session note'} onPress={() => setNotesExpanded(v => !v)} />
+    {notesExpanded && <Field label="Session note" multiline value={note} onChangeText={setNote} onBlur={onBlurNote} />}
+
+    <Panel>
+      <Heading title="Muscle map" detail="Tap a region to inspect the recorded work." />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
+        {(['front', 'back'] as const).map(side => <Body key={side} data={bodyData} gender={sex} side={side} scale={0.8} border="none" defaultFill={D.raised} colors={['#347D71', '#54B9A6', '#D1EF72']} onBodyPartPress={(part: ExtendedBodyPart) => { const slug = part.slug as BodySlug | undefined; if (!slug) return; const key = SLUG_TO_KEYS[slug]?.[0]; if (key) setActiveMuscle(key); }} />)}
+      </View>
+      {activeMuscle && activeMuscleDetail && <Text style={F.body}>{REGION_LABELS[activeMuscle]} · {activeMuscleDetail.exercise} · {activeMuscleDetail.sets} sets</Text>}
+    </Panel>
+
+    <Heading title="What you logged" />
+    {exerciseSummaries.map(e => <Item key={e.name} title={e.name} detail={`${e.totalSets} sets · ${e.totalReps} reps`} value={e.bestRepShape} />)}
+  </TaskPage>
   );
 }
 

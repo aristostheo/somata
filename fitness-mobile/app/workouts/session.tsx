@@ -1,3 +1,6 @@
+import { useAccountStorage } from '@/services/local/accountStore';
+import { Button, Choice, Empty, Field, Heading, IconButton, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 // app/workouts/session.tsx
 // Sleek "Apple-ish" log workout page (fast during real workouts)
 // - Uses add-exercise.tsx modal for Browse + Presets
@@ -5,47 +8,39 @@
 // - Draft persisted via sessionDraft utils
 // - Finish writes to DB via addWorkout() with session grouping fields
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  Modal,
-  Platform,
-  StatusBar,
-  TextInput,
-  KeyboardAvoidingView,
+  ActivityIndicator,
   Keyboard,
   LayoutAnimation,
-  UIManager,
+  Modal,
+  Platform,
   Alert as RNAlert,
+  ScrollView,
+  StatusBar,
   StyleSheet,
-  ActivityIndicator,
+  Text,
+  UIManager,
+  View
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { useTheme } from "@/content/ThemeProvider";
-import { useAuth } from "@/content/AuthContext";
-import { fmt } from "@/utils/date";
-import { lbToKg, kgToLb } from "@/utils/units";
 import { withAlpha } from "@/components/workouts/utils/withAlpha";
+import { useAuth } from "@/content/AuthContext";
+import { useTheme } from "@/content/ThemeProvider";
 import {
   inferPrimaryMuscle,
-  primaryMuscleLabel,
-  PRIMARY_MUSCLE_OPTIONS,
-  type PrimaryMuscleKey,
+  PRIMARY_MUSCLE_OPTIONS
 } from "@/services/workoutMuscles";
+import { fmt } from "@/utils/date";
+import { kgToLb, lbToKg } from "@/utils/units";
 
-import { addWorkout, getRecentWorkouts, type Workout } from "@/services/workouts";
 import {
-  subscribeWorkoutPresets,
   addWorkoutPreset,
   deleteWorkoutPreset,
+  subscribeWorkoutPresets,
   type WorkoutPreset,
 } from "@/services/presets";
 import {
@@ -53,30 +48,30 @@ import {
   subscribeProfile,
   type Profile,
 } from "@/services/profile";
+import { addWorkout, getRecentWorkouts, type Workout } from "@/services/workouts";
 
+import { evaluateBadges } from "@/services/badges/engine";
+import { reconcileBadgesFromSnapshot } from "@/services/badges/reconcile";
+import { BADGES } from "@/services/badges/registry";
 import {
-  loadSessionDraft,
-  saveSessionDraft,
+  loadProgressLocal,
+  loadUnlocksLocal,
+  saveProgressLocal,
+  saveUnlocksLocal,
+} from "@/services/badges/store";
+import type {
+  BadgeEvent,
+  BadgeStatsSnapshot
+} from "@/services/badges/types";
+import { notifyBadgeEarned, notifyNewPR } from "@/services/notificationTriggers";
+import {
   clearSessionDraft,
+  loadSessionDraft,
   newSessionDraft,
+  saveSessionDraft,
   type WorkoutSessionDraft,
   type WorkoutSessionDraftItem,
 } from "../../components/workouts/sessionDraft";
-import { reconcileBadgesFromSnapshot } from "@/services/badges/reconcile";
-import {
-  loadUnlocksLocal,
-  loadProgressLocal,
-  saveUnlocksLocal,
-  saveProgressLocal,
-} from "@/services/badges/store";
-import { evaluateBadges } from "@/services/badges/engine";
-import type {
-  BadgeStatsSnapshot,
-  BadgeEvent,
-  BadgeUnlockState,
-} from "@/services/badges/types";
-import { BADGES } from "@/services/badges/registry";
-import { notifyBadgeEarned, notifyNewPR } from "@/services/notificationTriggers";
 
 if (
   Platform.OS === "android" &&
@@ -106,7 +101,7 @@ type EditSetState = {
 type ReferenceGroup = {
   exercise: string;
   primaryMuscle?: string;
-  sets: Array<{ reps: number; weightKg: number; note?: string }>;
+  sets: Array<{ reps: number; weightKg: number; note?: string; }>;
 };
 
 type Palette = {
@@ -163,14 +158,14 @@ function guessIsDarkFromBg(bg?: string) {
   return luminance < 0.45;
 }
 
-function buildPalette(theme: any): { p: Palette; isDark: boolean } {
+function buildPalette(theme: any): { p: Palette; isDark: boolean; } {
   const colors = theme?.colors ?? theme ?? {};
   const isDark =
     typeof theme?.isDark === "boolean"
       ? theme.isDark
       : typeof colors?.isDark === "boolean"
-      ? colors.isDark
-      : guessIsDarkFromBg(colors?.bg);
+        ? colors.isDark
+        : guessIsDarkFromBg(colors?.bg);
 
   // try common keys; fallback to your original dark palette
   const bg =
@@ -724,95 +719,11 @@ function makeStyles(p: Palette, isDark: boolean) {
     modalPrimaryText: { color: withAlpha(p.text, 0.92), fontWeight: "900" },
   });
 }
-function GlassCard({
-  children,
-  style,
-  styles,
-  isDark: _isDark,
-  p,
-}: {
-  children: React.ReactNode;
-  style?: any;
-  intensity?: number;
-  styles: any;
-  isDark: boolean;
-  p: any;
-}) {
-  return (
-    <View
-      style={[
-        styles.cardWrap,
-        { backgroundColor: "#0F0F1A", borderWidth: 1, borderColor: withAlpha("#FFFFFF", 0.08) },
-        style,
-      ]}
-    >
-      <View style={styles.cardInner}>{children}</View>
-    </View>
-  );
-}
 
-function Chip({
-  icon,
-  label,
-  styles,
-  p,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  styles: any;
-  p: any;
-}) {
-  return (
-    <View style={styles.chip}>
-      <Ionicons name={icon} size={14} color={withAlpha(p.text, 0.82)} />
-      <Text style={styles.chipText}>{label}</Text>
-    </View>
-  );
-}
-
-function MiniBtn({
-  icon,
-  label,
-  onPress,
-  danger,
-  styles,
-  p,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  onPress?: () => void;
-  danger?: boolean;
-  styles: any;
-  p: any;
-}) {
-  const dangerColor = p.danger;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => [
-        styles.miniBtn,
-        danger && { borderColor: withAlpha(dangerColor, 0.25) },
-        pressed && { opacity: 0.85 },
-      ]}
-    >
-      <Ionicons
-        name={icon}
-        size={16}
-        color={danger ? withAlpha(dangerColor, 0.9) : withAlpha(p.text, 0.82)}
-      />
-      <Text
-        style={[
-          styles.miniBtnText,
-          danger && { color: withAlpha(dangerColor, 0.9) },
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
 export default function WorkoutSessionScreen() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const params = useLocalSearchParams<any>();
   const theme = useTheme() as any;
@@ -927,7 +838,7 @@ export default function WorkoutSessionScreen() {
   // ---- subscribe: profile ----
   useEffect(() => {
     if (!uidUser) return;
-    ensureProfile(uidUser).catch(() => {});
+    ensureProfile(uidUser).catch(() => { });
     const unsub = subscribeProfile(uidUser, (pp) => setProfile(pp || null));
     return () => unsub?.();
   }, [uidUser]);
@@ -1007,9 +918,9 @@ export default function WorkoutSessionScreen() {
       const shouldResetDraft = String(params?.templateLaunch || "") === "1";
       const baseDraft = shouldResetDraft
         ? newSessionDraft({
-            dateISO: draft.dateISO || todayISO,
-            title: seed.title || "Workout",
-          })
+          dateISO: draft.dateISO || todayISO,
+          title: seed.title || "Workout",
+        })
         : draft;
 
       const next: WorkoutSessionDraft = {
@@ -1022,7 +933,7 @@ export default function WorkoutSessionScreen() {
       persist(next);
       setReferenceGroups([]);
       setTitleDraft(next.title || "Workout");
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => { });
     })();
   }, [uidUser, draft?.id, params?.templateLaunch, todayISO]);
 
@@ -1089,15 +1000,15 @@ export default function WorkoutSessionScreen() {
       (async () => {
         if (!draft) return;
 
-        const raw = await AsyncStorage.getItem("session:browsePick");
+        const raw = await localStore.getItem("session:browsePick");
         if (!raw) return;
 
         // clear immediately so it doesn't re-add
-        await AsyncStorage.removeItem("session:browsePick");
+        await localStore.removeItem("session:browsePick");
 
         if (!alive) return;
 
-        const parsed = JSON.parse(raw) as { name?: string; t?: number };
+        const parsed = JSON.parse(raw) as { name?: string; t?: number; };
         const picked = (parsed?.name || "").trim();
         if (!picked) return;
 
@@ -1287,7 +1198,7 @@ export default function WorkoutSessionScreen() {
 
   async function addSet(
     exerciseName: string,
-    opts?: { weightKg?: number; reps?: number; primaryMuscle?: string }
+    opts?: { weightKg?: number; reps?: number; primaryMuscle?: string; }
   ) {
     const base = draftRef.current; // ✅ always latest
     if (!base) return;
@@ -1332,7 +1243,7 @@ export default function WorkoutSessionScreen() {
 
     try {
       await Haptics.selectionAsync();
-    } catch {}
+    } catch { }
   }
 
   function removeItem(itemId: string) {
@@ -1363,7 +1274,7 @@ export default function WorkoutSessionScreen() {
       note: String((it.note ?? it.notes ?? "") || ""),
       done: !!it.done,
     });
-    Haptics.selectionAsync().catch(() => {});
+    Haptics.selectionAsync().catch(() => { });
   }
 
   function applyEdit() {
@@ -1398,7 +1309,7 @@ export default function WorkoutSessionScreen() {
     persist(next);
     setEdit((s) => ({ ...s, open: false }));
     Keyboard.dismiss();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
   }
 
   function toggleDone(itemId: string) {
@@ -1412,7 +1323,7 @@ export default function WorkoutSessionScreen() {
       items: nextItems as any,
     };
     persist(next);
-    Haptics.selectionAsync().catch(() => {});
+    Haptics.selectionAsync().catch(() => { });
   }
 
   function saveTitle() {
@@ -1450,7 +1361,7 @@ export default function WorkoutSessionScreen() {
         inferPrimaryMuscle(ex, last.primaryMuscle) || "",
     } as any);
 
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
     RNAlert.alert("Saved", `Preset created for "${ex}".`);
   }
 
@@ -1480,7 +1391,7 @@ export default function WorkoutSessionScreen() {
         onPress: async () => {
           await deleteWorkoutPreset(uidUser, found.id);
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
-            () => {}
+            () => { }
           );
         },
       },
@@ -1532,7 +1443,7 @@ export default function WorkoutSessionScreen() {
                 );
               });
               let detectedPr:
-                | { exercise: string; weightKg: number }
+                | { exercise: string; weightKg: number; }
                 | null = null;
 
               for (const it of ordered) {
@@ -1579,8 +1490,8 @@ export default function WorkoutSessionScreen() {
               // ───────────────── Badges: unlock immediately ─────────────────
               try {
                 // 1) Load current local badge state
-                const currentUnlocks = (await loadUnlocksLocal()) || {};
-                const currentProgress = (await loadProgressLocal()) || {};
+                const currentUnlocks = (await loadUnlocksLocal(localStore)) || {};
+                const currentProgress = (await loadProgressLocal(localStore)) || {};
 
                 // 2) Fire a "WORKOUT_FINISHED" style event (use any event name your engine supports)
                 // If your engine currently expects "WORKOUT_LOGGED", use that.
@@ -1605,8 +1516,8 @@ export default function WorkoutSessionScreen() {
                   progress: currentProgress,
                 });
 
-                await saveUnlocksLocal(res.unlocks);
-                await saveProgressLocal(res.progress);
+                await saveUnlocksLocal(res.unlocks, localStore);
+                await saveProgressLocal(res.progress, localStore);
 
                 const afterIds = Object.keys(res.unlocks || {});
                 const newIds = afterIds.filter((id) => !beforeIds.has(id));
@@ -1617,7 +1528,7 @@ export default function WorkoutSessionScreen() {
                     const badge = BADGES.find((b) => b.id === id);
                     if (badge?.title) {
                       // NOTIFICATION TRIGGER
-                      notifyBadgeEarned(badge.title).catch(() => {});
+                      notifyBadgeEarned(badge.title, localStore).catch(() => { });
                     }
                   });
                   setSavedToast(
@@ -1628,13 +1539,13 @@ export default function WorkoutSessionScreen() {
 
                 // 4) Run reconcile lightly (won't be perfect here because snapshot is minimal,
                 // but it will catch any rules that depend only on this event).
-                await reconcileBadgesFromSnapshot(snap);
+                await reconcileBadgesFromSnapshot(snap, localStore);
               } catch {
                 // badges are non-critical; never block finishing a workout
               }
 
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
-                () => {}
+                () => { }
               );
 
               if (detectedPr) {
@@ -1643,8 +1554,8 @@ export default function WorkoutSessionScreen() {
                   detectedPr.exercise,
                   `${Math.round(
                     unit === "lb" ? kgToLb(detectedPr.weightKg) : detectedPr.weightKg
-                  )}${unit}`
-                ).catch(() => {});
+                  )}${unit}`, localStore
+                ).catch(() => { });
               }
 
               const vol =
@@ -1725,830 +1636,109 @@ export default function WorkoutSessionScreen() {
   // theme-aware helpers (same components, just themed)
 
   if (!draft) {
-    return (
-      <View style={[styles.loadingWrap]}>
-        <Text style={{ color: withAlpha(p.text, 0.7), fontWeight: "800" }}>
-          Loading…
-        </Text>
-      </View>
-    );
+    return (<TaskPage title="Preparing your session" section="Workout" onBack={() => router.back()}>
+      <Empty title="Loading your saved draft…" />
+    </TaskPage>);
   }
 
   const contentMax = 980;
   const sidePad = 16;
 
-  return (
-    <View style={[styles.root, { backgroundColor: "#08080F" }]}>
+  return (<><TaskPage title={draft.title || 'Workout'} section="Training session" onBack={confirmExit}
+    action={<IconButton icon="pencil" label="Rename workout" onPress={() => { setTitleDraft(draft.title || 'Workout'); setTitleOpen(true); }} />}
+    footer={<Button primary label={isFinishing ? 'Saving workout…' : 'Finish workout'} disabled={isFinishing} onPress={finishWorkout} icon="checkmark" />}>
 
-      {isFinishing ? (
-        <View style={styles.finishOverlay}>
-          <View
-            style={[
-              styles.finishCard,
-              {
-                backgroundColor: withAlpha(p.card, isDark ? 0.92 : 0.98),
-                borderColor: withAlpha(p.border, isDark ? 0.9 : 0.7),
-              },
-            ]}
-          >
-            <ActivityIndicator size="small" color={withAlpha(p.text, 0.9)} />
-            <Text style={[styles.finishText, { color: p.text }]}>
-              Saving workout…
-            </Text>
-          </View>
-        </View>
-      ) : null}
+    <View style={{ gap: 8 }}>
+      <Text style={F.eyebrow}>SESSION TIME</Text>
+      <Text style={{ ...F.value, fontSize: 52 }}>{elapsedLabel}</Text>
+      <Text accessibilityLiveRegion="polite" style={F.caption}>{savedToast ? 'Draft saved' : 'Your session saves as you go'}</Text>
+    </View>
 
-      {/* Toast */}
-      {savedToast ? (
-        <View style={styles.toastWrap} pointerEvents="none">
-          <View style={styles.toast}>
-            <Text style={styles.toastText}>{savedToast}</Text>
-          </View>
-        </View>
-      ) : null}
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Metric label="Exercises" value={String(stats.exCount)} />
+      <Metric label="Sets" value={String(stats.totalSets)} />
+      <Metric label="Volume" value={`${volumeDisplay} ${unit}`} />
+    </View>
 
-      {/* Sticky top bar */}
-      <View style={{ paddingTop: topInset }}>
-        <View style={[styles.headerBlur, { backgroundColor: "#08080F" }]}>
-          <View style={[styles.headerRow, { paddingHorizontal: sidePad }]}>
-            <Pressable
-              onPress={() => {
-                Keyboard.dismiss();
-                confirmExit();
-              }}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.iconBtn,
-                pressed && { opacity: 0.85 },
-              ]}
-            >
-              <Ionicons
-                name="chevron-back"
-                size={20}
-                color={withAlpha(p.text, 0.9)}
-              />
-            </Pressable>
+    <Panel>
+      <Heading title="Add a set" action={<IconButton icon="search" label="Browse exercises" onPress={() => router.push({ pathname: '/(modals)/browse', params: { returnTo: '/workouts/session' } } as any)} />} />
 
-            <Pressable
-              onPress={() => {
-                setTitleDraft(draft.title || "Workout");
-                setTitleOpen(true);
-              }}
-              style={{ flex: 1, alignItems: "center", gap: 4 }}
-            >
-              <Text style={styles.inProgress}>IN PROGRESS</Text>
-              <Text style={styles.headerTitle} numberOfLines={1}>
-                {draft.title || "Workout"}
-              </Text>
-              <Text style={[styles.liveTimer, { color: "#7B6FFF" }]}>
-                {elapsedLabel}
-              </Text>
-              <Text style={styles.headerMeta}>
-                {stats.exCount > 0 ? `${stats.exCount} exercises` : "— exercises"}
-              </Text>
-            </Pressable>
+      <Field label="Exercise" value={quickExercise} onChangeText={setQuickExercise} placeholder="Exercise name" />
 
-            <Pressable
-              onPress={finishWorkout}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                styles.finishBtn,
-                pressed && { opacity: 0.9 },
-              ]}
-            >
-              <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-            </Pressable>
-          </View>
-        </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+        <Choice label="Auto muscle" selected={!quickPrimaryMuscle} onPress={() => setQuickPrimaryMuscle('')} />
+        {PRIMARY_MUSCLE_OPTIONS.map(m => <Choice key={m.key} label={m.label} selected={quickPrimaryMuscle === m.key} onPress={() => setQuickPrimaryMuscle(m.key)} />)}
+      </ScrollView>
+
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <Field label="Reps" value={quickReps} onChangeText={setQuickReps} keyboardType="number-pad" />
+        <Field label={`Weight · ${unit}`} value={quickWeight} onChangeText={setQuickWeight} keyboardType="decimal-pad" />
       </View>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={{
-            paddingHorizontal: sidePad,
-            paddingTop: 14,
-            paddingBottom: 110,
-            maxWidth: contentMax,
-            alignSelf: "center",
-            width: "100%",
-            gap: 12,
-          }}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode={
-            Platform.OS === "ios" ? "interactive" : "on-drag"
-          }
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Stats */}
-          <Animated.View entering={FadeInDown.duration(380)}>
-            <GlassCard styles={styles} isDark={isDark} p={p} intensity={26}>
-              <Text style={styles.sectionTitle}>Session stats</Text>
+      <Button primary label="Add set" onPress={quickAdd} />
+      <Button label="Clear entry" onPress={() => { setQuickExercise(''); setQuickPrimaryMuscle(''); setQuickReps('10'); setQuickWeight(''); Keyboard.dismiss(); }} />
+    </Panel>
 
-              <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
-                <View style={styles.statPill}>
-                  <Text style={styles.statLabel}>SETS</Text>
-                  <Text style={styles.statValue}>
-                    {stats.totalSets > 0 ? String(stats.totalSets) : "—"}
-                  </Text>
-                </View>
-                <View style={styles.statPill}>
-                  <Text style={styles.statLabel}>REPS</Text>
-                  <Text style={styles.statValue}>
-                    {stats.totalReps > 0 ? String(stats.totalReps) : "—"}
-                  </Text>
-                </View>
-                <View style={styles.statPill}>
-                  <Text
-                    style={styles.statLabel}
-                  >{`VOL (${unit.toUpperCase()})`}</Text>
-                  <Text style={styles.statValue}>
-                    {Number(stats.totalVolumeKg || 0) > 0 ? volumeDisplay : "—"}
-                  </Text>
-                </View>
-              </View>
-            </GlassCard>
-          </Animated.View>
+    <Heading title="Session ledger" detail="Mark completed sets, tap a set to edit, or repeat an exercise." />
 
-          {/* Quick add + Browse */}
-          <Animated.View entering={FadeInDown.duration(420)}>
-            <GlassCard styles={styles} isDark={isDark} p={p}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.sectionTitle}>Log a set</Text>
-                  <Text style={styles.sectionSub}>
-                    Fast entry + Browse (presets + exercises)
-                  </Text>
-                </View>
+    {!groups.length && <Empty title="Ready when you are" detail="Browse an exercise or add your first set above." />}
 
-                <Pressable
-                  onPress={() =>
-                    router.push({
-                      pathname: "/(modals)/browse",
-                      params: { returnTo: "/workouts/session" },
-                    })
-                  }
-                  style={({ pressed }) => [
-                    styles.browseBtn,
-                    pressed && { opacity: 0.9 },
-                  ]}
-                >
-                  <Ionicons
-                    name="search-outline"
-                    size={16}
-                    color={withAlpha(p.text, 0.9)}
-                  />
-                  <Text style={styles.browseText}>Browse</Text>
-                </Pressable>
-              </View>
+    {groups.map(g => {
+      const open = expanded[g.name] ?? g.items.length <= 2; return <Panel key={g.name}>
 
-              <View style={{ height: 10 }} />
+        <Item title={g.name} detail={`${g.items.filter(it => (it as SetDraftItem).done).length} completed · ${g.items.length} logged sets`} onPress={() => toggleExpanded(g.name, g.items.length <= 2)} action={<IconButton icon="add" label={`Add set to ${g.name}`} onPress={() => addSet(g.name)} />} />
 
-              <View style={styles.quickRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.inputLabel}>Exercise</Text>
-                  <TextInput
-                    value={quickExercise}
-                    onChangeText={setQuickExercise}
-                    placeholder="e.g., Bench Press"
-                    placeholderTextColor={withAlpha(p.text, 0.35)}
-                    style={styles.input}
-                    returnKeyType="next"
-                  />
-                  <Text style={styles.lastUsedMeta}>
-                    {quickExercise ? `Last: ${quickReps || "10"} × ${quickWeight || "0"}${unit}` : "Last: —"}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.inputLabel}>Reps</Text>
-                  <TextInput
-                    value={quickReps}
-                    onChangeText={setQuickReps}
-                    keyboardType="number-pad"
-                    placeholder="10"
-                    placeholderTextColor={withAlpha(p.text, 0.35)}
-                    style={styles.input}
-                    returnKeyType="done"
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.inputLabel}>{`Weight (${unit})`}</Text>
-                  <TextInput
-                    value={quickWeight}
-                    onChangeText={setQuickWeight}
-                    keyboardType="decimal-pad"
-                    placeholder="—"
-                    placeholderTextColor={withAlpha(p.text, 0.35)}
-                    style={styles.input}
-                    returnKeyType="done"
-                  />
-                </View>
-              </View>
-
-              <View style={{ marginTop: 12 }}>
-                <Text style={styles.inputLabel}>Primary muscle (optional)</Text>
-                <Text style={styles.sectionSub}>
-                  Leave it on Auto and we'll infer it from the exercise.
-                </Text>
-                <View style={styles.muscleChipWrap}>
-                  <Pressable
-                    onPress={() => setQuickPrimaryMuscle("")}
-                    style={({ pressed }) => [
-                      styles.muscleChip,
-                      !quickPrimaryMuscle && styles.muscleChipActive,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.muscleChipText,
-                        !quickPrimaryMuscle && styles.muscleChipTextActive,
-                      ]}
-                    >
-                      Auto
-                    </Text>
-                  </Pressable>
-                  {PRIMARY_MUSCLE_OPTIONS.map((option) => (
-                    <Pressable
-                      key={option.key}
-                      onPress={() => setQuickPrimaryMuscle(option.key)}
-                      style={({ pressed }) => [
-                        styles.muscleChip,
-                        quickPrimaryMuscle === option.key &&
-                          styles.muscleChipActive,
-                        pressed && { opacity: 0.9 },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.muscleChipText,
-                          quickPrimaryMuscle === option.key &&
-                            styles.muscleChipTextActive,
-                        ]}
-                      >
-                        {option.label}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-
-              <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
-                <Pressable
-                  onPress={quickAdd}
-                  style={({ pressed }) => [
-                    styles.primaryBtn,
-                    pressed && { opacity: 0.92 },
-                  ]}
-                >
-                  <Ionicons
-                    name="add"
-                    size={18}
-                    color={withAlpha(p.text, 0.95)}
-                  />
-                  <Text style={styles.primaryBtnText}>Add set</Text>
-                </Pressable>
-
-                <Pressable
-                  onPress={() => {
-                    setQuickExercise("");
-                    setQuickPrimaryMuscle("");
-                    setQuickReps("10");
-                    setQuickWeight("");
-                    Keyboard.dismiss();
-                  }}
-                  style={({ pressed }) => [
-                    styles.secondaryBtn,
-                    pressed && { opacity: 0.9 },
-                  ]}
-                >
-                  <Text style={styles.secondaryBtnText}>Clear</Text>
-                </Pressable>
-              </View>
-            </GlassCard>
-          </Animated.View>
-
-          {/* Exercise blocks */}
-          {groups.length === 0 ? (
-            <Animated.View entering={FadeIn.duration(220)}>
-              <GlassCard styles={styles} isDark={isDark} p={p}>
-                <Text style={[styles.sectionTitle, { marginBottom: 6 }]}>
-                  Your workout is empty
-                </Text>
-                <Text style={styles.sectionSub}>
-                  Add your first set above — or use Browse to pick from presets.
-                </Text>
-              </GlassCard>
-            </Animated.View>
-          ) : (
-            <View style={{ gap: 12 }}>
-              {groups.map((g) => {
-                const isOpen = expanded[g.name] ?? g.items.length <= 2;
-                const totalSets = g.items.length || g.referenceItems.length;
-                const last = g.items[0];
-                const referenceLast = g.referenceItems?.[0];
-                const summarySource = last || referenceLast;
-                const lastW =
-                  unit === "lb"
-                    ? kgToLb(
-                        Number(
-                          (last?.weightKg ?? referenceLast?.weightKg ?? 0) || 0
-                        )
-                      )
-                    : Number(
-                        (last?.weightKg ?? referenceLast?.weightKg ?? 0) || 0
-                      );
-
-                const lastLine = `${Math.round(lastW * 100) / 100} ${unit} × ${
-                  Number((last?.reps ?? referenceLast?.reps ?? 0) || 0)
-                } reps`;
-                const doneCount = g.items.filter((x) => x.done).length;
-
-                return (
-                  <Animated.View
-                    key={g.name}
-                    entering={FadeInDown.duration(360)}
-                  >
-                    <View style={[styles.exerciseCard, { backgroundColor: "#0F0F1A" }]}>
-
-                      {/* Header */}
-                      <Pressable
-                        onPress={() =>
-                          toggleExpanded(g.name, g.items.length <= 2)
-                        }
-                        style={({ pressed }) => [
-                          styles.exerciseHeader,
-                          pressed && { opacity: 0.92 },
-                        ]}
-                      >
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.exerciseName} numberOfLines={1}>
-                            {g.name}
-                          </Text>
-                          <Text style={styles.exerciseMeta} numberOfLines={1}>
-                            {doneCount}/{totalSets} done • {primaryMuscleLabel(g.primaryMuscle || inferPrimaryMuscle(g.name)) || "Auto"}{summarySource ? ` • Last: ${lastLine}` : ""}
-                          </Text>
-                        </View>
-
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 8,
-                          }}
-                        >
-                          <MiniBtn
-                            styles={styles}
-                            p={p}
-                            icon="add"
-                            label="Set"
-                            onPress={() => addSet(g.name)}
-                          />
-                          <Ionicons
-                            name={isOpen ? "chevron-up" : "chevron-down"}
-                            size={16}
-                            color={withAlpha(p.text, 0.6)}
-                          />
-                        </View>
-                      </Pressable>
-
-                      {/* Actions */}
-                      <View style={styles.exerciseActions}>
-                        <MiniBtn
-                          styles={styles}
-                          p={p}
-                          icon="bookmark-outline"
-                          label="Save preset"
-                          onPress={() => savePresetForExercise(g.name)}
-                        />
-                        <MiniBtn
-                          styles={styles}
-                          p={p}
-                          icon="trash-outline"
-                          label="Delete preset"
-                          danger
-                          onPress={() => deletePresetByName(g.name)}
-                        />
-                      </View>
-
-                      {/* Sets list */}
-                      {isOpen ? (
-                        <View style={{ padding: 12, paddingTop: 6, gap: 10 }}>
-                          {Object.entries(
-                            (g.referenceItems || []).reduce(
-                              (acc, ref) => {
-                                const key = `${ref.reps}-${ref.weightKg}`;
-                                acc[key] = acc[key]
-                                  ? { ...acc[key], count: acc[key].count + 1 }
-                                  : { ...ref, count: 1 };
-                                return acc;
-                              },
-                              {} as Record<
-                                string,
-                                {
-                                  reps: number;
-                                  weightKg: number;
-                                  count: number;
-                                  note?: string;
-                                }
-                              >
-                            )
-                          ).map(([key, ref]) => {
-                            const refWeight =
-                              unit === "lb"
-                                ? kgToLb(Number(ref.weightKg || 0))
-                                : Number(ref.weightKg || 0);
-                            return (
-                              <View
-                                key={`reference-${g.name}-${key}`}
-                                style={[
-                                  styles.referenceRow,
-                                  {
-                                    borderColor: withAlpha(p.text, 0.1),
-                                    backgroundColor: withAlpha(
-                                      p.text,
-                                      isDark ? 0.04 : 0.03
-                                    ),
-                                  },
-                                ]}
-                              >
-                                <Text style={styles.referenceText}>
-                                  {`Last time: ${ref.count}×${ref.reps} @ ${Math.round(refWeight * 100) / 100}${unit}`}
-                                </Text>
-                              </View>
-                            );
-                          })}
-                          {g.items.map((it, idx) => {
-                            const w =
-                              unit === "lb"
-                                ? kgToLb(Number(it.weightKg || 0))
-                                : Number(it.weightKg || 0);
-
-                            const setNo = totalSets - idx; // newest on top
-                            return (
-                              <Pressable
-                                key={String(it.id || it.createdAt)}
-                                onPress={() => openEdit(it)}
-                                style={({ pressed }) => [
-                                  styles.setRow,
-                                  it.done && {
-                                    borderColor: withAlpha(p.success, 0.25),
-                                  },
-                                  pressed && { opacity: 0.9 },
-                                ]}
-                              >
-                                <Pressable
-                                  onPress={() => toggleDone(String(it.id))}
-                                  hitSlop={10}
-                                  style={({ pressed }) => [
-                                    styles.donePill,
-                                    it.done && {
-                                      backgroundColor: withAlpha(
-                                        p.success,
-                                        0.18
-                                      ),
-                                      borderColor: withAlpha(p.success, 0.25),
-                                    },
-                                    pressed && { opacity: 0.85 },
-                                  ]}
-                                >
-                                  <Ionicons
-                                    name={
-                                      it.done ? "checkmark" : "ellipse-outline"
-                                    }
-                                    size={16}
-                                    color={
-                                      it.done
-                                        ? withAlpha(p.success, 0.95)
-                                        : withAlpha(p.text, 0.55)
-                                    }
-                                  />
-                                </Pressable>
-
-                                <View style={{ flex: 1 }}>
-                                  <Text style={styles.setTitle}>
-                                    Set {setNo} • {Math.round(w * 100) / 100}{" "}
-                                    {unit} × {it.reps} reps
-                                  </Text>
-                                  {it.note || it.notes ? (
-                                    <Text
-                                      style={styles.setNote}
-                                      numberOfLines={1}
-                                    >
-                                      {String(it.note || it.notes)}
-                                    </Text>
-                                  ) : (
-                                    <Text
-                                      style={styles.setNoteMuted}
-                                      numberOfLines={1}
-                                    >
-                                      {(primaryMuscleLabel(
-                                        it.primaryMuscle ||
-                                          inferPrimaryMuscle(it.exercise)
-                                      ) || "Auto") + " • Tap to add a note"}
-                                    </Text>
-                                  )}
-                                </View>
-
-                                <Pressable
-                                  onPress={() =>
-                                    RNAlert.alert(
-                                      "Remove set?",
-                                      "This can't be undone.",
-                                      [
-                                        { text: "Cancel", style: "cancel" },
-                                        {
-                                          text: "Remove",
-                                          style: "destructive",
-                                          onPress: () =>
-                                            removeItem(String(it.id)),
-                                        },
-                                      ]
-                                    )
-                                  }
-                                  hitSlop={10}
-                                  style={({ pressed }) => [
-                                    styles.trashBtn,
-                                    pressed && { opacity: 0.8 },
-                                  ]}
-                                >
-                                  <Ionicons
-                                    name="trash-outline"
-                                    size={18}
-                                    color={withAlpha(p.text, 0.7)}
-                                  />
-                                </Pressable>
-                              </Pressable>
-                            );
-                          })}
-                        </View>
-                      ) : null}
-                    </View>
-                  </Animated.View>
-                );
-              })}
-            </View>
-          )}
-        </ScrollView>
-
-        {/* Sticky footer */}
-        <View style={styles.footer}>
-          <Pressable
-            onPress={finishWorkout}
-            style={({ pressed }) => [
-              styles.footerBtn,
-              pressed && { opacity: 0.92 },
-            ]}
-          >
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={20}
-              color={
-                isDark ? withAlpha("#111", 0.95) : withAlpha("#FFFFFF", 0.95)
-              }
-            />
-            <Text style={styles.footerBtnText}>Finish workout</Text>
-          </Pressable>
+        {open && <><View style={{ gap: 6 }}>
+          {g.items.map((it, idx) => <Item key={String(it.id)} title={`Set ${g.items.length - idx} · ${it.reps} reps`} detail={`${Math.round((unit === 'lb' ? kgToLb(Number(it.weightKg || 0)) : Number(it.weightKg || 0)) * 10) / 10} ${unit}${(it as SetDraftItem).note ? ` · ${(it as SetDraftItem).note}` : ''}`} onPress={() => openEdit(it)} action={<View style={{ flexDirection: 'row', gap: 4 }}>
+            <IconButton icon={(it as SetDraftItem).done ? 'checkmark-circle' : 'ellipse-outline'} label={(it as SetDraftItem).done ? 'Mark set incomplete' : 'Mark set complete'} onPress={() => toggleDone(String(it.id))} />
+            <IconButton icon="trash-outline" label="Remove set" onPress={() => RNAlert.alert('Remove set?', "This can't be undone.", [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: () => removeItem(String(it.id)) }])} />
+          </View>} />)}
         </View>
+          {!!g.referenceItems.length && <View style={{ gap: 8 }}>
+            <Text style={F.eyebrow}>PREVIOUS SESSION REFERENCE</Text>
+            {g.referenceItems.map((it, i) => <Text key={i} style={F.caption}>{i + 1}. {it.reps} reps · {Math.round((unit === 'lb' ? kgToLb(it.weightKg) : it.weightKg) * 10) / 10} {unit}{it.note ? ` · ${it.note}` : ''}</Text>)}
+          </View>}
+          <View style={{ gap: 8 }}>
+            <Button label="Save exercise preset" onPress={() => savePresetForExercise(g.name)} />
+            <Button label="Delete preset" onPress={() => deletePresetByName(g.name)} />
+          </View></>}
 
-        {/* Edit Set Modal */}
-        <Modal
-          visible={edit.open}
-          animationType="fade"
-          transparent
-          onRequestClose={() => setEdit((s) => ({ ...s, open: false }))}
-        >
-          <View style={styles.modalBackdrop}>
-            <Pressable
-              onPress={() => setEdit((s) => ({ ...s, open: false }))}
-              style={StyleSheet.absoluteFill}
-            />
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.modalKeyboardWrap}
-            >
-              <Pressable onPress={Keyboard.dismiss} style={styles.modalKeyboardDismiss}>
-                <Text style={styles.modalKeyboardDismissText}>Hide keyboard</Text>
-              </Pressable>
-              <View style={styles.modalCard}>
-                <ScrollView
-                  contentContainerStyle={styles.modalScrollContent}
-                  keyboardShouldPersistTaps="handled"
-                  keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-                  showsVerticalScrollIndicator={false}
-                >
-                  <Text style={styles.modalTitle} numberOfLines={1}>
-                    {edit.exercise}
-                  </Text>
-                  <Text style={styles.modalSub}>Edit this set</Text>
+      </Panel>;
+    })}
 
-                  <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.inputLabel}>Reps</Text>
-                      <TextInput
-                        value={edit.reps}
-                        onChangeText={(t) => setEdit((s) => ({ ...s, reps: t }))}
-                        keyboardType="number-pad"
-                        placeholder="10"
-                        placeholderTextColor={withAlpha(p.text, 0.35)}
-                        style={styles.input}
-                        returnKeyType="done"
-                        onSubmitEditing={Keyboard.dismiss}
-                      />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.inputLabel}>{`Weight (${unit})`}</Text>
-                      <TextInput
-                        value={edit.weight}
-                        onChangeText={(t) => setEdit((s) => ({ ...s, weight: t }))}
-                        keyboardType="decimal-pad"
-                        placeholder="—"
-                        placeholderTextColor={withAlpha(p.text, 0.35)}
-                        style={styles.input}
-                        returnKeyType="done"
-                        onSubmitEditing={Keyboard.dismiss}
-                      />
-                    </View>
-                  </View>
+  </TaskPage>
+    <TaskSheet title="Workout title" visible={titleOpen} onClose={() => setTitleOpen(false)}>
+      <Field label="Title" value={titleDraft} onChangeText={setTitleDraft} onSubmitEditing={saveTitle} />
+      <Button primary label="Save title" onPress={saveTitle} />
+      <Button label="Cancel" onPress={() => setTitleOpen(false)} />
+    </TaskSheet>
+    <TaskSheet title={edit.exercise || 'Edit set'} visible={edit.open} onClose={() => setEdit(v => ({ ...v, open: false }))}>
 
-                  <View style={{ marginTop: 10 }}>
-                    <Text style={styles.inputLabel}>Primary muscle</Text>
-                    <View style={styles.muscleChipWrap}>
-                      <Pressable
-                        onPress={() => setEdit((s) => ({ ...s, primaryMuscle: "" }))}
-                        style={({ pressed }) => [
-                          styles.muscleChip,
-                          !edit.primaryMuscle && styles.muscleChipActive,
-                          pressed && { opacity: 0.9 },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.muscleChipText,
-                            !edit.primaryMuscle && styles.muscleChipTextActive,
-                          ]}
-                        >
-                          Auto
-                        </Text>
-                      </Pressable>
-                      {PRIMARY_MUSCLE_OPTIONS.map((option) => (
-                        <Pressable
-                          key={option.key}
-                          onPress={() =>
-                            setEdit((s) => ({ ...s, primaryMuscle: option.key }))
-                          }
-                          style={({ pressed }) => [
-                            styles.muscleChip,
-                            edit.primaryMuscle === option.key &&
-                              styles.muscleChipActive,
-                            pressed && { opacity: 0.9 },
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.muscleChipText,
-                              edit.primaryMuscle === option.key &&
-                                styles.muscleChipTextActive,
-                            ]}
-                          >
-                            {option.label}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  </View>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <Field label="Reps" value={edit.reps} keyboardType="number-pad" onChangeText={reps => setEdit(v => ({ ...v, reps }))} />
+        <Field label={`Weight · ${unit}`} value={edit.weight} keyboardType="decimal-pad" onChangeText={weight => setEdit(v => ({ ...v, weight }))} />
+      </View>
 
-                  <View style={{ marginTop: 10 }}>
-                    <Text style={styles.inputLabel}>Note</Text>
-                    <TextInput
-                      value={edit.note}
-                      onChangeText={(t) => setEdit((s) => ({ ...s, note: t }))}
-                      placeholder="Optional (form cues, RPE, PR, etc.)"
-                      placeholderTextColor={withAlpha(p.text, 0.35)}
-                      style={[styles.input, { minHeight: 44 }]}
-                      returnKeyType="done"
-                      onSubmitEditing={Keyboard.dismiss}
-                    />
-                  </View>
+      <Heading title="Primary muscle" />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <Choice label="Auto" selected={!edit.primaryMuscle} onPress={() => setEdit(v => ({ ...v, primaryMuscle: '' }))} />
+        {PRIMARY_MUSCLE_OPTIONS.map(m => <Choice key={m.key} label={m.label} selected={edit.primaryMuscle === m.key} onPress={() => setEdit(v => ({ ...v, primaryMuscle: m.key }))} />)}
+      </View>
 
-                  <Pressable
-                    onPress={() => setEdit((s) => ({ ...s, done: !s.done }))}
-                    style={({ pressed }) => [
-                      styles.doneToggle,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                  >
-                    <Ionicons
-                      name={edit.done ? "checkmark-circle" : "ellipse-outline"}
-                      size={18}
-                      color={
-                        edit.done
-                          ? withAlpha(p.success, 0.95)
-                          : withAlpha(p.text, 0.55)
-                      }
-                    />
-                    <Text style={styles.doneToggleText}>
-                      {edit.done ? "Marked done" : "Mark as done"}
-                    </Text>
-                  </Pressable>
-
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "flex-end",
-                      gap: 10,
-                      marginTop: 14,
-                    }}
-                  >
-                    <Pressable
-                      onPress={() => setEdit((s) => ({ ...s, open: false }))}
-                      style={({ pressed }) => [
-                        styles.modalSecondary,
-                        pressed && { opacity: 0.9 },
-                      ]}
-                    >
-                      <Text style={styles.modalSecondaryText}>Cancel</Text>
-                    </Pressable>
-
-                    <Pressable
-                      onPress={applyEdit}
-                      style={({ pressed }) => [
-                        styles.modalPrimary,
-                        pressed && { opacity: 0.92 },
-                      ]}
-                    >
-                      <Text style={styles.modalPrimaryText}>Save</Text>
-                    </Pressable>
-                  </View>
-                </ScrollView>
-              </View>
-            </KeyboardAvoidingView>
-          </View>
-        </Modal>
-
-        {/* Title Modal */}
-        <Modal visible={titleOpen} animationType="fade" transparent>
-          <Pressable
-            onPress={() => setTitleOpen(false)}
-            style={styles.modalBackdrop}
-          >
-            <Pressable onPress={() => {}} style={styles.modalCard}>
-              <Text style={styles.modalTitle}>Workout title</Text>
-              <Text style={styles.modalSub}>
-                This appears in your Recents list.
-              </Text>
-
-              <TextInput
-                value={titleDraft}
-                onChangeText={setTitleDraft}
-                placeholder="e.g., Push Day, Legs, Upper"
-                placeholderTextColor={withAlpha(p.text, 0.35)}
-                style={[styles.input, { marginTop: 12 }]}
-                autoFocus
-                returnKeyType="done"
-                onSubmitEditing={saveTitle}
-              />
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "flex-end",
-                  gap: 10,
-                  marginTop: 14,
-                }}
-              >
-                <Pressable
-                  onPress={() => setTitleOpen(false)}
-                  style={({ pressed }) => [
-                    styles.modalSecondary,
-                    pressed && { opacity: 0.9 },
-                  ]}
-                >
-                  <Text style={styles.modalSecondaryText}>Cancel</Text>
-                </Pressable>
-
-                <Pressable
-                  onPress={saveTitle}
-                  style={({ pressed }) => [
-                    styles.modalPrimary,
-                    pressed && { opacity: 0.92 },
-                  ]}
-                >
-                  <Text style={styles.modalPrimaryText}>Save</Text>
-                </Pressable>
-              </View>
-            </Pressable>
-          </Pressable>
-        </Modal>
-      </KeyboardAvoidingView>
-    </View>
+      <Field label="Note" multiline value={edit.note} onChangeText={note => setEdit(v => ({ ...v, note }))} />
+      <Choice label={edit.done ? 'Completed' : 'Not completed'} selected={edit.done} onPress={() => setEdit(v => ({ ...v, done: !v.done }))} />
+      <Button label="Hide keyboard" onPress={() => Keyboard.dismiss()} />
+      <Button primary label="Save set" onPress={applyEdit} />
+      <Button label="Cancel" onPress={() => setEdit(v => ({ ...v, open: false }))} />
+    </TaskSheet>
+    <Modal visible={isFinishing} transparent>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000C' }}>
+        <Panel>
+          <ActivityIndicator color={D.lime} />
+          <Text style={F.body}>Saving workout…</Text>
+        </Panel>
+      </View>
+    </Modal>
+  </>
   );
 }

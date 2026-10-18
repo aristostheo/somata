@@ -1,12 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Image, Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { Button, Heading, Item, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { getAuth, reload, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Alert, Image, Text, View } from "react-native";
 
+import { useScreenPalette } from "@/components/accountSettings/Primitives";
 import { useAuth } from "@/content/AuthContext";
 import { subscribeProfile, type Profile } from "@/services/profile";
-import { Row, Screen, Section, useScreenPalette } from "@/components/accountSettings/Primitives";
 
 function providerName(id: string) {
   if (id === "password") return "Email and password";
@@ -22,6 +23,8 @@ function initials(name: string) {
 }
 
 export default function AccountScreen() {
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const { user } = useAuth();
   const palette = useScreenPalette();
@@ -38,7 +41,7 @@ export default function AccountScreen() {
     if (!user) { setVerified(null); return; }
     let active = true;
     setVerified(user.emailVerified);
-    void reload(user).then(() => { if (active) setVerified(user.emailVerified); }).catch(() => {});
+    void reload(user).then(() => { if (active) setVerified(user.emailVerified); }).catch(() => { });
     return () => { active = false; };
   }, [user]));
 
@@ -76,40 +79,34 @@ export default function AccountScreen() {
 
   const signOut = () => Alert.alert("Sign out?", "You can sign back in anytime.", [
     { text: "Cancel", style: "cancel" },
-    { text: "Sign out", style: "destructive", onPress: async () => {
-      try { await getAuth().signOut(); }
-      catch { Alert.alert("Couldn’t sign out", "Please try again."); }
-    } },
+    {
+      text: "Sign out", style: "destructive", onPress: async () => {
+        try { await getAuth().signOut(); }
+        catch { Alert.alert("Couldn’t sign out", "Please try again."); }
+      }
+    },
   ]);
 
-  return (
-    <Screen title="Account" intro="Your identity, access, and sharing." onBack={back} palette={palette}>
-      <Section title="Identity" palette={palette}>
-        <View style={{ minHeight: 82, flexDirection: "row", alignItems: "center", gap: 14, borderBottomWidth: 1, borderBottomColor: palette.border, paddingVertical: 12 }}>
-          <LinearGradient colors={[palette.primary, palette.accent]} style={{ width: 64, height: 64, borderRadius: 21, alignItems: "center", justifyContent: "center" }}>
-            {photo ? <Image source={{ uri: photo }} accessibilityLabel="Profile photo" style={{ width: 58, height: 58, borderRadius: 18, backgroundColor: palette.card }} /> : <View style={{ width: 58, height: 58, borderRadius: 18, backgroundColor: palette.card, alignItems: "center", justifyContent: "center" }}><Text style={{ color: palette.text, fontSize: 20, fontWeight: "700" }}>{initials(name)}</Text></View>}
-          </LinearGradient>
-          <View style={{ flex: 1, gap: 3 }}>
-            <Text style={{ color: palette.text, fontSize: 20, fontWeight: "700" }}>{name}</Text>
-            <Text style={{ color: palette.secondary, fontSize: 14 }}>{email}</Text>
-          </View>
-        </View>
-        {user ? <Row title="Email verification" detail={verified === null ? "Checking status" : verified ? "Verified" : "Not verified"} icon="mail-outline" palette={palette} last={verified !== false || !user.email} /> : <Row title="Sign in" detail="Access your account" icon="log-in-outline" onPress={() => router.push("/(auth)/login")} palette={palette} last />}
-        {user?.email && verified === false && <Row title="Verify email" detail={busy ? "Sending…" : "Send a verification link"} icon="checkmark-circle-outline" onPress={busy ? undefined : verifyEmail} palette={palette} last />}
-      </Section>
+  return (<TaskPage title="Account" section="Your Somata" onBack={back}>
 
-      {!!user && <Section title="Security" palette={palette}>
-        <Row title="Sign-in methods" detail={providers.length ? providers.map(providerName).join(" · ") : "No linked providers reported"} icon="key-outline" palette={palette} last={!providers.includes("password") || !user.email} />
-        {providers.includes("password") && !!user.email && <Row title="Reset password" detail={busy ? "Sending…" : "Send a reset link to your email"} icon="lock-closed-outline" onPress={busy ? undefined : recoverPassword} palette={palette} last />}
-      </Section>}
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
+      {photo ? <Image source={{ uri: photo }} accessibilityLabel="Profile photo" style={{ width: 76, height: 76, borderRadius: 38 }} /> : <View style={{ width: 76, height: 76, borderRadius: 38, backgroundColor: D.teal, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ ...F.value, color: D.ink }}>{initials(name)}</Text>
+      </View>}
+      <View style={{ flex: 1, gap: 6 }}>
+        <Text style={F.heading}>{name}</Text>
+        <Text selectable style={F.caption}>{email}</Text>
+      </View>
+    </View>
 
-      {!!user && <Section title="Sharing privacy" palette={palette}>
-        <Row title="Friend visibility" detail="Choose what friends can see" icon="people-outline" onPress={() => router.push("/profile/friend-visibility")} palette={palette} last />
-      </Section>}
-
-      {!!user && <View style={{ marginTop: 8 }}><Section title="Session" palette={palette}>
-        <Row title="Sign out" detail="Sign out on this device" icon="log-out-outline" onPress={signOut} palette={palette} danger last />
-      </Section></View>}
-    </Screen>
+    {user ? <><Panel>
+      <Heading title="Access & security" />
+      <Item title="Email verification" value={verified === null ? 'Checking…' : verified ? 'Verified' : 'Not verified'} icon="mail-outline" />
+      {user.email && verified === false && <Button disabled={busy} label={busy ? 'Sending…' : 'Send verification link'} onPress={verifyEmail} />}
+      <Item title="Sign-in methods" detail={providers.length ? providers.map(providerName).join(' · ') : 'No linked providers reported'} icon="key-outline" />
+      {providers.includes('password') && !!user.email && <Button disabled={busy} label={busy ? 'Sending…' : 'Reset password'} onPress={recoverPassword} />}
+    </Panel><Heading title="Control what you share" /><Item title="Friend visibility" detail="Manage the activity visible to your circle" icon="people-outline" onPress={() => router.push('/profile/friend-visibility')} /><Item title="Delete account" detail="Permanently remove your account and owned server data" icon="trash-outline" onPress={() => router.push('/account/delete')} /><Button danger label="Sign out of this device" onPress={signOut} /></> : <Button primary label="Sign in" onPress={() => router.push('/(auth)/login')} />}
+    <Item title="Privacy & support" icon="help-circle-outline" onPress={() => router.push("/account/legal")} />
+  </TaskPage>
   );
 }

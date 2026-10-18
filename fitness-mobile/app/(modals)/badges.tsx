@@ -1,24 +1,10 @@
-import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
+import { useAccountStorage } from '@/services/local/accountStore';
 import { nutritionTargets } from "@/services/nutritionTargets";
 // app/badges/index.tsx
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  StatusBar,
-} from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
-import { withAlpha } from "@/lib/color";
-
-import BadgeCard from "@/components/badges/new/BadgeCard";
-import BadgeDetailSheet from "@/components/badges/new/BadgeDetailSheet";
+import { BadgeCollection, BadgeCollectionDetail } from "@/components/homeFlows/BadgeCollection";
 
 import { BADGES } from "@/services/badges/registry";
 import {
@@ -40,23 +26,6 @@ import {
   type ExerciseEntry,
 } from "@/services/nutrition";
 import { useFocusEffect } from "expo-router";
-
-// ✅ the exact union type BadgeCard expects
-type IoniconName = keyof typeof Ionicons.glyphMap;
-
-function toIoniconName(icon: any): IoniconName {
-  // If registry already stores a valid Ionicons key, great.
-  // If not, fall back to a safe default.
-  const key = String(icon || "");
-  return (key in Ionicons.glyphMap ? key : "ribbon") as IoniconName;
-}
-
-function toCriteriaLines(criteriaText: any): string[] {
-  if (!criteriaText) return [];
-  if (Array.isArray(criteriaText)) return criteriaText.map(String);
-  // allow string -> single bullet
-  return [String(criteriaText)];
-}
 
 /* ───────────────── helpers ───────────────── */
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -83,12 +52,6 @@ function getISOWeekKey(date: Date) {
   return `${d.getUTCFullYear()}-W${pad(weekNo)}`;
 }
 
-function rarityLabel(r: string) {
-  if (r === "common") return "Common";
-  if (r === "rare") return "Rare";
-  return "Epic";
-}
-
 function categoryLabel(c: string) {
   const map: Record<string, string> = {
     consistency: "Consistency",
@@ -104,11 +67,12 @@ function categoryLabel(c: string) {
 
 /* ───────────────── screen ───────────────── */
 export default function BadgesScreen() {
+  const localStore = useAccountStorage();
   const router = useRouter();
-  const { colors, isDark } = useProfileFlowTheme();
   const { user } = useAuth() as any;
 
   const [unlocks, setUnlocks] = useState<Record<string, BadgeUnlockState>>({});
+  const [localLoaded, setLocalLoaded] = useState(false);
   const [featured, setFeatured] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -128,11 +92,12 @@ export default function BadgesScreen() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const u = await loadUnlocksLocal();
-      const f = await loadFeaturedLocal();
+      const u = await loadUnlocksLocal(localStore);
+      const f = await loadFeaturedLocal(localStore);
       if (!alive) return;
       setUnlocks(u || {});
       setFeatured(f || []);
+      setLocalLoaded(true);
     })();
     return () => {
       alive = false;
@@ -142,11 +107,12 @@ export default function BadgesScreen() {
   const refreshLocal = React.useCallback(() => {
     let alive = true;
     (async () => {
-      const u = await loadUnlocksLocal();
-      const f = await loadFeaturedLocal();
+      const u = await loadUnlocksLocal(localStore);
+      const f = await loadFeaturedLocal(localStore);
       if (!alive) return;
       setUnlocks(u || {});
       setFeatured(f || []);
+      setLocalLoaded(true);
     })();
     return () => {
       alive = false;
@@ -237,7 +203,7 @@ export default function BadgesScreen() {
     }
 
     // nutrition: protein/fiber days this week
-    const proteinGoal = nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 70 }).protein;
+    const proteinGoal = nutritionTargets(profile).protein;
     const fiberMin = Number((profile as any)?.fiberGoal ?? 25);
 
     const proteinByDay: Record<string, number> = {};
@@ -333,14 +299,15 @@ export default function BadgesScreen() {
 
     (async () => {
       try {
-        await reconcileBadgesFromSnapshot(statsSnapshot);
+        await reconcileBadgesFromSnapshot(statsSnapshot, localStore);
 
-        const u = await loadUnlocksLocal();
-        const f = await loadFeaturedLocal();
+        const u = await loadUnlocksLocal(localStore);
+        const f = await loadFeaturedLocal(localStore);
 
         if (!cancelled) {
           setUnlocks(u || {});
           setFeatured(f || []);
+          setLocalLoaded(true);
         }
       } catch {
         // badges are non-critical
@@ -377,193 +344,18 @@ export default function BadgesScreen() {
   const selected = selectedId ? BADGES.find((b) => b.id === selectedId) : null;
   const selectedUnlock = selected ? unlocks[selected.id] : null;
 
-  const headerBg = colors.surface1;
-
-  const topBarBg = colors.background;
-
-  return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <FlowAtmosphere />
-      <StatusBar
-        barStyle={isDark ? "light-content" : "dark-content"}
-        translucent
-        backgroundColor="transparent"
-      />
-
-      {/* Top header with back */}
-      <View
-        style={{
-          paddingTop: 18,
-          paddingHorizontal: 20,
-          paddingBottom: 10,
-          backgroundColor: topBarBg,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          borderBottomColor: withAlpha(colors.border, isDark ? 0.18 : 0.12),
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-            >
-              <Ionicons name="chevron-back" size={20} color={colors.text} />
-              <Text
-                style={{ color: colors.text, fontWeight: "600", fontSize: 14 }}
-              >
-                Back
-              </Text>
-            </View>
-          </Pressable>
-
-          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 20 }}>
-            Badges
-          </Text>
-
-          {/* spacer keeps title centered */}
-          <View style={{ width: 64 }} />
-        </View>
-
-        <Text
-          style={{
-            marginTop: 8,
-            color: withAlpha(colors.text, isDark ? 0.7 : 0.6),
-            fontWeight: "700",
-            fontSize: 12,
-          }}
-          numberOfLines={1}
-        >
-          Quiet recognition — thoughtful, meaningful, earned.
-        </Text>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <View
-          style={[
-            styles.header,
-            {
-              backgroundColor: headerBg,
-              borderColor: withAlpha(colors.border, isDark ? 0.22 : 0.18),
-            },
-          ]}
-        >
-          <Text style={[styles.hTitle, { color: colors.text }]}>Library</Text>
-          <Text
-            style={[
-              styles.hSub,
-              { color: withAlpha(colors.text, isDark ? 0.72 : 0.62) },
-            ]}
-          >
-            {unlockedCount} unlocked • Quiet recognition, earned.
-          </Text>
-        </View>
-
-        {groups.map((group) => {
-          const unlockedInGroup = group.items.filter(
-            (b) => !!unlocks[b.id]
-          ).length;
-          return (
-            <View key={group.key} style={{ marginTop: 14 }}>
-              <View style={styles.groupHeader}>
-                <Text
-                  style={[
-                    styles.groupTitle,
-                    { color: withAlpha(colors.text, isDark ? 0.85 : 0.75) },
-                  ]}
-                >
-                  {group.label}
-                </Text>
-                <Text
-                  style={[
-                    styles.groupMeta,
-                    { color: withAlpha(colors.text, isDark ? 0.62 : 0.55) },
-                  ]}
-                >
-                  {unlockedInGroup}/{group.items.length}
-                </Text>
-              </View>
-
-              <View style={{ marginTop: 10 }}>
-                {group.items.map((b) => {
-                  const unlocked = !!unlocks[b.id];
-                  return (
-                    <BadgeCard
-                      key={b.id}
-                      title={b.title}
-                      subtitle={b.subtitle}
-                      icon={toIoniconName(b.icon)}
-                      accent={b.accent}
-                      unlocked={unlocked}
-                      rightMeta={rarityLabel(b.rarity)}
-                      onPress={() => setSelectedId(b.id)}
-                    />
-                  );
-                })}
-              </View>
-            </View>
-          );
-        })}
-      </ScrollView>
-
-      {!!selected && (
-        <BadgeDetailSheet
-          visible={!!selectedId}
-          onClose={() => setSelectedId(null)}
-          title={selected.title}
-          subtitle={selected.subtitle}
-          description={selected.description}
-          icon={toIoniconName(selected.icon)}
-          criteriaText={toCriteriaLines(selected.criteriaText)}
-          accent={selected.accent}
-          unlocked={!!selectedUnlock}
-          unlockedAt={selectedUnlock?.unlockedAt}
-          rarity={rarityLabel(selected.rarity)}
-          categoryLabel={categoryLabel(selected.category)}
-          canFeature={!!selected.canFeature}
-          isFeatured={featured.includes(selected.id)}
-          onToggleFeature={async () => {
-            if (!selected.canFeature) return;
-            const next = featured.includes(selected.id)
-              ? featured.filter((x) => x !== selected.id)
-              : [selected.id, ...featured].slice(0, 3);
-            setFeatured(next);
-            await saveFeaturedLocal(next);
-          }}
-        />
-      )}
-    </View>
-  );
+  return <>
+    <BadgeCollection loaded={localLoaded} groups={groups} unlocks={unlocks} featured={featured} unlockedCount={unlockedCount}
+      onSelect={setSelectedId} onBack={() => router.back()} />
+    {!!selected && <BadgeCollectionDetail badge={selected} unlocked={selectedUnlock || undefined}
+      category={categoryLabel(selected.category)} isFeatured={featured.includes(selected.id)}
+      onClose={() => setSelectedId(null)} onToggleFeature={async () => {
+        if (!selected.canFeature) return;
+        const next = featured.includes(selected.id)
+          ? featured.filter((x) => x !== selected.id)
+          : [selected.id, ...featured].slice(0, 3);
+        setFeatured(next);
+        await saveFeaturedLocal(next, localStore);
+      }} />}
+  </>;
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  content: { padding: 20, paddingBottom: 28 },
-  header: {
-    borderWidth: 0,
-    borderRadius: 18,
-    padding: 16,
-  },
-  hTitle: { fontSize: 22, fontWeight: "700" },
-  hSub: { marginTop: 6, fontSize: 13, fontWeight: "400" },
-  groupHeader: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-  },
-  groupTitle: { fontSize: 13, fontWeight: "600", letterSpacing: 0.8, textTransform: "uppercase" },
-  groupMeta: { fontSize: 12, fontWeight: "500" },
-});

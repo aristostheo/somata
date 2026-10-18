@@ -1,3 +1,4 @@
+import { useAccountStorage } from '@/services/local/accountStore';
 // hooks/useBodyTwin.ts
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
@@ -42,6 +43,7 @@ export function useBodyTwin(params?: {
   // Optional metrics history (for streak-like unlocks)
   metricsHistory?: BodyMetrics[];
 }) {
+  const localStore = useAccountStorage();
   const [state, setState] = useState<BodyTwinState>(DEFAULT_STATE);
   const [loaded, setLoaded] = useState(false);
 
@@ -50,7 +52,7 @@ export function useBodyTwin(params?: {
 
   useEffect(() => {
     (async () => {
-      const saved = await loadBodyTwinState();
+      const saved = await loadBodyTwinState(localStore);
       if (saved) setState(saved);
       setLoaded(true);
     })();
@@ -102,7 +104,7 @@ export function useBodyTwin(params?: {
         lastRewardAt: newly.length ? Date.now() : prev.lastRewardAt,
       };
 
-      saveBodyTwinState(next);
+      saveBodyTwinState(next, localStore);
       return next;
     });
   }, [loaded, params?.currentMetrics, params?.metricsHistory]);
@@ -110,7 +112,7 @@ export function useBodyTwin(params?: {
   const setConsent = useCallback((consent: Partial<BodyTwinConsent>) => {
     setState((prev) => {
       const next = { ...prev, consent: { ...prev.consent, ...consent } };
-      saveBodyTwinState(next);
+      saveBodyTwinState(next, localStore);
       return next;
     });
   }, []);
@@ -118,7 +120,7 @@ export function useBodyTwin(params?: {
   const setBase = useCallback((base: Partial<BodyTwinBaseAvatar>) => {
     setState((prev) => {
       const next = { ...prev, base: { ...prev.base, ...base } };
-      saveBodyTwinState(next);
+      saveBodyTwinState(next, localStore);
       return next;
     });
   }, []);
@@ -134,13 +136,13 @@ export function useBodyTwin(params?: {
         latestMetrics: metrics,
         smoothedShape: nextSmoothed,
       };
-      saveBodyTwinState(next);
+      saveBodyTwinState(next, localStore);
       return next;
     });
   }, []);
 
   const resetAll = useCallback(async () => {
-    await clearBodyTwinState();
+    await clearBodyTwinState(localStore);
     baselineRef.current = undefined;
     setState(DEFAULT_STATE);
   }, []);

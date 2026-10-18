@@ -1,50 +1,14 @@
+import { Button, Choice, Field, Panel, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import React, { useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Text, View } from "react-native";
 
-import { useTheme } from "@/content/ThemeProvider";
 import type {
   DetectedFood,
   PortionUnit,
 } from "@/components/scanMeal/new/types";
 import { DEFAULT_UNITS, clamp, roundTo } from "@/components/scanMeal/new/types";
-import PremiumModalSheet, {
-  PremiumActionButton,
-} from "@/components/ui/PremiumModalSheet";
-
-function UnitPill({
-  unit,
-  active,
-  onPress,
-}: {
-  unit: PortionUnit;
-  active: boolean;
-  onPress: () => void;
-}) {
-  const { colors } = useTheme() as any;
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        borderRadius: 999,
-        backgroundColor: active
-          ? colors.primary
-          : withAlpha(colors.card, 0.4),
-      }}
-    >
-      <Text
-        style={{
-          color: active ? "white" : colors.text,
-          fontSize: 12,
-          fontWeight: "800",
-        }}
-      >
-        {unit}
-      </Text>
-    </Pressable>
-  );
-}
+import { useTheme } from "@/content/ThemeProvider";
 
 export default function EditFoodSheet({
   visible,
@@ -59,6 +23,8 @@ export default function EditFoodSheet({
   onSave: (f: DetectedFood) => void;
   onRemove?: () => void;
 }) {
+  const { D, F } = useSomataTheme();
+
   const { colors } = useTheme() as any;
 
   const [name, setName] = useState(food?.name ?? "");
@@ -134,104 +100,26 @@ export default function EditFoodSheet({
     });
   };
 
-  return (
-    <PremiumModalSheet
-      visible={visible}
-      onClose={onClose}
-      title="Edit item"
-      subtitle="Adjust name, portion, or macros before confirming."
-      footer={
-        <>
-          {onRemove ? (
-            <PremiumActionButton label="Remove item" onPress={onRemove} secondary />
-          ) : null}
-          <PremiumActionButton label="Save changes" onPress={commit} disabled={!canSave} />
-        </>
-      }
-    >
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-        <FieldLabel label="Name" colors={colors} />
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="E.g., chicken breast"
-          placeholderTextColor={colors.muted}
-          style={inputStyle(colors)}
-        />
+  return (<TaskSheet visible={visible} onClose={onClose} title="Refine this food">
 
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <View style={{ flex: 1 }}>
-            <FieldLabel label="Portion" colors={colors} />
-            <TextInput
-              value={amt}
-              onChangeText={onChangeAmt}
-              keyboardType="decimal-pad"
-              style={inputStyle(colors)}
-            />
-          </View>
+    <Field label="Food name" value={name} onChangeText={setName} />
 
-          <View style={{ flex: 1 }}>
-            <FieldLabel label="Unit" colors={colors} />
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              {DEFAULT_UNITS.map((u) => (
-                <UnitPill
-                  key={u}
-                  unit={u}
-                  active={u === unit}
-                  onPress={() => setUnit(u)}
-                />
-              ))}
-            </View>
-          </View>
-        </View>
+    <Field label="Portion" value={amt} onChangeText={onChangeAmt} keyboardType="decimal-pad" />
 
-        <FieldLabel label="Macros for this portion" colors={colors} />
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <TextInput
-            value={cals}
-            onChangeText={setCals}
-            keyboardType="decimal-pad"
-            placeholder="Calories"
-            placeholderTextColor={colors.muted}
-            style={[inputStyle(colors), { flex: 1 }]}
-          />
-          <TextInput
-            value={p}
-            onChangeText={setP}
-            keyboardType="decimal-pad"
-            placeholder="Protein"
-            placeholderTextColor={colors.muted}
-            style={[inputStyle(colors), { flex: 1 }]}
-          />
-        </View>
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <TextInput
-            value={c}
-            onChangeText={setC}
-            keyboardType="decimal-pad"
-            placeholder="Carbs"
-            placeholderTextColor={colors.muted}
-            style={[inputStyle(colors), { flex: 1 }]}
-          />
-          <TextInput
-            value={f}
-            onChangeText={setF}
-            keyboardType="decimal-pad"
-            placeholder="Fat"
-            placeholderTextColor={colors.muted}
-            style={[inputStyle(colors), { flex: 1 }]}
-          />
-        </View>
-      </ScrollView>
-    </PremiumModalSheet>
-  );
-}
+    <View style={F.wrap}>
+      {DEFAULT_UNITS.map(value => <Choice key={value} label={value} selected={unit === value} onPress={() => setUnit(value)} />)}
+    </View>
 
-function FieldLabel({ label, colors }: { label: string; colors: any }) {
-  return (
-    <Text style={{ color: colors.muted, fontSize: 12, fontWeight: "800" }}>
-      {label}
-    </Text>
+    <Text style={F.caption}>Changing the amount scales the current nutrition values.</Text>
+
+    <Panel>
+      {[{ label: 'Calories', value: cals, set: setCals }, { label: 'Protein (g)', value: p, set: setP }, { label: 'Carbs (g)', value: c, set: setC }, { label: 'Fat (g)', value: f, set: setF }].map(field =>
+        <Field key={field.label} label={field.label} value={field.value} onChangeText={field.set} keyboardType="decimal-pad" />)}
+    </Panel>
+
+    <Button label="Save changes" primary disabled={!canSave} onPress={commit} />
+    {!!onRemove && <Button label="Remove item" danger icon="trash-outline" onPress={onRemove} />}
+  </TaskSheet>
   );
 }
 

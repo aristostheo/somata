@@ -8,9 +8,14 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   signInWithCredential,
+  reauthenticateWithCredential,
   updateProfile,
 } from "firebase/auth";
 import { auth } from "./firebase";
+import { googleClientId } from "./socialAvailability";
+import Constants from "expo-constants";
+import * as Updates from "expo-updates";
+import { socialProvidersAllowed } from "../config/backend.cjs";
 
 // Close the browser tab on return
 WebBrowser.maybeCompleteAuthSession();
@@ -21,10 +26,16 @@ WebBrowser.maybeCompleteAuthSession();
  *    - For iOS/Android dev/prod builds, create platform clients that match your bundle/package.
  */
 const GOOGLE_IDS = {
-  web: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
-  ios: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
-  android: "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
+  web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  ios: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  android: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
 };
+export const isAppleSignInAllowed = () => socialProvidersAllowed(
+  Constants.expoConfig?.extra?.backend?.environment,
+  process.env.EXPO_PUBLIC_SOMATA_BACKEND_ENV,
+  Updates.channel,
+);
+export const isGoogleSignInConfigured = () => isAppleSignInAllowed() && googleClientId(Platform.OS, GOOGLE_IDS) !== null;
 
 /**
  * 2) This must match the `expo.scheme` in app.json/app.config.ts
@@ -46,13 +57,9 @@ const APP_SCHEME = "fitnessmobile";
  * and a redirectUri built from our app scheme.
  */
 export function useGoogleLogin() {
-  // Pick the right clientId for this platform (fallback to web if needed)
-  const clientId =
-    Platform.OS === "ios"
-      ? GOOGLE_IDS.ios || GOOGLE_IDS.web
-      : Platform.OS === "android"
-      ? GOOGLE_IDS.android || GOOGLE_IDS.web
-      : GOOGLE_IDS.web;
+  // Native IDs must match their platform; a web ID is not a native fallback.
+  const clientId = googleClientId(Platform.OS, GOOGLE_IDS);
+  if (!clientId || !isGoogleSignInConfigured()) throw new Error("Google sign-in is not enabled for this build.");
 
   const redirectUri = makeRedirectUri({
     // In current Expo, you should NOT use `useProxy`.
@@ -77,7 +84,9 @@ export function useGoogleLogin() {
     redirectUri,
   });
 
-  async function signInWithGoogle() {
+  async function signInWithGoogle(reauthenticate = false) {
+    if (!isGoogleSignInConfigured()) throw new Error("Google sign-in is not enabled for this build.");
+    const current = auth.currentUser;
     // No `useProxy` here on modern SDKs
     const res = await promptAsync();
     if (res.type !== "success" || !res.params?.id_token) {
@@ -88,14 +97,20 @@ export function useGoogleLogin() {
       throw new Error(msg);
     }
     const cred = GoogleAuthProvider.credential(res.params.id_token);
+    if (reauthenticate) {
+      if (!current || auth.currentUser?.uid !== current.uid) throw new Error("Account changed.");
+      return await reauthenticateWithCredential(current, cred);
+    }
     return await signInWithCredential(auth, cred);
   }
 
-  return { request, response, signInWithGoogle };
+  return { request, response, signInWithGoogle: () => signInWithGoogle(), reauthenticateGoogle: () => signInWithGoogle(true) };
 }
 
 /** Apple Sign-in (iOS devices) */
-export async function signInWithApple() {
+export async function signInWithApple(reauthenticate = false) {
+  if (!isAppleSignInAllowed()) throw new Error("Apple sign-in is not enabled for this build.");
+  const current = auth.currentUser;
   const appleCred = await Apple.signInAsync({
     requestedScopes: [
       Apple.AppleAuthenticationScope.FULL_NAME,
@@ -112,6 +127,10 @@ export async function signInWithApple() {
     idToken: appleCred.identityToken,
   });
 
+  if (reauthenticate) {
+    if (!current || auth.currentUser?.uid !== current.uid) throw new Error("Account changed.");
+    return reauthenticateWithCredential(current, firebaseCred);
+  }
   const userCred = await signInWithCredential(auth, firebaseCred);
 
   // Optional: set displayName the first time

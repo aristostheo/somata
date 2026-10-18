@@ -16,9 +16,14 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.firebase.emulators.lan.local.json
+.firebase.emulators.schedule.local.json
 
 # Mac system files
 .DS_Store
 
 # VSCode settings
 .vscode/
+
+# Operator-only staging inventory; no secret values belong in this file.
+/staging.local.json

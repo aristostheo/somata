@@ -1,3 +1,4 @@
+import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
 // components/workouts/ExerciseSearchSheet.tsx
 import React, {
   useEffect,
@@ -18,7 +19,6 @@ import {
   Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Fuse from "fuse.js";
 import seed from "@/assets/exercises.seed.json"; // [{ id, name, primaryMuscles, equipment }]
 import { useTheme } from "@/content/ThemeProvider";
@@ -51,6 +51,7 @@ export default function ExerciseSearchSheet({
   onPickItem?: (item: Seed) => void;
   suggested?: string[];
 }) {
+  const localStore = useAccountStorage();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const inputRef = useRef<TextInput>(null);
@@ -103,7 +104,7 @@ export default function ExerciseSearchSheet({
     if (!open) return;
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        const raw = await localStore.getItem(STORAGE_KEY);
         setRecents(raw ? JSON.parse(raw) : []);
       } catch {
         setRecents([]);
@@ -219,7 +220,7 @@ export default function ExerciseSearchSheet({
         8
       );
       setRecents(next);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      await localStore.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {}
     onPickItem?.(item);
     onPick(item.name);

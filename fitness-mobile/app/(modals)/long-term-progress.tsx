@@ -1,52 +1,44 @@
+import { useAccountStorage } from '@/services/local/accountStore';
+import { Button, Choice, Heading, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import { Trend } from "@/components/somata/Trend";
 // app/(modals)/long-term-progress.tsx
 // Drop-in ✅
 // Premium full-screen modal (also works as pushed page) for Long-term Progress
 // Depends on: expo-router, expo-linear-gradient, expo-blur, expo-haptics, react-native-reanimated
 // Uses your ThemeProvider: { colors, isDark }
 
-import React, { useEffect, useMemo, useState } from "react";
 import { nutritionTargets } from "@/services/nutritionTargets";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  Platform,
-} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import Animated, {
-  FadeInDown,
+import { useEffect, useMemo, useState } from "react";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  View
+} from "react-native";
+import {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withSpring
 } from "react-native-reanimated";
 
 import { useAuth } from "@/content/AuthContext";
 import { useTheme } from "@/content/ThemeProvider";
-import { withAlpha } from "@/lib/color";
+import { subscribeFoodsBetween } from "@/services/nutrition";
+import { subscribeProfile } from "@/services/profile";
 import {
   loadBodyMetrics,
   loadBodyMetricsHistory,
 } from "@/services/profile/bodyMetrics";
-import { subscribeProfile } from "@/services/profile";
-import { subscribeFoodsBetween } from "@/services/nutrition";
-import { subscribeWorkouts } from "@/services/workouts";
 import {
-  type RangeKey,
   RANGE_OPTIONS,
   computeSignalLabel,
-  emaSmooth,
   filterByRange,
-  formatDelta,
-  formatValue,
-  normalizeBars,
-  type SeriesPoint,
+  type RangeKey,
+  type SeriesPoint
 } from "@/services/profile/longTermProgress";
+import { subscribeWorkouts } from "@/services/workouts";
 
 type MetricKey = "weight" | "bodyFat" | "waist" | "workouts" | "nutrition";
 
@@ -197,197 +189,6 @@ function weightToDisplay(
   return Number(weightLb.toFixed(precision));
 }
 
-function HeaderButton({
-  onPress,
-  icon,
-  accessibilityLabel,
-}: {
-  onPress: () => void;
-  icon: keyof typeof Ionicons.glyphMap;
-  accessibilityLabel: string;
-}) {
-  const { colors } = useTheme();
-  const p = useSharedValue(0);
-
-  const aStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: withSpring(p.value ? 0.96 : 1, { damping: 18 }) }],
-    };
-  });
-
-  return (
-    <Animated.View style={aStyle}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel}
-        onPressIn={() => (p.value = 1)}
-        onPressOut={() => (p.value = 0)}
-        onPress={onPress}
-        style={({ pressed }) => [
-          styles.iconBtn,
-          {
-            backgroundColor: withAlpha(colors.card, pressed ? 0.55 : 0.42),
-            borderColor: withAlpha(colors.border, 0.35),
-          },
-        ]}
-      >
-        <Ionicons name={icon} size={18} color={colors.text} />
-      </Pressable>
-    </Animated.View>
-  );
-}
-
-function RangeSelector({
-  value,
-  onChange,
-}: {
-  value: RangeKey;
-  onChange: (v: RangeKey) => void;
-}) {
-  const { colors } = useTheme();
-
-  return (
-    <View
-      style={[
-        styles.rangeWrap,
-        {
-          backgroundColor: withAlpha(colors.card, 0.35),
-          borderColor: withAlpha(colors.border, 0.28),
-        },
-      ]}
-    >
-      {RANGE_OPTIONS.map((opt) => {
-        const active = opt.key === value;
-        return (
-          <Pressable
-            key={opt.key}
-            onPress={async () => {
-              if (opt.key === value) return;
-              try {
-                await Haptics.selectionAsync();
-              } catch {}
-              onChange(opt.key);
-            }}
-            style={({ pressed }) => [
-              styles.rangePill,
-              {
-                backgroundColor: active
-                  ? withAlpha(colors.text, 0.12)
-                  : "transparent",
-                borderColor: active
-                  ? withAlpha(colors.text, 0.16)
-                  : "transparent",
-                opacity: pressed ? 0.88 : 1,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.rangeText,
-                { color: active ? colors.text : withAlpha(colors.text, 0.72) },
-              ]}
-            >
-              {opt.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-function MetricChip({ label, value }: { label: string; value: string }) {
-  const { colors } = useTheme();
-  return (
-    <View
-      style={[
-        styles.chip,
-        {
-          backgroundColor: withAlpha(colors.card, 0.35),
-          borderColor: withAlpha(colors.border, 0.25),
-        },
-      ]}
-    >
-      <Text style={[styles.chipLabel, { color: withAlpha(colors.text, 0.7) }]}>
-        {label}
-      </Text>
-      <Text
-        style={[styles.chipValue, { color: colors.text }]}
-        numberOfLines={1}
-      >
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-function CalmBars({
-  points,
-  height = 118,
-  barCount = 28,
-}: {
-  points: SeriesPoint[];
-  height?: number;
-  barCount?: number;
-}) {
-  const { colors } = useTheme();
-
-  const values = useMemo(() => points.map((p) => p.value), [points]);
-  const smoothed = useMemo(() => emaSmooth(values, 0.28), [values]);
-  const bars = useMemo(
-    () => normalizeBars(smoothed, barCount),
-    [smoothed, barCount]
-  );
-
-  return (
-    <View
-      style={[
-        styles.chartWrap,
-        {
-          height,
-          backgroundColor: withAlpha(colors.card, 0.18),
-          borderColor: withAlpha(colors.border, 0.22),
-        },
-      ]}
-    >
-      <View style={styles.barsRow}>
-        {bars.map((b, idx) => {
-          const isRecent = idx >= bars.length - 5;
-          return (
-            <View key={idx} style={styles.barSlot}>
-              <View
-                style={{
-                  height: Math.max(6, b * (height - 18)),
-                  width: 10,
-                  borderRadius: 999,
-                  backgroundColor: withAlpha(
-                    colors.accent ?? "#d6b36a",
-                    isRecent ? 0.8 : 0.58
-                  ),
-                  shadowColor: colors.accent ?? "#d6b36a",
-                  shadowOpacity: isRecent ? 0.18 : 0.08,
-                  shadowRadius: isRecent ? 10 : 6,
-                  shadowOffset: { width: 0, height: 6 },
-                }}
-              />
-            </View>
-          );
-        })}
-      </View>
-
-      {/* soft bottom fade */}
-      <LinearGradient
-        pointerEvents="none"
-        colors={[
-          "transparent",
-          withAlpha("#000000", Platform.OS === "ios" ? 0.18 : 0.26),
-        ]}
-        style={styles.chartFade}
-      />
-    </View>
-  );
-}
-
 function formatShortDate(ts: number) {
   if (!Number.isFinite(ts)) return "";
   const d = new Date(ts);
@@ -419,6 +220,8 @@ function TrendCard({
   ctaLabel?: string;
   infoText?: string;
 }) {
+  const { D, F } = useSomataTheme();
+
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
 
@@ -452,221 +255,29 @@ function TrendCard({
     ? Math.max(...series.map((p) => p.value))
     : null;
 
-  return (
-    <Animated.View style={aStyle}>
-      <Pressable
-        onPress={async () => {
-          try {
-            await Haptics.selectionAsync();
-          } catch {}
-          setFocused((v) => !v);
-        }}
-        onPressIn={() => (press.value = 1)}
-        onPressOut={() => (press.value = 0)}
-        style={({ pressed }) => [
-          styles.card,
-          {
-            borderColor: withAlpha(colors.border, 0.28),
-            backgroundColor: withAlpha(colors.card, pressed ? 0.42 : 0.34),
-          },
-        ]}
-      >
-        <View style={styles.cardHeaderRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>
-              {title}
-            </Text>
-            <Text
-              style={[
-                styles.cardSubtitle,
-                { color: withAlpha(colors.text, 0.68) },
-              ]}
-            >
-              {subtitle}
-            </Text>
-            {infoText ? (
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="information-circle-outline"
-                  size={14}
-                  color={withAlpha(colors.text, 0.6)}
-                />
-                <Text
-                  style={[
-                    styles.infoText,
-                    { color: withAlpha(colors.text, 0.66) },
-                  ]}
-                >
-                  {infoText}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-          <Ionicons
-            name="chevron-down"
-            size={18}
-            color={withAlpha(colors.text, 0.7)}
-          />
-        </View>
-
-        {hasEnough ? (
-          <CalmBars
-            points={series}
-            height={focused ? 132 : 118}
-            barCount={28}
-          />
-        ) : (
-          <View
-            style={[
-              styles.emptyChart,
-              {
-                backgroundColor: withAlpha(colors.card, 0.18),
-                borderColor: withAlpha(colors.border, 0.22),
-              },
-            ]}
-          >
-            <Ionicons
-              name="analytics-outline"
-              size={18}
-              color={withAlpha(colors.text, 0.6)}
-            />
-            <Text
-              style={[styles.emptyText, { color: withAlpha(colors.text, 0.7) }]}
-            >
-              {series.length === 0
-                ? "No entries yet."
-                : "Not enough points to show a stable signal yet."}
-            </Text>
-
-            {!!onPressOptionalCTA && !!ctaLabel && (
-              <Pressable
-                onPress={onPressOptionalCTA}
-                style={({ pressed }) => [
-                  styles.ctaBtn,
-                  {
-                    backgroundColor: withAlpha(
-                      colors.text,
-                      pressed ? 0.14 : 0.1
-                    ),
-                    borderColor: withAlpha(colors.text, 0.12),
-                  },
-                ]}
-              >
-                <Text style={[styles.ctaText, { color: colors.text }]}>
-                  {ctaLabel}
-                </Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color={withAlpha(colors.text, 0.85)}
-                />
-              </Pressable>
-            )}
-          </View>
-        )}
-
-        <View style={styles.chipsRow}>
-          <MetricChip
-            label="Latest"
-            value={latest == null ? "—" : `${formatValue(latest)} ${unit}`}
-          />
-          <MetricChip
-            label="Change"
-            value={delta == null ? "—" : `${formatDelta(delta)} ${unit}`}
-          />
-          <MetricChip label="Signal" value={signal} />
-        </View>
-
-        <Text
-          style={[styles.footerNote, { color: withAlpha(colors.text, 0.68) }]}
-        >
-          Daily swings are normal. This view is meant to be a calm signal — not
-          pressure.
-        </Text>
-
-        {focused ? (
-          <View
-            style={[
-              styles.detailsWrap,
-              {
-                backgroundColor: withAlpha(colors.card, 0.22),
-                borderColor: withAlpha(colors.border, 0.28),
-              },
-            ]}
-          >
-            <View style={styles.detailsHeader}>
-              <Text style={[styles.detailsTitle, { color: colors.text }]}>
-                Details
-              </Text>
-              <Text
-                style={[
-                  styles.detailsSubtitle,
-                  { color: withAlpha(colors.text, 0.7) },
-                ]}
-              >
-                {series.length
-                  ? `${series.length} entries • ${formatFullDate(
-                      seriesStart as number
-                    )} → ${formatFullDate(seriesEnd as number)}`
-                  : "No entries yet"}
-              </Text>
-            </View>
-
-            {series.length ? (
-              <View style={styles.statsRow}>
-                <MetricChip
-                  label="Min"
-                  value={
-                    minVal == null
-                      ? "—"
-                      : `${formatValue(minVal)}${unit ? ` ${unit}` : ""}`
-                  }
-                />
-                <MetricChip
-                  label="Max"
-                  value={
-                    maxVal == null
-                      ? "—"
-                      : `${formatValue(maxVal)}${unit ? ` ${unit}` : ""}`
-                  }
-                />
-                <MetricChip label="Days" value={`${series.length}`} />
-              </View>
-            ) : null}
-
-            {recentPoints.length ? (
-              <View style={styles.pointList}>
-                {recentPoints.map((p, idx) => (
-                  <View
-                    key={`${p.date}-${idx}`}
-                    style={[
-                      styles.pointRow,
-                      { borderColor: withAlpha(colors.border, 0.2) },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.pointDate,
-                        { color: withAlpha(colors.text, 0.7) },
-                      ]}
-                    >
-                      {formatShortDate(p.date)}
-                    </Text>
-                    <Text style={[styles.pointValue, { color: colors.text }]}>
-                      {`${formatValue(p.value)}${unit ? ` ${unit}` : ""}`}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-          </View>
-        ) : null}
-      </Pressable>
-    </Animated.View>
+  return (<><Panel>
+    <Heading title={title} detail={subtitle} />
+    <Text style={{ ...F.value, fontSize: 40 }}>{latest == null ? '—' : `${Math.round(latest * 10) / 10} ${unit}`}</Text>
+    {hasEnough ? <Trend values={series.map(p => p.value)} labels={series.map(p => formatFullDate(p.date))} unit={unit} /> : <Text style={F.caption}>Record at least four entries to see this trend.</Text>}
+    {delta != null && <Text style={F.caption}>{delta > 0 ? '+' : ''}{Math.round(delta * 10) / 10} {unit} over this period · {signal}</Text>}
+    <Button label="Inspect records" onPress={() => setFocused(true)} />
+  </Panel><TaskSheet title={title} visible={focused} onClose={() => setFocused(false)}>
+      {infoText && <Text style={F.body}>{infoText}</Text>}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <Metric label="Minimum" value={minVal == null ? '—' : `${Math.round(minVal * 10) / 10} ${unit}`} />
+        <Metric label="Maximum" value={maxVal == null ? '—' : `${Math.round(maxVal * 10) / 10} ${unit}`} />
+        <Metric label="Records" value={String(series.length)} />
+      </View>
+      {recentPoints.map((p, i) => <Item key={i} title={formatFullDate(p.date)} value={`${Math.round(p.value * 10) / 10} ${unit}`} />)}
+      {!recentPoints.length && <Text style={F.caption}>No recorded values in this range.</Text>}
+    </TaskSheet></>
   );
 }
 
 export default function LongTermProgressModal() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -695,7 +306,7 @@ export default function LongTermProgressModal() {
       return;
     }
     const unsub = subscribeProfile(user.uid, (p) => {
-      const goal = nutritionTargets(p, { calories: 2200, protein: 160, carbs: 260, fat: 70 }).calories;
+      const goal = nutritionTargets(p).calories;
       setCalorieGoal(goal);
     });
     return () => {
@@ -707,8 +318,8 @@ export default function LongTermProgressModal() {
     let mounted = true;
 
     const loadMetrics = async () => {
-      const history = await loadBodyMetricsHistory();
-      const current = await loadBodyMetrics();
+      const history = await loadBodyMetricsHistory(localStore);
+      const current = await loadBodyMetrics(localStore);
 
       const weightPoints: SeriesPoint[] = history
         .filter((p) => Number.isFinite(p.weightLb))
@@ -847,190 +458,17 @@ export default function LongTermProgressModal() {
   const bgTop = isDark ? "#0B0F17" : "#0B0F17";
   const bgBottom = isDark ? "#070A10" : "#070A10";
 
-  return (
-    <View style={{ flex: 1, backgroundColor: bgBottom }}>
-      <LinearGradient
-        colors={[withAlpha(bgTop, 1), withAlpha(bgBottom, 1)]}
-        style={StyleSheet.absoluteFill}
-      />
-
-      {/* glossy aurora */}
-      <LinearGradient
-        pointerEvents="none"
-        colors={[
-          withAlpha(colors.accent ?? "#d6b36a", 0.18),
-          "transparent",
-          withAlpha("#6aa6ff", 0.1),
-          "transparent",
-        ]}
-        start={{ x: 0.05, y: 0.0 }}
-        end={{ x: 0.95, y: 1.0 }}
-        style={[StyleSheet.absoluteFill, { opacity: 0.9 }]}
-      />
-
-      <Animated.View entering={FadeInDown.duration(420)} style={{ flex: 1 }}>
-        <View
-          style={[
-            styles.topBar,
-            { borderBottomColor: withAlpha(colors.border, 0.18) },
-          ]}
-        >
-          <HeaderButton
-            icon={router.canGoBack() ? "chevron-back" : "close"}
-            accessibilityLabel="Close"
-            onPress={() => router.back()}
-          />
-
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <Text style={[styles.title, { color: colors.text }]}>
-              Long-term progress
-            </Text>
-            <Text
-              style={[styles.subtitle, { color: withAlpha(colors.text, 0.68) }]}
-            >
-              Calm signal, not pressure.
-            </Text>
-          </View>
-
-          {/* spacer for symmetry */}
-          <View style={{ width: 44 }} />
-        </View>
-
-        <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
-          <RangeSelector value={range} onChange={setRange} />
-        </View>
-
-        <ScrollView
-          contentContainerStyle={{ padding: 16, paddingBottom: 28 }}
-          showsVerticalScrollIndicator={false}
-        >
-          <BlurView intensity={22} tint="dark" style={styles.sectionBlur}>
-            <Text
-              style={[
-                styles.sectionTitle,
-                { color: withAlpha(colors.text, 0.9) },
-              ]}
-            >
-              Trends
-            </Text>
-            <Text
-              style={[
-                styles.sectionHint,
-                { color: withAlpha(colors.text, 0.68) },
-              ]}
-            >
-              These charts smooth noise to show direction gently over time.
-            </Text>
-          </BlurView>
-
-          <TrendCard
-            title="Weight trend"
-            subtitle="A longer lens on your pattern."
-            unit={unitFromParams}
-            series={weightSeries}
-            onPressOptionalCTA={() => {
-              // hook this to your body metrics editor route
-              // e.g. router.push("/(modals)/body-metrics-editor")
-              try {
-                Haptics.selectionAsync();
-              } catch {}
-            }}
-            ctaLabel="Add a check-in"
-          />
-
-          <TrendCard
-            title="Body fat %"
-            subtitle="Only shown when you track it."
-            unit="%"
-            series={bfSeries}
-            onPressOptionalCTA={() => {
-              try {
-                Haptics.selectionAsync();
-              } catch {}
-            }}
-            ctaLabel="Add body fat %"
-          />
-
-          <TrendCard
-            title="Waist"
-            subtitle="A practical measure — optional."
-            unit="cm"
-            series={waistSeries}
-            onPressOptionalCTA={() => {
-              try {
-                Haptics.selectionAsync();
-              } catch {}
-            }}
-            ctaLabel="Add waist"
-          />
-
-          <View style={{ height: 8 }} />
-
-          <BlurView intensity={18} tint="dark" style={styles.sectionBlur}>
-            <Text
-              style={[
-                styles.sectionTitle,
-                { color: withAlpha(colors.text, 0.9) },
-              ]}
-            >
-              Consistency (optional)
-            </Text>
-            <Text
-              style={[
-                styles.sectionHint,
-                { color: withAlpha(colors.text, 0.68) },
-              ]}
-            >
-              This is about rhythm, not perfection.
-            </Text>
-          </BlurView>
-
-          <TrendCard
-            title="Training volume"
-            subtitle="How much work you put in over time."
-            unit="sets/wk"
-            series={workoutSeries}
-            onPressOptionalCTA={() => {}}
-            ctaLabel="Connect workout data"
-            infoText="Each bar is total working sets per week, smoothed for clarity."
-          />
-
-          <TrendCard
-            title="Nutrition consistency"
-            subtitle="How close you stay to your calorie target."
-            unit=""
-            series={nutritionSeries}
-            onPressOptionalCTA={() => {}}
-            ctaLabel="Connect nutrition data"
-            infoText="Daily adherence score (0–1) vs your calorie goal."
-          />
-
-          <View
-            style={[
-              styles.safetyNote,
-              {
-                backgroundColor: withAlpha(colors.card, 0.28),
-                borderColor: withAlpha(colors.border, 0.22),
-              },
-            ]}
-          >
-            <Ionicons
-              name="heart-outline"
-              size={18}
-              color={withAlpha(colors.text, 0.78)}
-            />
-            <Text
-              style={[
-                styles.safetyText,
-                { color: withAlpha(colors.text, 0.78) },
-              ]}
-            >
-              Trends are shown as a calm signal. No streak guilt. No shame.
-            </Text>
-          </View>
-        </ScrollView>
-      </Animated.View>
+  return (<TaskPage title="The longer view" section="Long-term progress" onBack={() => router.back()}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {RANGE_OPTIONS.map(o => <Choice key={o.key} label={o.label} selected={range === o.key} onPress={() => setRange(o.key)} />)}
     </View>
+    <Text style={F.caption}>Recorded trends from the existing history sources. Nutrition consistency compares records with your current calorie goal.</Text>
+    <TrendCard title="Weight" subtitle="Recorded weight over time" unit={unitFromParams} series={weightSeries} />
+    <TrendCard title="Body fat" subtitle="Available measurements only" unit="%" series={bfSeries} />
+    <TrendCard title="Waist" subtitle="Optional body measurements" unit="cm" series={waistSeries} />
+    <TrendCard title="Training volume" subtitle="Working sets per week" unit="sets/wk" series={workoutSeries} />
+    <TrendCard title="Nutrition consistency" subtitle="Daily adherence against the current calorie goal" unit="" series={nutritionSeries} />
+  </TaskPage>
   );
 }
 

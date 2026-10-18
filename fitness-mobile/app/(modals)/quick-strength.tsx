@@ -1,13 +1,12 @@
-import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Haptics from "expo-haptics";
+import { Button, Heading, Panel, TaskPage } from "@/components/somata/TaskUI";
 import { useAuth } from "@/content/AuthContext";
 import { useTheme } from "@/content/ThemeProvider";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import { useMemo, useState } from "react";
+import { Platform, StyleSheet } from "react-native";
 
 const withAlpha = (hex: string, a: number) => {
   const h = hex.replace("#", "");
@@ -18,67 +17,6 @@ const withAlpha = (hex: string, a: number) => {
   const alpha = Math.max(0, Math.min(1, a));
   return `rgba(${r},${g},${b},${alpha})`;
 };
-
-function GlassCard({
-  children,
-  intensity = 32,
-  style,
-}: {
-  children: React.ReactNode;
-  intensity?: number;
-  style?: any;
-}) {
-  const { colors, isDark } = useTheme();
-
-  const cardBg = isDark
-    ? withAlpha("#FFFFFF", 0.06)
-    : withAlpha("#000000", 0.03);
-
-  const cardBorder = isDark
-    ? withAlpha("#FFFFFF", 0.14)
-    : withAlpha(colors.text, 0.12);
-
-  const gradColors = isDark
-    ? [
-        withAlpha("#FFFFFF", 0.1),
-        withAlpha("#FFFFFF", 0.06),
-        withAlpha("#000000", 0.06),
-      ]
-    : [
-        withAlpha(colors.primary, 0.14),
-        withAlpha("#FFFFFF", 0.78),
-        withAlpha(colors.card, 0.72),
-      ];
-
-  return (
-    <View
-      style={[
-        styles.cardWrap,
-        { backgroundColor: cardBg, borderColor: cardBorder },
-        style,
-      ]}
-    >
-      <View
-        style={[styles.cardBorder, { borderColor: cardBorder }]}
-        pointerEvents="none"
-      />
-      <BlurView
-        intensity={intensity}
-        tint={isDark ? "dark" : "light"}
-        style={styles.cardBlur}
-      >
-        <LinearGradient
-          colors={gradColors as any}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardInner}
-        >
-          {children}
-        </LinearGradient>
-      </BlurView>
-    </View>
-  );
-}
 
 type SeedExercise = {
   name: string;
@@ -143,7 +81,7 @@ export default function QuickStrengthModal() {
   const haptic = async () => {
     try {
       await Haptics.selectionAsync();
-    } catch {}
+    } catch { }
   };
 
   const templateSeedKey = (u: string) => `workout:templateSeed:${u}`;
@@ -166,7 +104,7 @@ export default function QuickStrengthModal() {
 
     try {
       await AsyncStorage.setItem(templateSeedKey(uid), JSON.stringify(seed));
-    } catch {}
+    } catch { }
 
     router.replace({
       pathname: "/workouts/session",
@@ -179,10 +117,10 @@ export default function QuickStrengthModal() {
   const bgGradient = isDark
     ? ["#070A12", "#050711", "#03040A"]
     : [
-        withAlpha(colors.primary, 0.08),
-        colors.bg,
-        withAlpha(colors.card, 0.85),
-      ];
+      withAlpha(colors.primary, 0.08),
+      colors.bg,
+      withAlpha(colors.card, 0.85),
+    ];
 
   const titleColor = isDark ? withAlpha("#FFF", 0.95) : colors.text;
   const subColor = isDark
@@ -213,139 +151,13 @@ export default function QuickStrengthModal() {
     ? withAlpha("#111", 0.92)
     : withAlpha(colors.bg, 0.92);
 
-  return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
-      <LinearGradient
-        colors={bgGradient as any}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.85, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-
-      <View
-        style={[
-          styles.glow,
-          {
-            top: -140,
-            left: -90,
-            backgroundColor: withAlpha(accent, isDark ? 0.18 : 0.14),
-          },
-        ]}
-        pointerEvents="none"
-      />
-
-      <View style={{ paddingTop: topPad, paddingHorizontal: 16 }}>
-        <View style={styles.headerRow}>
-          <Pressable
-            onPress={() => router.back()}
-            style={({ pressed }) => [
-              styles.iconBtn,
-              {
-                backgroundColor: iconBtnBg,
-                borderColor: iconBtnBorder,
-              },
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Ionicons name="chevron-back" size={18} color={iconColor} />
-          </Pressable>
-
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.title, { color: titleColor }]}>
-              Quick Strength
-            </Text>
-            <Text style={[styles.subtitle, { color: subColor }]}>
-              Pick one preset — you’re in the session instantly.
-            </Text>
-          </View>
-        </View>
-
-        <GlassCard style={{ marginTop: 14 }} intensity={isDark ? 34 : 28}>
-          <Text style={[styles.sectionLabel, { color: subColor }]}>
-            PRESETS
-          </Text>
-
-          <View style={styles.grid}>
-            {presets.map((p) => (
-              <Pressable
-                key={p.label}
-                onPress={() => seedAndOpen(`${p.ex.name}`, [p.ex])}
-                style={({ pressed }) => [
-                  styles.tile,
-                  {
-                    backgroundColor: tileBg,
-                    borderColor: tileBorder,
-                  },
-                  pressed && { opacity: 0.9 },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={`Quick log ${p.label}`}
-              >
-                <View
-                  style={[
-                    styles.tileIcon,
-                    {
-                      backgroundColor: isDark
-                        ? withAlpha("#FFFFFF", 0.06)
-                        : withAlpha(colors.primary, 0.1),
-                      borderColor: isDark
-                        ? withAlpha("#FFFFFF", 0.14)
-                        : withAlpha(colors.text, 0.1),
-                    },
-                  ]}
-                >
-                  <Ionicons name={p.icon} size={18} color={iconColor} />
-                </View>
-
-                <Text style={[styles.tileText, { color: titleColor }]}>
-                  {p.label}
-                </Text>
-                <Text
-                  style={[styles.tileSub, { color: subColor }]}
-                >{`${p.ex.sets}×${p.ex.reps}`}</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          <View style={{ height: 10 }} />
-
-          <Pressable
-            onPress={() =>
-              seedAndOpen("Quick Strength", [
-                { name: "Bench Press", sets: 3, reps: 8, weightKg: 0 },
-                { name: "Lat Pulldown", sets: 3, reps: 10, weightKg: 0 },
-                { name: "Leg Press", sets: 3, reps: 10, weightKg: 0 },
-              ])
-            }
-            style={({ pressed }) => [
-              styles.primaryBtn,
-              { backgroundColor: primaryBtnBg },
-              pressed && { opacity: 0.92 },
-            ]}
-          >
-            <Ionicons name="flash-outline" size={16} color={primaryBtnText} />
-            <Text style={[styles.primaryBtnText, { color: primaryBtnText }]}>
-              1-tap Full-Body
-            </Text>
-          </Pressable>
-        </GlassCard>
-
-        <Text
-          style={[
-            styles.foot,
-            {
-              color: isDark
-                ? withAlpha("#FFF", 0.5)
-                : withAlpha(colors.text, 0.55),
-            },
-          ]}
-        >
-          Tip: in session, hit Done when finished — this quick flow just gets
-          you logging fast.
-        </Text>
-      </View>
-    </View>
-  );
+  return (<TaskPage title="Quick strength" section="Start moving" subtitle="Choose a starting point, then review and log your session." onBack={() => router.back()}>
+    {presets.map(p => <Panel key={p.label}>
+      <Heading title={p.label} detail={`${p.ex.sets} × ${p.ex.reps}`} />
+      <Button primary label="Start session" disabled={busy} onPress={() => seedAndOpen(p.ex.name, [p.ex])} />
+    </Panel>)}
+    <Button label="Full-body session" disabled={busy} onPress={() => seedAndOpen('Quick Strength', [{ name: 'Bench Press', sets: 3, reps: 8, weightKg: 0 }, { name: 'Lat Pulldown', sets: 3, reps: 10, weightKg: 0 }, { name: 'Leg Press', sets: 3, reps: 10, weightKg: 0 }])} />
+  </TaskPage>);
 }
 
 const styles = StyleSheet.create({

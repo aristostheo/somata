@@ -1,22 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  TextInput,
-  ScrollView,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
+import { Button, Choice, Empty, Field, Heading, IconButton, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import { useAuth } from "@/content/AuthContext";
-import { subscribeProfile, type Profile } from "@/services/profile";
 import {
   subscribeWorkoutPresets,
   type WorkoutPreset,
 } from "@/services/presets";
+import { subscribeProfile, type Profile } from "@/services/profile";
 import {
   subscribeWorkoutTemplates,
   type WorkoutTemplate,
@@ -24,9 +13,18 @@ import {
 import { addWorkout } from "@/services/workouts";
 import { fmt } from "@/utils/date";
 import { kgToLb, lbToKg } from "@/utils/units";
+import { useRouter } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
+} from "react-native";
 
 // ---------- Types ----------
-type SetEntry = { reps: number; weight: number; done?: boolean };
+type SetEntry = { reps: number; weight: number; done?: boolean; };
 type ExerciseEntry = {
   id: string;
   name: string;
@@ -61,6 +59,8 @@ const DEFAULT_EXERCISE_PRESETS = [
 
 // ---------- Screen ----------
 export default function QuickWorkoutScreen() {
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -98,7 +98,7 @@ export default function QuickWorkoutScreen() {
         unsubProfile();
         unsubPresets();
         unsubTemplates();
-      } catch {}
+      } catch { }
     };
   }, [user?.uid]);
 
@@ -174,16 +174,16 @@ export default function QuickWorkoutScreen() {
       prev.map((ex) =>
         ex.id === exerciseId
           ? {
-              ...ex,
-              sets: [
-                ...ex.sets,
-                {
-                  reps: ex.sets.at(-1)?.reps ?? quickReps,
-                  weight: ex.sets.at(-1)?.weight ?? quickWeight,
-                  done: true,
-                },
-              ],
-            }
+            ...ex,
+            sets: [
+              ...ex.sets,
+              {
+                reps: ex.sets.at(-1)?.reps ?? quickReps,
+                weight: ex.sets.at(-1)?.weight ?? quickWeight,
+                done: true,
+              },
+            ],
+          }
           : ex
       )
     );
@@ -259,420 +259,102 @@ export default function QuickWorkoutScreen() {
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#0B0F17" }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.kicker}>Quick Workout</Text>
-          <Text style={styles.title}>Log fast. Move on.</Text>
-        </View>
-
-        <Pressable
-          onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/workouts"))}
-          style={styles.headerBtn}
-        >
-          <Text style={styles.headerBtnTxt}>Close</Text>
-        </Pressable>
+  return (<TaskPage title="Build your quick log." section="Training / quick workout"
+    onBack={() => router.canGoBack() ? router.back() : router.replace("/(tabs)/workouts")}
+    footer={<View style={F.wrap}>
+      <View style={{ flex: 1 }}>
+        <Button label="Discard" onPress={() => Alert.alert("Discard?", "This will clear your quick workout.", [
+          { text: "Cancel", style: "cancel" }, { text: "Discard", style: "destructive", onPress: () => setExercises([]) }])} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Meta row */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Workout</Text>
+      <View style={{ flex: 2 }}>
+        <Button label={`Save workout${exercises.length ? ` · ${exercises.length}` : ""}`} primary onPress={saveWorkout} />
+      </View>
+    </View>}>
 
-          <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Name</Text>
-              <TextInput
-                value={workoutName}
-                onChangeText={setWorkoutName}
-                placeholder="e.g. Upper quick"
-                placeholderTextColor="rgba(255,255,255,0.35)"
-                style={styles.input}
-              />
-            </View>
+    <View style={F.wrap}>
+      <Metric label="Exercises" value={String(exercises.length)} />
+      <Metric label="Weight unit" value={unit} />
+    </View>
 
-            <Pressable
-              onPress={() => setTimerOn((v) => !v)}
-              style={[styles.pillToggle, timerOn && styles.pillToggleOn]}
-            >
-              <Text style={styles.pillToggleTxt}>
-                {timerOn ? "⏱️ On" : "⏱️ Off"}
-              </Text>
-              <Text style={styles.pillToggleSub}>Rest timer</Text>
-            </Pressable>
-          </View>
+    <Field label="Workout name" value={workoutName} onChangeText={setWorkoutName} />
 
-          <Text style={[styles.label, { marginTop: 12 }]}>Templates</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 10, paddingVertical: 8 }}
-          >
-            <TemplateChip
-              label="None"
-              active={!templateId}
-              onPress={() => {
-                setTemplateId(null);
-                setWorkoutName("Quick Workout");
-                setExercises([]);
-              }}
-            />
-            {templates.map((t) => (
-              <TemplateChip
-                key={t.id}
-                label={t.name}
-                active={templateId === t.id}
-                onPress={() => applyTemplate(t)}
-              />
-            ))}
-          </ScrollView>
+    <Heading title="Start from a template" detail={selectedTemplate ? selectedTemplate.name : "Or build your own exercise list below."} />
 
-          {selectedTemplate && (
-            <Text style={styles.hint}>
-              Loaded template:{" "}
-              <Text
-                style={{ color: "rgba(255,255,255,0.85)", fontWeight: "800" }}
-              >
-                {selectedTemplate.name}
-              </Text>
-            </Text>
-          )}
-        </View>
+    <View style={F.wrap}>
+      <Choice label="No template" selected={!templateId} onPress={() => { setTemplateId(null); setWorkoutName("Quick Workout"); setExercises([]); }} />
 
-        {/* Add Exercise */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Add exercise (fast)</Text>
+      {templates.map(t => <Choice key={t.id} label={t.name} selected={templateId === t.id} onPress={() => applyTemplate(t)} />)}
+    </View>
 
-          <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Exercise</Text>
-              <TextInput
-                ref={inputRef}
-                value={exerciseQuery}
-                onChangeText={(t) => {
-                  setExerciseQuery(t);
-                  setSelectedExerciseName(null);
-                }}
-                placeholder="Type or tap a preset…"
-                placeholderTextColor="rgba(255,255,255,0.35)"
-                style={styles.input}
-              />
+    <Panel>
+      <Heading title="Add an exercise" />
+      <Field ref={inputRef} label="Exercise" value={exerciseQuery}
+        onChangeText={t => { setExerciseQuery(t); setSelectedExerciseName(null); }} placeholder="Search your presets or enter a name" />
 
-              {/* Suggestions */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 8,
-                  marginTop: 10,
-                }}
-              >
-                {suggestions.map((s, i) => {
-                  const active = selectedExerciseName === s;
-                  return (
-                    <Pressable
-                      key={`${s}-${i}`}
-                      onPress={() => {
-                        setSelectedExerciseName(s);
-                        setExerciseQuery(s);
-                        const preset = presetByName.get(s);
-                        if (preset) {
-                          if (preset.sets) setQuickSets(Number(preset.sets));
-                          if (preset.reps) setQuickReps(Number(preset.reps));
-                          if (preset.weight != null) {
-                            const w =
-                              unit === "lb"
-                                ? Math.round(kgToLb(Number(preset.weight)))
-                                : Number(preset.weight);
-                            setQuickWeight(w);
-                          }
-                        }
-                      }}
-                      style={[
-                        styles.suggestChip,
-                        active && styles.suggestChipOn,
-                      ]}
-                    >
-                      <Text style={styles.suggestTxt}>{s}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-
-            <Pressable
-              onPress={addExercise}
-              disabled={!canAddExercise}
-              style={[styles.primaryBtn, !canAddExercise && { opacity: 0.45 }]}
-            >
-              <Text style={styles.primaryBtnTxt}>Add</Text>
-              <Text style={styles.primaryBtnSub}>exercise</Text>
-            </Pressable>
-          </View>
-
-          {/* Quick defaults */}
-          <Text style={[styles.label, { marginTop: 14 }]}>
-            Defaults for new exercise
-          </Text>
-
-          <View style={styles.quickRow}>
-            <QuickPills
-              title="Sets"
-              value={quickSets}
-              pills={SETS_PILLS}
-              onPick={setQuickSets}
-            />
-            <QuickPills
-              title="Reps"
-              value={quickReps}
-              pills={REPS_PILLS}
-              onPick={setQuickReps}
-            />
-            <QuickPills
-              title="Weight"
-              value={quickWeight}
-              pills={WEIGHT_PILLS}
-              onPick={(v) => setQuickWeight(v)}
-              suffix="lb"
-            />
-          </View>
-
-          <Text style={styles.hint}>
-            Tip: tap a set below to edit reps/weight, or “+ Set” to duplicate
-            the last set.
-          </Text>
-        </View>
-
-        {/* Exercises list */}
-        <View style={[styles.card, { paddingBottom: 10 }]}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text style={styles.cardTitle}>Logged</Text>
-            <Text style={styles.smallStat}>{exercises.length} exercises</Text>
-          </View>
-
-          {exercises.length === 0 ? (
-            <Text style={[styles.hint, { marginTop: 12 }]}>
-              No exercises yet. Add one above or load a template.
-            </Text>
-          ) : (
-            <View style={{ marginTop: 12, gap: 12 }}>
-              {exercises.map((ex) => (
-                <View key={ex.id} style={styles.exerciseBox}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Text style={styles.exerciseName}>{ex.name}</Text>
-                    <View style={{ flexDirection: "row", gap: 8 }}>
-                      <Pressable
-                        onPress={() => addOneSet(ex.id)}
-                        style={styles.miniBtn}
-                      >
-                        <Text style={styles.miniBtnTxt}>+ Set</Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() =>
-                          Alert.alert("Remove exercise?", ex.name, [
-                            { text: "Cancel", style: "cancel" },
-                            {
-                              text: "Remove",
-                              style: "destructive",
-                              onPress: () => removeExercise(ex.id),
-                            },
-                          ])
-                        }
-                        style={[
-                          styles.miniBtn,
-                          { borderColor: "rgba(255,120,120,0.35)" },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.miniBtnTxt,
-                            { color: "rgba(255,170,170,0.95)" },
-                          ]}
-                        >
-                          Remove
-                        </Text>
-                      </Pressable>
-                    </View>
-                  </View>
-
-                  <View style={{ marginTop: 10, gap: 8 }}>
-                    {ex.sets.map((s, i) => (
-                      <View key={i} style={styles.setRow}>
-                        <Text style={styles.setIndex}>Set {i + 1}</Text>
-
-                        <Pressable
-                          onPress={() =>
-                            updateSet(ex.id, i, {
-                              reps: s.reps === 1 ? 1 : s.reps - 1,
-                            })
-                          }
-                          style={styles.stepperBtn}
-                        >
-                          <Text style={styles.stepperTxt}>−</Text>
-                        </Pressable>
-                        <Pressable
-                          onPress={() =>
-                            updateSet(ex.id, i, { reps: s.reps + 1 })
-                          }
-                          style={styles.stepperBtn}
-                        >
-                          <Text style={styles.stepperTxt}>+</Text>
-                        </Pressable>
-                        <Text style={styles.setValue}>{s.reps} reps</Text>
-
-                        <View style={{ width: 10 }} />
-
-                        <Pressable
-                          onPress={() =>
-                            updateSet(ex.id, i, {
-                              weight: Math.max(0, roundTo(s.weight - 5, 5)),
-                            })
-                          }
-                          style={styles.stepperBtn}
-                        >
-                          <Text style={styles.stepperTxt}>−</Text>
-                        </Pressable>
-                        <Pressable
-                          onPress={() =>
-                            updateSet(ex.id, i, {
-                              weight: roundTo(s.weight + 5, 5),
-                            })
-                          }
-                          style={styles.stepperBtn}
-                        >
-                          <Text style={styles.stepperTxt}>+</Text>
-                        </Pressable>
-                        <Text style={styles.setValue}>{s.weight} lb</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  <TextInput
-                    value={ex.note ?? ""}
-                    onChangeText={(t) =>
-                      setExercises((prev) =>
-                        prev.map((p) =>
-                          p.id === ex.id ? { ...p, note: t } : p
-                        )
-                      )
-                    }
-                    placeholder="Note (optional)…"
-                    placeholderTextColor="rgba(255,255,255,0.32)"
-                    style={[styles.input, { marginTop: 10 }]}
-                  />
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-      </ScrollView>
-
-      {/* Bottom action bar */}
-      <View style={styles.bottomBar}>
-        <Pressable
-          onPress={() =>
-            Alert.alert("Discard?", "This will clear your quick workout.", [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Discard",
-                style: "destructive",
-                onPress: () => setExercises([]),
-              },
-            ])
+      <View style={F.wrap}>
+        {suggestions.map((s, i) => <Choice key={`${s}-${i}`} label={s} selected={selectedExerciseName === s} onPress={() => {
+          setSelectedExerciseName(s); setExerciseQuery(s); const preset = presetByName.get(s); if (preset) {
+            if (preset.sets) setQuickSets(Number(preset.sets));
+            if (preset.reps) setQuickReps(Number(preset.reps)); if (preset.weight != null) setQuickWeight(unit === "lb" ? Math.round(kgToLb(Number(preset.weight))) : Number(preset.weight));
           }
-          style={styles.secondaryBtn}
-        >
-          <Text style={styles.secondaryTxt}>Discard</Text>
-        </Pressable>
-
-        <Pressable onPress={saveWorkout} style={styles.saveBtn}>
-          <Text style={styles.saveTxt}>Save Workout</Text>
-          <Text style={styles.saveSub}>
-            {exercises.length
-              ? `${exercises.length} exercises`
-              : "Add something first"}
-          </Text>
-        </Pressable>
+        }} />)}
       </View>
-    </KeyboardAvoidingView>
+
+      <Text style={F.caption}>Defaults for the next exercise</Text>
+
+      {[{ label: "Sets", values: SETS_PILLS, value: quickSets, set: setQuickSets }, { label: "Reps", values: REPS_PILLS, value: quickReps, set: setQuickReps },
+      { label: `Weight · ${unit}`, values: WEIGHT_PILLS, value: quickWeight, set: setQuickWeight }].map(group => <View key={group.label} style={{ gap: 8 }}>
+
+        <Text style={F.caption}>{group.label}</Text>
+        <View style={F.wrap}>
+          {group.values.map(value => <Choice key={value} label={String(value)} selected={group.value === value} onPress={() => group.set(value)} />)}
+        </View>
+      </View>)}
+
+      <Button label="Add to workout" icon="add" primary disabled={!canAddExercise} onPress={addExercise} />
+    </Panel>
+
+    <Heading title="Your exercise log" detail="Edit each set before saving." />
+
+    {!exercises.length && <Empty title="No exercises yet" detail="Use an exercise preset or add one above." />}
+
+    {exercises.map((ex, index) => <View key={ex.id} style={{ gap: 16, paddingBottom: 22, borderBottomWidth: 1, borderBottomColor: D.line }}>
+
+      <Heading title={`${String(index + 1).padStart(2, "0")}  ${ex.name}`} action={<IconButton icon="trash-outline" label={`Remove ${ex.name}`} onPress={() => Alert.alert("Remove exercise?", ex.name, [
+        { text: "Cancel", style: "cancel" }, { text: "Remove", style: "destructive", onPress: () => removeExercise(ex.id) }])} />} />
+
+      {ex.sets.map((set, i) => <Panel key={i}>
+        <Text style={F.eyebrow}>SET {i + 1}</Text>
+        <View style={{ gap: 14 }}>
+
+          <View style={F.row}>
+            <Text style={{ ...F.body, flex: 1, color: D.text }}>{set.reps} reps</Text>
+            <IconButton label={`Set ${i + 1}: fewer reps`} icon="remove" onPress={() => updateSet(ex.id, i, { reps: set.reps === 1 ? 1 : set.reps - 1 })} />
+            <IconButton label={`Set ${i + 1}: more reps`} icon="add" onPress={() => updateSet(ex.id, i, { reps: set.reps + 1 })} />
+          </View>
+
+          <View style={F.row}>
+            <Text style={{ ...F.body, flex: 1, color: D.text }}>{set.weight} {unit}</Text>
+            <IconButton label={`Set ${i + 1}: lower weight`} icon="remove" onPress={() => updateSet(ex.id, i, { weight: Math.max(0, roundTo(set.weight - 5, 5)) })} />
+            <IconButton label={`Set ${i + 1}: increase weight`} icon="add" onPress={() => updateSet(ex.id, i, { weight: roundTo(set.weight + 5, 5) })} />
+          </View>
+
+        </View>
+      </Panel>)}
+
+      <Button label="Add set" icon="add" onPress={() => addOneSet(ex.id)} />
+
+      <Field label={`Notes for ${ex.name}`} value={ex.note ?? ""} onChangeText={t => setExercises(prev => prev.map(p => p.id === ex.id ? { ...p, note: t } : p))} />
+
+    </View>)}
+
+    <Text style={F.caption}>Your saved log uses the first set for its primary reps and weight; varied sets are included in the notes.</Text>
+  </TaskPage>
   );
 }
 
 // ---------- Small components ----------
-function TemplateChip({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable onPress={onPress} style={[styles.chip, active && styles.chipOn]}>
-      <Text style={[styles.chipTxt, active && styles.chipTxtOn]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function QuickPills({
-  title,
-  value,
-  pills,
-  onPick,
-  suffix,
-}: {
-  title: string;
-  value: number;
-  pills: number[];
-  onPick: (v: number) => void;
-  suffix?: string;
-}) {
-  return (
-    <View style={{ flex: 1 }}>
-      <Text style={styles.label}>{title}</Text>
-      <View
-        style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}
-      >
-        {pills.map((p) => {
-          const active = p === value;
-          return (
-            <Pressable
-              key={p}
-              onPress={() => onPick(p)}
-              style={[styles.pill, active && styles.pillOn]}
-            >
-              <Text style={[styles.pillTxt, active && styles.pillTxtOn]}>
-                {p}
-                {suffix ? ` ${suffix}` : ""}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
 
 // ---------- Styles ----------
 const styles = StyleSheet.create({

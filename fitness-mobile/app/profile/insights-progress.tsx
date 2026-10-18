@@ -1,46 +1,36 @@
-import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
+import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
+import { Button, Choice, Empty, Heading, IconButton, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import { Trend } from "@/components/somata/Trend";
 import { nutritionTargets } from "@/services/nutritionTargets";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-  useWindowDimensions,
-} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { MotiView } from "moti";
-import { useReducedMotion } from "react-native-reanimated";
-import Svg, {
-  Circle,
-  Line,
-  Path,
-  Polyline,
-  Rect,
-  Text as SvgText,
-} from "react-native-svg";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-
-import { useAuth } from "@/content/AuthContext";
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  subscribeFoodsBetween,
+  Text,
+  useWindowDimensions,
+  View
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { useAuth } from "@/content/AuthContext";
+import { subscribeActivityBetween, type ActivityEntry } from "@/services/activity";
+import { BADGE_BY_ID, BADGES } from "@/services/badges/registry";
+import { loadUnlocksLocal } from "@/services/badges/store";
+import type { UnlockMap } from "@/services/badges/types";
+import {
   subscribeExerciseBetween,
+  subscribeFoodsBetween,
   type ExerciseEntry,
   type FoodEntry,
 } from "@/services/nutrition";
-import { subscribeActivityBetween, type ActivityEntry } from "@/services/activity";
 import { subscribeProfile, type Profile } from "@/services/profile";
 import {
   loadBodyMetricsHistory,
   type BodyMetricPoint,
 } from "@/services/profile/bodyMetrics";
-import { BADGE_BY_ID, BADGES } from "@/services/badges/registry";
-import { loadUnlocksLocal } from "@/services/badges/store";
-import type { UnlockMap } from "@/services/badges/types";
 
 type RangeKey = 7 | 30 | 90;
 type ChartKind = "calories" | "protein" | "weight";
@@ -261,6 +251,9 @@ type Goals = {
 };
 
 export default function InsightsProgressScreen() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const C = useC();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -309,7 +302,7 @@ export default function InsightsProgressScreen() {
     (async () => {
       const entries = await Promise.all(
         allDates.map(async (d) => {
-          const stored = await AsyncStorage.getItem(`@water:${d}`);
+          const stored = await localStore.getItem(`@water:${d}`);
           return [d, Math.max(0, Number(stored || 0) || 0)] as const;
         })
       );
@@ -329,20 +322,20 @@ export default function InsightsProgressScreen() {
           Object.fromEntries(entries.map(([d, ml]) => [d, ml + (quickMap[d] || 0)]))
         );
       }
-    })().catch(() => {});
+    })().catch(() => { });
     return () => {
       mounted = false;
     };
   }, [allDates, user?.uid]);
 
   useEffect(() => {
-    loadBodyMetricsHistory().then(setBodyHistory).catch(() => setBodyHistory([]));
-    loadUnlocksLocal().then((x) => setUnlocks(x || {})).catch(() => setUnlocks({}));
+    loadBodyMetricsHistory(localStore).then(setBodyHistory).catch(() => setBodyHistory([]));
+    loadUnlocksLocal(localStore).then((x) => setUnlocks(x || {})).catch(() => setUnlocks({}));
   }, []);
 
   const goals: Goals = useMemo(
     () => ({
-      ...nutritionTargets(profile, { calories: 2400, protein: 160, carbs: 260, fat: 80 }),
+      ...nutritionTargets(profile),
       waterMl: n((profile as any)?.waterGoalMl ?? 2400),
     }),
     [profile]
@@ -510,8 +503,8 @@ export default function InsightsProgressScreen() {
       !hydrationTracked
         ? "Hydration hasn't been logged yet — one glass a day is a strong start."
         : missedWater > 0
-        ? `Hydration logged ${hydrationHits}/${totalDays} days — one glass early helps build rhythm.`
-        : "Hydration hit every logged day.",
+          ? `Hydration logged ${hydrationHits}/${totalDays} days — one glass early helps build rhythm.`
+          : "Hydration hit every logged day.",
       heat.current ? `Current streak is ${heat.current} days.` : "Start a new streak with one tracked day.",
     ];
     return bullets.filter(Boolean);
@@ -521,390 +514,81 @@ export default function InsightsProgressScreen() {
     expanded === "protein"
       ? rows.map((d) => d.protein)
       : expanded === "weight"
-      ? weights.map((d) => d.value)
-      : rows.map((d) => d.calories);
+        ? weights.map((d) => d.value)
+        : rows.map((d) => d.calories);
 
-  return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <FlowAtmosphere />
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: 20,
-          paddingHorizontal: 20,
-          paddingBottom: insets.bottom + 42,
-          gap: 18,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <Header
-          range={range}
-          setRange={setRange}
-          titleRange={rangeTitle}
-          onBack={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/profile"))}
-        />
+  return (<><TaskPage title="Read your rhythm" section="Progress insights" subtitle={rangeTitle} onBack={() => router.back()} action={<IconButton icon="share-outline" label="Open weekly share card" onPress={() => setShareOpen(true)} />}>
 
-        <AnimatedIn delay={20}>
-          <InfoCard icon="sparkles" text={aiSummary} />
-        </AnimatedIn>
-
-        <Section title="Weekly Report Card">
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-            <ReportTile label="Calories" value={`${calorieHits}/${totalDays}`} sub="days on goal" color={caloriesTracked ? reportTone(calorieHits, totalDays, C) : C.muted} neutral={!caloriesTracked} />
-            <ReportTile label="Protein" value={`${proteinHits}/${totalDays}`} sub="days hit" color={proteinTracked ? reportTone(proteinHits, totalDays, C) : C.muted} neutral={!proteinTracked} />
-            <ReportTile label="Hydration" value={hydrationTracked ? `${hydrationHits}/${totalDays}` : "—"} sub={hydrationTracked ? "days hit" : "Not tracked"} color={hydrationTracked ? reportTone(hydrationHits, totalDays, C) : C.muted} neutral={!hydrationTracked} />
-            <ReportTile label="Workouts" value={workoutsTracked ? `${workoutSessions}` : "—"} sub={workoutsTracked ? "sessions logged" : "Not tracked"} color={workoutsTracked ? (workoutSessions >= 3 ? C.green : C.amber) : C.muted} neutral={!workoutsTracked} />
-          </View>
-        </Section>
-
-        <Section title="Consistency Heatmap">
-          <Heatmap rows={allRows} goals={goals} />
-          <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
-            <StreakPill streak={heat.current} />
-            <Pill text={`Best streak: ${heat.best} days`} color={C.purple} />
-          </View>
-        </Section>
-
-        <Section title="Trend Charts">
-          <ChartRow
-            title="Calories trend"
-            color={C.blue}
-            values={rows.map((d) => d.calories)}
-            goal={goals.calories}
-            open={openRows.calories}
-            onToggle={() => setOpenRows((p) => ({ ...p, calories: !p.calories }))}
-            onExpand={() => setExpanded("calories")}
-            kind="calories"
-          />
-          <ChartRow
-            title="Protein trend"
-            color={C.purple}
-            values={rows.map((d) => d.protein)}
-            goal={goals.protein}
-            open={openRows.protein}
-            onToggle={() => setOpenRows((p) => ({ ...p, protein: !p.protein }))}
-            onExpand={() => setExpanded("protein")}
-            kind="protein"
-          />
-          {weights.length ? (
-            <ChartRow
-              title="Weight trend"
-              color={C.green}
-              values={weights.map((d) => d.value)}
-              open={openRows.weight}
-              onToggle={() => setOpenRows((p) => ({ ...p, weight: !p.weight }))}
-              onExpand={() => setExpanded("weight")}
-              kind="weight"
-              footer={
-                <Pill
-                  text={`${weights[weights.length - 1].value - weights[0].value < 0 ? "Down" : "Up"} ${Math.abs(
-                    Math.round((weights[weights.length - 1].value - weights[0].value) * 10) / 10
-                  )} lbs in ${range} days`}
-                  color={C.green}
-                />
-              }
-            />
-          ) : (
-            <EmptyCard
-              title="Log your weight to see trends"
-              cta="+ Log Weight"
-              onPress={() => router.push("/(modals)/body-metrics")}
-            />
-          )}
-        </Section>
-
-        <Section title="Day-Of-Week Breakdown">
-          <Segment value={dowMode} onChange={setDowMode} />
-          <DowBars rows={dow} mode={dowMode} />
-          <InfoLine
-            text={dowInsight}
-          />
-        </Section>
-
-        <Section title="Nutrition Breakdown">
-          <MacroDonut
-            protein={avgProtein}
-            carbs={avgCarbs}
-            fat={avgFat}
-            calories={avgCalories}
-          />
-          <View style={{ gap: 8 }}>
-            <MacroGoalPill label="Protein" avg={avgProtein} goal={goals.protein} color={C.purple} />
-            <MacroGoalPill label="Carbs" avg={avgCarbs} goal={goals.carbs} color={C.teal} />
-            <MacroGoalPill label="Fat" avg={avgFat} goal={goals.fat} color={C.amber} />
-            {goals.protein && avgProtein < goals.protein * 0.9 ? (
-              <Pill
-                text={`⚠ Protein consistently ${Math.round((1 - avgProtein / goals.protein) * 100)}% below goal`}
-                color={C.amber}
-              />
-            ) : null}
-          </View>
-        </Section>
-
-        <Section title="Personal Bests & Badges">
-          {pb.length ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: 10 }}>
-              {pb.map((x) => (
-                <RecordCard key={x.title} {...x} />
-              ))}
-            </ScrollView>
-          ) : (
-            <EmptyCard title="No records yet" cta="Log data" />
-          )}
-          <Text style={{ color: C.muted, fontWeight: "600", marginTop: 12 }}>
-            {unlockedBadges.length} earned · {lockedBadges.length} to go
-          </Text>
-          {unlockedBadges.length ? (
-            <Text style={{ color: C.text, fontWeight: "600", fontSize: 12, marginTop: 4 }}>Earned</Text>
-          ) : null}
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 8 }}>
-            {unlockedBadges.slice(0, 9).map((b) => (
-              <BadgeCell
-                key={b.id}
-                badge={b}
-                unlocked
-                onPress={() => setBadgeId(b.id)}
-              />
-            ))}
-          </View>
-          <Text style={{ color: C.muted, fontWeight: "600", fontSize: 12, marginTop: 10 }}>Locked</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 8 }}>
-            {lockedBadges.map((b) => (
-              <BadgeCell
-                key={b.id}
-                badge={b}
-                unlocked={false}
-                onPress={() => setBadgeId(b.id)}
-              />
-            ))}
-          </View>
-        </Section>
-
-        <Section title="AI Weekly Summary">
-          <View
-            style={{
-              borderRadius: 18,
-              borderWidth: 0,
-              borderColor: withAlpha(C.purple, 0.6),
-              backgroundColor: withAlpha(C.purple, 0.14),
-              padding: 16,
-              gap: 12,
-            }}
-          >
-              <Text style={{ color: C.text, fontWeight: "700", fontSize: 18 }}>
-              ✦ Your week in review
-            </Text>
-            {weeklyBullets.map((b) => (
-              <Text key={b} style={{ color: C.whiteSoft, fontWeight: "500", lineHeight: 19 }}>
-                {b.startsWith("Hit") ? "✓ " : b.startsWith("Protein") ? "↑ " : b.startsWith("Hydration") ? "⚠ " : "→ "}
-                {b}
-              </Text>
-            ))}
-            <Pressable
-              onPress={() => setShareOpen(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Share my week"
-              style={({ pressed }) => ({
-                minHeight: 46,
-                borderRadius: 16,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: withAlpha(C.purple, pressed ? 0.36 : 0.28),
-                borderWidth: 1,
-                borderColor: withAlpha(C.purple, 0.48),
-              })}
-            >
-              <Text style={{ color: C.text, fontWeight: "600" }}>Share my week</Text>
-            </Pressable>
-          </View>
-        </Section>
-
-        <AdvancedMetricsEntry
-          onPress={() => router.push("/profile/advanced-metrics")}
-        />
-      </ScrollView>
-
-      <ExpandedChart
-        kind={expanded}
-        values={expandedValues}
-        goal={expanded === "protein" ? goals.protein : expanded === "calories" ? goals.calories : undefined}
-        onClose={() => setExpanded(null)}
-      />
-
-      <BadgePopover
-        id={badgeId}
-        unlocks={unlocks}
-        onClose={() => setBadgeId(null)}
-      />
-      <ShareCardModal
-        visible={shareOpen}
-        onClose={() => setShareOpen(false)}
-        rangeTitle={rangeTitle}
-        bullets={weeklyBullets}
-        calorieHits={calorieHits}
-        proteinHits={proteinHits}
-        totalDays={totalDays}
-      />
+    <View style={{ flexDirection: 'row', gap: 8 }}>
+      {RANGE_OPTIONS.map(r => <Choice key={r} label={`${r} days`} selected={range === r} onPress={() => setRange(r)} />)}
     </View>
-  );
-}
+    <Text style={F.caption}>Goal comparisons use your current targets, not historical plans. Some histories are stored on this device.</Text>
 
-function AdvancedMetricsEntry({ onPress }: { onPress: () => void }) {
-  const C = useC();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel="Open Advanced Metrics"
-      style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
-    >
-      <View
-        style={{
-          borderRadius: 24,
-          borderWidth: 1,
-          borderColor: withAlpha(C.purple, 0.38),
-          backgroundColor: withAlpha(C.purple, 0.14),
-          padding: 16,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-        }}
-      >
-        <View
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 16,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: withAlpha(C.purple, 0.2),
-          }}
-        >
-          <Ionicons name="analytics-outline" size={22} color={C.text} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: C.text, fontWeight: "600", fontSize: 17 }}>
-            Advanced Metrics →
-          </Text>
-          <Text style={{ color: C.muted, fontWeight: "500", marginTop: 3 }}>
-            Deep dive into your patterns
-          </Text>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function Header({
-  range,
-  setRange,
-  titleRange,
-  onBack,
-}: {
-  range: RangeKey;
-  setRange: (r: RangeKey) => void;
-  titleRange: string;
-  onBack: () => void;
-}) {
-  const C = useC();
-  return (
-    <View style={{ gap: 14 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <Pressable
-          onPress={onBack}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          style={{
-            width: 42,
-            height: 42,
-            borderRadius: 15,
-            alignItems: "center",
-            justifyContent: "center",
-            borderWidth: 1,
-            borderColor: C.hairline,
-            backgroundColor: C.card,
-          }}
-        >
-          <Ionicons name="chevron-back" size={20} color={C.text} />
-        </Pressable>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: C.text, fontSize: 30, fontWeight: "600" }}>
-            Insights
-          </Text>
-          <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>
-            {titleRange}
-          </Text>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            borderRadius: 999,
-            borderWidth: 1,
-            borderColor: C.hairline,
-            padding: 3,
-            backgroundColor: C.card,
-          }}
-        >
-          {RANGE_OPTIONS.map((r) => (
-            <Pressable
-              key={r}
-              onPress={() => setRange(r)}
-              style={{
-                paddingHorizontal: 10,
-                height: 32,
-                borderRadius: 999,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: range === r ? withAlpha(C.purple, 0.32) : "transparent",
-              }}
-            >
-              <Text style={{ color: C.text, fontWeight: "600", fontSize: 12 }}>
-                {r}D
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Metric label="Calorie goal days" value={caloriesTracked ? `${calorieHits}/${totalDays}` : '—'} />
+      <Metric label="Protein goal days" value={proteinTracked ? `${proteinHits}/${totalDays}` : '—'} />
+      <Metric label="Hydration goal days" value={hydrationTracked ? `${hydrationHits}/${totalDays}` : '—'} />
+      <Metric label="Workout sessions" value={workoutsTracked ? String(workoutSessions) : '—'} />
     </View>
-  );
-}
 
-function AnimatedIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const reduceMotion = useReducedMotion();
-  if (reduceMotion) return <>{children}</>;
-  return (
-    <MotiView
-      from={{ opacity: 0, translateY: 6 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: "timing", duration: 180, delay }}
-    >
-      {children}
-    </MotiView>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  const C = useC();
-  return (
-    <AnimatedIn delay={50}>
-      <View style={{ gap: 10 }}>
-        <Text
-          style={{
-            color: C.muted,
-            fontWeight: "600",
-            fontSize: 12,
-            letterSpacing: 0.8,
-            textTransform: "uppercase",
-          }}
-        >
-          {title}
-        </Text>
-        {children}
+    <Panel>
+      <Heading title="Consistency calendar" detail={`Current ${heat.current} days · Best ${heat.best} days`} />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+        {allRows.map(r => <View key={r.date} accessibilityLabel={`${r.date}: ${hasLogged(r) ? `score ${Math.round(dayScore(r, goals) * 100)}%` : 'no logged data'}`} style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: hasLogged(r) ? dayScore(r, goals) >= 0.7 ? D.lime : D.teal : D.raised }} />)}
       </View>
-    </AnimatedIn>
+    </Panel>
+
+    <Heading title="Your trends" />
+    {(['calories', 'protein', 'weight'] as ChartKind[]).map(kind => {
+      const values = kind === 'weight' ? weights.map(w => w.value) : rows.map(r => r[kind]); return <Panel key={kind}>
+        <Item title={kind === 'weight' ? 'Weight · device history' : `${kind[0].toUpperCase() + kind.slice(1)} trend`} onPress={() => setOpenRows(v => ({ ...v, [kind]: !v[kind] }))} action={<IconButton icon="expand" label={`Expand ${kind} trend`} onPress={() => setExpanded(kind)} />} />
+        {openRows[kind] && <Trend values={values} unit={kind === 'weight' ? 'lb' : kind === 'protein' ? 'g' : 'kcal'} goal={kind === 'weight' ? undefined : goals[kind]} />}
+        {kind === 'weight' && !weights.length && <Button label="Log weight" onPress={() => router.push('/(modals)/body-metrics')} />}
+      </Panel>;
+    })}
+
+    <Panel>
+      <Heading title="Day-of-week pattern" />
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        {(['calories', 'protein'] as const).map(m => <Choice key={m} label={m} selected={dowMode === m} onPress={() => setDowMode(m)} />)}
+      </View>
+      {dow.map(d => <View key={d.label} style={{ gap: 7 }}>
+        <Text style={F.caption}>{d.label} · {Math.round(d.value)} {dowMode === 'protein' ? 'g' : 'kcal'}</Text>
+        <View style={{ height: 8, backgroundColor: D.raised, borderRadius: 4 }}>
+          <View style={{ height: 8, width: `${d.pct * 100}%`, backgroundColor: D.teal, borderRadius: 4 }} />
+        </View>
+      </View>)}
+      <Text style={F.caption}>{dowInsight}</Text>
+    </Panel>
+
+    <Panel>
+      <Heading title="Average nutrition" detail="Averages include every day in the selected range." />
+      <Text style={{ ...F.value, fontSize: 40 }}>{avgCalories} kcal</Text>
+      {[{ label: 'Protein', value: avgProtein, goal: goals.protein }, { label: 'Carbs', value: avgCarbs, goal: goals.carbs }, { label: 'Fat', value: avgFat, goal: goals.fat }].map(m => <Item key={m.label} title={m.label} value={`${m.value} / ${m.goal} g`} />)}
+    </Panel>
+
+    <Heading title="Personal bests" />
+    {pb.length ? pb.map(p => <Item key={p.title} title={p.title} value={p.value} detail={p.date} />) : <Empty title="No records yet" />}
+
+    <Heading title="Your collection" detail={`${unlockedBadges.length} earned · ${lockedBadges.length} shown locked`} />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {[...unlockedBadges.slice(0, 9), ...lockedBadges].map(b => <Choice key={b.id} label={`${unlocks[b.id] ? '✓' : '○'} ${b.title}`} selected={!!unlocks[b.id]} onPress={() => setBadgeId(b.id)} />)}
+    </View>
+
+    <Panel accent>
+      <Heading title="The period in review" />
+      {weeklyBullets.map(b => <Text key={b} style={F.body}>{b}</Text>)}
+      <Button label="Open share card" onPress={() => setShareOpen(true)} />
+    </Panel>
+    <Button primary label="Explore advanced metrics" onPress={() => router.push('/profile/advanced-metrics')} />
+
+  </TaskPage><TaskSheet title={`${expanded || ''} trend`} visible={!!expanded} onClose={() => setExpanded(null)}>
+      <Trend values={expandedValues} unit={expanded === 'weight' ? 'lb' : expanded === 'protein' ? 'g' : 'kcal'} goal={expanded === 'protein' ? goals.protein : expanded === 'calories' ? goals.calories : undefined} />
+    </TaskSheet><BadgePopover id={badgeId} unlocks={unlocks} onClose={() => setBadgeId(null)} /><ShareCardModal visible={shareOpen} onClose={() => setShareOpen(false)} rangeTitle={rangeTitle} bullets={weeklyBullets} calorieHits={calorieHits} proteinHits={proteinHits} totalDays={totalDays} /></>
   );
 }
 
-function Card({ children, style }: { children: React.ReactNode; style?: any }) {
+function Card({ children, style }: { children: React.ReactNode; style?: any; }) {
   const C = useC();
   return (
     <View
@@ -919,581 +603,10 @@ function Card({ children, style }: { children: React.ReactNode; style?: any }) {
         style,
       ]}
     >
+
       {children}
+
     </View>
-  );
-}
-
-function InfoCard({ icon, text }: { icon: any; text: string }) {
-  const C = useC();
-  return (
-    <Card
-      style={{
-        backgroundColor: withAlpha(C.purple, 0.14),
-        borderColor: withAlpha(C.purple, 0.26),
-      }}
-    >
-      <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
-        <Ionicons name={icon} size={18} color={C.purple} />
-        <Text style={{ color: C.text, fontWeight: "600", flex: 1, lineHeight: 19 }}>
-          {text}
-        </Text>
-      </View>
-    </Card>
-  );
-}
-
-function InfoLine({ text }: { text: string }) {
-  const C = useC();
-  return (
-    <Text style={{ color: C.muted, fontWeight: "500", lineHeight: 18 }}>{text}</Text>
-  );
-}
-
-function ReportTile({
-  label,
-  value,
-  sub,
-  color,
-  neutral,
-}: {
-  label: string;
-  value: string;
-  sub: string;
-  color: string;
-  neutral?: boolean;
-}) {
-  const C = useC();
-  return (
-    <View
-      style={{
-        width: "48.5%",
-        borderRadius: 18,
-        borderWidth: 1,
-        borderColor: neutral ? C.hairline : withAlpha(color, 0.32),
-        backgroundColor: neutral ? withAlpha(C.gray, 0.72) : withAlpha(color, 0.12),
-        padding: 14,
-      }}
-    >
-      <Text style={{ color: neutral ? C.muted : color, fontWeight: "600", fontSize: 26 }}>{value}</Text>
-      <Text style={{ color: C.text, fontWeight: "600", marginTop: 2 }}>{label}</Text>
-      <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>{sub}</Text>
-    </View>
-  );
-}
-
-function Pill({ text, color }: { text: string; color: string }) {
-  const C = useC();
-  return (
-    <View
-      style={{
-        alignSelf: "flex-start",
-        borderRadius: 999,
-        paddingHorizontal: 11,
-        paddingVertical: 7,
-        borderWidth: 1,
-        borderColor: withAlpha(color, 0.28),
-        backgroundColor: withAlpha(color, 0.12),
-      }}
-    >
-      <Text style={{ color: C.text, fontWeight: "600", fontSize: 12 }}>{text}</Text>
-    </View>
-  );
-}
-
-function StreakPill({ streak }: { streak: number }) {
-  const C = useC();
-  const active = streak >= 1;
-  return (
-    <View
-      style={{
-        alignSelf: "flex-start",
-        borderRadius: 999,
-        paddingHorizontal: 11,
-        paddingVertical: 7,
-        borderWidth: 1,
-        borderColor: withAlpha(active ? C.green : C.gray, active ? 0.34 : 1),
-        backgroundColor: active ? withAlpha(C.green, 0.12) : withAlpha(C.gray, 0.82),
-      }}
-    >
-      <Text style={{ color: active ? C.text : C.muted, fontWeight: "600", fontSize: 12 }}>
-        {active ? `${streak} day streak 🔥` : "No streak yet"}
-      </Text>
-    </View>
-  );
-}
-
-function Heatmap({ rows, goals }: { rows: DayRow[]; goals: Goals }) {
-  const C = useC();
-  const ref = useRef<ScrollView>(null);
-  const [showHint, setShowHint] = useState(true);
-  const byMonth: Record<string, number> = {};
-  rows.forEach((r, i) => {
-    const label = new Date(`${r.date}T12:00:00`).toLocaleDateString(undefined, {
-      month: "short",
-    });
-    if (byMonth[label] == null) byMonth[label] = i;
-  });
-  const today = ymd(new Date());
-  return (
-    <Card>
-      {showHint ? (
-        <Text style={{ color: C.muted, fontWeight: "500", fontSize: 11, marginBottom: 8 }}>
-          ← scroll for history
-        </Text>
-      ) : null}
-      <ScrollView
-        ref={ref}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        onContentSizeChange={() => requestAnimationFrame(() => ref.current?.scrollToEnd({ animated: false }))}
-        onScrollBeginDrag={() => setShowHint(false)}
-      >
-        <View style={{ gap: 8 }}>
-          <View style={{ height: 14, position: "relative", width: rows.length * 15 }}>
-            {Object.entries(byMonth).map(([m, i]) => (
-              <Text
-                key={m}
-                style={{
-                  position: "absolute",
-                  left: i * 15,
-                  color: C.muted,
-                  fontWeight: "600",
-                  fontSize: 10,
-                }}
-              >
-                {m}
-              </Text>
-            ))}
-          </View>
-          <View style={{ flexDirection: "row", gap: 4 }}>
-            {rows.map((d) => {
-              const score = dayScore(d, goals);
-              const logged = hasLogged(d);
-              const color =
-                !logged
-                  ? C.gray
-                  : score >= 0.9
-                  ? C.green
-                  : score >= 0.5
-                  ? C.amber
-                  : withAlpha(C.red, 0.6);
-              return (
-                <View
-                  key={d.date}
-                  style={{
-                    width: 11,
-                    height: 11,
-                    borderRadius: 3,
-                    backgroundColor: color,
-                    borderWidth: d.date === today ? 2 : 0,
-                    borderColor: C.purple,
-                  }}
-                />
-              );
-            })}
-          </View>
-        </View>
-      </ScrollView>
-    </Card>
-  );
-}
-
-function MiniSpark({ values, color }: { values: number[]; color: string }) {
-  return (
-    <Svg width={96} height={32}>
-      <Path d={pathFor(values, 96, 32, 4)} stroke={color} strokeWidth={2.5} fill="none" />
-    </Svg>
-  );
-}
-
-function LineChart({
-  values,
-  color,
-  goal,
-  weight,
-  height = H,
-}: {
-  values: number[];
-  color: string;
-  goal?: number;
-  weight?: boolean;
-  height?: number;
-}) {
-  const C = useC();
-  const clean = values.length ? values : [0, 0];
-  const max = Math.max(...clean, goal || 0, 1);
-  const goalY = goal ? height - 14 - (goal / max) * (height - 28) : null;
-  const highIndex = clean.indexOf(Math.max(...clean));
-  const high = pointFor(clean, highIndex, W, height);
-  const reg = weight ? regression(clean) : [];
-  return (
-    <Svg width="100%" height={height} viewBox={`0 0 ${W} ${height}`}>
-      <SvgText x={8} y={16} fill={C.muted} fontSize="9" fontWeight="700">
-        {Math.round(max)}
-      </SvgText>
-      <SvgText x={8} y={height - 7} fill={C.muted} fontSize="9" fontWeight="700">
-        0
-      </SvgText>
-      <Path d={areaFor(clean, W, height)} fill={withAlpha(color, 0.14)} />
-      {goalY != null ? (
-        <>
-          <Line
-            x1={34}
-            x2={W - 14}
-            y1={goalY}
-            y2={goalY}
-            stroke="rgba(255,255,255,0.38)"
-            strokeWidth={1.5}
-            strokeDasharray="5 5"
-          />
-          <SvgText x={8} y={Math.max(12, goalY - 3)} fill={C.whiteSoft} fontSize="9" fontWeight="800">
-            {Math.round(goal || 0)}
-          </SvgText>
-        </>
-      ) : null}
-      {weight ? (
-        <Path d={pathFor(reg, W, height)} stroke="rgba(255,255,255,0.7)" strokeWidth={1.5} strokeDasharray="5 5" fill="none" />
-      ) : null}
-      <Path d={pathFor(clean, W, height)} stroke={color} strokeWidth={3} fill="none" />
-      {!weight && clean.length > 1 ? (
-        <>
-          <Circle cx={high.x} cy={high.y} r={4} fill={color} />
-          <SvgText x={Math.min(W - 58, high.x + 6)} y={Math.max(14, high.y - 8)} fill={C.text} fontSize="10" fontWeight="700">
-            high {Math.round(clean[highIndex])}
-          </SvgText>
-        </>
-      ) : null}
-    </Svg>
-  );
-}
-
-function ChartRow({
-  title,
-  values,
-  color,
-  goal,
-  open,
-  onToggle,
-  onExpand,
-  kind,
-  footer,
-}: {
-  title: string;
-  values: number[];
-  color: string;
-  goal?: number;
-  open: boolean;
-  onToggle: () => void;
-  onExpand: () => void;
-  kind: ChartKind;
-  footer?: React.ReactNode;
-}) {
-  const C = useC();
-  const hasData = values.some((v) => v > 0);
-  return (
-    <Card style={{ gap: 10 }}>
-      <Pressable
-        onPress={onToggle}
-        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}
-      >
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: C.text, fontWeight: "600", fontSize: 15 }}>{title}</Text>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <MiniSpark values={values} color={color} />
-          <Ionicons name={open ? "chevron-up" : "chevron-down"} size={18} color={C.muted} />
-        </View>
-      </Pressable>
-      {open ? (
-        hasData ? (
-          <Pressable onPress={onExpand}>
-            <LineChart values={values} color={color} goal={goal} weight={kind === "weight"} />
-            {footer ? <View style={{ marginTop: 8 }}>{footer}</View> : null}
-          </Pressable>
-        ) : (
-          <EmptyCard title={`No ${title.toLowerCase()} data yet`} cta="Log data" />
-        )
-      ) : null}
-    </Card>
-  );
-}
-
-function EmptyCard({
-  title,
-  cta,
-  onPress,
-}: {
-  title: string;
-  cta: string;
-  onPress?: () => void;
-}) {
-  const C = useC();
-  return (
-    <Card style={{ alignItems: "center", gap: 10 }}>
-      <Text style={{ color: C.text, fontWeight: "600" }}>{title}</Text>
-      <Pressable
-        onPress={onPress}
-        style={{
-          minHeight: 40,
-          borderRadius: 14,
-          paddingHorizontal: 14,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: withAlpha(C.purple, 0.24),
-          borderWidth: 1,
-          borderColor: withAlpha(C.purple, 0.36),
-        }}
-      >
-        <Text style={{ color: C.text, fontWeight: "600" }}>{cta}</Text>
-      </Pressable>
-    </Card>
-  );
-}
-
-function Segment({
-  value,
-  onChange,
-}: {
-  value: "calories" | "protein";
-  onChange: (v: "calories" | "protein") => void;
-}) {
-  const C = useC();
-  return (
-    <View style={{ flexDirection: "row", backgroundColor: C.card, padding: 3, borderRadius: 999, alignSelf: "flex-start" }}>
-      {(["calories", "protein"] as const).map((x) => (
-        <Pressable
-          key={x}
-          onPress={() => onChange(x)}
-          style={{
-            paddingHorizontal: 13,
-            height: 32,
-            borderRadius: 999,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: value === x ? withAlpha(C.purple, 0.3) : "transparent",
-          }}
-        >
-          <Text style={{ color: C.text, fontWeight: "600", textTransform: "capitalize" }}>{x}</Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
-
-function DowBars({ rows, mode }: { rows: { label: string; value: number; pct: number }[]; mode: string }) {
-  const C = useC();
-  return (
-    <Card>
-      <View style={{ height: 132, flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
-        {rows.map((r) => {
-          const color = r.pct >= 0.9 ? C.green : r.pct >= 0.7 ? C.amber : C.red;
-          return (
-            <View key={r.label} style={{ flex: 1, alignItems: "center", gap: 6 }}>
-              <View
-                style={{
-                  height: Math.max(10, 96 * r.pct),
-                  width: "100%",
-                  borderRadius: 10,
-                  backgroundColor: withAlpha(color, 0.82),
-                }}
-              />
-              <Text style={{ color: C.muted, fontWeight: "600", fontSize: 10 }}>{r.label}</Text>
-            </View>
-          );
-        })}
-      </View>
-      <Text style={{ color: C.muted, fontWeight: "500", marginTop: 8 }}>
-        Average {mode} performance by weekday
-      </Text>
-    </Card>
-  );
-}
-
-function MacroDonut({
-  protein,
-  carbs,
-  fat,
-  calories,
-}: {
-  protein: number;
-  carbs: number;
-  fat: number;
-  calories: number;
-}) {
-  const C = useC();
-  const total = Math.max(1, protein * 4 + carbs * 4 + fat * 9);
-  const c = 2 * Math.PI * 46;
-  const pLen = (protein * 4 / total) * c;
-  const cLen = (carbs * 4 / total) * c;
-  const fLen = (fat * 9 / total) * c;
-  return (
-    <Card style={{ alignItems: "center" }}>
-      <Svg width={170} height={170} viewBox="0 0 120 120">
-        <Circle cx={60} cy={60} r={46} stroke="rgba(255,255,255,0.08)" strokeWidth={16} fill="none" />
-        <Circle cx={60} cy={60} r={46} stroke={C.purple} strokeWidth={16} fill="none" strokeDasharray={`${pLen} ${c - pLen}`} strokeLinecap="round" transform="rotate(-90 60 60)" />
-        <Circle cx={60} cy={60} r={46} stroke={C.teal} strokeWidth={16} fill="none" strokeDasharray={`${cLen} ${c - cLen}`} strokeDashoffset={-pLen} strokeLinecap="round" transform="rotate(-90 60 60)" />
-        <Circle cx={60} cy={60} r={46} stroke={C.amber} strokeWidth={16} fill="none" strokeDasharray={`${fLen} ${c - fLen}`} strokeDashoffset={-(pLen + cLen)} strokeLinecap="round" transform="rotate(-90 60 60)" />
-        <SvgText x={60} y={58} fill={C.text} fontSize="14" fontWeight="800" textAnchor="middle">
-          Avg
-        </SvgText>
-        <SvgText x={60} y={76} fill={C.text} fontSize="15" fontWeight="900" textAnchor="middle">
-          {Math.round(calories)} kcal
-        </SvgText>
-      </Svg>
-    </Card>
-  );
-}
-
-function MacroGoalPill({
-  label,
-  avg,
-  goal,
-  color,
-}: {
-  label: string;
-  avg: number;
-  goal: number;
-  color: string;
-}) {
-  const C = useC();
-  const pct = clamp01(goal ? avg / goal : 0);
-  return (
-    <View
-      style={{
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: withAlpha(color, 0.34),
-        backgroundColor: withAlpha(color, 0.1),
-        padding: 11,
-        gap: 8,
-      }}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <View style={{ width: 9, height: 9, borderRadius: 999, backgroundColor: color }} />
-        <Text style={{ color: C.text, fontWeight: "600", flex: 1 }}>
-          {label}: avg {avg}g / goal {Math.round(goal)}g
-        </Text>
-        <Text style={{ color, fontWeight: "600", fontSize: 12 }}>{Math.round(pct * 100)}%</Text>
-      </View>
-      <View style={{ height: 6, borderRadius: 999, overflow: "hidden", backgroundColor: C.hairline }}>
-        <View style={{ width: `${Math.min(100, Math.round(pct * 100))}%`, height: "100%", backgroundColor: color, borderRadius: 999 }} />
-      </View>
-    </View>
-  );
-}
-
-function RecordCard(props: {
-  icon: string;
-  title: string;
-  value: string;
-  valueNum?: number;
-  date: string;
-  color: string;
-}) {
-  const C = useC();
-  return (
-    <View
-      style={{
-        width: 164,
-        borderRadius: 18,
-        borderWidth: 1,
-        borderColor: withAlpha(props.color, 0.3),
-        backgroundColor: withAlpha(props.color, 0.12),
-        padding: 12,
-        gap: 8,
-      }}
-    >
-      <Ionicons name={props.icon as any} size={20} color={props.color} />
-      <Text style={{ color: C.text, fontWeight: "600", fontSize: 12, lineHeight: 15 }} numberOfLines={2}>{props.title}</Text>
-      <Text style={{ color: C.text, fontWeight: "600", fontSize: 20 }}>{props.value}</Text>
-      <Text style={{ color: C.muted, fontWeight: "500", fontSize: 12 }}>{props.date}</Text>
-    </View>
-  );
-}
-
-function BadgeCell({
-  badge,
-  unlocked,
-  onPress,
-}: {
-  badge: (typeof BADGES)[number];
-  unlocked: boolean;
-  onPress: () => void;
-}) {
-  const C = useC();
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        width: "31%",
-        alignItems: "center",
-        gap: 6,
-      }}
-    >
-      <View
-        style={{
-          width: 54,
-          height: 54,
-          borderRadius: 20,
-          alignItems: "center",
-          justifyContent: "center",
-          borderWidth: 1,
-          borderColor: withAlpha(unlocked ? badge.accent : C.gray, 0.28),
-          backgroundColor: withAlpha(unlocked ? badge.accent : C.gray, unlocked ? 0.12 : 0.08),
-        }}
-      >
-        <Ionicons
-          name={(unlocked ? badge.icon : "lock-closed") as any}
-          size={22}
-          color={unlocked ? badge.accent : "rgba(246,247,255,0.38)"}
-        />
-      </View>
-      <Text
-        style={{ color: unlocked ? C.text : C.muted, fontWeight: "500", fontSize: 11, textAlign: "center" }}
-        numberOfLines={2}
-      >
-        {badge.title}
-      </Text>
-      {!unlocked ? (
-        <Text style={{ color: C.muted, fontWeight: "700", fontSize: 9.5, textAlign: "center" }} numberOfLines={2}>
-          {badge.criteriaText || "Keep logging"}
-        </Text>
-      ) : null}
-    </Pressable>
-  );
-}
-
-function ExpandedChart({
-  kind,
-  values,
-  goal,
-  onClose,
-}: {
-  kind: ChartKind | null;
-  values: number[];
-  goal?: number;
-  onClose: () => void;
-}) {
-  const C = useC();
-  if (!kind) return null;
-  const color = kind === "protein" ? C.purple : kind === "weight" ? C.green : C.blue;
-  return (
-    <Modal visible transparent animationType="slide">
-      <View style={{ flex: 1, backgroundColor: C.bg, padding: 18, justifyContent: "center" }}>
-        <Card style={{ gap: 14 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <Text style={{ color: C.text, fontWeight: "600", fontSize: 22, textTransform: "capitalize" }}>
-              {kind} detail
-            </Text>
-            <Pressable onPress={onClose} hitSlop={10}>
-              <Ionicons name="close" size={24} color={C.text} />
-            </Pressable>
-          </View>
-          <LineChart values={values} color={color} goal={goal} weight={kind === "weight"} height={260} />
-        </Card>
-      </View>
-    </Modal>
   );
 }
 
@@ -1506,29 +619,18 @@ function BadgePopover({
   unlocks: UnlockMap;
   onClose: () => void;
 }) {
+  const { D, F } = useSomataTheme();
+
   const C = useC();
   if (!id) return null;
   const badge = BADGE_BY_ID[id];
   if (!badge) return null;
   const unlockedAt = unlocks[id]?.unlockedAt;
-  return (
-    <Modal visible transparent animationType="fade">
-      <Pressable
-        onPress={onClose}
-        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.56)", alignItems: "center", justifyContent: "center", padding: 24 }}
-      >
-        <Card style={{ width: "100%", gap: 10 }}>
-          <Ionicons name={badge.icon as any} size={28} color={badge.accent} />
-          <Text style={{ color: C.text, fontWeight: "600", fontSize: 18 }}>{badge.title}</Text>
-          <Text style={{ color: C.whiteSoft, fontWeight: "500", lineHeight: 18 }}>{badge.description}</Text>
-          <Text style={{ color: C.muted, fontWeight: "500" }}>
-            {unlockedAt
-              ? `Earned ${new Date(unlockedAt).toLocaleDateString()}`
-              : badge.criteriaText || "Keep logging to earn this."}
-          </Text>
-        </Card>
-      </Pressable>
-    </Modal>
+  return (<TaskSheet title={badge.title} visible onClose={onClose}>
+    <Ionicons name={badge.icon as any} size={44} color={D.lime} />
+    <Text style={F.body}>{badge.description}</Text>
+    <Text style={F.caption}>{unlockedAt ? `Earned ${new Date(unlockedAt).toLocaleDateString()}` : badge.criteriaText || 'Keep logging to earn this.'}</Text>
+  </TaskSheet>
   );
 }
 
@@ -1549,89 +651,19 @@ function ShareCardModal({
   proteinHits: number;
   totalDays: number;
 }) {
+  const { D, F } = useSomataTheme();
+
   const C = useC();
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable
-        onPress={onClose}
-        style={{
-          flex: 1,
-          backgroundColor: "rgba(0,0,0,0.72)",
-          justifyContent: "center",
-          padding: 20,
-        }}
-      >
-        <Pressable
-          accessibilityRole="summary"
-          style={{
-            borderRadius: 18,
-            borderWidth: 0,
-            borderColor: withAlpha(C.purple, 0.68),
-            backgroundColor: C.card,
-            padding: 22,
-            gap: 16,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <View
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: 16,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: withAlpha(C.purple, 0.22),
-              }}
-            >
-              <Ionicons name="sparkles" size={20} color={C.purple} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: C.text, fontWeight: "600", fontSize: 22 }}>
-                Weekly progress
-              </Text>
-              <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>
-                {rangeTitle}
-              </Text>
-            </View>
-          </View>
-
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            <InfoStat label="Calories" value={`${calorieHits}/${totalDays}`} color={reportTone(calorieHits, totalDays, C)} />
-            <InfoStat label="Protein" value={`${proteinHits}/${totalDays}`} color={reportTone(proteinHits, totalDays, C)} />
-          </View>
-
-          <View style={{ gap: 10 }}>
-            {bullets.slice(0, 4).map((b) => (
-              <Text key={b} style={{ color: C.whiteSoft, fontWeight: "500", lineHeight: 20 }}>
-                {b}
-              </Text>
-            ))}
-          </View>
-
-          <Text style={{ color: C.muted, fontWeight: "500", textAlign: "center" }}>
-            Screenshot this card to share your week.
-          </Text>
-        </Pressable>
-      </Pressable>
-    </Modal>
-  );
-}
-
-function InfoStat({ label, value, color }: { label: string; value: string; color: string }) {
-  const C = useC();
-  return (
-    <View
-      style={{
-        flex: 1,
-        borderRadius: 18,
-        padding: 12,
-        borderWidth: 1,
-        borderColor: withAlpha(color, 0.32),
-        backgroundColor: withAlpha(color, 0.12),
-      }}
-    >
-      <Text style={{ color, fontWeight: "600", fontSize: 24 }}>{value}</Text>
-      <Text style={{ color: C.muted, fontWeight: "500", marginTop: 2 }}>{label}</Text>
-    </View>
+  return (<TaskSheet title="Your week, ready to share" visible={visible} onClose={onClose}>
+    <Panel accent>
+      <Heading title="Somata / Weekly progress" detail={rangeTitle} />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <Metric label="Calorie goal days" value={`${calorieHits}/${totalDays}`} />
+        <Metric label="Protein goal days" value={`${proteinHits}/${totalDays}`} />
+      </View>
+      {bullets.slice(0, 4).map(b => <Text key={b} style={F.body}>{b}</Text>)}
+    </Panel>
+    <Text style={F.caption}>Screenshot this card to share your week.</Text>
+  </TaskSheet>
   );
 }

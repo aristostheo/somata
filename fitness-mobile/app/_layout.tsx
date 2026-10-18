@@ -1,33 +1,35 @@
+import { accountRouteRedirect } from "@/lib/accountRouteAccess";
+import { notificationBelongsToAccount } from "@/services/local/notificationOwnership";
+import { useAccountStorage } from '@/services/local/accountStore';
+import { useSomataTheme } from "@/components/somata/theme";
 // app/_layout.tsx
 import "react-native-gesture-handler";
 import "react-native-reanimated";
 
-import React, { useEffect, useRef, useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import * as Notifications from "expo-notifications";
+import { Stack, usePathname, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  View,
-  Text,
-  StyleSheet,
-  Platform,
   Animated,
   Easing,
   LogBox,
+  Text,
+  View
 } from "react-native";
-import { Stack, usePathname, useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { LinearGradient } from "expo-linear-gradient";
-import * as Notifications from "expo-notifications";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { AuthProvider, useAuth } from "@/content/AuthContext";
-import { ThemeProvider, useTheme } from "@/content/ThemeProvider";
-import { SettingsProvider } from "@/content/SettingsContext";
-import { startIntegrationAutoSync } from "@/services/integrations";
 import { SomataIcon } from "@/components/brand/SomataIcon";
+import { AuthProvider, useAuth } from "@/content/AuthContext";
+import { SettingsProvider } from "@/content/SettingsContext";
+import { ThemeProvider, useTheme } from "@/content/ThemeProvider";
+import { startIntegrationAutoSync } from "@/services/integrations";
 import {
   registerForPushNotifications,
 } from "@/services/notifications";
@@ -37,79 +39,33 @@ import {
 } from "@/services/notificationSettings";
 
 import { auth, db } from "@/lib/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { fitAdaptSetupPendingFor } from "@/services/fitadaptOnboarding";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 
-/* ---------- Tiny glossy header that's always present ---------- */
-function GlobalTopHeader() {
-  const { isDark } = useTheme();
-  const insets = useSafeAreaInsets();
-  const height = insets.top + 10; // safe-area + small buffer
-
-  let BlurView: any = View;
-  try {
-    BlurView = require("expo-blur").BlurView;
-  } catch {
-    // if expo-blur is missing, we still render the spacer
-  }
-
-  return (
-    <View
-      pointerEvents="none"
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height,
-        zIndex: 1000,
-        overflow: "hidden",
-      }}
-    >
-      <View
-        style={[
-          StyleSheet.absoluteFill,
-          {
-            backgroundColor: isDark
-              ? "rgba(12,14,20,0.62)"
-              : "rgba(245,248,255,0.58)",
-          },
-        ]}
-      />
-      {BlurView !== View && (
-        <BlurView
-          intensity={22}
-          tint={isDark ? "dark" : "light"}
-          style={StyleSheet.absoluteFill}
-        />
-      )}
-      {/* subtle bottom fade */}
-      <View
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: 10,
-          backgroundColor: isDark
-            ? "rgba(0,0,0,0.18)"
-            : "rgba(255,255,255,0.18)",
-        }}
-      />
-    </View>
-  );
-}
+let startupSessionChecked = false;
 
 function Gate() {
+  const localStore = useAccountStorage();
+  const { D } = useSomataTheme();
   const { user, initializing } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const sessionCheckedRef = useRef(false);
-  const [sessionReady, setSessionReady] = useState(false);
+  const sessionCheckedRef = useRef(startupSessionChecked);
+  const [sessionReady, setSessionReady] = useState(startupSessionChecked);
   const fade = useRef(new Animated.Value(1)).current;
+
+  const [entryReady, setEntryReady] = useState(false);
+  // Reset route parameters/history at the keyed account boundary before revealing private screens.
+  useEffect(() => {
+    if (entryReady || !sessionReady) return;
+    const expected = user ? "/" : "/login";
+    if (pathname === expected) setEntryReady(true);
+    else router.replace(user ? "/(tabs)" : "/(auth)/login");
+  }, [entryReady, sessionReady, user, pathname, router]);
 
   const inAuth =
     pathname?.startsWith("/(auth)") ||
@@ -121,6 +77,7 @@ function Gate() {
   useEffect(() => {
     if (initializing || sessionCheckedRef.current) return;
     sessionCheckedRef.current = true;
+    startupSessionChecked = true;
     const startupUid = user?.uid;
     (async () => {
       try {
@@ -137,10 +94,20 @@ function Gate() {
   }, [user, initializing]);
 
   useEffect(() => {
-    if (initializing || !sessionReady) return;
-    if (!user && !inAuth) router.replace("/(auth)/login");
-    else if (user && inAuth) router.replace("/(tabs)");
-  }, [user, initializing, sessionReady, inAuth, router]);
+    if (initializing || !sessionReady || !entryReady) return;
+    let active = true;
+    if (!user) {
+      const destination = accountRouteRedirect({ pathname, signedIn: false, inAuth, pendingSetup: false });
+      if (destination) router.replace(destination);
+    } else {
+      void fitAdaptSetupPendingFor(user).then((pending) => {
+        if (!active) return;
+        const destination = accountRouteRedirect({ pathname, signedIn: true, inAuth, pendingSetup: pending });
+        if (destination) router.replace(destination);
+      }).catch(() => { if (active && inAuth) router.replace("/(tabs)"); });
+    }
+    return () => { active = false; };
+  }, [user, initializing, sessionReady, entryReady, inAuth, pathname, router]);
 
   // ensure user doc
   useEffect(() => {
@@ -176,20 +143,22 @@ function Gate() {
   }, [pathname, user]);
 
   useEffect(() => {
-    const stop = startIntegrationAutoSync(() => user?.uid);
+    if (!user) return;
+    const stop = startIntegrationAutoSync(() => user?.uid, localStore);
     return () => {
       stop?.();
     };
   }, [user?.uid]);
 
   useEffect(() => {
-    registerForPushNotifications().catch(() => {});
-    loadNotificationSettings().then(syncScheduledNotifications).catch(() => {});
+    if (!user) return;
+    registerForPushNotifications().catch(() => { });
+    loadNotificationSettings(localStore).then(settings => syncScheduledNotifications(settings, localStore)).catch(() => { });
 
     const sub = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data: any = response.notification.request.content.data || {};
-        if (!data?.type) return;
+        if (!data?.type || !notificationBelongsToAccount(auth.currentUser?.uid, data)) return;
         switch (data.type) {
           case "friend_ping":
             router.push("/(tabs)/notifications");
@@ -220,7 +189,9 @@ function Gate() {
         }
         style={{ flex: 1 }}
       >
+
         <StatusBar style={isDark ? "light" : "dark"} />
+
         <View
           style={{
             flex: 1,
@@ -229,57 +200,88 @@ function Gate() {
             gap: 14,
           }}
         >
+
           <SomataIcon size={120} />
+
           <View style={{ alignItems: "center", gap: 4 }}>
+
             <ActivityIndicator color={colors.primary} />
+
             <Text style={{ color: colors.muted, fontSize: 14 }}>
               Loading Somata…
             </Text>
+
           </View>
+
         </View>
+
       </LinearGradient>
     );
   }
 
-  const topHeaderHeight = insets.top + 10;
+  const topHeaderHeight = insets.top;
 
   return (
     <Animated.View
-      style={{ flex: 1, backgroundColor: colors.background, opacity: fade }}
+      pointerEvents={entryReady ? "auto" : "none"}
+      accessibilityElementsHidden={!entryReady}
+      importantForAccessibility={entryReady ? "auto" : "no-hide-descendants"}
+      style={{ flex: 1, backgroundColor: D.bg, opacity: entryReady ? fade : 0 }}
     >
+
       {/* Translucent so our header shows behind the system area */}
+
       <StatusBar
         style={isDark ? "light" : "dark"}
       />
 
-      {/* Always-present glossy header spacer */}
-      <GlobalTopHeader />
+      {/* Safe-area canvas shared with the current theme */}
+
+      <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: topHeaderHeight, backgroundColor: D.bg, zIndex: 1000 }} />
 
       <Stack
         screenOptions={{
-          headerShown: false, // we’re using the global top header now
+          headerShown: false, // Each destination owns its task header
           contentStyle: {
-            backgroundColor: colors.background,
-            // Push *every* screen content down so it starts below the global header
+            backgroundColor: D.bg,
+            // Reserve the system safe area once for every route
             paddingTop: topHeaderHeight,
           },
         }}
       >
+
         <Stack.Screen name="(tabs)" />
+
         <Stack.Screen name="(auth)" />
+
+        <Stack.Screen name="design-preview" options={{
+          contentStyle: {
+            backgroundColor: D.bg, paddingTop: topHeaderHeight,
+          }
+        }} />
+
+        <Stack.Screen name="dashboard-preview" options={{
+          contentStyle: {
+            backgroundColor: D.bg, paddingTop: topHeaderHeight,
+          }
+        }} />
+
         <Stack.Screen
           name="(modals)"
           options={{
             presentation: "fullScreenModal",
             contentStyle: {
-              backgroundColor: colors.background,
+              backgroundColor: D.bg,
               paddingTop: topHeaderHeight,
             },
             headerShown: false,
           }}
         />
+
         <Stack.Screen name="+not-found" />
+
       </Stack>
+
     </Animated.View>
   );
 }
@@ -293,17 +295,27 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+
+      <AuthProvider>
       <SettingsProvider>
+
         <ThemeProvider>
+
           <SafeAreaProvider>
+
             <View style={{ flex: 1 }}>
-              <AuthProvider>
-                <Gate />
-              </AuthProvider>
+
+              <Gate />
+
             </View>
+
           </SafeAreaProvider>
+
         </ThemeProvider>
+
       </SettingsProvider>
+      </AuthProvider>
+
     </GestureHandlerRootView>
   );
 }

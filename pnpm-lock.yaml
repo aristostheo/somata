@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  react-native-health@1.19.0:
+    hash: 81a7cf623819860d12c1ef3623a8d46e600714820ce884bfe52680aa71ca2265
+    path: patches/react-native-health@1.19.0.patch
+
 importers:
 
   .: {}
@@ -70,6 +75,9 @@ importers:
       expo-device:
         specifier: ~57.0.2
         version: 57.0.2(expo@57.0.24)
+      expo-file-system:
+        specifier: ~57.0.7
+        version: 57.0.7(expo@57.0.24)(react-native@0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3))
       expo-font:
         specifier: ~57.0.4
         version: 57.0.4(expo@57.0.24)(react-native@0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
@@ -144,7 +152,7 @@ importers:
         version: 2.32.0(react-native@0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
       react-native-health:
         specifier: ^1.19.0
-        version: 1.19.0(react-native@0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3))
+        version: 1.19.0(patch_hash=81a7cf623819860d12c1ef3623a8d46e600714820ce884bfe52680aa71ca2265)(react-native@0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3))
       react-native-qrcode-svg:
         specifier: ^6.3.21
         version: 6.3.21(react-native-svg@15.15.4(react-native@0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
@@ -19741,7 +19749,7 @@ snapshots:
       react: 19.2.3
       react-native: 0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3)
 
-  react-native-health@1.19.0(react-native@0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3)):
+  react-native-health@1.19.0(patch_hash=81a7cf623819860d12c1ef3623a8d46e600714820ce884bfe52680aa71ca2265)(react-native@0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3)):
     dependencies:
       '@expo/config-plugins': 7.9.2
       react-native: 0.86.3(@babel/core@7.28.4)(@react-native/metro-config@0.87.1(@babel/core@7.28.4))(@types/react@19.2.18)(react@19.2.3)

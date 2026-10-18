@@ -78,7 +78,7 @@ export function useInsights() {
     const days = Object.keys(byDay);
     const total = days.reduce((s, d) => s + byDay[d], 0);
     const avg = days.length ? total / days.length : 0;
-    const target = nutritionTargets(profile, { calories: 2400, protein: 130, carbs: 260, fat: 70 }).protein;
+    const target = nutritionTargets(profile).protein;
     const tip =
       avg >= target
         ? "Nice! You’re meeting your protein goal."

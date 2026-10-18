@@ -1,11 +1,12 @@
+import { Button, Choice } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 // components/exercises/FilterBar.tsx
-import React, { memo, useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { memo, useMemo } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "@/content/ThemeProvider";
-import { withAlpha } from "@/lib/color";
 import type { ExerciseFilters } from "@/services/exercises/types";
 
 type Chip = {
@@ -31,6 +32,8 @@ export const FilterBar = memo(function FilterBar({
   onChange,
   onOpenAdvanced,
 }: Props) {
+  const { D, F } = useSomataTheme();
+
   const { colors, isDark } = useTheme();
 
   const chips: Chip[] = useMemo(() => {
@@ -45,7 +48,7 @@ export const FilterBar = memo(function FilterBar({
         selected: muscle !== "all",
         icon: "body-outline",
         onPress: async () => {
-          Haptics.selectionAsync().catch(() => {});
+          Haptics.selectionAsync().catch(() => { });
           // quick-cycle list (fast); replace with sheet later if you want
           const order = [
             "all",
@@ -70,7 +73,7 @@ export const FilterBar = memo(function FilterBar({
         selected: equipment !== "all",
         icon: "barbell-outline",
         onPress: async () => {
-          Haptics.selectionAsync().catch(() => {});
+          Haptics.selectionAsync().catch(() => { });
           const order = [
             "all",
             "barbell",
@@ -92,80 +95,20 @@ export const FilterBar = memo(function FilterBar({
         selected: hasDemo,
         icon: "film-outline",
         onPress: async () => {
-          Haptics.selectionAsync().catch(() => {});
+          Haptics.selectionAsync().catch(() => { });
           onChange({ ...filters, hasDemo: !hasDemo });
         },
       },
     ];
   }, [filters, onChange]);
 
-  return (
-    <View style={styles.wrap}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.row}
-      >
-        {chips.map((c) => (
-          <Pressable
-            key={c.key}
-            onPress={c.onPress}
-            style={({ pressed }) => [
-              styles.chip,
-              {
-                backgroundColor: withAlpha(
-                  colors.card,
-                  c.selected ? (isDark ? 0.32 : 0.55) : isDark ? 0.22 : 0.4
-                ),
-                borderColor: withAlpha(
-                  c.selected ? colors.primary : colors.border,
-                  c.selected ? 0.55 : 0.6
-                ),
-                transform: [{ scale: pressed ? 0.98 : 1 }],
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={`Filter ${c.label}`}
-          >
-            <Ionicons
-              name={c.icon ?? "options-outline"}
-              size={16}
-              color={withAlpha(colors.text, c.selected ? 0.9 : 0.65)}
-              style={{ marginRight: 6 }}
-            />
-            <Text
-              style={[styles.chipText, { color: withAlpha(colors.text, 0.92) }]}
-            >
-              {c.label}
-            </Text>
-          </Pressable>
-        ))}
-
-        {onOpenAdvanced ? (
-          <Pressable
-            onPress={onOpenAdvanced}
-            style={({ pressed }) => [
-              styles.advBtn,
-              {
-                borderColor: withAlpha(colors.border, 0.65),
-                backgroundColor: withAlpha(colors.card, isDark ? 0.18 : 0.32),
-                transform: [{ scale: pressed ? 0.98 : 1 }],
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Open advanced filters"
-          >
-            {/* ✅ Ionicons-safe icon name */}
-            <Ionicons
-              name="options-outline"
-              size={16}
-              color={withAlpha(colors.text, 0.7)}
-            />
-          </Pressable>
-        ) : null}
-      </ScrollView>
+  return <View style={{ gap: 10 }}>
+    <Text style={F.caption}>Tap a filter to cycle its options</Text>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {chips.map(c => <Choice key={c.key} label={c.label} selected={c.selected} onPress={c.onPress} />)}
+      {onOpenAdvanced && <Button label="More filters" onPress={onOpenAdvanced} />}
     </View>
-  );
+  </View>;
 });
 
 const styles = StyleSheet.create({

@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { accountStorage, type AccountStore } from '@/services/local/accountStore';
 import { collection, getDocs, getFirestore, orderBy, query, where } from "firebase/firestore";
 
 import { db } from "@/lib/firebase";
@@ -53,9 +53,9 @@ function makeId() {
   return `checkin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-async function readAll(): Promise<WeeklyCheckin[]> {
+async function readAll(localStore: AccountStore = accountStorage()): Promise<WeeklyCheckin[]> {
   try {
-    const raw = await AsyncStorage.getItem(KEY);
+    const raw = await localStore.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as WeeklyCheckin[]) : [];
@@ -64,8 +64,8 @@ async function readAll(): Promise<WeeklyCheckin[]> {
   }
 }
 
-async function writeAll(next: WeeklyCheckin[]) {
-  await AsyncStorage.setItem(KEY, JSON.stringify(next));
+async function writeAll(next: WeeklyCheckin[], localStore: AccountStore = accountStorage()) {
+  await localStore.setItem(KEY, JSON.stringify(next));
 }
 
 export function getCurrentWeekStart() {
@@ -102,9 +102,9 @@ export function generateWeeklyInsight(checkin: WeeklyCheckin): string {
 }
 
 export async function saveCheckin(
-  checkin: Omit<WeeklyCheckin, "id" | "completedAt" | "aiInsight">
+  checkin: Omit<WeeklyCheckin, "id" | "completedAt" | "aiInsight">, localStore: AccountStore = accountStorage()
 ): Promise<void> {
-  const rows = await readAll();
+  const rows = await readAll(localStore);
   const next: WeeklyCheckin = {
     ...checkin,
     id: makeId(),
@@ -119,29 +119,31 @@ export async function saveCheckin(
   const filtered = rows.filter((item) => item.weekOf !== checkin.weekOf);
   filtered.push(next);
   filtered.sort((a, b) => b.weekOf.localeCompare(a.weekOf));
-  await writeAll(filtered);
+  await writeAll(filtered, localStore);
 }
 
-export async function getCheckins(): Promise<WeeklyCheckin[]> {
-  const rows = await readAll();
+export async function getCheckins(localStore: AccountStore = accountStorage()): Promise<WeeklyCheckin[]> {
+  const rows = await readAll(localStore);
   return rows.slice().sort((a, b) => b.weekOf.localeCompare(a.weekOf));
 }
 
-export async function getThisWeeksCheckin(): Promise<WeeklyCheckin | null> {
+export async function getThisWeeksCheckin(localStore: AccountStore = accountStorage()): Promise<WeeklyCheckin | null> {
   const weekOf = getCurrentWeekStart();
-  const rows = await readAll();
+  const rows = await readAll(localStore);
   return rows.find((item) => item.weekOf === weekOf) || null;
 }
 
-export async function hasCompletedThisWeek(): Promise<boolean> {
-  return !!(await getThisWeeksCheckin());
+export async function hasCompletedThisWeek(localStore: AccountStore = accountStorage()): Promise<boolean> {
+  return !!(await getThisWeeksCheckin(localStore));
 }
 
 export async function getWeeklyConsistencyStats(
   uid: string,
   profile: Profile | null,
-  weekOf = getCurrentWeekStart()
+  weekOf = getCurrentWeekStart(), localStore: AccountStore = accountStorage()
 ): Promise<WeeklyConsistencyStats> {
+  localStore.assertCurrent();
+  if (localStore.uid !== uid) throw new Error("Account mismatch");
   const start = parseYmd(weekOf);
   const dates = Array.from({ length: 7 }, (_, index) => ymd(addDays(start, index)));
   const end = dates[dates.length - 1];
@@ -169,7 +171,7 @@ export async function getWeeklyConsistencyStats(
   let hydrationDaysHit = 0;
   const hydrationValues: Record<string, number> = {};
   for (const date of dates) {
-    const raw = await AsyncStorage.getItem(`@water:${date}`);
+    const raw = await localStore.getItem(`@water:${date}`);
     const ml = Math.max(0, Number(raw || 0) || 0);
     hydrationValues[date] = ml;
     if (ml >= goal) hydrationDaysHit += 1;
@@ -205,12 +207,12 @@ export async function getWeeklyConsistencyStats(
   };
 }
 
-export async function scheduleWeeklyCheckinReminders() {
+export async function scheduleWeeklyCheckinReminders(localStore: AccountStore = accountStorage()) {
   try {
     const Notifications = require("expo-notifications");
     if (!Notifications?.scheduleNotificationAsync) return false;
     const state = { sundayMorning: true, sundayEvening: true };
-    await AsyncStorage.setItem(REMINDER_KEY, JSON.stringify(state));
+    await localStore.setItem(REMINDER_KEY, JSON.stringify(state));
     return true;
   } catch {
     return false;

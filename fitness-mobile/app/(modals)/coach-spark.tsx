@@ -1,33 +1,32 @@
+import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
+import { validateGeneratedWorkout } from "@/services/aiValidation";
+import { Button, Choice, Empty, Field, Heading, IconButton, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import { dayKey } from "@/utils/date";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  View,
+  View
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { useTheme } from "@/content/ThemeProvider";
 import { useAuth } from "@/content/AuthContext";
-import { callOpenAIJson, type OpenAIMessage } from "@/services/openai";
-import { subscribeProfile, type Profile } from "@/services/profile";
-import { subscribeWorkouts, type Workout } from "@/services/workouts";
+import { useTheme } from "@/content/ThemeProvider";
 import {
   getRecoveryMetrics,
   subscribeIntegrations,
   type IntegrationSnapshot,
 } from "@/services/integrations";
+import { callOpenAIJson, type OpenAIMessage } from "@/services/openai";
+import { subscribeProfile, type Profile } from "@/services/profile";
 import {
   saveWorkoutTemplate,
   subscribeWorkoutTemplates,
   type WorkoutTemplate,
 } from "@/services/templates";
+import { subscribeWorkouts, type Workout } from "@/services/workouts";
 
 type GeneratorMode = "quick" | "custom";
 type FocusOption =
@@ -136,13 +135,13 @@ const focusOptionsCustom: FocusOption[] = [
   "Mobility",
   "HIIT",
 ];
-const durationCards: Array<{ value: DurationOption; label: string; meta: string }> = [
+const durationCards: Array<{ value: DurationOption; label: string; meta: string; }> = [
   { value: "15-30", label: "Quick", meta: "15–30 min" },
   { value: "30-45", label: "Standard", meta: "30–45 min" },
   { value: "45-60", label: "Full session", meta: "45–60 min" },
   { value: "60+", label: "Extended", meta: "60+ min" },
 ];
-const intensityCards: Array<{ value: IntensityOption; body: string }> = [
+const intensityCards: Array<{ value: IntensityOption; body: string; }> = [
   { value: "Light", body: "Active recovery, feel-good session" },
   { value: "Moderate", body: "Solid effort, leaving some in the tank" },
   { value: "Hard", body: "Push the limits, high output" },
@@ -236,7 +235,7 @@ function classifyGroup(title: string, exerciseNames: string[]) {
 function buildRecentSessions(rows: Workout[]): WorkoutSessionMeta[] {
   const grouped = new Map<
     string,
-    { title: string; latestAt: number; exerciseNames: Set<string>; muscleGroups: Set<string> }
+    { title: string; latestAt: number; exerciseNames: Set<string>; muscleGroups: Set<string>; }
   >();
 
   for (const row of rows || []) {
@@ -393,8 +392,8 @@ Make the workout feel complete and professional. Include specific weight guidanc
   ] satisfies OpenAIMessage[];
 }
 
-async function readSparkHistory() {
-  const raw = await AsyncStorage.getItem(SPARK_HISTORY_KEY);
+async function readSparkHistory(localStore: AccountStore = accountStorage()) {
+  const raw = await localStore.getItem(SPARK_HISTORY_KEY);
   if (!raw) return [] as SparkHistoryItem[];
   try {
     const parsed = JSON.parse(raw);
@@ -404,8 +403,8 @@ async function readSparkHistory() {
   }
 }
 
-async function writeSparkHistory(next: SparkHistoryItem[]) {
-  await AsyncStorage.setItem(SPARK_HISTORY_KEY, JSON.stringify(next.slice(0, 20)));
+async function writeSparkHistory(next: SparkHistoryItem[], localStore: AccountStore = accountStorage()) {
+  await localStore.setItem(SPARK_HISTORY_KEY, JSON.stringify(next.slice(0, 20)));
 }
 
 function titleCaseFocus(value: string) {
@@ -413,6 +412,9 @@ function titleCaseFocus(value: string) {
 }
 
 export default function CoachSparkModal() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const params = useLocalSearchParams<{
     mode?: string;
@@ -450,8 +452,8 @@ export default function CoachSparkModal() {
     const unsubProfile = subscribeProfile(user.uid, setProfile);
     const unsubWorkouts = subscribeWorkouts(user.uid, setWorkoutRows, { max: 500 });
     const unsubTemplates = subscribeWorkoutTemplates(user.uid, setTemplates);
-    const unsubIntegrations = subscribeIntegrations(setIntegrations);
-    readSparkHistory().then(setHistory).catch(() => {});
+    const unsubIntegrations = subscribeIntegrations(setIntegrations, localStore);
+    readSparkHistory(localStore).then(setHistory).catch(() => { });
     return () => {
       unsubProfile?.();
       unsubWorkouts?.();
@@ -513,9 +515,7 @@ export default function CoachSparkModal() {
 
   const canGenerate = !loading;
   const displayedHistory = showAllHistory ? history : history.slice(0, 3);
-  const apiKeyMissing =
-    !process.env.EXPO_PUBLIC_OPENAI_API_KEY ||
-    String(process.env.EXPO_PUBLIC_OPENAI_API_KEY).includes("sk-...");
+
 
   function updateForm(patch: Partial<GeneratorState>) {
     setForm((prev) => ({ ...prev, ...patch }));
@@ -524,21 +524,17 @@ export default function CoachSparkModal() {
   async function persistHistory(item: SparkHistoryItem) {
     const next = [item, ...history.filter((entry) => entry.id !== item.id)].slice(0, 20);
     setHistory(next);
-    await writeSparkHistory(next);
+    await writeSparkHistory(next, localStore);
   }
 
   async function deleteHistoryItem(id: string) {
     const next = history.filter((entry) => entry.id !== id);
     setHistory(next);
-    await writeSparkHistory(next);
+    await writeSparkHistory(next, localStore);
   }
 
   async function generateWorkout() {
     setError(null);
-    if (apiKeyMissing) {
-      setError("Coach Spark needs to be set up. Contact support.");
-      return;
-    }
     setLoading(true);
     try {
       const prompt = makePrompt({
@@ -554,11 +550,13 @@ export default function CoachSparkModal() {
         currentGoal: labelGoal(profile?.goalInputs?.mode ?? profile?.goal),
       });
       const workout = await callOpenAIJson<GeneratedWorkout>(prompt, {
+        operation: "workout",
         model: "gpt-4o-mini",
         maxTokens: 1500,
         temperature: 0.7,
         retryTemperature: 0.3,
       });
+      validateGeneratedWorkout(workout);
       const normalized: GeneratedWorkout = {
         name: oneLine(workout?.name || "Coach Spark Session"),
         tagline: oneLine(workout?.tagline || "Built for today."),
@@ -567,7 +565,7 @@ export default function CoachSparkModal() {
         exercises: Array.isArray(workout?.exercises) ? workout.exercises : [],
         cooldown: Array.isArray(workout?.cooldown) ? workout.cooldown : [],
         coachNote: oneLine(workout?.coachNote || "Train with good form and leave one rep in reserve."),
-        estimatedCalories: Number(workout?.estimatedCalories || 250),
+        estimatedCalories: Number(workout.estimatedCalories),
         difficulty:
           workout?.difficulty === "Light" || workout?.difficulty === "Hard"
             ? workout.difficulty
@@ -583,8 +581,10 @@ export default function CoachSparkModal() {
       await persistHistory(historyItem);
     } catch (e: any) {
       const msg = String(e?.message || "");
-      if (msg.includes("OpenAI API key not configured")) {
-        setError("Coach Spark needs to be set up. Contact support.");
+      if (msg.includes("Sign in again")) {
+        setError("Sign in again to use Coach Spark.");
+      } else if (msg.startsWith("AI ")) {
+        setError(msg);
       } else if (msg.toLowerCase().includes("network") || msg.toLowerCase().includes("fetch")) {
         setError("Couldn't connect. Check your connection and try again.");
       } else {
@@ -639,563 +639,58 @@ export default function CoachSparkModal() {
   const selectedIndicatorColor = colors.accentSubtle;
   const selectedFill = colors.accentDim;
 
-  return (
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <View style={styles.headerTitleRow}>
-            <Ionicons name="sparkles-outline" size={18} color={colors.accentMuted} />
-            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Coach Spark</Text>
-          </View>
-          <Text style={[styles.headerSub, { color: colors.textTertiary }]}>
-            Your AI personal trainer
-          </Text>
-        </View>
-        <Pressable
-          onPress={() => router.back()}
-          style={[styles.closeBtn, { backgroundColor: colors.surface3, borderColor: colors.border }]}
-        >
-          <Ionicons name="close" size={18} color={colors.textSecondary} />
-        </Pressable>
-      </View>
+  return (<><TaskPage title={generated ? generated.name : 'Build a training session'} section="Coach Spark" onBack={() => router.back()}>
 
-      <View style={[styles.segment, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-        {(["quick", "custom"] as const).map((value) => {
-          const active = mode === value;
-          return (
-            <Pressable
-              key={value}
-              onPress={() => setMode(value)}
-              style={[
-                styles.segmentPill,
-                active && { backgroundColor: colors.accent, borderColor: colors.accentSubtle },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  { color: active ? colors.accentForeground : colors.textSecondary },
-                ]}
-              >
-                {value === "quick" ? "Quick" : "Custom"}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {!generated ? (
-          <>
-            <SectionLabel label={mode === "quick" ? "QUICK BUILD" : "CUSTOM BUILD"} colors={colors} />
-
-            <BlockLabel title="What do you want to train?" colors={colors} />
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillRow}>
-              {(mode === "quick" ? focusOptionsQuick : focusOptionsCustom).map((focus) => {
-                const active = form.focus === focus;
-                return (
-                  <Pressable
-                    key={focus}
-                    onPress={() => updateForm({ focus })}
-                    style={[
-                      styles.pill,
-                      {
-                        backgroundColor: active ? colors.accentMuted : colors.surface2,
-                        borderColor: active ? selectedIndicatorColor : colors.border,
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.pillText, { color: active ? colors.textPrimary : colors.textSecondary }]}>
-                      {focus}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-
-            <BlockLabel title="How long do you have?" colors={colors} />
-            <View style={styles.durationGrid}>
-              {durationCards.map((card) => {
-                const active = form.duration === card.value;
-                return (
-                  <Pressable
-                    key={card.value}
-                    onPress={() => updateForm({ duration: card.value })}
-                    style={[
-                      styles.durationCard,
-                      {
-                        backgroundColor: active ? selectedFill : colors.surface1,
-                        borderColor: active ? selectedIndicatorColor : colors.border,
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.durationTitle, { color: colors.textPrimary }]}>
-                      {card.label}
-                    </Text>
-                    <Text style={[styles.durationMeta, { color: colors.textTertiary }]}>{card.meta}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {mode === "custom" ? (
-              <>
-                <BlockLabel title="Training style" colors={colors} />
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillRow}>
-                  {(Object.keys(styleDescriptors) as StyleOption[]).map((style) => {
-                    const active = form.style === style;
-                    return (
-                      <Pressable
-                        key={style}
-                        onPress={() => updateForm({ style })}
-                        style={[
-                          styles.pill,
-                          {
-                            backgroundColor: active ? colors.accentMuted : colors.surface2,
-                            borderColor: active ? selectedIndicatorColor : colors.border,
-                          },
-                        ]}
-                      >
-                        <Text style={[styles.pillText, { color: active ? colors.textPrimary : colors.textSecondary }]}>
-                          {style}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </ScrollView>
-                <Text style={[styles.helpText, { color: colors.textTertiary }]}>
-                  {styleDescriptors[form.style]}
-                </Text>
-
-                <BlockLabel title="Equipment" colors={colors} />
-                <View style={styles.wrapRow}>
-                  {equipmentOptions.map((option) => {
-                    const active = form.equipment.includes(option);
-                    return (
-                      <Pressable
-                        key={option}
-                        onPress={() =>
-                          updateForm({
-                            equipment: active
-                              ? form.equipment.filter((item) => item !== option)
-                              : [...form.equipment, option],
-                          })
-                        }
-                        style={[
-                          styles.pill,
-                          {
-                            backgroundColor: active ? colors.accentMuted : colors.surface2,
-                            borderColor: active ? selectedIndicatorColor : colors.border,
-                          },
-                        ]}
-                      >
-                        <Text style={[styles.pillText, { color: active ? colors.textPrimary : colors.textSecondary }]}>
-                          {option}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                <BlockLabel title="Intensity" colors={colors} />
-                <View style={styles.columnCards}>
-                  {intensityCards.map((card) => {
-                    const active = form.intensity === card.value;
-                    return (
-                      <Pressable
-                        key={card.value}
-                        onPress={() => updateForm({ intensity: card.value })}
-                        style={[
-                          styles.verticalCard,
-                          {
-                            backgroundColor: active ? selectedFill : colors.surface1,
-                            borderColor: active ? selectedIndicatorColor : colors.border,
-                          },
-                        ]}
-                      >
-                        <View style={{ flex: 1 }}>
-                          <Text style={[styles.verticalTitle, { color: colors.textPrimary }]}>{card.value}</Text>
-                          <Text style={[styles.verticalMeta, { color: colors.textTertiary }]}>{card.body}</Text>
-                        </View>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                <BlockLabel title="Experience level" colors={colors} />
-                <View style={styles.wrapRow}>
-                  {(["Beginner", "Intermediate", "Advanced"] as ExperienceOption[]).map((option) => {
-                    const active = form.experience === option;
-                    return (
-                      <Pressable
-                        key={option}
-                        onPress={() => updateForm({ experience: option })}
-                        style={[
-                          styles.pill,
-                          {
-                            backgroundColor: active ? colors.accentMuted : colors.surface2,
-                            borderColor: active ? selectedIndicatorColor : colors.border,
-                          },
-                        ]}
-                      >
-                        <Text style={[styles.pillText, { color: active ? colors.textPrimary : colors.textSecondary }]}>
-                          {option}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                <BlockLabel title="Sore or injured areas" colors={colors} />
-                <View style={styles.wrapRow}>
-                  {avoidMuscleOptions.map((option) => {
-                    const active = form.avoidMuscles.includes(option);
-                    return (
-                      <Pressable
-                        key={option}
-                        onPress={() =>
-                          updateForm({
-                            avoidMuscles: active
-                              ? form.avoidMuscles.filter((item) => item !== option)
-                              : [...form.avoidMuscles, option],
-                          })
-                        }
-                        style={[
-                          styles.pill,
-                          {
-                            backgroundColor: active ? toneAlpha(colors.danger, 0.12) : colors.surface2,
-                            borderColor: active ? colors.danger : colors.border,
-                          },
-                        ]}
-                      >
-                        <Text style={[styles.pillText, { color: active ? colors.danger : colors.textSecondary }]}>
-                          {option}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                <BlockLabel title="Preferred exercises" colors={colors} />
-                <TextInput
-                  value={form.preferredExercises}
-                  onChangeText={(value) => updateForm({ preferredExercises: value })}
-                  placeholder="e.g. bench press, pull-ups, Romanian deadlifts..."
-                  placeholderTextColor={colors.textTertiary}
-                  style={[
-                    styles.input,
-                    { backgroundColor: colors.surface3, borderColor: colors.border, color: colors.textPrimary },
-                  ]}
-                />
-              </>
-            ) : null}
-
-            <BlockLabel title="Any notes?" colors={colors} />
-            <View
-              style={[
-                styles.inputWrap,
-                { backgroundColor: colors.surface3, borderColor: colors.border },
-              ]}
-            >
-              <Ionicons name="create-outline" size={16} color={colors.textTertiary} />
-              <TextInput
-                value={form.freeText}
-                onChangeText={(value) => updateForm({ freeText: value })}
-                placeholder="e.g. skip squats, focus on arms, keep it light today..."
-                placeholderTextColor={colors.textTertiary}
-                style={[styles.inlineInput, { color: colors.textPrimary }]}
-              />
-            </View>
-
-            {mode === "custom" && contextRows.length ? (
-              <View
-                style={[
-                  styles.contextCard,
-                  {
-                    backgroundColor: colors.accentDim,
-                    borderColor: colors.accentSubtle,
-                  },
-                ]}
-              >
-                <Text style={[styles.contextLabel, { color: colors.textTertiary }]}>Also factoring in:</Text>
-                {contextRows.map((row) => (
-                  <View key={row} style={styles.contextRow}>
-                    <View
-                      style={[
-                        styles.contextDot,
-                        { backgroundColor: colors.accentMuted },
-                      ]}
-                    />
-                    <Text style={[styles.contextText, { color: colors.textSecondary }]}>{row}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-
-            <Pressable
-              disabled={!canGenerate}
-              onPress={generateWorkout}
-              style={[
-                styles.primaryButton,
-                {
-                  backgroundColor: canGenerate ? colors.accent : colors.surface2,
-                },
-              ]}
-            >
-              {loading ? (
-                <>
-                  <ActivityIndicator color={colors.accentForeground} />
-                  <Text style={[styles.primaryText, { color: colors.accentForeground }]}>
-                    Building your workout...
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Ionicons name="sparkles-outline" size={16} color={colors.accentForeground} />
-                  <Text style={[styles.primaryText, { color: colors.accentForeground }]}>
-                    Generate my workout
-                  </Text>
-                </>
-              )}
-            </Pressable>
-            {loading ? (
-              <Text style={[styles.loadingText, { color: colors.textTertiary }]}>
-                {loadingPhrases[loadingIndex]}
-              </Text>
-            ) : null}
-            {error ? (
-              <View style={[styles.errorCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-                <Text style={[styles.errorText, { color: colors.textSecondary }]}>{error}</Text>
-                {error.includes("Couldn't connect") ? (
-                  <Pressable onPress={generateWorkout}>
-                    <Text style={[styles.retryText, { color: colors.accentMuted }]}>Retry</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-            ) : null}
-
-            <SectionLabel label="PREVIOUSLY GENERATED" colors={colors} />
-            {displayedHistory.map((entry) => (
-              <Pressable
-                key={entry.id}
-                onPress={() => setGenerated(entry.workout)}
-                onLongPress={() => deleteHistoryItem(entry.id)}
-                style={[styles.historyRow, { backgroundColor: colors.surface1, borderColor: colors.border }]}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.historyName, { color: colors.textPrimary }]}>{entry.workout.name}</Text>
-                  <Text style={[styles.historyMeta, { color: colors.textTertiary }]}>
-                    {new Date(entry.createdAt).toLocaleDateString()} · {entry.workout.duration} min
-                  </Text>
-                </View>
-                <View style={[styles.historyChip, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-                  <Text style={[styles.historyChipText, { color: colors.textSecondary }]}>
-                    {entry.workout.duration}m
-                  </Text>
-                </View>
-              </Pressable>
-            ))}
-            {history.length > 3 ? (
-              <Pressable onPress={() => setShowAllHistory((value) => !value)}>
-                <Text style={[styles.viewAllText, { color: colors.accentMuted }]}>
-                  {showAllHistory ? "Show less" : "View all →"}
-                </Text>
-              </Pressable>
-            ) : null}
-          </>
-        ) : (
-          <>
-            <Pressable onPress={() => setGenerated(null)} style={styles.backRow}>
-              <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
-              <Text style={[styles.backText, { color: colors.textSecondary }]}>Back</Text>
-            </Pressable>
-
-            <Text style={[styles.previewTitle, { color: colors.textPrimary }]}>{generated.name}</Text>
-            <Text style={[styles.previewTagline, { color: colors.textSecondary }]}>{generated.tagline}</Text>
-            <View style={styles.previewChipRow}>
-              {[`${generated.duration} min`, generated.difficulty, `${generated.estimatedCalories} kcal`].map((label) => (
-                <View
-                  key={label}
-                  style={[styles.historyChip, { backgroundColor: colors.surface2, borderColor: colors.border }]}
-                >
-                  <Text style={[styles.historyChipText, { color: colors.textSecondary }]}>{label}</Text>
-                </View>
-              ))}
-            </View>
-
-            <View
-              style={[
-                styles.contextCard,
-                { backgroundColor: colors.accentDim, borderColor: colors.accentSubtle },
-              ]}
-            >
-              <View style={styles.contextRow}>
-                <Ionicons name="sparkles-outline" size={14} color={colors.accentMuted} />
-                <Text style={[styles.contextText, { color: colors.textSecondary, fontStyle: "italic" }]}>
-                  {generated.coachNote}
-                </Text>
-              </View>
-            </View>
-
-            {generated.exercises.map((exercise) => {
-              const altOpen = expandedAlt === exercise.name;
-              return (
-                <Pressable
-                  key={exercise.name}
-                  onLongPress={() => setSwapExercise(exercise)}
-                  style={[styles.exerciseCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}
-                >
-                  <Text style={[styles.exerciseName, { color: colors.textPrimary }]}>{exercise.name}</Text>
-                  <Text style={[styles.exerciseSets, { color: colors.accentMuted }]}>
-                    {exercise.sets} × {exercise.reps}
-                  </Text>
-                  <Text style={[styles.exerciseMeta, { color: colors.textTertiary }]}>
-                    Rest {exercise.rest} · {exercise.weight}
-                  </Text>
-                  <View
-                    style={[
-                      styles.muscleChip,
-                      { backgroundColor: colors.surface3, borderColor: colors.border },
-                    ]}
-                  >
-                    <Text style={[styles.muscleText, { color: colors.textTertiary }]}>{exercise.muscleGroup}</Text>
-                  </View>
-                  {exercise.notes ? (
-                    <Text style={[styles.exerciseNote, { color: colors.textTertiary }]}>{exercise.notes}</Text>
-                  ) : null}
-                  {exercise.alternatives?.length ? (
-                    <>
-                      <Pressable onPress={() => setExpandedAlt(altOpen ? null : exercise.name)}>
-                        <Text style={[styles.altToggle, { color: colors.accentMuted }]}>Alternatives →</Text>
-                      </Pressable>
-                      {altOpen ? (
-                        <View style={styles.altList}>
-                          {exercise.alternatives.map((alt) => (
-                            <Text key={alt} style={[styles.altItem, { color: colors.textSecondary }]}>
-                              {alt}
-                            </Text>
-                          ))}
-                        </View>
-                      ) : null}
-                    </>
-                  ) : null}
-                </Pressable>
-              );
-            })}
-
-            <CollapseSection
-              title={`Warm-up · ${generated.warmup.length} exercises`}
-              open={warmupOpen}
-              onToggle={() => setWarmupOpen((value) => !value)}
-              colors={colors}
-              items={generated.warmup}
-            />
-            <CollapseSection
-              title={`Cool-down · ${generated.cooldown.length} exercises`}
-              open={cooldownOpen}
-              onToggle={() => setCooldownOpen((value) => !value)}
-              colors={colors}
-              items={generated.cooldown}
-            />
-
-            <Pressable onPress={startWorkout} style={[styles.primaryButton, { backgroundColor: colors.accent }]}>
-              <Ionicons name="play" size={16} color={colors.accentForeground} />
-              <Text style={[styles.primaryText, { color: colors.accentForeground }]}>Start this workout</Text>
-            </Pressable>
-            <Pressable
-              onPress={generateWorkout}
-              style={[styles.secondaryButton, { backgroundColor: colors.surface2, borderColor: colors.border }]}
-            >
-              <Text style={[styles.secondaryText, { color: colors.textSecondary }]}>Regenerate →</Text>
-            </Pressable>
-            <Pressable onPress={saveAsTemplate}>
-              <Text style={[styles.saveTemplateText, { color: colors.accentMuted }]}>
-                {savingTemplate ? "Saving..." : "Save as template →"}
-              </Text>
-            </Pressable>
-          </>
-        )}
-      </ScrollView>
-
-      {swapExercise ? (
-        <View style={styles.swapScrim}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setSwapExercise(null)} />
-          <View style={[styles.swapSheet, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-            <Text style={[styles.swapTitle, { color: colors.textPrimary }]}>Swap exercise</Text>
-            {(swapExercise.alternatives || []).map((alt) => (
-              <Pressable
-                key={alt}
-                onPress={() => {
-                  if (!generated) return;
-                  setGenerated({
-                    ...generated,
-                    exercises: generated.exercises.map((exercise) =>
-                      exercise.name === swapExercise.name
-                        ? { ...exercise, name: alt }
-                        : exercise
-                    ),
-                  });
-                  setSwapExercise(null);
-                }}
-                style={[styles.swapRow, { backgroundColor: colors.surface1, borderColor: colors.border }]}
-              >
-                <Text style={[styles.swapRowText, { color: colors.textSecondary }]}>{alt}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-      ) : null}
+    {!generated ? <><View style={{ flexDirection: 'row', gap: 8 }}>
+      {(['quick', 'custom'] as const).map(m => <Choice key={m} label={m === 'quick' ? 'Quick build' : 'Custom build'} selected={mode === m} onPress={() => setMode(m)} />)}
     </View>
-  );
-}
+      <Heading title="Focus" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {(mode === 'quick' ? focusOptionsQuick : focusOptionsCustom).map(focus => <Choice key={focus} label={focus} selected={form.focus === focus} onPress={() => updateForm({ focus })} />)}
+      </View>
+      <Heading title="Time available" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {durationCards.map(c => <Choice key={c.value} label={`${c.label} · ${c.meta}`} selected={form.duration === c.value} onPress={() => updateForm({ duration: c.value })} />)}
+      </View>
+      {mode === 'custom' && <><Heading title="Training style" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {(Object.keys(styleDescriptors) as StyleOption[]).map(style => <Choice key={style} label={style} selected={form.style === style} onPress={() => updateForm({ style })} />)}
+      </View><Text style={F.caption}>{styleDescriptors[form.style]}</Text>
+        <Heading title="Equipment" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {equipmentOptions.map(e => <Choice key={e} label={e} selected={form.equipment.includes(e)} onPress={() => updateForm({ equipment: form.equipment.includes(e) ? form.equipment.filter(v => v !== e) : [...form.equipment, e] })} />)}
+        </View>
+        <Heading title="Effort" />{intensityCards.map(c => <Choice key={c.value} label={`${c.value} · ${c.body}`} selected={form.intensity === c.value} onPress={() => updateForm({ intensity: c.value })} />)}
+        <Heading title="Experience" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {(['Beginner', 'Intermediate', 'Advanced'] as ExperienceOption[]).map(experience => <Choice key={experience} label={experience} selected={form.experience === experience} onPress={() => updateForm({ experience })} />)}
+        </View>
+        <Heading title="Muscles to avoid" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {avoidMuscleOptions.map(m => <Choice key={m} label={m} selected={form.avoidMuscles.includes(m)} onPress={() => updateForm({ avoidMuscles: form.avoidMuscles.includes(m) ? form.avoidMuscles.filter(v => v !== m) : [...form.avoidMuscles, m] })} />)}
+        </View><Field label="Preferred exercises" value={form.preferredExercises} onChangeText={preferredExercises => updateForm({ preferredExercises })} /></>}
+      <Field label="Anything else to consider?" multiline value={form.freeText} onChangeText={freeText => updateForm({ freeText })} />
+      <Panel>
+        <Heading title="Your training context" />
+        {contextRows.map((r, i) => <Text key={i} style={F.body}>{r}</Text>)}
+      </Panel>
+      <Button primary disabled={!canGenerate} label={loading ? loadingPhrases[loadingIndex] : 'Generate workout'} onPress={generateWorkout} />
+      <Heading title="Recent suggestions" />{displayedHistory.map(e => <Item key={e.id} title={e.workout.name} detail={new Date(e.createdAt).toLocaleDateString()} onPress={() => setGenerated(e.workout)} action={<IconButton icon="trash-outline" label="Delete suggestion" onPress={() => deleteHistoryItem(e.id)} />} />)}{!!history.length && <Button label={showAllHistory ? 'Show fewer' : 'Show all suggestions'} onPress={() => setShowAllHistory(v => !v)} />}</> :
+      <><Text style={F.body}>{generated.tagline}</Text><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <Metric label="Planned time" value={`${generated.duration} min`} />
+        <Metric label="Difficulty" value={generated.difficulty} />
+        <Metric label="Estimated energy" value={`${generated.estimatedCalories} kcal`} />
+      </View><Panel accent>
+          <Text style={F.body}>{generated.coachNote}</Text>
+        </Panel>
+        {generated.exercises.map((e, i) => <Panel key={`${e.name}-${i}`}>
+          <Text style={F.eyebrow}>MOVEMENT {i + 1} · {e.muscleGroup}</Text>
+          <Heading title={e.name} detail={`${e.sets} × ${e.reps} · ${e.rest} rest · ${e.weight}`} />
+          {!!e.notes && <Text style={F.body}>{e.notes}</Text>}
+          {!!e.alternatives?.length && <><Button label="Alternatives" onPress={() => setExpandedAlt(expandedAlt === e.name ? null : e.name)} />{expandedAlt === e.name && e.alternatives.map(a => <Text key={a} style={F.caption}>{a}</Text>)}<Button label="Swap exercise" onPress={() => setSwapExercise(e)} /></>}
+        </Panel>)}
+        <Button label={`Warm-up · ${generated.warmup.length} exercises`} onPress={() => setWarmupOpen(v => !v)} />{warmupOpen && generated.warmup.map((x, i) => <Item key={i} title={x.exercise} detail={`${x.duration}${x.notes ? ` · ${x.notes}` : ''}`} />)}<Button label={`Cool-down · ${generated.cooldown.length} exercises`} onPress={() => setCooldownOpen(v => !v)} />{cooldownOpen && generated.cooldown.map((x, i) => <Item key={i} title={x.exercise} detail={`${x.duration}${x.notes ? ` · ${x.notes}` : ''}`} />)}
+        <Button primary label="Start this workout" onPress={startWorkout} /><Button label={savingTemplate ? 'Saving…' : 'Save as template'} disabled={savingTemplate} onPress={saveAsTemplate} /><Button label={loading ? 'Generating…' : 'Regenerate'} disabled={loading} onPress={generateWorkout} /><Button label="Edit preferences" onPress={() => setGenerated(null)} /></>}
 
-function SectionLabel({ label, colors }: { label: string; colors: any }) {
-  return <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>{label}</Text>;
-}
+    {!!error && <Empty title="Unable to generate workout" detail={error} />}
 
-function BlockLabel({ title, colors }: { title: string; colors: any }) {
-  return <Text style={[styles.blockLabel, { color: colors.textPrimary }]}>{title}</Text>;
-}
-
-function CollapseSection({
-  title,
-  open,
-  onToggle,
-  colors,
-  items,
-}: {
-  title: string;
-  open: boolean;
-  onToggle: () => void;
-  colors: any;
-  items: GeneratedSectionItem[];
-}) {
-  return (
-    <View style={[styles.collapseWrap, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-      <Pressable onPress={onToggle} style={styles.collapseHeader}>
-        <Text style={[styles.collapseTitle, { color: colors.textPrimary }]}>{title}</Text>
-        <Ionicons
-          name={open ? "chevron-up" : "chevron-down"}
-          size={16}
-          color={colors.textTertiary}
-        />
-      </Pressable>
-      {open
-        ? items.map((item) => (
-            <View key={`${title}-${item.exercise}`} style={styles.collapseRow}>
-              <Text style={[styles.collapseName, { color: colors.textSecondary }]}>{item.exercise}</Text>
-              <Text style={[styles.collapseMeta, { color: colors.textTertiary }]}>
-                {item.duration}
-                {item.notes ? ` · ${item.notes}` : ""}
-              </Text>
-            </View>
-          ))
-        : null}
-    </View>
+  </TaskPage><TaskSheet title="Swap exercise" visible={!!swapExercise} onClose={() => setSwapExercise(null)}>
+      {(swapExercise?.alternatives || []).map(alt => <Item key={alt} title={alt} onPress={() => { if (!generated || !swapExercise) return; setGenerated({ ...generated, exercises: generated.exercises.map(e => e.name === swapExercise.name ? { ...e, name: alt } : e) }); setSwapExercise(null); }} />)}
+    </TaskSheet></>
   );
 }
 

@@ -1,3 +1,4 @@
+import { persistFoodDelivery } from "./nutritionPersistence";
 // services/nutrition.ts
 import {
   addDoc,
@@ -107,7 +108,8 @@ const exerciseCol = (uid: string) =>
 export function subscribeFoodsByDate(
   uid: string,
   dateISO: string,
-  cb: (rows: FoodEntry[]) => void
+  cb: (rows: FoodEntry[]) => void,
+  onError?: (error: unknown) => void
 ) {
   if (!uid || uid === "__demo__") {
     cb([]);
@@ -224,7 +226,8 @@ export function subscribeFoodsByDate(
     },
     (err) => {
       console.warn("[subscribeFoodsByDate]", err);
-      cb([]);
+      if (onError) onError(err);
+      else cb([]);
     }
   );
 }
@@ -235,6 +238,10 @@ export async function addFood(uid: string, entry: Omit<FoodEntry, "id">) {
     createdAt: serverTimestamp(),
   });
   return ref;
+}
+
+export async function saveFoodDelivery(uid: string, deliveryId: string, entries: Omit<FoodEntry, "id">[]) {
+  return persistFoodDelivery(db, uid, deliveryId, entries);
 }
 
 export async function updateFood(uid: string, id: string, patch: FoodPatch) {
@@ -333,7 +340,8 @@ export function subscribeFoodsBetween(
   uid: string,
   fromISO: string,
   toISO: string,
-  cb: (rows: FoodEntry[]) => void
+  cb: (rows: FoodEntry[]) => void,
+  onError?: (error: unknown) => void
 ) {
   if (!uid || uid === "__demo__") {
     cb([]);
@@ -353,7 +361,8 @@ export function subscribeFoodsBetween(
     },
     (err) => {
       console.warn("[subscribeFoodsBetween]", err);
-      cb([]);
+      if (onError) onError(err);
+      else cb([]);
     }
   );
 }

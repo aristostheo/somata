@@ -1,6 +1,6 @@
+import { persistWorkoutEntry } from "./workoutPersistence";
 // services/workouts.ts
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -33,6 +33,7 @@ export type Workout = {
   sessionTitle?: string;
   sessionStartedAt?: number;
   setCreatedAt?: number;
+  setId?: string;
 };
 
 const col = (uid: string) =>
@@ -133,7 +134,7 @@ function normalizeISODateOrToday(s?: string) {
 export async function addWorkout(uid: string, entry: Omit<Workout, "id">) {
   const { iso, dateMs } = normalizeISODateOrToday(entry.date);
 
-  const ref = await addDoc(col(uid), {
+  const ref = await persistWorkoutEntry(col(uid), {
     uid, // ✅ used by rules/queries
     exercise: entry.exercise ?? "",
     primaryMuscle: entry.primaryMuscle ?? "",
@@ -148,7 +149,7 @@ export async function addWorkout(uid: string, entry: Omit<Workout, "id">) {
     sessionStartedAt: entry.sessionStartedAt ?? null,
     setCreatedAt: entry.setCreatedAt ?? null,
     createdAt: serverTimestamp(),
-  });
+  }, entry.sessionId, entry.setId);
   return ref;
 }
 

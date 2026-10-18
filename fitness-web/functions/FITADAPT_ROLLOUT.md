@@ -1,5 +1,10 @@
 # FitAdapt production rollout — operator runbook
 
+**17 October staging follow-up:** use [STAGING_BACKEND_ROLLOUT.md](../../STAGING_BACKEND_ROLLOUT.md)
+for the complete current TestFlight backend package, explicit staging targeting, protected rules,
+AI/friend/deletion functions and scheduled worker. The original four-callable sequence below is
+historical limited scope, not a complete staging rollout. No deployment is implied.
+
 This package prepares deployment; it does not deploy anything. Execute only after the operator
 confirms the values below and reviews the tested source revision. Use a synthetic Firebase account
 for smoke tests, and never paste credentials or personal fitness data into tickets or shell history.
@@ -9,15 +14,15 @@ for smoke tests, and never paste credentials or personal fitness data into ticke
 | Input | Current evidence | Operator decision |
 | --- | --- | --- |
 | Firebase project ID | `.firebaserc` and mobile config name `fitness-tracker-25254`. This is a configured default, not proof it is the intended production target. | **Confirm `<FIREBASE_PROJECT_ID>`** and its billing/permissions. Always pass `--project`. |
-| Callable region | FitAdapt callables have no explicit region; mobile `getFunctions(app)` and local E2E use the SDK/default `us-central1`. | **Confirm `<CALLABLE_REGION>` is `us-central1`** before deploying. A different region requires coordinated source/mobile changes. |
+| Callable region | FitAdapt callables have no explicit region and use SDK default `us-central1`; current mobile explicitly selects that region. | **Confirm `<CALLABLE_REGION>` is `us-central1`** before deploying. A different region requires coordinated source/mobile changes. |
 | Cloud Run project and region | No FitAdapt host exists in source. | **Choose `<RUN_PROJECT_ID>` and `<RUN_REGION>`**; same project and nearby region are recommended, subject to data-residency and billing review. |
 | Service name and identity | No service or service account is configured. | **Choose `<RUN_SERVICE>` and `<RUN_SERVICE_ACCOUNT>`** and grant that identity Secret Manager access to the bridge secret only. |
 | HTTPS service URL | None configured. | **Record the actual Cloud Run HTTPS root URL as `<FITADAPT_SERVICE_URL>`** after deployment; do not append the route or a trailing path. |
 | Secret value | `FITADAPT_BRIDGE_TOKEN` is named in both services; no value is committed. | **Generate one high-entropy value**, store it in Secret Manager for both runtimes, and record only secret version IDs. |
 
 Firebase Functions use `defineString("FITADAPT_SERVICE_URL")` and
-`defineSecret("FITADAPT_BRIDGE_TOKEN")`; only `evaluateFitAdapt` and `acceptFitAdaptPlan` bind the
-secret. The client never receives either setting. Admin SDK transactions write
+`defineSecret("FITADAPT_BRIDGE_TOKEN")`; `evaluateFitAdapt`, `acceptFitAdaptPlan` and the later
+`processFitAdaptAutoReviews` scheduled worker bind the secret. The client never receives either setting. Admin SDK transactions write
 `fitadaptPlans/{uid}`, `fitadaptPlans/{uid}/history/{proposalId}`, and
 `users/{uid}.activeFitAdaptTargets`. `fitness-web/firestore.rules` allows owner reads but denies
 client writes to those locations. Confirm that the target project's currently published rules
@@ -33,8 +38,9 @@ they are viable only if the operator already prefers them. Cloud Run billing, Ar
 Cloud Build, Secret Manager access, API enablement, and appropriate IAM roles need operator setup.
 
 From `fitadapt/`, `Dockerfile` uses Python 3.12, uv 0.12.9, and `uv.lock` with non-editable runtime
-dependencies. It runs as a non-root user, serves only `/health` and the protected Somata bridge in
-production mode, disables access logs, and bounds bridge JSON to 128 KiB. Cloud Run settings below
+dependencies. It runs as a non-root user, serves `/health` and credential-protected
+`/v1/profile-intelligence` and Somata bridge routes in production mode, disables access logs,
+and bounds intelligence requests to 128 KiB. Cloud Run settings below
 bound instances, concurrency, and request duration; Somata's adapter times out at 10 seconds.
 The Hatch build inclusion list keeps the Python sdist and wheel free of local `.env`, web,
 `node_modules`, and data files; CI inspects both artifacts after `uv build`.
@@ -89,11 +95,11 @@ The cross-repository local acceptance replay remains an explicit release gate.
 
    Cloud Run must allow unauthenticated HTTP transport because the current Somata adapter sends
    an application bearer credential, not a Google IAM ID token. Production mode exposes only the
-   health route and credential-checked bridge; do not disable that mode. Record the deployed URL
+   health route and two credential-checked intelligence routes; do not disable that mode. Record the deployed URL
    and revision. If policy requires Cloud Run IAM-only invocation, implement a separate service
    identity/ID-token change before rollout; do not merely flip the ingress/auth switch.
-3. Verify `GET <FITADAPT_SERVICE_URL>/health` returns no user or secret data; a bridge POST with
-   no token returns 401, and general API/docs paths return 404. Set the Functions string parameter
+3. Verify `GET <FITADAPT_SERVICE_URL>/health` returns no user or secret data; both intelligence
+   routes return 401 without a token, and general API/docs paths return 404. Set the Functions string parameter
    `FITADAPT_SERVICE_URL` to the confirmed HTTPS root through the Firebase CLI's prompted
    parameter flow or the approved server-side environment mechanism. Ensure no stale `.env.local`
    is used for production. Do not include the URL in mobile or Expo configuration.

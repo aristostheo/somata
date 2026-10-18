@@ -1,4 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { accountStorage, type AccountStore } from '@/services/local/accountStore';
+import * as FileSystem from "expo-file-system/legacy";
+import { accountPhotoDirectory, deleteOwnedPhoto } from "./local/accountFiles";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 
 import { loadBodyMetricsHistory } from "@/services/profile/bodyMetrics";
@@ -38,9 +40,9 @@ function makeId() {
   return `photo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-async function readAll(): Promise<ProgressPhoto[]> {
+async function readAll(localStore: AccountStore = accountStorage()): Promise<ProgressPhoto[]> {
   try {
-    const raw = await AsyncStorage.getItem(KEY);
+    const raw = await localStore.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as ProgressPhoto[]) : [];
@@ -49,12 +51,12 @@ async function readAll(): Promise<ProgressPhoto[]> {
   }
 }
 
-async function writeAll(next: ProgressPhoto[]) {
-  await AsyncStorage.setItem(KEY, JSON.stringify(next));
+async function writeAll(next: ProgressPhoto[], localStore: AccountStore = accountStorage()) {
+  await localStore.setItem(KEY, JSON.stringify(next));
 }
 
-async function weightForToday() {
-  const history = await loadBodyMetricsHistory();
+async function weightForToday(localStore: AccountStore = accountStorage()) {
+  const history = await loadBodyMetricsHistory(localStore);
   const today = Date.now();
   const match = history
     .filter((point) => typeof point.weightLb === "number" && sameDay(point.t, today))
@@ -62,64 +64,71 @@ async function weightForToday() {
   return typeof match?.weightLb === "number" ? match.weightLb : null;
 }
 
-export async function addPhoto(uri: string, note?: string): Promise<ProgressPhoto> {
+export async function addPhoto(uri: string, note?: string, localStore: AccountStore = accountStorage()): Promise<ProgressPhoto> {
+  localStore.assertCurrent();
   const created = new Date().toISOString();
   const normalized = await manipulateAsync(
     uri,
     [{ resize: { width: 1200 } }],
     { compress: 0.92, format: SaveFormat.JPEG }
   );
+  const id = makeId();
+  const folder = accountPhotoDirectory(localStore.uid!);
+  const ownedUri = `${folder}${id}.jpg`;
+  try {
+    localStore.assertCurrent();
+    await FileSystem.makeDirectoryAsync(folder, { intermediates: true });
+    localStore.assertCurrent();
+    await FileSystem.copyAsync({ from: normalized.uri, to: ownedUri });
+    localStore.assertCurrent();
+  } catch (error) {
+    await FileSystem.deleteAsync(ownedUri, { idempotent: true });
+    throw error;
+  } finally {
+    await FileSystem.deleteAsync(normalized.uri, { idempotent: true });
+  }
   const photo: ProgressPhoto = {
-    id: makeId(),
-    uri: normalized.uri,
+    id,
+    uri: ownedUri,
     date: todayYmd(),
-    weight: await weightForToday(),
+    weight: await weightForToday(localStore),
     note: note?.trim() ? note.trim() : null,
     createdAt: created,
   };
-  const current = await readAll();
+  const current = await readAll(localStore);
   current.push(photo);
   current.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  await writeAll(current);
+  await writeAll(current, localStore);
   return photo;
 }
 
-export async function getPhotos(): Promise<ProgressPhoto[]> {
-  const rows = await readAll();
+export async function getPhotos(localStore: AccountStore = accountStorage()): Promise<ProgressPhoto[]> {
+  const rows = await readAll(localStore);
   return rows.slice().sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
-export async function deletePhoto(id: string): Promise<void> {
-  const rows = await readAll();
+export async function deletePhoto(id: string, localStore: AccountStore = accountStorage()): Promise<void> {
+  const rows = await readAll(localStore);
   const target = rows.find((item) => item.id === id);
   const next = rows.filter((item) => item.id !== id);
-  await writeAll(next);
-  if (target?.uri) {
-    try {
-      const fs = require("expo-file-system");
-      if (typeof fs.deleteAsync === "function") {
-        await fs.deleteAsync(target.uri, { idempotent: true });
-      }
-    } catch {
-      // Optional cleanup only.
-    }
-  }
+  await writeAll(next, localStore);
+  if (target?.uri) await deleteOwnedPhoto(localStore.uid!, target.uri);
 }
 
-export async function getLatestPhoto(): Promise<ProgressPhoto | null> {
-  const rows = await getPhotos();
+export async function getLatestPhoto(localStore: AccountStore = accountStorage()): Promise<ProgressPhoto | null> {
+  const rows = await getPhotos(localStore);
   return rows.length ? rows[rows.length - 1] : null;
 }
 
-export async function getFirstPhoto(): Promise<ProgressPhoto | null> {
-  const rows = await getPhotos();
+export async function getFirstPhoto(localStore: AccountStore = accountStorage()): Promise<ProgressPhoto | null> {
+  const rows = await getPhotos(localStore);
   return rows.length ? rows[0] : null;
 }
 
-export async function hasSeenProgressPhotoPrivacyNotice() {
-  return (await AsyncStorage.getItem(PRIVACY_KEY)) === "1";
+export async function hasSeenProgressPhotoPrivacyNotice(localStore: AccountStore = accountStorage()) {
+  return (await localStore.getItem(PRIVACY_KEY)) === "1";
 }
 
-export async function markProgressPhotoPrivacyNoticeSeen() {
-  await AsyncStorage.setItem(PRIVACY_KEY, "1");
+export async function markProgressPhotoPrivacyNoticeSeen(localStore: AccountStore = accountStorage()) {
+  await localStore.setItem(PRIVACY_KEY, "1");
 }

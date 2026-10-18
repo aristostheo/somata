@@ -1,3 +1,4 @@
+import { useAccountStorage } from '@/services/local/accountStore';
 // services/badges/useBadgesEngine.ts
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { BadgeEvent, BadgeStatsSnapshot, BadgeUnlockState } from "./types";
@@ -18,6 +19,7 @@ type SyncOptions = {
 };
 
 export function useBadgesEngine() {
+  const localStore = useAccountStorage();
   const [unlocks, setUnlocks] = useState<UnlocksMap>({});
   const [progress, setProgress] = useState<ProgressMap>({});
   const [newlyUnlockedIds, setNewlyUnlockedIds] = useState<string[]>([]);
@@ -45,8 +47,8 @@ export function useBadgesEngine() {
     let alive = true;
     (async () => {
       try {
-        const u = await loadUnlocksLocal();
-        const p = await loadProgressLocal();
+        const u = await loadUnlocksLocal(localStore);
+        const p = await loadProgressLocal(localStore);
         if (!alive) return;
 
         setUnlocks(u || {});
@@ -68,8 +70,8 @@ export function useBadgesEngine() {
   const persist = useCallback(
     async (nextUnlocks: UnlocksMap, nextProg: ProgressMap) => {
       try {
-        await saveUnlocksLocal(nextUnlocks);
-        await saveProgressLocal(nextProg);
+        await saveUnlocksLocal(nextUnlocks, localStore);
+        await saveProgressLocal(nextProg, localStore);
       } catch {
         // noop
       }
@@ -145,8 +147,8 @@ export function useBadgesEngine() {
   const clearNewlyUnlocked = useCallback(() => setNewlyUnlockedIds([]), []);
 
   const refreshFromStorage = useCallback(async () => {
-    const u = await loadUnlocksLocal();
-    const p = await loadProgressLocal();
+    const u = await loadUnlocksLocal(localStore);
+    const p = await loadProgressLocal(localStore);
     setUnlocks(u || {});
     setProgress(p || {});
     unlocksRef.current = u || {};

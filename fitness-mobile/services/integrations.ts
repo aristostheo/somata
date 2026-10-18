@@ -1,5 +1,5 @@
+import { accountStorage, type AccountStore } from '@/services/local/accountStore';
 import { dayKey } from "@/utils/date";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppState, Platform, type AppStateStatus } from "react-native";
 
 import { syncAppleHealthToApp } from "@/services/appleHealth";
@@ -453,8 +453,8 @@ function effectiveFrequency(
   return snapshot.settings.frequency;
 }
 
-async function readSnapshot() {
-  const raw = await AsyncStorage.getItem(KEY);
+async function readSnapshot(localStore: AccountStore = accountStorage()) {
+  const raw = await localStore.getItem(KEY);
   if (!raw) return emptySnapshot();
   try {
     const parsed = JSON.parse(raw) as Partial<IntegrationSnapshot>;
@@ -477,22 +477,25 @@ async function readSnapshot() {
   }
 }
 
-async function writeSnapshot(snapshot: IntegrationSnapshot) {
-  await AsyncStorage.setItem(KEY, JSON.stringify(snapshot));
+async function writeSnapshot(snapshot: IntegrationSnapshot, localStore: AccountStore = accountStorage()) {
+  await localStore.setItem(KEY, JSON.stringify(snapshot));
   listeners.forEach((cb) => cb(snapshot));
 }
 
-export async function getIntegrationSnapshot() {
-  return readSnapshot();
+export async function getIntegrationSnapshot(localStore: AccountStore = accountStorage()) {
+  return readSnapshot(localStore);
 }
 
-export function subscribeIntegrations(cb: (snapshot: IntegrationSnapshot) => void) {
+export function subscribeIntegrations(cb: (snapshot: IntegrationSnapshot) => void, localStore: AccountStore = accountStorage()) {
   let active = true;
-  readSnapshot().then((snapshot) => active && cb(snapshot));
-  listeners.add(cb);
+  const ownedListener = (snapshot: IntegrationSnapshot) => {
+    try { localStore.assertCurrent(); if (active) cb(snapshot); } catch { /* Previous account subscriber. */ }
+  };
+  readSnapshot(localStore).then(ownedListener).catch(() => {});
+  listeners.add(ownedListener);
   return () => {
     active = false;
-    listeners.delete(cb);
+    listeners.delete(ownedListener);
   };
 }
 
@@ -598,11 +601,11 @@ async function syncRingConnToApp(uid: string): Promise<SyncResult> {
 
 async function performIntegrationSync(
   id: string,
-  uid?: string
+  uid?: string, localStore: AccountStore = accountStorage()
 ): Promise<SyncResult> {
   if (!uid) return { ok: false, dataPointsReceived: 0, message: "No user context." };
   if (id === "apple_health") {
-    const result = await syncAppleHealthToApp(uid, 14);
+    const result = await syncAppleHealthToApp(uid, 14, localStore);
     return {
       ok: result.ok,
       message: result.message,
@@ -659,10 +662,10 @@ export async function setIntegrationConnected(
   id: string,
   connected: boolean,
   uid?: string,
-  options?: { tokenHint?: string }
+  options?: { tokenHint?: string }, localStore: AccountStore = accountStorage()
 ) {
   if (id === "ringconn") {
-    const snapshot = await readSnapshot();
+    const snapshot = await readSnapshot(localStore);
     const appleReady = !!snapshot.connections.apple_health?.connected;
     if (!appleReady) {
       snapshot.connections[id] = {
@@ -679,7 +682,7 @@ export async function setIntegrationConnected(
             ? "Requires Apple Health. Connect Apple Health first."
             : "Requires Health Connect. Connect your Android health source first.",
       };
-      await writeSnapshot(snapshot);
+      await writeSnapshot(snapshot, localStore);
       return { ok: false, message: snapshot.connections[id].lastError };
     }
     const result = await syncRingConnToApp(uid || "");
@@ -696,10 +699,10 @@ export async function setIntegrationConnected(
       lastError: result.message,
       latestValues: result.latestValues,
     };
-    await writeSnapshot(snapshot);
+    await writeSnapshot(snapshot, localStore);
     return { ok: result.ok, message: result.message };
   }
-  const snapshot = await readSnapshot();
+  const snapshot = await readSnapshot(localStore);
   const previous =
     snapshot.connections[id] ||
     ({
@@ -718,7 +721,7 @@ export async function setIntegrationConnected(
       lastError:
         "This integration is not live yet. Apple Health and RingConn are the first working sources right now.",
     };
-    await writeSnapshot(snapshot);
+    await writeSnapshot(snapshot, localStore);
     return { ok: false, message: snapshot.connections[id].lastError };
   }
 
@@ -741,7 +744,7 @@ export async function setIntegrationConnected(
         lastError: "Requires Apple Health. Connect Apple Health first.",
       };
     }
-    await writeSnapshot(snapshot);
+    await writeSnapshot(snapshot, localStore);
     return { ok: true };
   }
 
@@ -754,39 +757,39 @@ export async function setIntegrationConnected(
     tokenHint: options?.tokenHint || previous.tokenHint,
     lastAttemptAt: now(),
   };
-  await writeSnapshot(snapshot);
+  await writeSnapshot(snapshot, localStore);
 
   const result = await runIntegrationSync(uid, {
     reason: "connect",
     force: true,
     ids: [id],
-  });
+  }, localStore);
   return { ok: result.success, message: result.failed.length ? "Sync failed." : undefined };
 }
 
-export async function markPrimaryIntegration(id: string) {
-  const snapshot = await readSnapshot();
+export async function markPrimaryIntegration(id: string, localStore: AccountStore = accountStorage()) {
+  const snapshot = await readSnapshot(localStore);
   Object.keys(snapshot.connections).forEach((key) => {
     snapshot.connections[key].primary = key === id;
   });
-  await writeSnapshot(snapshot);
+  await writeSnapshot(snapshot, localStore);
 }
 
-export async function updateIntegrationSettings(patch: Partial<IntegrationSettings>) {
-  const snapshot = await readSnapshot();
+export async function updateIntegrationSettings(patch: Partial<IntegrationSettings>, localStore: AccountStore = accountStorage()) {
+  const snapshot = await readSnapshot(localStore);
   snapshot.settings = {
     ...snapshot.settings,
     ...patch,
     history: patch.history ?? snapshot.settings.history,
   };
-  await writeSnapshot(snapshot);
+  await writeSnapshot(snapshot, localStore);
 }
 
 export async function updateIntegrationConnection(
   id: string,
-  patch: Partial<IntegrationConnection>
+  patch: Partial<IntegrationConnection>, localStore: AccountStore = accountStorage()
 ) {
-  const snapshot = await readSnapshot();
+  const snapshot = await readSnapshot(localStore);
   const current = snapshot.connections[id] || {
     id,
     connected: false,
@@ -794,7 +797,7 @@ export async function updateIntegrationConnection(
     useGlobalSync: true,
   };
   snapshot.connections[id] = { ...current, ...patch, id };
-  await writeSnapshot(snapshot);
+  await writeSnapshot(snapshot, localStore);
 }
 
 function shouldPrioritySync(
@@ -838,11 +841,11 @@ export async function runIntegrationSync(
     reason?: SyncReason;
     force?: boolean;
     ids?: string[];
-  } = {}
+  } = {}, localStore: AccountStore = accountStorage()
 ) {
   const reason = opts.reason || "manual";
   const startedAt = now();
-  const snapshot = await readSnapshot();
+  const snapshot = await readSnapshot(localStore);
   const targets = Object.values(snapshot.connections).filter((conn) => {
     if (opts.ids?.length && !opts.ids.includes(conn.id)) return false;
     return shouldSyncConnection(snapshot, conn, !!opts.force);
@@ -861,14 +864,14 @@ export async function runIntegrationSync(
     conn.status = "syncing";
     conn.lastAttemptAt = startedAt;
   });
-  await writeSnapshot({ ...snapshot });
+  await writeSnapshot({ ...snapshot }, localStore);
 
   const failed: string[] = [];
   let dataPointsReceived = 0;
 
   for (const conn of targets) {
-    const result = await performIntegrationSync(conn.id, uid);
-    const latest = await readSnapshot();
+    const result = await performIntegrationSync(conn.id, uid, localStore);
+    const latest = await readSnapshot(localStore);
     const current = latest.connections[conn.id] || conn;
     const def = INTEGRATIONS.find((x) => x.id === conn.id);
     const isFirstSuccessfulSync = result.ok && !current.firstSyncCompletedAt;
@@ -928,11 +931,11 @@ export async function runIntegrationSync(
         (current.failCount || 0) >= 3 ? now() : current.lastErrorNotifiedAt;
     }
     latest.connections[conn.id] = current;
-    await writeSnapshot(latest);
+    await writeSnapshot(latest, localStore);
   }
 
   const finishedAt = now();
-  const finalSnapshot = await readSnapshot();
+  const finalSnapshot = await readSnapshot(localStore);
   finalSnapshot.settings.lastFullSyncAt = finishedAt;
   await appendHistory(finalSnapshot, {
     id: `${startedAt}:${Math.random().toString(36).slice(2, 8)}`,
@@ -945,7 +948,7 @@ export async function runIntegrationSync(
     success: failed.length === 0,
     dataPointsReceived,
   });
-  await writeSnapshot(finalSnapshot);
+  await writeSnapshot(finalSnapshot, localStore);
 
   return {
     success: failed.length === 0,
@@ -955,10 +958,10 @@ export async function runIntegrationSync(
   };
 }
 
-export async function clearSyncHistory() {
-  const snapshot = await readSnapshot();
+export async function clearSyncHistory(localStore: AccountStore = accountStorage()) {
+  const snapshot = await readSnapshot(localStore);
   snapshot.settings.history = [];
-  await writeSnapshot(snapshot);
+  await writeSnapshot(snapshot, localStore);
 }
 
 export function connectedCount(snapshot: IntegrationSnapshot) {
@@ -1120,17 +1123,19 @@ let bootHandle: ReturnType<typeof setInterval> | null = null;
 let bootTeardown: (() => void) | null = null;
 let lastOpenSyncAt = 0;
 
-async function triggerDueSync(uid?: string, reason: SyncReason = "interval") {
+async function triggerDueSync(uid?: string, reason: SyncReason = "interval", localStore: AccountStore = accountStorage()) {
   if (!uid) return;
-  const snapshot = await readSnapshot();
+  const snapshot = await readSnapshot(localStore);
   const due = Object.values(snapshot.connections).some((conn) =>
     shouldSyncConnection(snapshot, conn, false)
   );
   if (!due) return;
-  await runIntegrationSync(uid, { reason, force: false });
+  await runIntegrationSync(uid, { reason, force: false }, localStore);
 }
 
-export function startIntegrationAutoSync(getUid: () => string | undefined) {
+export function startIntegrationAutoSync(getUid: () => string | undefined, localStore: AccountStore = accountStorage()) {
+  localStore.assertCurrent();
+  lastOpenSyncAt = 0;
   bootTeardown?.();
   if (bootHandle) clearInterval(bootHandle);
 
@@ -1140,24 +1145,24 @@ export function startIntegrationAutoSync(getUid: () => string | undefined) {
     if (next === "active" && prev !== "active") {
       const uid = getUid();
       if (!uid) return;
-      readSnapshot().then((snapshot) => {
+      readSnapshot(localStore).then((snapshot) => {
         if (!snapshot.settings.syncOnAppOpen) return;
         if (Date.now() - lastOpenSyncAt < 45_000) return;
         lastOpenSyncAt = Date.now();
-        runIntegrationSync(uid, { reason: "app_open", force: true }).catch(() => {});
-      });
+        runIntegrationSync(uid, { reason: "app_open", force: true }, localStore).catch(() => {});
+      }).catch(() => {});
     }
   };
 
   const sub = AppState.addEventListener("change", onStateChange);
   bootHandle = setInterval(() => {
     if (appState !== "active") return;
-    triggerDueSync(getUid(), "interval").catch(() => {});
+    triggerDueSync(getUid(), "interval", localStore).catch(() => {});
   }, 60_000);
 
   const uid = getUid();
   if (uid) {
-    runIntegrationSync(uid, { reason: "bootstrap", force: false }).catch(() => {});
+    runIntegrationSync(uid, { reason: "bootstrap", force: false }, localStore).catch(() => {});
   }
 
   bootTeardown = () => {

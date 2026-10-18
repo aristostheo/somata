@@ -1,3 +1,11 @@
 packages:
   - "fitness-mobile"
   - "fitness-web"
+
+# Skia's reviewed postinstall copies its packaged native frameworks into libs/.
+# pnpm 10 blocks dependency lifecycle scripts unless explicitly allowed.
+onlyBuiltDependencies:
+  - "@shopify/react-native-skia"
+
+patchedDependencies:
+  react-native-health@1.19.0: patches/react-native-health@1.19.0.patch

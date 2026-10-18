@@ -4,11 +4,27 @@ service cloud.firestore {
 
     /* ---------- Helpers ---------- */
     function isSignedIn() {
-      return request.auth != null;
+      return request.auth != null && !isDeleting(request.auth.uid);
+    }
+
+    function isDeleting(uid) {
+      return exists(/databases/$(database)/documents/accountDeletions/$(uid));
+    }
+
+    match /accountDeletions/{uid} {
+      allow read, write: if false;
     }
 
     function isOwner(uid) {
       return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function activeReference(d, key) {
+      return !(d is map) || !(d.get(key, null) is string) || !isDeleting(d[key]);
+    }
+
+    function safeUserReferences(subcollection, d) {
+      return (subcollection != 'routines' || activeReference(d, 'fromFriendUid'));
     }
 
     // Expect "YYYY-MM-DD"
@@ -34,20 +50,84 @@ service cloud.firestore {
       return isSignedIn() && (request.auth.token.admin == true);
     }
 
-    // Is the caller an accepted friend of userId?
-    function isAcceptedFriend(userId) {
-      return isSignedIn()
-        && get(/databases/$(database)/documents/users/$(userId)/friends/$(request.auth.uid)).exists
-        && get(/databases/$(database)/documents/users/$(userId)/friends/$(request.auth.uid)).data.status == "accepted";
+    // Relationship checks never trust an edge the caller can accept alone.
+    function edgePath(uid, peer) {
+      return /databases/$(database)/documents/users/$(uid)/friends/$(peer);
     }
 
-    // Is the caller listed as a friend (any status) of userId?
-    function isFriend(userId) {
-      return isSignedIn()
-        && (
-          get(/databases/$(database)/documents/users/$(userId)/friends/$(request.auth.uid)).exists ||
-          get(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(userId)).exists
-        );
+    function notBlocked(uid, peer) {
+      let block = /databases/$(database)/documents/users/$(uid)/blocks/$(peer);
+      return (!exists(block) || get(block).data.get('blocked', false) != true)
+        && (!exists(edgePath(uid, peer)) || get(edgePath(uid, peer)).data.status != 'blocked');
+    }
+
+    function canContact(uid, peer) {
+      return !isDeleting(uid) && !isDeleting(peer) && notBlocked(uid, peer) && notBlocked(peer, uid);
+    }
+
+    function acceptedPair(uid, peer) {
+      return canContact(uid, peer)
+        && get(edgePath(uid, peer)).data.status == 'accepted'
+        && get(edgePath(peer, uid)).data.status == 'accepted';
+    }
+
+    function validFriendCreate(uid, peer) {
+      let d = request.resource.data;
+      let reverse = getAfter(edgePath(peer, uid)).data;
+      return isValidFriendEdge(d) && uid != peer && d.friendUid == peer
+        && d.keys().hasOnly(['friendUid', 'friendEmail', 'friendDisplayName',
+          'status', 'direction', 'requestedAt', 'createdAt', 'updatedAt', 'respondedAt', 'lastPingAt'])
+        && d.status == 'pending' && reverse.status == 'pending'
+        && reverse.friendUid == uid && canContact(uid, peer)
+        && ((isOwner(uid) && d.direction == 'outgoing' && reverse.direction == 'incoming')
+          || (isOwner(peer) && d.direction == 'incoming' && reverse.direction == 'outgoing'));
+    }
+
+    function validFriendReply(uid, peer) {
+      let d = request.resource.data;
+      let before = resource.data;
+      let reverse = get(edgePath(peer, uid)).data;
+      let after = getAfter(edgePath(peer, uid)).data;
+      return canContact(uid, peer)
+        && before.status == 'pending' && reverse.status == 'pending'
+        && d.diff(before).affectedKeys().hasOnly(['status', 'respondedAt', 'updatedAt'])
+        && d.status in ['accepted', 'declined'] && after.status == d.status
+        && ((isOwner(uid) && before.direction == 'incoming' && reverse.direction == 'outgoing')
+          || (isOwner(peer) && before.direction == 'outgoing' && reverse.direction == 'incoming'));
+    }
+
+    function validFriendUpdate(uid, peer) {
+      let d = request.resource.data;
+      let changed = d.diff(resource.data).affectedKeys();
+      return
+        // Nicknames and ping bookkeeping belong only to this edge's owner.
+        (isOwner(uid) && changed.hasOnly(['friendDisplayName', 'lastPingAt', 'updatedAt']))
+        || (isOwner(uid) && d.status == 'blocked' && changed.hasOnly(['status', 'updatedAt']))
+        // Preserve sender retries and a new request after a decline. Never reset
+        // an accepted/blocked connection or reverse a still-pending invitation.
+        || ((resource.data.status == 'declined'
+            || (resource.data.status == 'pending' && d.direction == resource.data.direction))
+          && d.updatedAt == request.time
+          && getAfter(edgePath(peer, uid)).data.updatedAt == request.time
+          && validFriendCreate(uid, peer))
+        || validFriendReply(uid, peer);
+    }
+
+    function validFriendNotification(uid) {
+      let d = request.resource.data;
+      let sender = request.auth.uid;
+      let incoming = get(edgePath(uid, sender)).data;
+      return uid != sender && canContact(uid, sender)
+        && d.keys().hasOnly(['type', 'title', 'body', 'data', 'createdAt', 'createdAtMs', 'readAt'])
+        && d.createdAt == request.time && d.readAt == null && d.data is map
+        && ((d.type == 'friend:request' && d.data.keys().hasOnly(['fromUid', 'email'])
+            && d.data.fromUid == sender && incoming.status == 'pending' && incoming.direction == 'incoming'
+            && get(edgePath(sender, uid)).data.status == 'pending'
+            && get(edgePath(sender, uid)).data.direction == 'outgoing')
+          || (d.type == 'friend:accepted' && d.data.keys().hasOnly(['friendUid'])
+            && d.data.friendUid == sender && incoming.direction == 'outgoing' && acceptedPair(uid, sender))
+          || (d.type == 'ping' && d.data.keys().hasOnly(['fromUid'])
+            && d.data.fromUid == sender && acceptedPair(uid, sender)));
     }
 
     /* =========================================================
@@ -126,23 +206,29 @@ service cloud.firestore {
     // All users can read; any signed-in user can add/update valid entries.
     match /foodCatalog/{foodId} {
       allow read: if true;
-      allow create, update: if isSignedIn() && isValidFoodCatalog(request.resource.data);
+      allow create, update: if isSignedIn() && activeReference(request.resource.data, 'submitterUid') && isValidFoodCatalog(request.resource.data);
       // No deletes by default (tighten later if you want admin deletes)
       allow delete: if false;
     }
 
+    /* Legacy web profiles are retained for owner-reviewed import only. */
+    match /profiles/{userId} {
+      allow get: if isOwner(userId);
+      allow list, create, update, delete: if false;
+    }
+
     /* ---------- Users root doc ---------- */
     match /users/{userId} {
-      // The accepted FitAdapt target projection is written only by trusted Admin code.
+      // FitAdapt-owned fields are written only by trusted Admin code.
       // Compare the final document so set(), merge(), update(), and field deletion
       // cannot change it while ordinary owner profile writes remain available.
       allow read: if isOwner(userId);
       allow create: if isOwner(userId)
-        && !request.resource.data.keys().hasAny(['activeFitAdaptTargets']);
+        && !request.resource.data.keys().hasAny(['activeFitAdaptTargets', 'pending', 'currentRecommendation', 'adaptationHistory']);
       allow update: if isOwner(userId)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeFitAdaptTargets']);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['activeFitAdaptTargets', 'pending', 'currentRecommendation', 'adaptationHistory']);
       allow delete: if isOwner(userId)
-        && !resource.data.keys().hasAny(['activeFitAdaptTargets']);
+        && !resource.data.keys().hasAny(['activeFitAdaptTargets', 'pending', 'currentRecommendation', 'adaptationHistory']);
 
       /* ---------- Workouts ---------- */
       match /exerciseEntries/{docId} {
@@ -151,46 +237,57 @@ service cloud.firestore {
         allow delete: if isOwner(userId);
       }
       match /workouts/{docId} {
-        // Owner or friend can read; to unblock sharing, allow any signed-in user to view
-        allow read: if isOwner(userId) || isFriend(userId) || isSignedIn();
+        // Whole documents contain private fields; UI switches cannot redact reads.
+        allow read: if isOwner(userId);
         allow create, update: if isOwner(userId) && isValidWorkout(request.resource.data);
         allow delete: if isOwner(userId);
       }
 
       /* ---------- Nutrition Entries ---------- */
       match /nutritionEntries/{docId} {
-        // Owner OR any friend edge can read; to unblock access, allow any signed-in user to read shared meals
-        allow read: if isOwner(userId) || isFriend(userId) || isSignedIn();
+        // Friend summaries require a separate server-redacted read path.
+        allow read: if isOwner(userId);
         allow create, update: if isOwner(userId) && isValidNutritionEntry(request.resource.data);
         allow delete: if isOwner(userId);
       }
 
       /* ---------- Notifications ---------- */
       match /notifications/{docId} {
-        // Owner can read/update/delete; any signed-in user can create (used for cross-user pings/requests)
-        allow read, update, delete: if isOwner(userId);
-        allow create: if isSignedIn() && isValidNotification(request.resource.data);
+        allow read, delete: if isOwner(userId);
+        allow update: if isOwner(userId)
+          && activeReference(request.resource.data.get('data', {}), 'fromUid')
+          && activeReference(request.resource.data.get('data', {}), 'friendUid');
+        allow create: if isSignedIn()
+          && activeReference(request.resource.data.get('data', {}), 'fromUid')
+          && activeReference(request.resource.data.get('data', {}), 'friendUid')
+          && isValidNotification(request.resource.data)
+          && (isOwner(userId) || validFriendNotification(userId));
       }
 
-      /* ---------- Reactions ---------- */
+      // These legacy records refer to raw private meals/workouts. No current
+      // screen uses them as a separately consented, redacted shared document.
       match /reactions/{docId} {
-        allow read: if isSignedIn(); // allow signed-in users to fetch reactions on shared items
-        allow create: if isSignedIn() && isValidReaction(request.resource.data);
-        allow update, delete: if isOwner(userId) || (isSignedIn() && resource.data.createdByUid == request.auth.uid);
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && activeReference(request.resource.data, 'createdByUid');
       }
-
-      /* ---------- Comments ---------- */
       match /comments/{docId} {
-        allow read: if isSignedIn(); // allow signed-in users to fetch comments on shared items
-        allow create: if isSignedIn() && isValidComment(request.resource.data);
-        allow update, delete: if isOwner(userId) || (isSignedIn() && resource.data.createdByUid == request.auth.uid);
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && activeReference(request.resource.data, 'createdByUid');
       }
 
-      /* ---------- Friends ---------- */
+      match /blocks/{targetUid} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && !isDeleting(targetUid)
+          && activeReference(request.resource.data, 'targetUid');
+      }
+
       match /friends/{friendUid} {
-        allow read: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendUid);
-        allow create, update: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendUid);
-        allow delete: if isSignedIn() && (isOwner(userId) || request.auth.uid == friendUid);
+        // A mirror edge can contain a private nickname/email: read your own only.
+        allow read: if isOwner(userId);
+        allow create: if isSignedIn() && validFriendCreate(userId, friendUid);
+        allow update: if isSignedIn() && validFriendUpdate(userId, friendUid);
+        allow delete: if isOwner(userId) || (isOwner(friendUid)
+          && resource.data.status != 'blocked' && !existsAfter(edgePath(friendUid, userId)));
       }
 
       /* ---------- Templates & routines ---------- */
@@ -206,7 +303,7 @@ service cloud.firestore {
       }
       match /routines/{docId} {
         allow read: if isOwner(userId);
-        allow create, update: if isOwner(userId) && isValidRoutine(request.resource.data);
+        allow create, update: if isOwner(userId) && activeReference(request.resource.data, 'fromFriendUid') && isValidRoutine(request.resource.data);
         allow delete: if isOwner(userId);
       }
 
@@ -221,8 +318,24 @@ service cloud.firestore {
       // Require a subcollection segment: a recursive wildcard alone also matches
       // users/{userId} in rules v2 and would bypass the protected-field guard.
       match /{subcollection}/{document=**} {
-        allow read, write: if isOwner(userId);
+        // Exclude specialized social rules: overlapping allows are OR-ed.
+        allow read, delete: if isOwner(userId)
+          && !(subcollection in ['friends', 'notifications', 'reactions', 'comments', 'blocks']);
+        allow create, update: if isOwner(userId)
+          && !(subcollection in ['friends', 'notifications', 'reactions', 'comments', 'blocks'])
+          && safeUserReferences(subcollection, request.resource.data);
       }
+    }
+
+    /* ---------- Server-only automatic FitAdapt work queue ---------- */
+    // Explicit, per-viewer sharing approval is written only by the authenticated
+    // server callable. It never makes raw fitness documents client-readable.
+    match /friendSummaryGrants/{ownerId}/viewers/{viewerId} {
+      allow read, write: if false;
+    }
+
+    match /fitadaptAutoJobs/{userId} {
+      allow read, write: if false;
     }
 
     /* ---------- FitAdapt plan, proposal, and adaptation history ---------- */
@@ -282,8 +395,8 @@ service cloud.firestore {
         isOneOf(d.status, ['pending','accepted','declined','blocked']) &&
         isOneOf(d.direction, ['incoming','outgoing','mutual']) &&
 
-        (!('friendEmail' in d) || (d.friendEmail is string && d.friendEmail.size() <= 200)) &&
-        (!('friendDisplayName' in d) || (d.friendDisplayName is string && d.friendDisplayName.size() <= 200));
+        (!('friendEmail' in d) || d.friendEmail == null || (d.friendEmail is string && d.friendEmail.size() <= 200)) &&
+        (!('friendDisplayName' in d) || d.friendDisplayName == null || (d.friendDisplayName is string && d.friendDisplayName.size() <= 200));
     }
 
     function isValidNotification(d) {

@@ -1,6 +1,13 @@
 import "dotenv/config";
 import type { ExpoConfig } from "expo/config";
 
+import { resolveReleaseConfig } from "./config/release.cjs";
+
+import { resolveBackendConfig } from "./config/backend.cjs";
+
+const release = resolveReleaseConfig(process.env);
+const backend = resolveBackendConfig(process.env);
+
 const config: ExpoConfig = {
   name: "Somata",
   slug: "fitness-mobile",
@@ -13,7 +20,7 @@ const config: ExpoConfig = {
 
   plugins: [
     "expo-dev-client",
-    "expo-build-properties",
+    ["expo-build-properties", { ios: { deploymentTarget: "16.4" } }],
     "expo-font",
     [
       "expo-splash-screen",
@@ -32,6 +39,7 @@ const config: ExpoConfig = {
           "Somata uses your photo library so you can choose progress photos and meal images.",
         cameraPermission:
           "Somata uses your camera so you can take progress photos and scan meals.",
+        microphonePermission: false,
       },
     ],
     "expo-router",
@@ -84,6 +92,9 @@ const config: ExpoConfig = {
   },
 
   extra: {
+    backend,
+    // Omit absent optional values rather than relying on Expo manifest null serialization.
+    release: Object.fromEntries(Object.entries(release).filter(([, value]) => value !== null)),
     fdcApiKey: process.env.FDC_API_KEY,
     eas: {
       projectId: "32f5a4f2-1672-4b2b-87d0-c97dc293f81d",

@@ -1,3 +1,4 @@
+import { useAccountStorage } from '@/services/local/accountStore';
 // content/SettingsContext.tsx
 import React, {
   createContext,
@@ -7,7 +8,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type ThemePref = "system" | "light" | "dark";
 type WeightUnit = "kg" | "lb";
@@ -41,6 +41,7 @@ type Ctx = {
 const SettingsContext = createContext<Ctx | null>(null);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
+  const localStore = useAccountStorage();
   const [settings, setSettings] = useState<Settings>(DEFAULTS);
   const loaded = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,7 +49,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        const raw = await localStore.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
           setSettings({ ...DEFAULTS, ...parsed });
@@ -66,10 +67,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     if (!loaded.current) return;
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(settings)).catch(
-        () => {}
-      );
+      localStore.setItem(STORAGE_KEY, JSON.stringify(settings)).catch(() => {});
     }, 200);
+    return () => { if (timer.current) clearTimeout(timer.current); };
   }, [settings]);
 
   const api = useMemo<Ctx>(

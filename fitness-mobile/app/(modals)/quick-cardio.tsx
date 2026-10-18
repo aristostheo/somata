@@ -1,13 +1,12 @@
-import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Haptics from "expo-haptics";
+import { Button, Heading, Panel, TaskPage } from "@/components/somata/TaskUI";
 import { useAuth } from "@/content/AuthContext";
 import { useTheme } from "@/content/ThemeProvider";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import { useMemo, useState } from "react";
+import { Platform, StyleSheet } from "react-native";
 
 const withAlpha = (hex: string, a: number) => {
   const h = hex.replace("#", "");
@@ -18,59 +17,6 @@ const withAlpha = (hex: string, a: number) => {
   const alpha = Math.max(0, Math.min(1, a));
   return `rgba(${r},${g},${b},${alpha})`;
 };
-
-function GlassCard({ children, intensity = 32, style }: any) {
-  const { colors, isDark } = useTheme();
-
-  const cardBg = isDark
-    ? withAlpha("#FFFFFF", 0.06)
-    : withAlpha("#000000", 0.03);
-
-  const cardBorder = isDark
-    ? withAlpha("#FFFFFF", 0.14)
-    : withAlpha(colors.text, 0.12);
-
-  const gradColors = isDark
-    ? [
-        withAlpha("#FFFFFF", 0.1),
-        withAlpha("#FFFFFF", 0.06),
-        withAlpha("#000000", 0.06),
-      ]
-    : [
-        withAlpha(colors.primary, 0.12),
-        withAlpha("#FFFFFF", 0.78),
-        withAlpha(colors.card, 0.72),
-      ];
-
-  return (
-    <View
-      style={[
-        styles.cardWrap,
-        { backgroundColor: cardBg, borderColor: cardBorder },
-        style,
-      ]}
-    >
-      <View
-        style={[styles.cardBorder, { borderColor: cardBorder }]}
-        pointerEvents="none"
-      />
-      <BlurView
-        intensity={intensity}
-        tint={isDark ? "dark" : "light"}
-        style={styles.cardBlur}
-      >
-        <LinearGradient
-          colors={gradColors as any}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardInner}
-        >
-          {children}
-        </LinearGradient>
-      </BlurView>
-    </View>
-  );
-}
 
 type SeedExercise = {
   name: string;
@@ -142,7 +88,7 @@ export default function QuickCardioModal() {
   const haptic = async () => {
     try {
       await Haptics.selectionAsync();
-    } catch {}
+    } catch { }
   };
 
   const templateSeedKey = (u: string) => `workout:templateSeed:${u}`;
@@ -165,7 +111,7 @@ export default function QuickCardioModal() {
 
     try {
       await AsyncStorage.setItem(templateSeedKey(uid), JSON.stringify(seed));
-    } catch {}
+    } catch { }
 
     router.replace({
       pathname: "/workouts/session",
@@ -178,10 +124,10 @@ export default function QuickCardioModal() {
   const bgGradient = isDark
     ? ["#070A12", "#050711", "#03040A"]
     : [
-        withAlpha(colors.primary, 0.08),
-        colors.bg,
-        withAlpha(colors.card, 0.85),
-      ];
+      withAlpha(colors.primary, 0.08),
+      colors.bg,
+      withAlpha(colors.card, 0.85),
+    ];
 
   const titleColor = isDark ? withAlpha("#FFF", 0.95) : colors.text;
   const subColor = isDark
@@ -205,121 +151,12 @@ export default function QuickCardioModal() {
     ? withAlpha("#FFFFFF", 0.12)
     : withAlpha(colors.text, 0.1);
 
-  return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
-      <LinearGradient
-        colors={bgGradient as any}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.85, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-
-      <View
-        style={[
-          styles.glow,
-          {
-            top: -120,
-            right: -90,
-            backgroundColor: withAlpha(accent, isDark ? 0.16 : 0.12),
-          },
-        ]}
-        pointerEvents="none"
-      />
-
-      <View style={{ paddingTop: topPad, paddingHorizontal: 16 }}>
-        <View style={styles.headerRow}>
-          <Pressable
-            onPress={() => router.back()}
-            style={({ pressed }) => [
-              styles.iconBtn,
-              {
-                backgroundColor: iconBtnBg,
-                borderColor: iconBtnBorder,
-              },
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Ionicons name="chevron-back" size={18} color={iconColor} />
-          </Pressable>
-
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.title, { color: titleColor }]}>
-              Quick Cardio
-            </Text>
-            <Text style={[styles.subtitle, { color: subColor }]}>
-              Tap a preset — session opens prefilled.
-            </Text>
-          </View>
-        </View>
-
-        <GlassCard style={{ marginTop: 14 }} intensity={isDark ? 34 : 28}>
-          <Text style={[styles.sectionLabel, { color: subColor }]}>
-            PRESETS
-          </Text>
-
-          <View style={styles.grid}>
-            {presets.map((p) => (
-              <Pressable
-                key={p.label}
-                onPress={() =>
-                  seedAndOpen(p.name, [
-                    {
-                      name: p.name,
-                      sets: 1,
-                      reps: 1,
-                      weightKg: 0,
-                      note: p.note,
-                    },
-                  ])
-                }
-                style={({ pressed }) => [
-                  styles.tile,
-                  { backgroundColor: tileBg, borderColor: tileBorder },
-                  pressed && { opacity: 0.9 },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.tileIcon,
-                    {
-                      backgroundColor: isDark
-                        ? withAlpha("#FFFFFF", 0.06)
-                        : withAlpha(colors.primary, 0.1),
-                      borderColor: isDark
-                        ? withAlpha("#FFFFFF", 0.14)
-                        : withAlpha(colors.text, 0.1),
-                    },
-                  ]}
-                >
-                  <Ionicons name={p.icon} size={18} color={iconColor} />
-                </View>
-
-                <Text style={[styles.tileText, { color: titleColor }]}>
-                  {p.label}
-                </Text>
-                <Text style={[styles.tileSub, { color: subColor }]}>
-                  {p.note}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </GlassCard>
-
-        <Text
-          style={[
-            styles.foot,
-            {
-              color: isDark
-                ? withAlpha("#FFF", 0.5)
-                : withAlpha(colors.text, 0.55),
-            },
-          ]}
-        >
-          You can adjust time/notes inside session — this is about speed.
-        </Text>
-      </View>
-    </View>
-  );
+  return (<TaskPage title="Quick cardio" section="Start moving" subtitle="Choose a starting point, then review and log your session." onBack={() => router.back()}>
+    {presets.map(p => <Panel key={p.label}>
+      <Heading title={p.label} detail={p.note} />
+      <Button primary label="Start session" disabled={busy} onPress={() => seedAndOpen(p.name, [{ name: p.name, sets: 1, reps: 1, weightKg: 0, note: p.note }])} />
+    </Panel>)}
+  </TaskPage>);
 }
 
 const styles = StyleSheet.create({

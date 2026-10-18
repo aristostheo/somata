@@ -209,7 +209,7 @@ Return either:
 or a single food object in the same shape. Use realistic estimates.`,
       },
     ],
-    { maxTokens: 1400, temperature: 0.35 }
+    { operation: "mealFoods", maxTokens: 1400, temperature: 0.35 }
   );
   if (!parsed) throw new Error("Describe returned invalid JSON.");
   if (parsed?.fallback) {

@@ -1,3 +1,4 @@
+import { functionsRegion } from "../deployment";
 import { initializeApp, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
@@ -7,11 +8,11 @@ import { callFitAdapt } from "./client";
 import { getPlanState, requestPlanEvaluation, resolveProposal } from "./planService";
 
 if (!getApps().length) initializeApp();
-const db = getFirestore();
+export const db = getFirestore();
 const serviceUrl = defineString("FITADAPT_SERVICE_URL", { default: "" });
-const bridgeToken = defineSecret("FITADAPT_BRIDGE_TOKEN");
+export const bridgeToken = defineSecret("FITADAPT_BRIDGE_TOKEN");
 
-function dateWindow() {
+export function dateWindow() {
   const today = new Date();
   const start = new Date(today);
   start.setUTCDate(start.getUTCDate() - 89);
@@ -42,11 +43,17 @@ async function readWeights(uid: string, window: { from: string; to: string }): P
   return snapshot.docs.map((doc) => doc.data());
 }
 
-function engine(payload: import("./contract").FitAdaptRequest) {
+export function engine(payload: import("./contract").FitAdaptRequest) {
   let token: string;
   try { token = bridgeToken.value(); }
   catch { throw new BridgeError("service_unavailable", "FitAdapt service credential is not configured."); }
   return callFitAdapt(payload, { baseUrl: serviceUrl.value(), token });
+}
+
+export async function readEvaluationInputs(uid: string) {
+  const window = dateWindow();
+  return { profile: await readProfile(uid, window),
+    nutrition: await readNutrition(uid, window), weights: await readWeights(uid, window) };
 }
 
 function asHttpsError(error: unknown): HttpsError {
@@ -64,13 +71,11 @@ function asHttpsError(error: unknown): HttpsError {
 
 /** Firebase verifies the caller's ID token before request.auth is populated. */
 export const evaluateFitAdapt = onCall(
-  { secrets: [bridgeToken], timeoutSeconds: 30, maxInstances: 10 },
+  { region: functionsRegion, secrets: [bridgeToken], timeoutSeconds: 30, maxInstances: 10 },
   async (request) => {
     try {
-      const window = dateWindow();
       return await requestPlanEvaluation(db, request.auth, request.data, {
-        readInputs: async (uid) => ({ profile: await readProfile(uid, window),
-          nutrition: await readNutrition(uid, window), weights: await readWeights(uid, window) }),
+        readInputs: readEvaluationInputs,
         callEngine: engine,
       });
     } catch (error) {
@@ -79,17 +84,17 @@ export const evaluateFitAdapt = onCall(
   },
 );
 
-export const getFitAdaptPlan = onCall(async (request) => {
+export const getFitAdaptPlan = onCall({ region: functionsRegion }, async (request) => {
   try { return await getPlanState(db, request.auth, request.data); }
   catch (error) { throw asHttpsError(error); }
 });
 
-export const acceptFitAdaptPlan = onCall({ secrets: [bridgeToken], timeoutSeconds: 30 }, async (request) => {
+export const acceptFitAdaptPlan = onCall({ region: functionsRegion, secrets: [bridgeToken], timeoutSeconds: 30 }, async (request) => {
   try { return await resolveProposal(db, request.auth, request.data, "accept", engine); }
   catch (error) { throw asHttpsError(error); }
 });
 
-export const declineFitAdaptPlan = onCall(async (request) => {
+export const declineFitAdaptPlan = onCall({ region: functionsRegion }, async (request) => {
   try { return await resolveProposal(db, request.auth, request.data, "decline"); }
   catch (error) { throw asHttpsError(error); }
 });

@@ -30,13 +30,14 @@ export type WorkoutSessionDraft = {
   items: WorkoutSessionDraftItem[];
 };
 
-function storageKey(uid?: string) {
-  return `workout:draft:${uid || "anon"}`;
+function storageKey(uid: string) {
+  return `workout:draft:${uid}`;
 }
 
 export async function loadSessionDraft(
   uid?: string
 ): Promise<WorkoutSessionDraft | null> {
+  if (!uid) return null;
   try {
     const raw = await AsyncStorage.getItem(storageKey(uid));
     if (!raw) return null;
@@ -50,6 +51,7 @@ export async function saveSessionDraft(
   uid: string | undefined,
   draft: WorkoutSessionDraft
 ): Promise<void> {
+  if (!uid) return;
   try {
     await AsyncStorage.setItem(storageKey(uid), JSON.stringify(draft));
   } catch {
@@ -58,6 +60,7 @@ export async function saveSessionDraft(
 }
 
 export async function clearSessionDraft(uid?: string): Promise<void> {
+  if (!uid) return;
   try {
     await AsyncStorage.removeItem(storageKey(uid));
   } catch {

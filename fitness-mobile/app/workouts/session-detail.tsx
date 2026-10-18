@@ -1,22 +1,21 @@
+import { Button, Empty, Heading, Item, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Alert,
-  Pressable,
-  ScrollView,
   StyleSheet,
   Text,
-  View,
+  View
 } from "react-native";
-import * as Haptics from "expo-haptics";
 
 import { useAuth } from "@/content/AuthContext";
 import { useTheme } from "@/content/ThemeProvider";
 import { subscribeProfile, type Profile } from "@/services/profile";
-import { deleteWorkout, subscribeWorkouts, type Workout } from "@/services/workouts";
 import { inferPrimaryMuscle } from "@/services/workoutMuscles";
+import { deleteWorkout, subscribeWorkouts, type Workout } from "@/services/workouts";
 
 type WorkoutRow = Workout & {
   sessionId?: string;
@@ -37,7 +36,7 @@ type SessionBucket = {
 type ReferenceGroup = {
   exercise: string;
   primaryMuscle?: string;
-  sets: Array<{ reps: number; weightKg: number; note?: string }>;
+  sets: Array<{ reps: number; weightKg: number; note?: string; }>;
 };
 
 const withAlpha = (hex: string, alpha: number) => {
@@ -194,27 +193,9 @@ function descriptorTint(scorePct: number, colors: any) {
   return colors.success;
 }
 
-function StatTile({
-  label,
-  value,
-  hint,
-  colors,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  colors: any;
-}) {
-  return (
-    <View style={[styles.tile, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-      <Text style={[styles.tileLabel, { color: colors.textTertiary }]}>{label}</Text>
-      <Text style={[styles.tileValue, { color: colors.textPrimary }]}>{value}</Text>
-      {hint ? <Text style={[styles.tileHint, { color: colors.textTertiary }]}>{hint}</Text> : null}
-    </View>
-  );
-}
-
 export default function WorkoutSessionDetailScreen() {
+  const { D, F } = useSomataTheme();
+
   const router = useRouter();
   const { user } = useAuth();
   const { colors, isDark } = useTheme() as any;
@@ -304,7 +285,7 @@ export default function WorkoutSessionDetailScreen() {
   const exerciseSummaries = useMemo(() => {
     const map = new Map<
       string,
-      { exercise: string; sets: number; reps: number; volumeKg: number; bestLine: string }
+      { exercise: string; sets: number; reps: number; volumeKg: number; bestLine: string; }
     >();
 
     for (const row of orderedRows) {
@@ -334,7 +315,7 @@ export default function WorkoutSessionDetailScreen() {
   }, [orderedRows, toDisplayWeight, weightUnit]);
 
   const bestSet = useMemo(() => {
-    let best: { exercise: string; line: string; volume: number } | null = null;
+    let best: { exercise: string; line: string; volume: number; } | null = null;
     for (const row of orderedRows) {
       const sets = Number(row.sets || 0);
       const reps = Number(row.reps || 0);
@@ -415,7 +396,7 @@ export default function WorkoutSessionDetailScreen() {
         groups: [...grouped.values()],
       })
     );
-    await Haptics.selectionAsync().catch(() => {});
+    await Haptics.selectionAsync().catch(() => { });
     router.push({
       pathname: "/workouts/session",
       params: {
@@ -465,197 +446,50 @@ export default function WorkoutSessionDetailScreen() {
   }, [focus]);
 
   if (!session) {
-    return (
-      <View style={[styles.root, { backgroundColor: colors.background }]}>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View style={styles.emptyWrap}>
-          <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>Workout not found</Text>
-          <Text style={[styles.emptyBody, { color: colors.textSecondary }]}>
-            This workout may have been deleted or grouped differently.
-          </Text>
-          <Pressable
-            onPress={() => router.back()}
-            style={[styles.primaryButton, { backgroundColor: colors.accent }]}
-          >
-            <Text style={styles.primaryButtonText}>Back</Text>
-          </Pressable>
-        </View>
-      </View>
-    );
+    return (<TaskPage title="Workout unavailable" section="Training" onBack={() => router.back()}>
+      <Empty title="Session not found" detail="This workout may have been deleted or grouped differently." />
+    </TaskPage>);
   }
 
-  return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 24, paddingBottom: 40, gap: 16 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.headerRow}>
-          <Pressable
-            onPress={() => router.back()}
-            style={[styles.iconButton, { backgroundColor: colors.surface2, borderColor: colors.border }]}
-          >
-            <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
-          </Pressable>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={2}>
-              {summary.title}
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.textTertiary }]}>{summary.dateLabel}</Text>
-          </View>
-        </View>
+  return (<TaskPage title={summary.title} section="Session details" subtitle={summary.dateLabel} onBack={() => router.back()}>
 
-        <View style={[styles.card, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-          <View style={styles.heroRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.sectionLabel, { color: colors.textTertiary }]}>SESSION OVERVIEW</Text>
-              <Text style={[styles.heroMetric, { color: colors.textPrimary }]}>
-                {Math.round(toDisplayWeight(summary.totalVolumeKg)).toLocaleString()}
-                <Text style={[styles.heroUnit, { color: colors.textTertiary }]}> {weightUnit}</Text>
-              </Text>
-              <Text style={[styles.heroHint, { color: colors.textSecondary }]}>Total training volume</Text>
-            </View>
-            <View style={styles.scoreWrap}>
-              <Text style={[styles.scoreValue, { color: colors.textPrimary }]}>{summary.score}</Text>
-              <Text style={[styles.scoreLabel, { color: descriptorTint(summary.score, colors) }]}>
-                {scoreDescriptor(summary.score)}
-              </Text>
-            </View>
-          </View>
+    <Panel accent>
+      <Text style={F.eyebrow}>SESSION SCORE</Text>
+      <Text style={{ ...F.value, fontSize: 52 }}>{summary.score}<Text style={F.caption}> / 100</Text></Text>
+      <Text style={F.body}>{comparison}</Text>
+    </Panel>
 
-          <View style={styles.tilesGrid}>
-            <StatTile
-              label="Duration"
-              value={formatDuration(summary.durationMin)}
-              colors={colors}
-            />
-            <StatTile label="Exercises" value={String(summary.exerciseCount)} colors={colors} />
-            <StatTile label="Sets" value={String(summary.totalSets)} colors={colors} />
-            <StatTile label="Reps" value={String(summary.totalReps)} colors={colors} />
-          </View>
-        </View>
-
-        <View style={[styles.card, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>What stood out</Text>
-          {bestSet ? (
-            <View style={[styles.insightRow, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-              <Ionicons name="sparkles-outline" size={16} color={colors.textTertiary} />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>
-                  Best set · {bestSet.exercise}
-                </Text>
-                <Text style={[styles.insightBody, { color: colors.textSecondary }]}>{bestSet.line}</Text>
-              </View>
-            </View>
-          ) : null}
-          <View style={[styles.insightRow, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
-            <Ionicons name="trending-up-outline" size={16} color={colors.textTertiary} />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.insightTitle, { color: colors.textPrimary }]}>Compared with last time</Text>
-              <Text style={[styles.insightBody, { color: colors.textSecondary }]}>{comparison}</Text>
-            </View>
-          </View>
-          {muscles.length ? (
-            <View style={styles.chipsWrap}>
-              {muscles.slice(0, 5).map(([muscle, sets]) => (
-                <View
-                  key={muscle}
-                  style={[styles.muscleChip, { backgroundColor: colors.surface2, borderColor: colors.border }]}
-                >
-                  <Text style={[styles.muscleChipText, { color: colors.textSecondary }]}>
-                    {muscle.replace(/([A-Z])/g, " $1").replace(/^./, (m) => m.toUpperCase())} · {sets} sets
-                  </Text>
-                </View>
-              ))}
-            </View>
-          ) : null}
-        </View>
-
-        <View style={[styles.card, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Exercises</Text>
-          <View style={{ gap: 10 }}>
-            {exerciseSummaries.slice(0, 6).map((exercise) => (
-              <View
-                key={exercise.exercise}
-                style={[styles.exerciseRow, { backgroundColor: colors.surface2, borderColor: colors.border }]}
-              >
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={[styles.exerciseName, { color: colors.textPrimary }]} numberOfLines={2}>
-                    {exercise.exercise}
-                  </Text>
-                  <Text style={[styles.exerciseMeta, { color: colors.textTertiary }]}>
-                    {exercise.sets} sets · {exercise.reps} reps · {Math.round(toDisplayWeight(exercise.volumeKg)).toLocaleString()}
-                    {weightUnit}
-                  </Text>
-                </View>
-                <Text style={[styles.exerciseBest, { color: colors.textSecondary }]}>{exercise.bestLine}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {summary.notes.length ? (
-          <View style={[styles.card, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-            <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Session notes</Text>
-            {summary.notes.slice(0, 4).map((entry, index) => (
-              <Text key={`${entry}-${index}`} style={[styles.noteText, { color: colors.textSecondary }]}>
-                {entry}
-              </Text>
-            ))}
-          </View>
-        ) : null}
-
-        <View
-          ref={actionsRef}
-          style={[
-            styles.card,
-            focus === "actions"
-              ? {
-                  backgroundColor: withAlpha(colors.accent, 0.08),
-                  borderColor: withAlpha(colors.accent, 0.35),
-                }
-              : {
-                  backgroundColor: colors.surface1,
-                  borderColor: colors.border,
-                },
-          ]}
-        >
-          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Next actions</Text>
-          <Text style={[styles.cardCaption, { color: colors.textTertiary }]}>
-            Repeat this session, turn it into a template, or remove it from history.
-          </Text>
-
-          <Pressable
-            onPress={repeatWorkout}
-            style={[styles.primaryButton, { backgroundColor: colors.accent, marginTop: 14 }]}
-          >
-            <Text style={styles.primaryButtonText}>Repeat workout</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={saveAsTemplate}
-            style={[styles.secondaryButton, { backgroundColor: colors.surface2, borderColor: colors.border }]}
-          >
-            <Ionicons name="bookmark-outline" size={14} color={colors.textSecondary} />
-            <Text style={[styles.secondaryButtonText, { color: colors.textSecondary }]}>
-              Save as template
-            </Text>
-          </Pressable>
-
-          <Pressable
-            disabled={deleting}
-            onPress={deleteSession}
-            style={[styles.tertiaryButton, { borderColor: withAlpha(colors.danger, 0.32) }]}
-          >
-            <Ionicons name="trash-outline" size={14} color={colors.danger} />
-            <Text style={[styles.tertiaryButtonText, { color: colors.danger }]}>
-              {deleting ? "Deleting..." : "Delete workout"}
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Metric label="Duration" value={formatDuration(summary.durationMin)} />
+      <Metric label="Volume" value={`${Math.round(toDisplayWeight(summary.totalVolumeKg))} ${weightUnit}`} />
+      <Metric label="Sets / reps" value={`${summary.totalSets} / ${summary.totalReps}`} />
+      <Metric label="Exercises" value={String(summary.exerciseCount)} />
     </View>
+
+    <View ref={actionsRef} style={{ gap: 10 }}>
+      <Button primary label="Repeat workout" onPress={repeatWorkout} icon="refresh" />
+      <Button label="Save as template" onPress={saveAsTemplate} />
+    </View>
+
+    {bestSet && <Panel>
+      <Heading title="Highest-volume set" />
+      <Text style={F.heading}>{bestSet.exercise}</Text>
+      <Text style={F.body}>{bestSet.line}</Text>
+    </Panel>}
+
+    <Heading title="Exercises" />
+    {exerciseSummaries.map(e => <Item key={e.exercise} title={e.exercise} detail={`${e.sets} sets · ${e.reps} reps`} value={e.bestLine} />)}
+
+    <Heading title="Muscles worked" />
+    {muscles.map(([m, n]) => <Item key={m} title={m} value={`${n} sets`} />)}
+
+    {!!summary.notes.length && <Panel>
+      <Heading title="Notes" />
+      {summary.notes.map((n, i) => <Text key={i} style={F.body}>{n}</Text>)}
+    </Panel>}
+
+    <Button danger disabled={deleting} label={deleting ? 'Deleting…' : 'Delete workout'} onPress={deleteSession} />
+  </TaskPage>
   );
 }
 

@@ -20,11 +20,12 @@ export const DEFAULT_PRIVACY_SETTINGS: AccountCenterPrivacySettings = {
   shareStreaks: true,
 };
 
-const KEY = (uid?: string) => `@acct_center_privacy_v1:${uid || "guest"}`;
+const KEY = (uid: string) => `@acct_center_privacy_v1:${uid}`;
 
 export async function getAccountCenterPrivacySettings(
   uid?: string
 ): Promise<AccountCenterPrivacySettings> {
+  if (!uid) return DEFAULT_PRIVACY_SETTINGS;
   try {
     const raw = await AsyncStorage.getItem(KEY(uid));
     if (!raw) return DEFAULT_PRIVACY_SETTINGS;
@@ -42,5 +43,6 @@ export async function setAccountCenterPrivacySettings(
   uid: string | undefined,
   settings: AccountCenterPrivacySettings
 ) {
+  if (!uid) throw new Error("Sign in before saving account preferences");
   await AsyncStorage.setItem(KEY(uid), JSON.stringify(settings));
 }

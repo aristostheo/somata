@@ -1,3 +1,4 @@
+import { assertAccountActive, setForActiveAccount } from "./account/guard";
 // functions/src/describe.ts
 import * as admin from "firebase-admin";
 import { onRequest } from "firebase-functions/v2/https";
@@ -223,6 +224,8 @@ export const describe = onRequest(
         return;
       }
 
+      await assertAccountActive(db, uid);
+
       const body = (req.body ?? {}) as {
         mode?: string;
 
@@ -374,7 +377,7 @@ export const describe = onRequest(
             },
           });
           try {
-            await cacheRef.set({
+            await setForActiveAccount(db, uid, cacheRef, {
               createdAt: admin.firestore.FieldValue.serverTimestamp(),
               key,
               cards,
@@ -421,7 +424,7 @@ export const describe = onRequest(
         }
 
         try {
-          await cacheRef.set({
+          await setForActiveAccount(db, uid, cacheRef, {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             key,
             cards: cards.slice(0, 5),
@@ -452,7 +455,7 @@ export const describe = onRequest(
           try {
             const snap = await db.collection("users").doc(uid).get();
             if (snap.exists) profile = snap.data();
-          } catch {}
+          } catch { /* Preserve the existing best-effort fallback on failure. */ }
         }
 
         const remaining = {
@@ -493,7 +496,7 @@ export const describe = onRequest(
         try {
           const q = await quotaRef.get();
           count = (q.exists ? q.data()?.count || 0 : 0) as number;
-        } catch {}
+        } catch { /* Preserve the existing best-effort fallback on failure. */ }
 
         if (count >= 12) {
           const fallback: MealIdeasResponse = {
@@ -552,7 +555,7 @@ export const describe = onRequest(
 
           if (!forceNew) {
             try {
-              await cacheRef.set({
+              await setForActiveAccount(db, uid, cacheRef, {
                 ...out,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 key,
@@ -563,7 +566,7 @@ export const describe = onRequest(
           }
 
           try {
-            await quotaRef.set({ count: count + 1 }, { merge: true });
+            await setForActiveAccount(db, uid, quotaRef, { count: count + 1 }, { merge: true });
           } catch (e: any) {
             console.warn("[meal_suggest] quota write error", e);
           }
@@ -621,7 +624,7 @@ export const describe = onRequest(
 
           if (!forceNew) {
             try {
-              await cacheRef.set({
+              await setForActiveAccount(db, uid, cacheRef, {
                 ...fallback,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 key,
@@ -632,7 +635,7 @@ export const describe = onRequest(
           }
 
           try {
-            await quotaRef.set({ count: count + 1 }, { merge: true });
+            await setForActiveAccount(db, uid, quotaRef, { count: count + 1 }, { merge: true });
           } catch (e2: any) {
             console.warn("[meal_suggest] quota write error (fallback)", e2);
           }
@@ -757,7 +760,7 @@ export const describe = onRequest(
         try {
           const qSnap = await quotaRef.get();
           qCount = (qSnap.exists ? qSnap.data()?.count || 0 : 0) as number;
-        } catch {}
+        } catch { /* Preserve the existing best-effort fallback on failure. */ }
         const qLimit = uid === "fcM9kLgkV0gDljvq74CScLLqdqO2" ? Infinity : 3;
 
         const forceNew = !!body.forceNew;
@@ -767,7 +770,9 @@ export const describe = onRequest(
             if (snap.exists) {
               const cached = snap.data() as any;
               // remove non-schema fields we store in Firestore
-              const { createdAt, key: _k, ...clean } = cached;
+              const clean = { ...cached };
+              delete clean.createdAt;
+              delete clean.key;
 
               res.set("Cache-Control", "no-store");
               res.status(200).json({
@@ -845,7 +850,9 @@ export const describe = onRequest(
               const snap = await cacheRef.get();
               if (snap.exists) {
                 const prevRaw = snap.data() as any;
-                const { createdAt, key: _k, ...prev } = prevRaw as any;
+                const prev = { ...prevRaw };
+                delete prev.createdAt;
+                delete prev.key;
                 const prevSug = Array.isArray(prev?.suggestions)
                   ? prev.suggestions
                   : [];
@@ -876,13 +883,13 @@ export const describe = onRequest(
                   rationale: out?.rationale || prev?.rationale || "",
                 };
               }
-            } catch {}
+            } catch { /* Preserve the existing best-effort fallback on failure. */ }
           }
           (finalOut as any).quotaUsed = qCount + 1;
           (finalOut as any).quotaLimit = qLimit;
 
           try {
-            await cacheRef.set(
+            await setForActiveAccount(db, uid, cacheRef,
               {
                 ...finalOut,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -890,7 +897,7 @@ export const describe = onRequest(
               },
               { merge: true }
             );
-            await quotaRef.set({ count: qCount + 1 }, { merge: true });
+            await setForActiveAccount(db, uid, quotaRef, { count: qCount + 1 }, { merge: true });
           } catch (e: any) {
             console.warn("[macro_completion] cache/quota write error", e);
           }
@@ -925,8 +932,8 @@ export const describe = onRequest(
           };
 
           try {
-            await quotaRef.set({ count: qCount + 1 }, { merge: true });
-          } catch {}
+            await setForActiveAccount(db, uid, quotaRef, { count: qCount + 1 }, { merge: true });
+          } catch { /* Preserve the existing best-effort fallback on failure. */ }
 
           res.set("Cache-Control", "no-store");
           res.status(200).json(fallback);
@@ -995,11 +1002,11 @@ export const describe = onRequest(
         try {
           const qSnap = await quotaRef.get();
           qCount = (qSnap.exists ? qSnap.data()?.count || 0 : 0) as number;
-        } catch {}
+        } catch { /* Preserve the existing best-effort fallback on failure. */ }
 
         // Hard cap (adjust)
         if (qCount >= 25) {
-          const fallback = heuristicMealTotals(text, body.context);
+          const fallback = heuristicMealTotals(text);
           res.set("Cache-Control", "no-store");
           res.status(200).json(
             withMealV1Mirror(fallback, {
@@ -1022,7 +1029,7 @@ export const describe = onRequest(
           const payload = withMealV1Mirror(v2);
 
           try {
-            await cacheRef.set(
+            await setForActiveAccount(db, uid, cacheRef,
               {
                 ...payload,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -1030,7 +1037,7 @@ export const describe = onRequest(
               },
               { merge: true }
             );
-            await quotaRef.set({ count: qCount + 1 }, { merge: true });
+            await setForActiveAccount(db, uid, quotaRef, { count: qCount + 1 }, { merge: true });
           } catch (e: any) {
             console.warn("[meal:v2] cache/quota write error", e);
           }
@@ -1042,11 +1049,11 @@ export const describe = onRequest(
           const msg = String(e?.message ?? e);
           console.error("[meal:v2] failed", msg);
 
-          const fallback = heuristicMealTotals(text, body.context);
+          const fallback = heuristicMealTotals(text);
 
           try {
-            await quotaRef.set({ count: qCount + 1 }, { merge: true });
-          } catch {}
+            await setForActiveAccount(db, uid, quotaRef, { count: qCount + 1 }, { merge: true });
+          } catch { /* Preserve the existing best-effort fallback on failure. */ }
 
           res.set("Cache-Control", "no-store");
           res.status(200).json(
@@ -1168,7 +1175,7 @@ export const describe = onRequest(
         try {
           const q = await quotaRef.get();
           count = (q.exists ? q.data()?.count || 0 : 0) as number;
-        } catch {}
+        } catch { /* Preserve the existing best-effort fallback on failure. */ }
 
         if (count >= 10) {
           const h = heuristicCaloriesEstimate(text, p || undefined);
@@ -1193,12 +1200,12 @@ export const describe = onRequest(
               : heuristicCaloriesEstimate(text, p || undefined);
 
           try {
-            await cacheRef.set({
+            await setForActiveAccount(db, uid, cacheRef, {
               ...finalEst,
               cachePayload,
               createdAt: admin.firestore.FieldValue.serverTimestamp(),
             });
-            await quotaRef.set({ count: count + 1 }, { merge: true });
+            await setForActiveAccount(db, uid, quotaRef, { count: count + 1 }, { merge: true });
           } catch (e: any) {
             console.warn("[exercise:v1] cache/quota write error", e);
           }
@@ -2330,83 +2337,8 @@ async function callOpenAIForSuggestionList(
   try {
     const arr = JSON.parse(typeof text === "string" ? text : String(text));
     if (Array.isArray(arr) && arr.length) return arr as SuggestionCard[];
-  } catch {}
+  } catch { /* Preserve the existing best-effort fallback on failure. */ }
   return [];
-}
-
-async function callOpenAIForSuggestion(prompt: {
-  system: string;
-  user: string;
-}): Promise<SuggestionCard> {
-  const key = getOpenAIKey();
-
-  const body = {
-    model: "gpt-4o-mini",
-    temperature: 0.35,
-    max_tokens: 160,
-    messages: [
-      { role: "system", content: prompt.system },
-      { role: "user", content: prompt.user },
-    ],
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "SuggestionCard",
-        strict: true,
-        schema: {
-          type: "object",
-          additionalProperties: false,
-          required: ["icon", "title", "body", "ctaLabel", "href", "tint"],
-          properties: {
-            icon: { type: "string" },
-            title: { type: "string", maxLength: 40 },
-            body: { type: "string", maxLength: 140 },
-            ctaLabel: { type: "string", maxLength: 30 },
-            href: { type: "string" },
-            tint: {
-              type: "string",
-              enum: ["workout", "meal", "recovery", "ok"],
-            },
-          },
-        },
-      },
-    },
-  };
-
-  const rsp = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!rsp.ok) {
-    const t = await safeText(rsp);
-    throw new Error(`OpenAI ${rsp.status}: ${t}`);
-  }
-
-  const data: any = await rsp.json();
-  const text =
-    data?.choices?.[0]?.message?.content ??
-    data?.choices?.[0]?.message ??
-    data?.choices?.[0]?.text ??
-    "{}";
-
-  try {
-    const parsed = JSON.parse(typeof text === "string" ? text : String(text));
-    if (
-      parsed &&
-      typeof parsed.title === "string" &&
-      typeof parsed.ctaLabel === "string" &&
-      typeof parsed.href === "string" &&
-      typeof parsed.tint === "string"
-    ) {
-      return parsed as SuggestionCard;
-    }
-  } catch {}
-  throw new Error("bad-suggestion-json");
 }
 
 async function callOpenAIForExerciseEstimate(prompt: {
@@ -2476,7 +2408,7 @@ async function callOpenAIForExerciseEstimate(prompt: {
       rationale:
         typeof parsed?.rationale === "string" ? parsed.rationale : undefined,
     };
-  } catch {}
+  } catch { /* Preserve the existing best-effort fallback on failure. */ }
   return out;
 }
 
@@ -2574,7 +2506,7 @@ async function enforceMinInterval(args: {
     if (last && delta < args.minMs) {
       return { allowed: false, retryAfterMs: Math.max(0, args.minMs - delta) };
     }
-    await ref.set({ ts: now }, { merge: true });
+    await setForActiveAccount(db, args.uid, ref, { ts: now }, { merge: true });
     return { allowed: true };
   } catch {
     return { allowed: true };
@@ -2602,7 +2534,7 @@ function withMealV1Mirror(v2: MealV2, meta: Record<string, any> = {}) {
   return { ...v2, ...v1Mirror, ...meta };
 }
 
-function heuristicMealTotals(text: string, _context?: any): MealV2 {
+function heuristicMealTotals(text: string): MealV2 {
   const t = String(text || "").toLowerCase();
 
   let name = "Meal";

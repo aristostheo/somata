@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Button, Choice, Heading, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useMemo, useState } from "react";
+import { Text, View } from "react-native";
 
-import { useTheme } from "@/content/ThemeProvider";
 import { useAuth } from "@/content/AuthContext";
+import { useTheme } from "@/content/ThemeProvider";
 import { subscribeProfile, type Profile } from "@/services/profile";
 
 type FilterKey = "all" | "high-protein" | "quick" | "low-carb" | "vegetarian";
@@ -19,7 +20,7 @@ type Suggestion = {
   tags: string[];
 };
 
-const FILTERS: Array<{ key: FilterKey; label: string }> = [
+const FILTERS: Array<{ key: FilterKey; label: string; }> = [
   { key: "all", label: "All" },
   { key: "high-protein", label: "High Protein" },
   { key: "quick", label: "Quick" },
@@ -67,7 +68,7 @@ function generateSuggestions({
   preferences,
   seed,
 }: {
-  remaining: { calories: number; protein: number; carbs: number; fat: number };
+  remaining: { calories: number; protein: number; carbs: number; fat: number; };
   meal: MealKey;
   filter: FilterKey;
   preferences?: Profile | null;
@@ -107,6 +108,8 @@ function generateSuggestions({
 }
 
 export default function WhatShouldIEatScreen() {
+  const { D, F } = useSomataTheme();
+
   const { colors } = useTheme() as any;
   const { user } = useAuth();
   const router = useRouter();
@@ -150,151 +153,33 @@ export default function WhatShouldIEatScreen() {
     [remaining, meal, filter, profile, seed]
   );
 
-  return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: 18,
-          paddingBottom: 40,
-          paddingHorizontal: 16,
-          gap: 16,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <Pressable
-            onPress={() => router.back()}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: colors.surface2,
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          >
-            <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
-          </Pressable>
-          <Text style={{ color: colors.textPrimary, fontSize: 20, fontWeight: "500" }}>
-            What should I eat?
-          </Text>
-        </View>
+  return (<TaskPage title="Find something that fits" section="Meal inspiration" onBack={() => router.back()}>
 
-        <View
-          style={{
-            backgroundColor: colors.surface1,
-            borderColor: colors.border,
-            borderWidth: 1,
-            borderRadius: 16,
-            padding: 16,
-            gap: 12,
-          }}
-        >
-          <Text style={{ color: colors.textPrimary, fontSize: 28, fontWeight: "200" }}>
-            {remaining.calories.toLocaleString()} kcal remaining
-          </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            <MacroChip label={`P: ${remaining.protein}g left`} color={colors.accent} colors={colors} />
-            <MacroChip label={`C: ${remaining.carbs}g left`} color={colors.info} colors={colors} />
-            <MacroChip label={`F: ${remaining.fat}g left`} color={colors.warning} colors={colors} />
-          </View>
-          <Text style={{ color: colors.textTertiary, fontSize: 12, fontWeight: "300" }}>
-            {`It's ${timeBucket()} — here are ${mealLabel(meal)} ideas`}
-          </Text>
-        </View>
+    <Panel accent>
+      <Heading title={`Room for ${mealLabel(meal)}`} detail="Remaining targets for the selected day" />
+      <Text style={{ ...F.value, color: D.lime }}>{remaining.calories} kcal</Text>
+      <Text style={F.body}>Protein {remaining.protein} g · Carbs {remaining.carbs} g · Fat {remaining.fat} g</Text>
+    </Panel>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          {FILTERS.map((item) => {
-            const active = item.key === filter;
-            return (
-              <Pressable
-                key={item.key}
-                onPress={() => setFilter(item.key)}
-                style={{
-                  height: 32,
-                  paddingHorizontal: 12,
-                  borderRadius: 999,
-                  borderWidth: 1,
-                  borderColor: active ? colors.accent : colors.border,
-                  backgroundColor: active ? colors.accentDim : colors.surface2,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Text style={{ color: active ? colors.accent : colors.textSecondary, fontSize: 12, fontWeight: "500" }}>
-                  {item.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        <View style={{ gap: 10 }}>
-          {suggestions.slice(0, 6).map((item) => (
-            <View
-              key={item.name}
-              style={{
-                backgroundColor: colors.surface1,
-                borderColor: colors.border,
-                borderWidth: 1,
-                borderRadius: 16,
-                padding: 14,
-                gap: 10,
-              }}
-            >
-              <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}>
-                <Text style={{ color: colors.textPrimary, fontSize: 15, fontWeight: "500", flex: 1 }}>
-                  {item.name}
-                </Text>
-                <Text style={{ color: colors.textTertiary, fontSize: 12, fontWeight: "300" }}>
-                  {item.calories} kcal
-                </Text>
-              </View>
-              <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: "300" }}>
-                {whyItFits(item, remaining)}
-              </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                <SmallMacro label={`P: ${item.protein}g`} colors={colors} />
-                <SmallMacro label={`C: ${item.carbs}g`} colors={colors} />
-                <SmallMacro label={`F: ${item.fat}g`} colors={colors} />
-              </View>
-              <View style={{ height: 1, backgroundColor: colors.border }} />
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: "/(modals)/add-meal",
-                    params: {
-                      meal,
-                      date: String(params.date || ""),
-                      initialTab: "search",
-                      query: item.name,
-                    },
-                  })
-                }
-              >
-                <Text style={{ color: colors.accent, fontSize: 12, fontWeight: "400" }}>
-                  Log this meal →
-                </Text>
-              </Pressable>
-            </View>
-          ))}
-        </View>
-
-        <Pressable onPress={() => setSeed((value) => value + 1)} style={{ alignItems: "center", paddingVertical: 8 }}>
-          <Text style={{ color: colors.accent, fontSize: 12, fontWeight: "400" }}>
-            Regenerate →
-          </Text>
-        </Pressable>
-      </ScrollView>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {FILTERS.map(f => <Choice key={f.key} label={f.label} selected={filter === f.key} onPress={() => setFilter(f.key)} />)}
     </View>
+
+    <Heading title="Meal ideas" detail="Nutrition estimates from the meal library. Confirm your portion when logging." />
+    {suggestions.slice(0, 6).map((item, i) => <Panel key={`${item.name}-${i}`}>
+      <Text style={F.eyebrow}>{item.tags.join(' · ')}</Text>
+      <Heading title={item.name} detail={`${item.calories} kcal · P ${item.protein} g · C ${item.carbs} g · F ${item.fat} g`} />
+      <Text style={F.body}>{whyItFits(item, remaining)}</Text>
+      <Button label="Find and log this meal" onPress={() => router.push({ pathname: '/(modals)/add-meal', params: { meal, date: String(params.date || ''), initialTab: 'search', query: item.name } })} />
+    </Panel>)}
+    <Button label="More ideas" onPress={() => setSeed(v => v + 1)} />
+  </TaskPage>
   );
 }
 
 function whyItFits(
   item: Suggestion,
-  remaining: { calories: number; protein: number; carbs: number; fat: number }
+  remaining: { calories: number; protein: number; carbs: number; fat: number; }
 ) {
   if (remaining.protein >= 25 && item.protein >= 25) {
     return `Strong protein fit for the ${remaining.protein}g you still need.`;
@@ -306,44 +191,4 @@ function whyItFits(
     return "Better match for the carbs you still have available.";
   }
   return "Balanced option that moves your remaining macros closer to target.";
-}
-
-function MacroChip({ label, color, colors }: { label: string; color: string; colors: any }) {
-  return (
-    <View
-      style={{
-        minHeight: 28,
-        paddingHorizontal: 10,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: color,
-        backgroundColor: colors.surface2,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Text style={{ color, fontSize: 12, fontWeight: "500" }}>{label}</Text>
-    </View>
-  );
-}
-
-function SmallMacro({ label, colors }: { label: string; colors: any }) {
-  return (
-    <View
-      style={{
-        minHeight: 24,
-        paddingHorizontal: 8,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.surface2,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: "300" }}>
-        {label}
-      </Text>
-    </View>
-  );
 }

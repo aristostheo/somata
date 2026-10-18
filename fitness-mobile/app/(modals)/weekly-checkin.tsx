@@ -1,17 +1,16 @@
-import { FlowAtmosphere } from "@/components/accountSettings/FlowAtmosphere";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useAccountStorage } from '@/services/local/accountStore';
+import { Button, Choice, Empty, Field, Heading, Item, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { useSomataTheme } from "@/components/somata/theme";
+import { Trend } from "@/components/somata/Trend";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
-  Pressable,
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  View,
+  View
 } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
 
 import { useProfileFlowTheme as useTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
@@ -56,6 +55,9 @@ function scoreColor(score: number, colors: ReturnType<typeof useTheme>["colors"]
 }
 
 export default function WeeklyCheckinScreen() {
+  const localStore = useAccountStorage();
+  const { D, F } = useSomataTheme();
+
   const { colors } = useTheme();
   const { user } = useAuth();
   const router = useRouter();
@@ -82,9 +84,9 @@ export default function WeeklyCheckinScreen() {
   const refresh = useCallback(async () => {
     if (!user?.uid) return;
     const [current, rows, nextStats] = await Promise.all([
-      getThisWeeksCheckin(),
-      getCheckins(),
-      getWeeklyConsistencyStats(user.uid, profile, weekOf),
+      getThisWeeksCheckin(localStore),
+      getCheckins(localStore),
+      getWeeklyConsistencyStats(user.uid, profile, weekOf, localStore),
     ]);
     setCompleted(current);
     setHistory(rows);
@@ -92,8 +94,8 @@ export default function WeeklyCheckinScreen() {
   }, [profile, user?.uid, weekOf]);
 
   useEffect(() => {
-    refresh().catch(() => {});
-    scheduleWeeklyCheckinReminders().catch(() => {});
+    refresh().catch(() => { });
+    scheduleWeeklyCheckinReminders(localStore).catch(() => { });
   }, [refresh]);
 
   const close = useCallback(() => {
@@ -120,10 +122,10 @@ export default function WeeklyCheckinScreen() {
       mealsLoggedDays: stats.mealsLoggedDays,
       workoutSessions: stats.workoutSessions,
       hydrationDaysHit: stats.hydrationDaysHit,
-    });
+    }, localStore);
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {}
+    } catch { }
     await refresh();
     setStep(4);
   }
@@ -141,304 +143,50 @@ export default function WeeklyCheckinScreen() {
     step === 2 ||
     (step === 3 && mood != null);
 
-  return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <FlowAtmosphere />
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <View style={{ width: 40 }} />
-        <View style={{ flex: 1, alignItems: "center", gap: 4 }}>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>Weekly Check-in</Text>
-          <Text style={[styles.subtitle, { color: colors.textTertiary }]}>{weekLabel}</Text>
-        </View>
-        <Pressable onPress={close} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
-          <Ionicons name="close" size={18} color={colors.textSecondary} />
-        </Pressable>
-      </View>
+  return (<TaskPage title={step === 5 ? 'Your check-in journal' : step === 4 ? 'Week recorded' : 'A moment to check in'} section="Weekly check-in" subtitle={weekLabel} onBack={close} footer={step < 4 ? <Button primary disabled={!nextEnabled} label={step === 3 ? 'Complete check-in' : 'Continue'} onPress={() => { if (step === 3) completeCheckin().catch(() => { }); else setStep(current => (current + 1) as Step); }} /> : undefined}>
 
-      <View style={styles.progressDots}>
-        {[0, 1, 2, 3].map((index) => (
-          <View
-            key={index}
-            style={[
-              styles.progressDot,
-              {
-                backgroundColor: step >= index && step < 4 ? colors.accent : colors.surface3,
-                opacity: step === 4 ? 0.6 : 1,
-              },
-            ]}
-          />
-        ))}
-      </View>
+    {step < 4 && <><Text style={F.eyebrow}>QUESTION {step + 1} / 4</Text><View style={{ flexDirection: 'row', gap: 6 }}>
+      {[0, 1, 2, 3].map(n => <View key={n} style={{ height: 4, flex: 1, borderRadius: 2, backgroundColor: n <= step ? D.teal : D.raised }} />)}
+    </View></>}
 
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 16 }}>
-        {step === 0 ? (
-          <View style={{ gap: 12 }}>
-            <QuestionBlock
-              title="How was your energy this week?"
-              subtitle="Consider your workouts, daily life, and sleep"
-              colors={colors}
-            />
-            {[1, 2, 3, 4, 5].map((score) => (
-              <Pressable
-                key={score}
-                onPress={() => setEnergy(score as 1 | 2 | 3 | 4 | 5)}
-                style={[
-                  styles.optionCard,
-                  {
-                    backgroundColor: energy === score ? withAlpha(colors.accent, 0.12) : colors.surface1,
-                    borderColor: energy === score ? colors.accent : colors.border,
-                    borderLeftColor: energy === score ? scoreColor(score, colors) : colors.border,
-                    borderLeftWidth: energy === score ? 3 : 1,
-                  },
-                ]}
-              >
-                <Text style={[styles.optionTitle, { color: colors.textPrimary }]}>
-                  {score} — {["Exhausted", "Low", "Okay", "Good", "Great"][score - 1]}
-                </Text>
-                <Text style={[styles.optionSub, { color: colors.textTertiary }]}>
-                  {[
-                    "Running on empty",
-                    "Tired more often than not",
-                    "Some good days, some rough",
-                    "Mostly energized",
-                    "Felt strong all week",
-                  ][score - 1]}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
+    {step === 0 && <><Heading title="How was your energy?" detail="Consider workouts, daily life, and sleep." />{([1, 2, 3, 4, 5] as const).map(score => <Choice key={score} label={`${score} · ${['Exhausted', 'Low', 'Okay', 'Good', 'Great'][score - 1]}`} selected={energy === score} onPress={() => setEnergy(score)} />)}</>}
 
-        {step === 1 ? (
-          <View style={{ gap: 16 }}>
-            <QuestionBlock title="Here's how consistent you were" subtitle="" colors={colors} />
-            <View style={styles.statGrid}>
-              <StatCard
-                label="Meals logged"
-                value={`${stats?.mealsLoggedDays ?? 0}/7 days`}
-                colors={colors}
-              />
-              <StatCard
-                label="Workouts"
-                value={`${stats?.workoutSessions ?? 0} sessions`}
-                colors={colors}
-              />
-              <StatCard
-                label="Hydration goal"
-                value={`${stats?.hydrationDaysHit ?? 0}/7 days hit`}
-                colors={colors}
-              />
-            </View>
-            <Text style={[styles.observation, { color: colors.textSecondary }]}>{stats?.observation}</Text>
-            <Text style={[styles.optionSub, { color: colors.textTertiary }]}>Does this match how the week felt?</Text>
-            <View style={styles.pillWrap}>
-              {[
-                ["accurate", "Yes, accurate"],
-                ["felt-better", "Felt better than this"],
-                ["felt-harder", "Felt harder than this"],
-              ].map(([key, label]) => (
-                <Pressable
-                  key={key}
-                  onPress={() => setConsistencyRating(key as any)}
-                  style={[
-                    styles.pill,
-                    {
-                      backgroundColor: consistencyRating === key ? withAlpha(colors.accent, 0.12) : colors.surface2,
-                      borderColor: consistencyRating === key ? colors.accent : colors.border,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.pillText,
-                      { color: consistencyRating === key ? colors.accent : colors.textSecondary },
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-        ) : null}
+    {step === 1 && <><Heading title="Does the record match your week?" />{stats ? <><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Metric label="Meal logging" value={`${stats.mealsLoggedDays}/7 days`} />
+      <Metric label="Workouts" value={String(stats.workoutSessions)} />
+      <Metric label="Hydration goal" value={`${stats.hydrationDaysHit}/7 days`} />
+    </View><Text style={F.body}>{stats.observation}</Text></> : <Empty title="Loading this week’s records…" />}{([['accurate', 'Yes, accurate'], ['felt-better', 'It felt better'], ['felt-harder', 'It felt harder']] as const).map(([key, label]) => <Choice key={key} label={label} selected={consistencyRating === key} onPress={() => setConsistencyRating(key)} />)}</>}
 
-        {step === 2 ? (
-          <View style={{ gap: 16 }}>
-            <QuestionBlock
-              title="Any changes in how you look or feel physically?"
-              subtitle="This is just for you. No judgment here."
-              colors={colors}
-            />
-            <View style={styles.pillWrap}>
-              {BODY_OPTIONS.map((option) => {
-                const selected = bodyChanges.includes(option);
-                return (
-                  <Pressable
-                    key={option}
-                    onPress={() =>
-                      setBodyChanges((current) =>
-                        selected ? current.filter((item) => item !== option) : [...current, option]
-                      )
-                    }
-                    style={[
-                      styles.pill,
-                      {
-                        backgroundColor: selected ? withAlpha(colors.accent, 0.12) : colors.surface2,
-                        borderColor: selected ? colors.accent : colors.border,
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.pillText, { color: selected ? colors.accent : colors.textSecondary }]}>
-                      {option}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-            <TextInput
-              value={bodyNote}
-              onChangeText={setBodyNote}
-              placeholder="Anything specific you noticed this week..."
-              placeholderTextColor={colors.textTertiary}
-              style={[
-                styles.noteInput,
-                { backgroundColor: colors.surface3, borderColor: colors.border, color: colors.textPrimary },
-              ]}
-              multiline
-            />
-          </View>
-        ) : null}
+    {step === 2 && <><Heading title="What have you noticed?" detail="Choose any that fit. You can leave this blank." />{BODY_OPTIONS.map(option => <Choice key={option} label={option} selected={bodyChanges.includes(option)} onPress={() => setBodyChanges(current => current.includes(option) ? current.filter(x => x !== option) : [...current, option])} />)}<Field label="Body notes · optional" multiline value={bodyNote} onChangeText={setBodyNote} /></>}
 
-        {step === 3 ? (
-          <View style={{ gap: 12 }}>
-            <QuestionBlock
-              title="How was your headspace this week?"
-              subtitle=""
-              colors={colors}
-            />
-            {[1, 2, 3, 4, 5].map((score) => (
-              <Pressable
-                key={score}
-                onPress={() => setMood(score as 1 | 2 | 3 | 4 | 5)}
-                style={[
-                  styles.optionCard,
-                  {
-                    backgroundColor: mood === score ? withAlpha(colors.accent, 0.12) : colors.surface1,
-                    borderColor: mood === score ? colors.accent : colors.border,
-                  },
-                ]}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                  <Ionicons name={moodIcon(score)} size={18} color={colors.accent} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.optionTitle, { color: colors.textPrimary }]}>
-                      {["Stressed", "Neutral", "Steady", "Positive", "On fire"][score - 1]}
-                    </Text>
-                    <Text style={[styles.optionSub, { color: colors.textTertiary }]}>
-                      {[
-                        "Hard to stay consistent",
-                        "Going through the motions",
-                        "Feeling grounded",
-                        "Motivated and focused",
-                        "Best mental week in a while",
-                      ][score - 1]}
-                    </Text>
-                  </View>
-                </View>
-              </Pressable>
-            ))}
-            <TextInput
-              value={moodNote}
-              onChangeText={setMoodNote}
-              placeholder="What made this week feel this way?"
-              placeholderTextColor={colors.textTertiary}
-              style={[
-                styles.noteInput,
-                { backgroundColor: colors.surface3, borderColor: colors.border, color: colors.textPrimary },
-              ]}
-              multiline
-            />
-          </View>
-        ) : null}
+    {step === 3 && <><Heading title="How did the week feel?" />{([1, 2, 3, 4, 5] as const).map(score => <Choice key={score} label={`${score} / 5 · ${['Difficult', 'Low', 'Mixed', 'Good', 'Great'][score - 1]}`} selected={mood === score} onPress={() => setMood(score)} />)}<Field label="Mood notes · optional" multiline value={moodNote} onChangeText={setMoodNote} /></>}
 
-        {step === 4 ? (
-          <View style={{ gap: 16, alignItems: "center" }}>
-            <Text style={[styles.completionTitle, { color: colors.textPrimary }]}>Week logged ✦</Text>
-            <View style={styles.completionGrid}>
-              <CompletionTile label="Energy" value={`${completed?.energy ?? energy}/5`} colors={colors} />
-              <CompletionTile label="Consistency" value={`${completed?.mealsLoggedDays ?? stats?.mealsLoggedDays ?? 0}/7`} colors={colors} />
-              <CompletionTile label="Body" value={`${completed?.bodyChanges.length ?? bodyChanges.length} notes`} colors={colors} />
-              <CompletionTile label="Mood" value={`${completed?.mood ?? mood}/5`} colors={colors} />
-            </View>
-            <Text style={[styles.observation, { color: colors.textSecondary, textAlign: "center" }]}>
-              {completionInsight}
-            </Text>
-            <Pressable
-              onPress={() => setStep(5)}
-              style={[styles.primaryButton, { backgroundColor: colors.accent }]}
-            >
-              <Text style={styles.primaryButtonText}>See my history →</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => router.back()}
-              style={[styles.secondaryButton, { backgroundColor: colors.surface2, borderColor: colors.border }]}
-            >
-              <Text style={[styles.secondaryButtonText, { color: colors.textSecondary }]}>Done</Text>
-            </Pressable>
-          </View>
-        ) : null}
+    {step === 4 && <><Panel accent>
+      <Heading title="A week worth recording" />
+      <Item title="Energy" value={`${completed?.energy ?? energy}/5`} />
+      <Item title="Meal logging" value={`${completed?.mealsLoggedDays ?? stats?.mealsLoggedDays ?? 0}/7 days`} />
+      <Item title="Body notes" value={String(completed?.bodyChanges.length ?? bodyChanges.length)} />
+      <Item title="Mood" value={`${completed?.mood ?? mood}/5`} />
+      {!!completionInsight && <Text style={F.body}>{completionInsight}</Text>}
+    </Panel><Button primary label="See check-in history" onPress={() => setStep(5)} /><Button label="Done" onPress={() => router.back()} /></>}
 
-        {step === 5 ? (
-          <View style={{ gap: 16 }}>
-            <View style={styles.historyHeader}>
-              <Pressable onPress={() => setStep(4)} style={[styles.iconCircle, { backgroundColor: colors.surface3, borderColor: colors.border }]}>
-                <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
-              </Pressable>
-              <Text style={[styles.title, { color: colors.textPrimary, fontSize: 20 }]}>Check-in History</Text>
-              <View style={{ width: 40 }} />
-            </View>
-
-            {trendReady ? (
-              <View style={styles.trendRow}>
-                <TrendCard title="Energy trend" values={energyTrend} colors={colors} />
-                <TrendCard title="Mood trend" values={moodTrend} colors={colors} />
-              </View>
-            ) : null}
-            {trendReady ? (
-              <Text style={[styles.historyAccent, { color: colors.accent }]}>
-                Your energy has been improving over the last 4 weeks
-              </Text>
-            ) : null}
-
-            {history.map((item) => (
-              <HistoryCard key={item.id} item={item} colors={colors} />
-            ))}
-          </View>
-        ) : null}
-      </ScrollView>
-
-      {step < 4 ? (
-        <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
-          <Pressable
-            disabled={!nextEnabled}
-            onPress={() => {
-              if (step === 3) completeCheckin().catch(() => {});
-              else setStep((current) => (current + 1) as Step);
-            }}
-            style={[
-              styles.primaryButton,
-              {
-                backgroundColor: nextEnabled ? colors.accent : colors.surface2,
-              },
-            ]}
-          >
-            <Text style={[styles.primaryButtonText, { color: nextEnabled ? "#FFFFFF" : colors.textTertiary }]}>
-              {step === 3 ? "Complete check-in →" : "Next →"}
-            </Text>
-          </Pressable>
-        </View>
-      ) : null}
-    </View>
+    {step === 5 && <><Button label="Back to this week" onPress={() => setStep(4)} />{trendReady ? <><Panel>
+      <Heading title="Recorded energy" />
+      <Trend values={energyTrend} unit="/5" />
+    </Panel><Panel>
+        <Heading title="Recorded mood" />
+        <Trend values={moodTrend} unit="/5" />
+      </Panel></> : <Empty title="Your journal is taking shape" detail="Four check-ins are needed to show energy and mood trends." />}{history.map(item => <Panel key={item.id}>
+        <Heading title={getWeekRangeLabel(item.weekOf)} />
+        <Text style={F.body}>Energy {item.energy}/5 · Mood {item.mood}/5</Text>
+        <Text style={F.caption}>Meals {item.mealsLoggedDays}/7 days · {item.workoutSessions} workouts · Hydration {item.hydrationDaysHit}/7 days</Text>
+        <Text style={F.caption}>{item.consistencyRating}</Text>
+        {item.bodyChanges.map(note => <Text key={note} style={F.body}>{note}</Text>)}
+        {!!item.bodyNote && <Text style={F.body}>{item.bodyNote}</Text>}
+        {!!item.moodNote && <Text style={F.body}>{item.moodNote}</Text>}
+        {!!item.aiInsight && <Text style={F.caption}>{item.aiInsight}</Text>}
+      </Panel>)}</>}
+  </TaskPage>
   );
 }
 
@@ -452,124 +200,6 @@ function withAlpha(color: string, alpha: number) {
   const match = color.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
   if (!match) return color;
   return `rgba(${parseInt(match[1], 16)}, ${parseInt(match[2], 16)}, ${parseInt(match[3], 16)}, ${alpha})`;
-}
-
-function QuestionBlock({
-  title,
-  subtitle,
-  colors,
-}: {
-  title: string;
-  subtitle: string;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  return (
-    <View style={{ gap: 6 }}>
-      <Text style={[styles.questionTitle, { color: colors.textPrimary }]}>{title}</Text>
-      {subtitle ? <Text style={[styles.subtitle, { color: colors.textTertiary }]}>{subtitle}</Text> : null}
-    </View>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  colors,
-}: {
-  label: string;
-  value: string;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  return (
-    <View style={[styles.statCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-      <Text style={[styles.optionSub, { color: colors.textTertiary }]}>{label}</Text>
-      <Text style={[styles.optionTitle, { color: colors.textPrimary }]}>{value}</Text>
-    </View>
-  );
-}
-
-function CompletionTile({
-  label,
-  value,
-  colors,
-}: {
-  label: string;
-  value: string;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  return (
-    <View style={[styles.statCard, { backgroundColor: colors.surface1, borderColor: colors.border, flex: 1 }]}>
-      <Text style={[styles.optionSub, { color: colors.textTertiary }]}>{label}</Text>
-      <Text style={[styles.optionTitle, { color: colors.textPrimary }]}>{value}</Text>
-    </View>
-  );
-}
-
-function TrendCard({
-  title,
-  values,
-  colors,
-}: {
-  title: string;
-  values: number[];
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  const max = Math.max(...values, 1);
-  return (
-    <View style={[styles.trendCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
-      <Text style={[styles.optionSub, { color: colors.textTertiary }]}>{title}</Text>
-      <View style={styles.sparkline}>
-        {values.map((value, index) => (
-          <View
-            key={`${title}-${index}`}
-            style={[
-              styles.sparkBar,
-              {
-                height: Math.max(8, (value / max) * 40),
-                backgroundColor: colors.accent,
-                opacity: index === values.length - 1 ? 1 : 0.6,
-              },
-            ]}
-          />
-        ))}
-      </View>
-    </View>
-  );
-}
-
-function HistoryCard({
-  item,
-  colors,
-}: {
-  item: WeeklyCheckin;
-  colors: ReturnType<typeof useTheme>["colors"];
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <Pressable
-      onPress={() => setOpen((current) => !current)}
-      style={[styles.historyCard, { backgroundColor: colors.surface1, borderColor: colors.border }]}
-    >
-      <Text style={[styles.optionSub, { color: colors.textTertiary }]}>{getWeekRangeLabel(item.weekOf)}</Text>
-      <View style={styles.historyDots}>
-        {[item.energy, item.mealsLoggedDays >= 5 ? 5 : 3, item.bodyChanges.length ? 4 : 2, item.mood].map((score, index) => (
-          <View key={`${item.id}-${index}`} style={[styles.historyDot, { backgroundColor: scoreColor(score, colors) }]} />
-        ))}
-      </View>
-      <Text style={[styles.bodySummary, { color: colors.textSecondary }]}>{item.aiInsight}</Text>
-      {open ? (
-        <View style={{ gap: 6, marginTop: 8 }}>
-          <Text style={[styles.optionSub, { color: colors.textSecondary }]}>Energy {item.energy}/5 · Mood {item.mood}/5</Text>
-          <Text style={[styles.optionSub, { color: colors.textSecondary }]}>
-            Meals {item.mealsLoggedDays}/7 · Workouts {item.workoutSessions} · Hydration {item.hydrationDaysHit}/7
-          </Text>
-          {item.bodyChanges.length ? (
-            <Text style={[styles.optionSub, { color: colors.textSecondary }]}>{item.bodyChanges.join(" · ")}</Text>
-          ) : null}
-        </View>
-      ) : null}
-    </Pressable>
-  );
 }
 
 const styles = StyleSheet.create({
