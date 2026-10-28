@@ -1,7 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { migrateOwnedLocalData } from "@/services/local/migrateLocalData";
 import React, { createContext, Fragment, useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, Button, Text, View } from 'react-native';
+import { useColorScheme } from 'react-native';
+import { StartupSurface } from '@/components/somata/StartupSurface';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { accountSessionChanged, accountStorage } from '@/services/local/accountStore';
@@ -11,6 +12,7 @@ type Ctx = { user: User | null; initializing: boolean };
 const AuthContext = createContext<Ctx>({ user: null, initializing: true });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const dark = useColorScheme() !== 'light';
   const [user, setUser] = useState<User | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -35,10 +37,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => { alive = false; revision++; unsubscribe(); };
   }, [retry]);
   return <AuthContext.Provider value={{ user, initializing }}>
-    {initializing ? <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-      {failed ? <><Text>Could not prepare private device data and reminders. Retry before opening another account.</Text>
-        <Button title="Retry secure account switch" onPress={() => setRetry(n => n + 1)} /></> : <ActivityIndicator accessibilityLabel="Preparing your account" />}
-    </View> : <Fragment key={user?.uid ?? 'signed-out'}>{children}</Fragment>}
+    {initializing ? <StartupSurface dark={dark} preparing failed={failed} onRetry={() => setRetry(n => n + 1)} />
+      : <Fragment key={user?.uid ?? 'signed-out'}>{children}</Fragment>}
   </AuthContext.Provider>;
 };
 export const useAuth = () => useContext(AuthContext);

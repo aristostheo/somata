@@ -1,3 +1,5 @@
+import { DeskIntro, DeskSection, DeskColumns, StatusNote } from "@/components/accountSettings/PremiumUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { Button, Heading, Panel, TaskPage, Toggle } from "@/components/somata/TaskUI";
 import { useSomataTheme } from "@/components/somata/theme";
 import * as Haptics from "expo-haptics";
@@ -84,8 +86,8 @@ function setNested(obj: any, path: string, value: boolean) {
   };
 }
 
-export default function FriendVisibilityPage() {
-  const { D, F } = useSomataTheme();
+function FriendVisibilityPage() {
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const { user } = useAuth();
@@ -141,23 +143,27 @@ export default function FriendVisibilityPage() {
 
   return (<TaskPage title="Share on your terms" section="Friend visibility" subtitle="Only saved, enabled fields can be shared. In Friends, separately approve each person who may see them. Changes save immediately." onBack={() => router.back()}>
 
-    <Panel accent>
+    <DeskIntro icon="shield-checkmark-outline" label="Privacy / immediate settings" title="You choose what leaves your account.">
       <Toggle title="Share activity with friends" detail={visibility.enabled ? 'Choose the details below.' : 'Friends see nothing while sharing is off.'} disabled={saving || !profile} value={!!visibility.enabled} onChange={toggleMaster} />
-    </Panel>
+    </DeskIntro>
     {!!savedToast && <Text accessibilityLiveRegion="polite" style={F.body}>{savedToast}</Text>}
 
-    {GROUPS.map(g => <View key={g.title} style={{ gap: 12 }}>
-      <Heading title={g.title} />
+    {GROUPS.map(g => <DeskSection key={g.title} icon={g.title === 'Nutrition' ? 'nutrition-outline' : g.title === 'Workouts' ? 'barbell-outline' : g.title === 'Progress' ? 'trending-up-outline' : 'footsteps-outline'} title={g.title} detail="Each change saves immediately.">
       {g.rows.map(row => {
         const [a, b] = row.path.split('.'); return <View key={row.path}>
           <Toggle title={row.label} detail={row.detail} value={!!(visibility as any)?.[a]?.[b]} disabled={!visibility.enabled || saving || !profile} onChange={next => toggleRow(row.path, next, row.sensitive)} />
-          <Button label={`Preview ${row.label.toLowerCase()}`} onPress={() => Alert.alert('Friend preview', row.detail)} />
+          <Button icon="information-circle-outline" label={`Preview ${row.label.toLowerCase()}`} onPress={() => Alert.alert('Friend preview', row.detail)} />
         </View>;
       })}
-    </View>)}
+    </DeskSection>)}
 
+    <StatusNote title="Two layers of permission" detail="These choices control fields. Each accepted friend also needs your separate approval in Friends." />
     <Button primary label="Preview my shared profile" onPress={() => router.push('/friends/preview')} />
     <Button danger label="Reset sharing to defaults" disabled={saving || !profile} onPress={() => savePatch({ friendVisibility: DEFAULT_FRIEND_VISIBILITY })} />
   </TaskPage>
   );
+}
+
+export default function PremiumFriendVisibilityPage() {
+  return <SomataTaskAppearance><FriendVisibilityPage /></SomataTaskAppearance>;
 }

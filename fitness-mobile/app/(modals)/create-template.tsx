@@ -1,5 +1,6 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { Button, Empty, Field, Heading, IconButton, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
@@ -39,7 +40,11 @@ function n(v: any, fallback: number) {
 }
 
 export default function CreateTemplateModal() {
-  const { D, F } = useSomataTheme();
+  return <SomataTaskAppearance><CreateTemplateModalContent /></SomataTaskAppearance>;
+}
+
+function CreateTemplateModalContent() {
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const { user } = useAuth();
@@ -167,20 +172,20 @@ export default function CreateTemplateModal() {
     }
   };
 
-  return (<><TaskPage title="Build your routine" section="New template" onBack={close} footer={<Button primary label="Save template" onPress={saveTemplate} disabled={!canSave || !uid} />}>
+  return (<><TaskPage title="Create a routine" section="New template" onBack={close} footer={<Button primary label="Save template" onPress={saveTemplate} disabled={!canSave || !uid} />}>
 
+    <Panel accent><Heading title="Routine identity" detail="Give your plan a name, then arrange the movements." />
     <Field label="Routine name" value={name} onChangeText={setName} placeholder="My training routine" />
-    <View style={{ flexDirection: 'row', gap: 10 }}>
+    <WorkoutFields>
       <Field label="Emoji" value={emoji} onChangeText={setEmoji} />
       <Field label="Tags · separate with •" value={tagText} onChangeText={setTagText} />
-    </View>
+    </WorkoutFields></Panel>
 
     <Heading title="Exercise order" detail="Arrange the routine in the order you want to train." />
     {!items.length && <Empty title="Start with one movement" detail="Add exercises and their planned sets below." />}
 
     {items.map((it, i) => <Panel key={i}>
-      <Text style={F.eyebrow}>{String(i + 1).padStart(2, '0')}</Text>
-      <Heading title={it.exercise} detail={`${it.sets} × ${it.reps}${it.weightKg != null ? ` · ${it.weightKg} kg` : ''}`} />
+      <MovementHeading number={i + 1} title={it.exercise} detail={`${it.sets} × ${it.reps}${it.weightKg != null ? ` · ${it.weightKg} kg` : ''}`} />
       {!!it.notes && <Text style={F.body}>{it.notes}</Text>}
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <IconButton icon="arrow-up" label="Move earlier" disabled={i === 0} onPress={() => moveItem(i, -1)} />
@@ -191,12 +196,13 @@ export default function CreateTemplateModal() {
     <Button label="Add exercise" icon="add" onPress={openAdd} />
 
   </TaskPage><TaskSheet title="Add an exercise" visible={addOpen} onClose={() => setAddOpen(false)}>
-      <Field label="Exercise" value={exName} onChangeText={setExName} />
-      <View style={{ flexDirection: 'row', gap: 10 }}>
+      <WorkoutIntro label="Plan a movement" title="Set the starting prescription." detail="These are planned sets, not completed work." />
+      <Panel><Field label="Exercise" value={exName} onChangeText={setExName} />
+      <WorkoutFields>
         <Field label="Sets" value={sets} onChangeText={setSets} keyboardType="number-pad" />
         <Field label="Reps" value={reps} onChangeText={setReps} keyboardType="number-pad" />
-      </View>
-      <Field label="Weight · kg · optional" value={weightKg} onChangeText={setWeightKg} keyboardType="decimal-pad" />
+      </WorkoutFields>
+      <Field label="Weight · kg · optional" value={weightKg} onChangeText={setWeightKg} keyboardType="decimal-pad" /></Panel>
       <Field label="Notes" value={notes} onChangeText={setNotes} multiline />
       <Button primary label="Add to routine" onPress={addItem} disabled={!exName.trim()} />
     </TaskSheet></>

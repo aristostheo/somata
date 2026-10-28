@@ -228,7 +228,7 @@ export async function addNotification(
 export function subscribeNotifications(
   uid: string,
   cb: (rows: AppNotification[]) => void,
-  opts: { unreadOnly?: boolean; max?: number } = {}
+  opts: { unreadOnly?: boolean; max?: number; onError?: () => void } = {}
 ) {
   if (!uid || uid === "__demo__") {
     cb([]);
@@ -267,6 +267,7 @@ export function subscribeNotifications(
     (err) => {
       console.warn("[subscribeNotifications]", err);
       cb([]);
+      opts.onError?.();
     }
   );
 }

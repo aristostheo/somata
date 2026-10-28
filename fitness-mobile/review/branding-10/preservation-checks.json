@@ -1,0 +1,965 @@
+{
+  "baselineFiles": 1466,
+  "unchangedFiles": 1448,
+  "changedExistingFiles": [
+    "fitness-mobile/app/(modals)/browse.tsx",
+    "fitness-mobile/app/(modals)/coach-spark.tsx",
+    "fitness-mobile/app/(modals)/create-template.tsx",
+    "fitness-mobile/app/(modals)/quick-cardio.tsx",
+    "fitness-mobile/app/(modals)/quick-mobility.tsx",
+    "fitness-mobile/app/(modals)/quick-strength.tsx",
+    "fitness-mobile/app/(modals)/quick-workout.tsx",
+    "fitness-mobile/app/(modals)/save-workout-as-templates.tsx",
+    "fitness-mobile/app/(tabs)/workouts.tsx",
+    "fitness-mobile/app/workouts/history.tsx",
+    "fitness-mobile/app/workouts/recap.tsx",
+    "fitness-mobile/app/workouts/session-detail.tsx",
+    "fitness-mobile/app/workouts/session.tsx",
+    "fitness-mobile/app/workouts/templates.tsx",
+    "fitness-mobile/components/activity/ActivityLogSheet.tsx",
+    "fitness-mobile/components/exercises/ExercisePreviewSheet.tsx",
+    "fitness-mobile/components/exercises/FilterBar.tsx",
+    "fitness-mobile/tools/home-preview-runtime.cjs"
+  ],
+  "approvedArtworkUnchanged": 125,
+  "allOtherBaselineFilesUnchanged": true,
+  "primaryTabRenders": [
+    {
+      "tab": "Home",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "c0d907109baad2e1048817f41e7cf8fa4b43b55b420a5aae64c312a7f72dda09"
+    },
+    {
+      "tab": "Workouts",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "16eb81099841be69d4ea90b774f04ba4378c96bb1ccd3ec5c958028f4c3e3eb1"
+    },
+    {
+      "tab": "Nutrition",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "50289c5369c2abab0b9bda5937e8020833187e2a31aea67da0269b5300ee4d36"
+    },
+    {
+      "tab": "Alerts",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "7f9c344a84dee3d6da657a3f5d232c86453f18b03c769909a8f0ad6777326f83"
+    },
+    {
+      "tab": "Profile",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "9c8a9a28344f1de72e2bd0488e5ffeb9f944d885d19069ffd04bce0662edabec"
+    },
+    {
+      "tab": "Home",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "53531b7260ff99871ca09bd16774805364a27aa3c14014b5101607a959fe8c90"
+    },
+    {
+      "tab": "Workouts",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "3f55cba4a97e589bef7075de5538bdd41dac3f0bf1d881d708a0c010b562af3e"
+    },
+    {
+      "tab": "Nutrition",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "76b196d1bc1594bbcfa3f0aed27f0aaec764bb825dde76ec0e4c695a56ec6ec1"
+    },
+    {
+      "tab": "Alerts",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "783b954b7bbad64b2e54b7433fb8d7738bb03985dd84867c4cf0e3907cbd0fe7"
+    },
+    {
+      "tab": "Profile",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "835572119c00108ff6d190e0b9c7ae5f893c4c1c269ec53fb698ca9896d2de67"
+    }
+  ],
+  "homeUtilityRenders": [
+    {
+      "name": "sync-records",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "2ba23d87cd2af2f9e4886d42770f6f36051f963992f8a62d4ca5d79a579b630f"
+    },
+    {
+      "name": "sync-empty",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "b8abbe20aa35f7abc726a7f8e52f625dec9406f15424510a6e21bff9ebfd862e"
+    },
+    {
+      "name": "sync-loading",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "36589a3e57723027c25da240955528709913cf92bf90846b4ce0d9c677f219ac"
+    },
+    {
+      "name": "calendar-month",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "77e61fc96285d5a0c4c7d201938fa3c7cfd045ebbf76fa37d64b1b09d3306ad3"
+    },
+    {
+      "name": "calendar-week",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "35b6a049d2b4573749391198a3dc259fa55ec42aa62cdc73aa7e80a8cd6adf2b"
+    },
+    {
+      "name": "calendar-year",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "5e2f21ca7faaaa61adef9fd28a4cad9e20bf3d5dd1e42d24f2855d99abb2b874"
+    },
+    {
+      "name": "calendar-empty",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "723e4a4e10b02f1d8cd8142fb9da8b67cbb0df3c1c5c3e4a80828fbc8fc6e372"
+    },
+    {
+      "name": "day-record",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "e5494a91fa3f1f709cfdbc739c0d5e2bf37f52ae29c02296bc799a630cf7a636"
+    },
+    {
+      "name": "day-empty",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "ac590206cb70e49e724bbab8faef79f567f37197b57f7ff0db79711758a9c5dc"
+    },
+    {
+      "name": "steps-add",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "636e55da89c753d2a60312622ab064d7c179840b915d8faa0b11d11b9ddf71eb"
+    },
+    {
+      "name": "steps-set",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "921a55a2dee176934be7141a1b4fec5c86334ec643aa0dc3e368b6631dac2599"
+    },
+    {
+      "name": "steps-saving",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "23f606359879e15b3c44ee61cd1ce32e31627e47603f658de66e87ef3da59698"
+    },
+    {
+      "name": "sync-records",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "c5a6b8f28c4cb0d2d4a3a1f3c3914505b294e88b43edc9c1b76cd3056a65c54f"
+    },
+    {
+      "name": "sync-empty",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "36cc9d069cde8fd9e225b399f58d63b048b275310b0a739c7376f819d7d7de16"
+    },
+    {
+      "name": "sync-loading",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "aaf0e0fa381ab1d7de8b200db286fc73e8ea22d7aef6f25b44892872bf3cae7f"
+    },
+    {
+      "name": "calendar-month",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "ca6805b947231e2f915083c44c4a833540f0c6bb376ad9cbc95a1f2e4b061d5d"
+    },
+    {
+      "name": "calendar-week",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "f33b1c47d6a07445e85fa2be37f09ed434665f2de07e4da9412c46a47c78aea6"
+    },
+    {
+      "name": "calendar-year",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "6c33a587c6e3bc374f68f6a4f0b36d3fac821e57ab25bc5ab0bfce1bc9042e20"
+    },
+    {
+      "name": "calendar-empty",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "f0066f57c790b2e47dc4d062187a686411cebfeabd7f67c1bcec81e629f9b314"
+    },
+    {
+      "name": "day-record",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "a762e066829d151de6070ef8dac823d4c2674ed55fcc25d28771a7f673ceb45f"
+    },
+    {
+      "name": "day-empty",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "1e239cc814bf9563a230f9a0739f1246d9f19c9f10be85ec717a9e88a9390521"
+    },
+    {
+      "name": "steps-add",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "652c167f76c5ec2b2af5891e3f6a6ff9485e6311e524841dcc8b169c1352b168"
+    },
+    {
+      "name": "steps-set",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "62ced16184e547a90e58ce4dbff4f8992550f5ea3fc034b5213a321cbd039214"
+    },
+    {
+      "name": "steps-saving",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "9fcd2d11663cefd5d32aa63f3cd8ba48b807c888dacf339bfae576061c9da779"
+    }
+  ],
+  "nutritionRenders": [
+    {
+      "name": "N01-search",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "cf36178c91d77eb171fb4a904d6bdb0cd68f66fb7a9a3034b95aa509567c9115"
+    },
+    {
+      "name": "N01-empty",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "16c28a2feed9837aa63aef89beb0a9ad4bb441dca9c2af55f36e7723ccb3d51e"
+    },
+    {
+      "name": "N01-loading",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "0bdd7ac5c1ae39c88753fcf957390e3e3a4419cfe62f75ce913918c54e8e945f"
+    },
+    {
+      "name": "N01-frequent",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "fa9d5c07f204f37d671df4f2bfa17daf95334b1deaf773dbcabfa19457f99bef"
+    },
+    {
+      "name": "N01-describe-error",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "4d2bed873c5d0d56142601d2d654bba2fb8f09f59a868fac540f267ae6f74ec5"
+    },
+    {
+      "name": "N01-barcode",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "699829580d674094cacdb71c372e52873c102de12a068221287f83ff520b7200"
+    },
+    {
+      "name": "N01-manual",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "6c7dfca8c4bdb93a999ce8c791e1ffcff5bd7c67c2a0b147933e4608745beb4d"
+    },
+    {
+      "name": "O05-review",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "7644466e7190296335b8b7e04b9d1b97d4d63af7340964ce926b959ceb1ecf44"
+    },
+    {
+      "name": "O06-matches",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "b14c96c7aa0ac7e040a43c92e609daad980f2f939b0a4f1ee2522d74c9033571"
+    },
+    {
+      "name": "N02-picks",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "a191084b32476484a1d564f9fb67312288978604dddf1a8d2fed692ee5ede3ef"
+    },
+    {
+      "name": "N02-empty",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "3e077877d522c5ce4686f8b9d33612f53a91827f35c2875a986e3fe764cc821a"
+    },
+    {
+      "name": "O07-macros",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "5e3280660f4d8d7a29a9c0221212410819d32c816482c72364eecb384e7b18c4"
+    },
+    {
+      "name": "O04-edit",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "c70896f81b0705ec9b1511e80eaf76f0dac0237fa2e0977da9f0fc7ecb1315b6"
+    },
+    {
+      "name": "O04-saving",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "8d37e370aadb71cee3bb247dc2765ffc8f9752ff37fc7fd2736b4fa8f3aa7492"
+    },
+    {
+      "name": "N03-capture",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "551a166a7118795a3edf933c689d5dbfcd216de5829cd2ba26c3037ddb2abaf1"
+    },
+    {
+      "name": "N03-review",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "26d28000fea48f485356649dedc82b3a76438dbf9458e7625908ab34b2bf62e9"
+    },
+    {
+      "name": "N03-processing",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "81429ed18e99377c1f76150be3ba9dce7726a0035452757f0a1f2af2126ab2e6"
+    },
+    {
+      "name": "N03-error",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "eb510dd66a1055cbbfad162140831db8c728dddc60e1d7960f20a292998ed9a6"
+    },
+    {
+      "name": "N04-capture",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "7ca743a6752807f718a589ef5cbf2c483ee698f89631911fe39cc225f59534af"
+    },
+    {
+      "name": "N04-review",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "6123081e79a8409b38676b43e175f478547a656094bd55beced6f558583e185b"
+    },
+    {
+      "name": "N04-processing",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "2b3ea7ab12b09fcf13f15284470c9608d0f2a80435aa7e4b1503f38988410e50"
+    },
+    {
+      "name": "O09-add",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "d036c09cd88c7dd87713c031b3611260d2260eef7dd23da52b34df13af8b4cdb"
+    },
+    {
+      "name": "O09-unknown",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "0899b4a8c1d6ca2d631a2b951439e2ead3df4594b09f8b9563e009182fca4e21"
+    },
+    {
+      "name": "O10-edit",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "4bfe7f44d1320d4228878897936dd67b5579314dd1972f997a3b7154ef969a07"
+    },
+    {
+      "name": "O11-explain",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "c6d690f8850a2f2d0206c6fa8f70dae3518d10432bffc6f675da103780ebc005"
+    },
+    {
+      "name": "N05-builder",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "b5548c7550ff5ae5f53410cc4b9c014fa55c6eff0c1cf333c0be559a3604fa06"
+    },
+    {
+      "name": "N05-empty",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "19c40f9e8f6b9c08260aa9b8982b659bc2e997d43c2a69dcd682390758ac8528"
+    },
+    {
+      "name": "N05-transfer-error",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "2a70d708d7c907a1b1d56807bfe37254681a67596d85f31e06eac084c0414a1f"
+    },
+    {
+      "name": "O08-scan",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "165830c4694c4bec2f2f637a2204fd2fec4bcf3316dcc50d2160157c6047d611"
+    },
+    {
+      "name": "O08-describe",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "eefdeb513d9cee849e7d24a9b23be6da3e1179c4633ed828929afb2547df5626"
+    },
+    {
+      "name": "O08-barcode",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "eebaca836f79f35612fc15845caef68d80dfe247b34a12b706fd7682bdf37bf4"
+    },
+    {
+      "name": "O08-manual",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "3d00d0503c6e52b1b993f7ffbb6c11c9f107e6512aa49a14c1cbcb66c940dbfb"
+    },
+    {
+      "name": "N07-selected",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "4efe41ce67465f10a0ae711adb7226f5346766d51926c0e662f8d9175f644c43"
+    },
+    {
+      "name": "N07-empty",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "14cbe94802de6ad6f2d8fe28e7a95c664a5edc1367d83e03607f22498357a2d5"
+    },
+    {
+      "name": "N06-ideas",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "29b35522e0947c93344a4cb2de6a6fd20695f35a29244c13d0ecfc8af389204e"
+    },
+    {
+      "name": "N06-missing",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "16bf43f743c3a7697337d28b9285d91ebc35c2709c8f14d0f0346e834df4e624"
+    },
+    {
+      "name": "N08-water",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "2e749ca4bb2ba411aa52b368a10c45012030a8c47187dce57a33de6f419f12c6"
+    },
+    {
+      "name": "N08-busy",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "a3eda762b81155ceee0a185b3303e7277d37942d603ffa429b4dc81a213796a7"
+    },
+    {
+      "name": "N08-signed-out",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "4dd279697726ff396326142485e257806ec55f7f2b0a138c63432b485e2e7532"
+    },
+    {
+      "name": "N09-empty",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "8da4f1d86f34aeaf5b638656126f9b0d0e18e3654f2eb5b0eb27eaffa9124db1"
+    },
+    {
+      "name": "N09-loading",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "6df5384b15fa88f59cf8af47f3db8a15a353532a6691ecdd079a0dbe98336596"
+    },
+    {
+      "name": "N09-ideas",
+      "dark": true,
+      "sameMarkup": true,
+      "sha256": "16448903e19a1e7c716162a7c697df8db3778d438fd4d30f22eba4948ad64f7d"
+    },
+    {
+      "name": "N01-search",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "37bfc798a503fcb47949b6763de1ef2424e97a844db66f9b8483a91a1469fd65"
+    },
+    {
+      "name": "N01-empty",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "a46b1f809c69bf619d5e05653cc2e0abf04fb469f3ddea7a0384cf5f7cc5f659"
+    },
+    {
+      "name": "N01-loading",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "369f03ceeaf24b98cd40c7cb2eae7dcb56b5d4cec77914349b72a01e9a60ebf0"
+    },
+    {
+      "name": "N01-frequent",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "ae5e40a8c1e0f3f2e2c9a6600b5a6c988d46586168e193c9b41845c15f40f339"
+    },
+    {
+      "name": "N01-describe-error",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "6ec53b48fb3cd8faf7130a00b62e6bf22043dcd204dcbbe5a286aae3019ef1a5"
+    },
+    {
+      "name": "N01-barcode",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "62335420501fc5ab5e7128b68e2cabebd6a46e184c17425d0f38126b325ce321"
+    },
+    {
+      "name": "N01-manual",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "1c8f25848bb9439bc2da0d8806615e32560afa0f0773a9fc14690a2bf154a1f1"
+    },
+    {
+      "name": "O05-review",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "23da2530ae4b36c7db22a1341e177354fc43cc91ae5b3470113f3e193f1b1612"
+    },
+    {
+      "name": "O06-matches",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "efca342b372f7531c1962ead1552672f73dcda1655d94e338a7efd6149311761"
+    },
+    {
+      "name": "N02-picks",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "824ca49c245d8627f572871c041d50c2b67bea1f376369a4669009f3357b7ebe"
+    },
+    {
+      "name": "N02-empty",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "7771312900a3644f708abd1fa7c5640ba63a542e5640331bcb2a83acc67b0fa0"
+    },
+    {
+      "name": "O07-macros",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "ad981318c82c3d635590c450e06009611e207e14f58aff0fae90b9acd40904e4"
+    },
+    {
+      "name": "O04-edit",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "3aa76d34945c100496fff0e40c57e4d36865e7220cc914ecd6dc37c5de00a2a3"
+    },
+    {
+      "name": "O04-saving",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "ec42bbd59ff01ededeb64454ed146e463edc63fb010adf6c208c711e54c0c317"
+    },
+    {
+      "name": "N03-capture",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "52350340d1c2fab67364bfb24634f30804a90ac9ea1fbef428dac1728eff495f"
+    },
+    {
+      "name": "N03-review",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "3c371d2b5ed65bdbb72b3150558a8ee21176e1ce84c89adb89c7b36d10e64530"
+    },
+    {
+      "name": "N03-processing",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "5613c3accb147977597e9577cc94710bd89719a10f81b421315dbdf78d0c26b8"
+    },
+    {
+      "name": "N03-error",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "9b7ae9201fddd0b19ce5e0cb50ada8566f891c1fd73a39e762f037a84a761f2b"
+    },
+    {
+      "name": "N04-capture",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "2916582b71289dd343cab89ec7f6347d4c649574a5b1c4eaad174540139cb614"
+    },
+    {
+      "name": "N04-review",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "2f9276aca4feccec8abb66403ab6ffc2f17584fb53a4d71c0daa6d7e8c079e34"
+    },
+    {
+      "name": "N04-processing",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "53eee8f43af1b0d4934c18ad0952d3b6430163fd8c25eba2f0b9bdd9a4722188"
+    },
+    {
+      "name": "O09-add",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "1c106e1f5d89056953703a8d186fd6fdaceaf04febae473c150b38b97ad12d08"
+    },
+    {
+      "name": "O09-unknown",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "566643b72d588db4a39893555be7f87c056e643e8548e469f47fad1f82898573"
+    },
+    {
+      "name": "O10-edit",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "cf300f8d26debea6a051cbb67da9f7a4b611cda761e188741673ec1f77741ce6"
+    },
+    {
+      "name": "O11-explain",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "e0a712f7f875c19ae5517ebaee2fcd64b53789645a12bc20b4b2d9f63dffa6e4"
+    },
+    {
+      "name": "N05-builder",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "81306f1c350c498ea59159d3f12ee8945a65ea3dde2a7792c388257735798e8a"
+    },
+    {
+      "name": "N05-empty",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "d96d9e8be4850d14b115017a8e9d095cff875638069d11f3e26e3f090e95351b"
+    },
+    {
+      "name": "N05-transfer-error",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "8eb6607a9706a2e34178b128db73f2e7bd5bc5f98979ff11be9c1cf1a95dfe71"
+    },
+    {
+      "name": "O08-scan",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "93191882a660e9265b7cd7a7218d1c5d4281e08107d645bc2e9c5877492f008f"
+    },
+    {
+      "name": "O08-describe",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "ad51e889dd5dbe0ab798ef99c98510774ea835cb6ef39f42384e1899a71822ed"
+    },
+    {
+      "name": "O08-barcode",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "1fde4d868cff90c037a36223424f84771eeb8503a3e2ccc756c1ed1340ae3583"
+    },
+    {
+      "name": "O08-manual",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "c844b38362ec1cd609b6acdd2ad0713e6e2e357a948f742afbf2a09aedea5141"
+    },
+    {
+      "name": "N07-selected",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "687bd5d71d9b9f51d8d52f898800f85cd98afb91b5103be0e4b7576f84550a8a"
+    },
+    {
+      "name": "N07-empty",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "e572ec577a72242c0b1d8b6b85c987d2211c00c401dea22463b337264b524216"
+    },
+    {
+      "name": "N06-ideas",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "c6fb11ec6fd032444b35b4d71f88d0d34c72654b5d91aef7faabac7482add60b"
+    },
+    {
+      "name": "N06-missing",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "f1d2b77865ae5b26f9be1d9d4ddcbb81aab9c604f616ce2e92a868bc0e0a2bd8"
+    },
+    {
+      "name": "N08-water",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "6981dad29c82fd575754f0e3b29a3846be4b7c3c5aea2fcbe99994b0cb01bd38"
+    },
+    {
+      "name": "N08-busy",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "76d3050995268d28c1372404278669ced90c6c6b0e20d4a8bc7acc8ad1890bf0"
+    },
+    {
+      "name": "N08-signed-out",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "218f0a33f02518cd820505e484cbc9aede6d87c17b890742927ea4fd705bec58"
+    },
+    {
+      "name": "N09-empty",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "810772bfe5366c98c299d31f769f182393d8e33c51494d5ddfe76978443d0ab6"
+    },
+    {
+      "name": "N09-loading",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "5a7154a3372f67d1b9454501f5885579b5a78542c417f37784ad54f350e5d279"
+    },
+    {
+      "name": "N09-ideas",
+      "dark": false,
+      "sameMarkup": true,
+      "sha256": "e13bf74a6b983bc238da5bbd44454a435f4708905b9937a2194a77ee464d8a5a"
+    }
+  ],
+  "controllerAudit": [
+    {
+      "file": "app/(modals)/quick-strength.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "QuickStrengthModal",
+        "seedAndOpen"
+      ]
+    },
+    {
+      "file": "app/workouts/templates.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "withAlpha",
+        "extractTags",
+        "TemplatesLibraryScreen",
+        "startFromTemplate"
+      ]
+    },
+    {
+      "file": "app/(modals)/create-template.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "n",
+        "CreateTemplateModal"
+      ]
+    },
+    {
+      "file": "components/activity/ActivityLogSheet.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "ActivityLogSheet",
+        "hapticLight",
+        "hapticSuccess",
+        "parseNum",
+        "saveFromForm",
+        "quickAdd",
+        "confirmDelete"
+      ]
+    },
+    {
+      "file": "app/(modals)/browse.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "normalize",
+        "matchesQuery",
+        "matchesFilters",
+        "sectionTitle",
+        "ExerciseBrowserModal"
+      ]
+    },
+    {
+      "file": "app/(modals)/quick-mobility.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "QuickMobilityModal",
+        "seedAndOpen"
+      ]
+    },
+    {
+      "file": "app/workouts/history.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "createdAtMs",
+        "pad2",
+        "fmtISO",
+        "isISO",
+        "startOfMonth",
+        "endOfMonth",
+        "endOfToday",
+        "daysAgo",
+        "fmtTime",
+        "fmtDateNice",
+        "fmtCompact",
+        "volumeKg",
+        "dateMsFromISO",
+        "buildSessionBuckets",
+        "computePrFlags",
+        "usePressScale",
+        "computeRangeFromPreset",
+        "monthKey",
+        "monthLabel",
+        "monthRange",
+        "WorkoutHistoryScreen",
+        "MonthPickerModal",
+        "CustomRangeModal"
+      ]
+    },
+    {
+      "file": "app/workouts/session-detail.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "createdAtMs",
+        "dateMsFromISO",
+        "buildSessionBuckets",
+        "formatShortDate",
+        "fmtTime",
+        "formatDuration",
+        "volumeKg",
+        "workoutScore",
+        "scoreDescriptor",
+        "descriptorTint",
+        "WorkoutSessionDetailScreen"
+      ]
+    },
+    {
+      "file": "components/exercises/ExercisePreviewSheet.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "ExercisePreviewSheet"
+      ]
+    },
+    {
+      "file": "components/exercises/FilterBar.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": []
+    },
+    {
+      "file": "app/(tabs)/workouts.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "Workouts"
+      ]
+    },
+    {
+      "file": "app/(modals)/quick-cardio.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "QuickCardioModal",
+        "seedAndOpen"
+      ]
+    },
+    {
+      "file": "app/workouts/recap.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "withAlpha",
+        "createdAtMs",
+        "dateMsFromISO",
+        "buildSessionBuckets",
+        "formatHeaderDate",
+        "formatShortDate",
+        "formatDuration",
+        "formatVolume",
+        "workoutScore",
+        "recapKey",
+        "enterMotion",
+        "WorkoutRecapScreen"
+      ]
+    },
+    {
+      "file": "app/(modals)/coach-spark.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "toneAlpha",
+        "parseDurationMinutes",
+        "labelGoal",
+        "getDateKey",
+        "createdAtMs",
+        "classifyGroup",
+        "buildRecentSessions",
+        "getUntrainedMusclesThisWeek",
+        "getSmartDefaults",
+        "buildContextRows",
+        "makePrompt",
+        "readSparkHistory",
+        "writeSparkHistory",
+        "titleCaseFocus",
+        "CoachSparkModal",
+        "updateForm",
+        "persistHistory",
+        "deleteHistoryItem",
+        "generateWorkout",
+        "startWorkout",
+        "saveAsTemplate"
+      ]
+    },
+    {
+      "file": "app/(modals)/quick-workout.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "QuickWorkoutScreen"
+      ]
+    },
+    {
+      "file": "app/(modals)/save-workout-as-templates.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "createdAtMs",
+        "SaveWorkoutAsTemplateModal"
+      ]
+    },
+    {
+      "file": "app/workouts/session.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "clamp",
+        "pad2",
+        "formatDuration",
+        "fmtCompact",
+        "uid",
+        "guessIsDarkFromBg",
+        "buildPalette",
+        "makeStyles",
+        "WorkoutSessionScreen",
+        "flushSave",
+        "persist",
+        "buildSessionSnapshot",
+        "toggleExpanded",
+        "lastUsedFor",
+        "addSet",
+        "removeItem",
+        "openEdit",
+        "applyEdit",
+        "toggleDone",
+        "saveTitle",
+        "savePresetForExercise",
+        "deletePresetByName",
+        "finishWorkout",
+        "confirmExit",
+        "quickAdd"
+      ]
+    }
+  ],
+  "controllerAuditScope": "Non-JSX function body statements; excludes theme-hook destructuring. Inline JSX callbacks additionally covered by regression tests. Not a proof of native runtime behavior."
+}

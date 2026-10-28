@@ -1,0 +1,109 @@
+{
+  "baselineFiles": 1030,
+  "unchangedFiles": 1022,
+  "changedExistingFiles": [
+    "fitness-mobile/app/(modals)/full-calendar.tsx",
+    "fitness-mobile/app/(tabs)/index.tsx",
+    "fitness-mobile/app/profile/sync-history.tsx",
+    "fitness-mobile/components/designPreview/Appearance.tsx",
+    "fitness-mobile/components/homeFlows/FlowUI.tsx",
+    "fitness-mobile/components/somata/CalendarRecord.tsx",
+    "fitness-mobile/components/somata/TaskUI.tsx",
+    "fitness-mobile/tools/home-preview-runtime.cjs"
+  ],
+  "approvedArtworkUnchanged": 125,
+  "allOtherBaselineFilesUnchanged": true,
+  "homePageMarkupUnchanged": true,
+  "primaryTabRenders": [
+    {
+      "tab": "Home",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "49a329dae19d759eb5b1ed8a18dd1feede095ce5a816109d6fc5abae80f73a31"
+    },
+    {
+      "tab": "Workouts",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "c3d383e8dca62ce5c3eff14307645e9cd78529e96212e410a8cdb7fd912847a4"
+    },
+    {
+      "tab": "Nutrition",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "0c31f904a60cc01e0ffd35d99a7237e182ad0278cc78cec5a0087e0bcfb60566"
+    },
+    {
+      "tab": "Alerts",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "d635d002f5563d0691de00a5e86196a5bdf079c66695e980dd8b3c530891119a"
+    },
+    {
+      "tab": "Profile",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "1046809379a16e69ee1097ef72f8a249cf55f1a02da6bac6620065861a5e6424"
+    },
+    {
+      "tab": "Home",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "45b356af1508a26dd7d3714c822d164d9f3d6067b115a7dd8a6daa73eed0d8e8"
+    },
+    {
+      "tab": "Workouts",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "117ffb2fd5a83a746d5abd55ac26664db707a15b4f380d87391bab476f41fc64"
+    },
+    {
+      "tab": "Nutrition",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "a8f4fc08344ed3d7d719111d67336c4acae65e328ccd4f9de3f3afd5501a9735"
+    },
+    {
+      "tab": "Alerts",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "dea1f27a453e30bf49d4ae1d032e48de0a7b131d42d30f51f3ff2dfa2bbb410d"
+    },
+    {
+      "tab": "Profile",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "8a8b03ebc481d9708f9d5b8d426e2f221f9e1f6821a8632eec7893ca84dd987f"
+    }
+  ],
+  "legacyControl": [
+    {
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "sameMarkup": true,
+      "sha256": "3fe51856155830618ee7b4bf84e8e156ed40d2020af42917188258e80e5b29d9"
+    },
+    {
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "sameMarkup": true,
+      "sha256": "66bf6ee629a03bd32bc5ea7c5144a0588d11dff961208fbcfad197d50711d84b"
+    },
+    {
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "sameMarkup": true,
+      "sha256": "774f6660a268ca34eb923da38d00d24564426d0442b2a0ad5a2fda3b5facd453"
+    },
+    {
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "sameMarkup": true,
+      "sha256": "c195575d136acb86726133a9d0664beb843baf77f04a7b6e5028770f26156a54"
+    }
+  ]
+}

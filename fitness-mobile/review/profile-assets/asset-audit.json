@@ -1,0 +1,130 @@
+[
+  {
+    "file": "assets/branding/profile/ambient-dark.png",
+    "width": 2400,
+    "height": 1200,
+    "bytes": 56061,
+    "decodedRgbaBytes": 11520000,
+    "bitDepth": 8,
+    "colorType": 2,
+    "transparentPixels": 0,
+    "colorMetadata": [],
+    "minTextContrastWithOverlay": {
+      "primary": 15.14,
+      "secondary": 9.45
+    },
+    "sha256": "738f2a18c436a790b5178d1dcac020d6ffe447b9e46b19447dfb64d6571e53c9"
+  },
+  {
+    "file": "assets/branding/profile/ambient-light.png",
+    "width": 2400,
+    "height": 1200,
+    "bytes": 63482,
+    "decodedRgbaBytes": 11520000,
+    "bitDepth": 8,
+    "colorType": 2,
+    "transparentPixels": 0,
+    "colorMetadata": [],
+    "minTextContrastWithOverlay": {
+      "primary": 15.46,
+      "secondary": 8.08
+    },
+    "sha256": "3e64e9c399d702ff5e903f2536c8d8a2f187ba8ed09cb5995c371f44ba5e2585"
+  },
+  {
+    "file": "assets/branding/profile/goals-dark.png",
+    "width": 2400,
+    "height": 1200,
+    "bytes": 146797,
+    "decodedRgbaBytes": 11520000,
+    "bitDepth": 8,
+    "colorType": 2,
+    "transparentPixels": 0,
+    "colorMetadata": [],
+    "minTextContrastWithOverlay": {
+      "primary": 13.78,
+      "secondary": 8.6
+    },
+    "sha256": "cdeaa148530b7e94118abc7aedad161f6d5246ea0560ae86990aafffb281d78a"
+  },
+  {
+    "file": "assets/branding/profile/goals-light.png",
+    "width": 2400,
+    "height": 1200,
+    "bytes": 207900,
+    "decodedRgbaBytes": 11520000,
+    "bitDepth": 8,
+    "colorType": 2,
+    "transparentPixels": 0,
+    "colorMetadata": [],
+    "minTextContrastWithOverlay": {
+      "primary": 13.39,
+      "secondary": 7
+    },
+    "sha256": "9a6ab5862abf27f44a5b17677de2a28442cb693b9011e3d14820992f028749d2"
+  },
+  {
+    "file": "assets/branding/profile/fitadapt-dark.png",
+    "width": 2400,
+    "height": 1200,
+    "bytes": 105700,
+    "decodedRgbaBytes": 11520000,
+    "bitDepth": 8,
+    "colorType": 2,
+    "transparentPixels": 0,
+    "colorMetadata": [],
+    "minTextContrastWithOverlay": {
+      "primary": 14.59,
+      "secondary": 9.1
+    },
+    "sha256": "c53752ac363ffff17bdfcc024baba7598f1bebf20254de0662ffff47cbf84c7a"
+  },
+  {
+    "file": "assets/branding/profile/fitadapt-light.png",
+    "width": 2400,
+    "height": 1200,
+    "bytes": 141524,
+    "decodedRgbaBytes": 11520000,
+    "bitDepth": 8,
+    "colorType": 2,
+    "transparentPixels": 0,
+    "colorMetadata": [],
+    "minTextContrastWithOverlay": {
+      "primary": 15,
+      "secondary": 7.83
+    },
+    "sha256": "14d5a4c41bb0756e00dea641e5a49ff961e0242f06bec017050f7da846c72256"
+  },
+  {
+    "file": "assets/branding/profile/progress-dark.png",
+    "width": 2400,
+    "height": 1200,
+    "bytes": 98646,
+    "decodedRgbaBytes": 11520000,
+    "bitDepth": 8,
+    "colorType": 2,
+    "transparentPixels": 0,
+    "colorMetadata": [],
+    "minTextContrastWithOverlay": {
+      "primary": 14,
+      "secondary": 8.74
+    },
+    "sha256": "ec9e0dde6d100860d82079e0a6fa34b3aab65b29f96d9596b3258bed70fb0102"
+  },
+  {
+    "file": "assets/branding/profile/progress-light.png",
+    "width": 2400,
+    "height": 1200,
+    "bytes": 146585,
+    "decodedRgbaBytes": 11520000,
+    "bitDepth": 8,
+    "colorType": 2,
+    "transparentPixels": 0,
+    "colorMetadata": [],
+    "minTextContrastWithOverlay": {
+      "primary": 15.11,
+      "secondary": 7.89
+    },
+    "sha256": "8e294bb20ddd334c8d2fb26f73e5a2a9c5d238162f33f98d7510b41697910404"
+  }
+]

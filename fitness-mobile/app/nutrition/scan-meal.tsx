@@ -2,7 +2,7 @@ import { useAccountStorage } from '@/services/local/accountStore';
 import { queueNutritionHandoff } from "@/services/queueNutritionHandoff";
 import { ScanItems } from "@/components/somata/ScanItems";
 import { Button, Choice, Field as FormField, Heading, IconButton, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { dayKey } from "@/utils/date";
 import { Image } from "react-native";
 // app/scan-meal.tsx
@@ -266,8 +266,12 @@ ${query}
 }
 
 export default function ScanMealScreen() {
+  return <SomataTaskAppearance><ScanMealScreenContent /></SomataTaskAppearance>;
+}
+
+function ScanMealScreenContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const params = useLocalSearchParams<{
@@ -800,14 +804,21 @@ export default function ScanMealScreen() {
   }, [state, onReset]);
 
   return (<>
-    <TaskPage title={state === 'review' ? 'Review your meal.' : 'A photo, then your review.'} section="Nutrition / photo capture" onBack={() => router.back()}
+    <TaskPage title={state === 'review' ? 'Meal review' : 'Scan a meal'} section="Nutrition / photo capture" onBack={() => router.back()}
       action={<IconButton label="How scanning works" icon="information-circle-outline" onPress={() => setShowExplain(true)} />}
-      footer={<><Button label={primaryLabel} primary disabled={!primaryAction || state === 'analyzing' || isLogging || isReanalyzing} onPress={() => primaryAction?.()} />
-        {!!secondaryAction && <Button label={secondaryLabel!} onPress={secondaryAction} />} {!!tertiaryAction && <Button label={tertiaryLabel!} onPress={tertiaryAction} />}</>}>
+      footer={<>
+        <Button label={primaryLabel} primary disabled={!primaryAction || state === 'analyzing' || isLogging || isReanalyzing} onPress={() => primaryAction?.()} />
+        {!!secondaryAction && <Button label={secondaryLabel!} onPress={secondaryAction} />}
+        {!!tertiaryAction && <Button label={tertiaryLabel!} onPress={tertiaryAction} />}
+      </>}>
 
-      <Text style={F.caption}>{quota.unlimited ? 'Unlimited scans enabled' : `${Math.max(0, quota.remaining)} / ${quota.limit} scans left today`}</Text>
+      <Panel accent><View style={{ ...F.row, alignItems: 'flex-start' }}>
+        <View style={{ flex: 1, gap: 8 }}><Text style={F.eyebrow}>{state === 'review' ? '02 / REVIEW & CONFIRM' : '01 / CAPTURE'}</Text>
+          <Text style={F.heading}>{state === 'review' ? 'Your review comes first' : 'One photo. Your food record.'}</Text></View>
+        <Ionicons name="scan-outline" size={30} color={D.teal} />
+      </View><Text style={F.caption}>{quota.unlimited ? 'Unlimited scans enabled' : `${Math.max(0, quota.remaining)} / ${quota.limit} scans left today`}</Text><Text style={F.body}>Foods and portions are estimates. Check each item before confirming.</Text></Panel>
 
-      {!!photoUri && <Image source={{ uri: photoUri }} accessibilityLabel="Meal photo for review" style={{ height: 220, width: '100%', borderRadius: 24 }} />}
+      {!!photoUri && <Image source={{ uri: photoUri }} accessibilityLabel="Meal photo for review" style={{ height: state === 'review' ? 140 : 260, width: '100%', borderRadius: 20 }} />}
 
       {state === 'idle' && <Panel accent>
         <Ionicons name="camera-outline" size={48} color={D.teal} />
@@ -816,12 +827,12 @@ export default function ScanMealScreen() {
 
       {state === 'photo_ready' && <Text style={F.body}>Scan this photo to identify foods and estimate portions. Nothing is logged until you confirm.</Text>}
 
-      {state === 'review' && <><View style={F.wrap}>
+      {state === 'review' && <><Panel><Heading title="Meal destination" /><View style={F.wrap}>
         {(['Breakfast', 'Lunch', 'Dinner', 'Snack'] as MealCategory[]).map(value => <Choice key={value} label={value} selected={category === value} onPress={() => setCategory(value)} />)}
-      </View>
+      </View></Panel>
         {lowConfidenceCount > 0 && <Text style={{ ...F.body, color: D.amber }}>Please check {lowConfidenceCount} low-confidence {lowConfidenceCount === 1 ? 'item' : 'items'}.</Text>}
         <ScanItems foods={foods} totals={totals} onEdit={onOpenEdit} onRemove={onRemove} onAdjust={onQuickAdjustPortion} onAdd={() => setShowAdd(true)} />
-        <FormField label="Notes (optional)" value={notes} onChangeText={setNotes} multiline />
+        <Panel><Heading title="Your notes" /><FormField label="Notes (optional)" value={notes} onChangeText={setNotes} multiline /></Panel>
       </>}
 
       {!!toast && <Text accessibilityLiveRegion="polite" style={{ ...F.body, color: D.lime }}>{toast.title}{toast.subtitle ? ` · ${toast.subtitle}` : ''}</Text>}

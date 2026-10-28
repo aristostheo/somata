@@ -8,7 +8,9 @@ export default function ModalLayout() {
   return (
     <Stack
       screenOptions={{
-        presentation: "modal",
+        // The root stack presents this entire group as a fullScreenModal.
+        // Its first child has no local screen beneath it to present over.
+        presentation: "card",
         headerShown: false,
       }}
     >

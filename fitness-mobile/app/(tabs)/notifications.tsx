@@ -1,6 +1,7 @@
 import { useAccountStorage } from '@/services/local/accountStore';
-import { Action, Card, Page, Section } from "@/components/designPreview/UI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { Filters, Header, Hero, InboxHeading, InboxState, NotificationCard } from "@/components/alerts/PremiumAlertsUI";
+import { SomataHomeAppearance } from "@/components/designPreview/Appearance";
+import { useHomeVisuals } from "@/components/home/PremiumHomeUI";
 import { useAuth } from "@/content/AuthContext";
 import { pingFriend } from "@/services/friends/friends";
 import {
@@ -8,10 +9,9 @@ import {
   notifyPingSafe, subscribeNotifications, type AppNotification
 } from "@/services/notifications";
 import { notifyFriendPing } from "@/services/notificationTriggers";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, FlatList, View } from "react-native";
 
 type Filter = "All" | "Friends" | "Workouts" | "Nutrition" | "Streaks" | "Coach";
 const FILTERS: Filter[] = ["All", "Friends", "Workouts", "Nutrition", "Streaks", "Coach"];
@@ -44,20 +44,32 @@ function age(item: AppNotification) {
 }
 
 export default function DesignAlerts() {
+  const { user } = useAuth();
+  return <SomataHomeAppearance><AlertsContent key={user?.uid || "signed-out"} /></SomataHomeAppearance>;
+}
+
+function AlertsContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { t } = useHomeVisuals();
 
   const router = useRouter();
   const { user } = useAuth();
   const [raw, setRaw] = useState<AppNotification[] | null>(null);
   const [filter, setFilter] = useState<Filter>("All");
   const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const lastPing = useRef<string | null>(null);
   useEffect(() => {
     setRaw(null);
+    setLoadError(false);
     if (!user?.uid) return;
-    return subscribeNotifications(user.uid, setRaw, { max: 120 });
-  }, [user?.uid]);
+    let active = true;
+    const stop = subscribeNotifications(user.uid, rows => { if (active) setRaw(rows); }, {
+      max: 120, onError: () => { if (active) setLoadError(true); },
+    });
+    return () => { active = false; stop(); };
+  }, [user?.uid, attempt]);
   useEffect(() => {
     const ping = raw?.find((item) => item.type === "ping" && !item.readAt);
     if (!ping || lastPing.current === ping.id) return;
@@ -97,96 +109,22 @@ export default function DesignAlerts() {
     catch { Alert.alert("Could not mark alerts", "Please try again."); }
     finally { setBusy(false); }
   };
-  return <Page eyebrow="Signals / your account" title="Alerts"
-    subtitle={raw === null ? "Loading your alerts…" : unread ? `${unread} unread` : "You're all caught up."}
-    headerAction={unread > 0 ? <Action label="Mark all" icon="checkmark-done-outline"
-      disabled={busy} onPress={markAll} /> : undefined}>
-
-    <Card accent>
-
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 13 }}>
-
-        <Ionicons name="notifications-outline" size={28} color={D.lime} />
-
-        <View style={{ flex: 1, gap: 3 }}>
-
-          <Text style={{ color: D.text, fontSize: 19, fontWeight: "800" }}>Your signal center</Text>
-
-          <Text style={{ color: D.muted, fontSize: 12 }}>Activity from friends and the app, in one place.</Text>
-
-        </View>
-
-      </View>
-
-      <Action label="Open friends" icon="people-outline" onPress={() => router.push("/friends")} />
-
-    </Card>
-
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7 }}>
-
-      {FILTERS.map((option) => <Pressable key={option} accessibilityRole="button"
-        accessibilityState={{ selected: filter === option }} onPress={() => setFilter(option)}
-        style={{
-          minHeight: 40, paddingHorizontal: 13, justifyContent: "center", borderRadius: 20,
-          backgroundColor: filter === option ? D.lime : D.card
-        }}>
-
-        <Text style={{ color: filter === option ? D.ink : D.muted, fontSize: 12, fontWeight: "700" }}>{option}</Text>
-
-      </Pressable>)}
-
-    </ScrollView>
-
-    <Section title="Inbox" caption={raw === null ? "Loading" : `${visible.length} shown`} />
-
-    {raw === null ? <Card>
-      <Text style={{ color: D.muted }}>Loading account alerts…</Text>
-    </Card> :
-      visible.length === 0 ? <Card>
-        <Text style={{ color: D.muted }}>Nothing in this view yet.</Text>
-      </Card> :
-        visible.map((item) => <Card key={item.id} style={{ gap: 8 }}>
-
-          <Pressable accessibilityRole="button" accessibilityLabel={`Open ${item.title}`} onPress={() => { void onOpen(item); }}
-            style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
-
-            <View style={{
-              width: 37, height: 37, borderRadius: 12, backgroundColor: D.raised,
-              alignItems: "center", justifyContent: "center"
-            }}>
-
-              <Ionicons name={item.type === "ping" ? "people-outline" : "notifications-outline"} size={18} color={D.teal} />
-
-            </View>
-
-            <View style={{ flex: 1, gap: 4 }}>
-
-              <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 7 }}>
-
-                <Text style={{ color: D.text, fontSize: 15, fontWeight: item.readAt ? "600" : "800", flex: 1 }}>{item.title}</Text>
-
-                {!item.readAt && <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: D.lime }} />}
-
-              </View>
-
-              {!!item.body && <Text style={{ color: D.muted, fontSize: 12, lineHeight: 18 }}>{item.body}</Text>}
-
-              <Text style={{ color: D.dim, fontSize: 11 }}>{age(item)} · {category(item)}</Text>
-
-            </View>
-
-          </Pressable>
-
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-
-            {item.type === "ping" && typeof item.data?.fromUid === "string" &&
-              <Action label="Ping back" icon="paper-plane-outline" onPress={() => { void onPing(item); }} />}
-
-            <Action label="Dismiss" icon="close-outline" onPress={() => onDismiss(item)} />
-
-          </View>
-
-        </Card>)}
-
-  </Page>;
+  return <FlatList style={{ flex: 1, backgroundColor: t.surface.canvas }}
+    contentContainerStyle={{ padding: 16, paddingBottom: 28 }}
+    data={loadError ? [] : visible} keyExtractor={item => item.id}
+    initialNumToRender={8} maxToRenderPerBatch={6} windowSize={7}
+    showsVerticalScrollIndicator={false}
+    ListHeaderComponent={<View style={{ gap: 18, marginBottom: 14 }}>
+      <Header filter={filter} unread={unread} busy={busy} onMarkAll={markAll}
+        subtitle={!user?.uid ? "Your account alerts" : loadError ? "Alerts unavailable" : raw === null ? "Loading your alerts…" : unread ? `${unread} unread` : "You're all caught up."} />
+      <Hero filter={filter} onPress={route => router.push(route as never)} />
+      <Filters options={FILTERS} selected={filter} onSelect={setFilter} />
+      <InboxHeading caption={loadError ? "Unavailable" : raw === null ? "Loading" : `${visible.length} shown`} />
+    </View>}
+    ListEmptyComponent={<InboxState loading={raw === null} error={loadError} signedOut={!user?.uid} filter={filter} retry={() => setAttempt(value => value + 1)} />}
+    ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+    renderItem={({ item }) => <NotificationCard item={item} category={category(item)} date={age(item)}
+      onOpen={() => { void onOpen(item); }} onDismiss={() => onDismiss(item)}
+      onPing={item.type === "ping" && typeof item.data?.fromUid === "string" ? () => { void onPing(item); } : undefined} />}
+  />;
 }

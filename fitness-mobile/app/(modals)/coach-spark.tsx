@@ -1,7 +1,8 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
 import { validateGeneratedWorkout } from "@/services/aiValidation";
 import { Button, Choice, Empty, Field, Heading, IconButton, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
 import { dayKey } from "@/utils/date";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -412,8 +413,12 @@ function titleCaseFocus(value: string) {
 }
 
 export default function CoachSparkModal() {
+  return <SomataTaskAppearance><CoachSparkModalContent /></SomataTaskAppearance>;
+}
+
+function CoachSparkModalContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const params = useLocalSearchParams<{
@@ -639,57 +644,60 @@ export default function CoachSparkModal() {
   const selectedIndicatorColor = colors.accentSubtle;
   const selectedFill = colors.accentDim;
 
-  return (<><TaskPage title={generated ? generated.name : 'Build a training session'} section="Coach Spark" onBack={() => router.back()}>
+  return (<><TaskPage title={generated ? generated.name : 'Coach Spark'} section="Coach Spark" onBack={() => router.back()}>
 
-    {!generated ? <><View style={{ flexDirection: 'row', gap: 8 }}>
+    {!generated ? <><WorkoutIntro label="Session planning" title="Shape your next session." detail="Choose your preferences, then review the generated workout before starting." icon="sparkles-outline" />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {(['quick', 'custom'] as const).map(m => <Choice key={m} label={m === 'quick' ? 'Quick build' : 'Custom build'} selected={mode === m} onPress={() => setMode(m)} />)}
     </View>
-      <Heading title="Focus" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Panel><Heading title="Your session brief" detail="Start with a focus and the time you have." /><Heading title="Focus" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {(mode === 'quick' ? focusOptionsQuick : focusOptionsCustom).map(focus => <Choice key={focus} label={focus} selected={form.focus === focus} onPress={() => updateForm({ focus })} />)}
       </View>
       <Heading title="Time available" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {durationCards.map(c => <Choice key={c.value} label={`${c.label} · ${c.meta}`} selected={form.duration === c.value} onPress={() => updateForm({ duration: c.value })} />)}
       </View>
-      {mode === 'custom' && <><Heading title="Training style" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      </Panel>
+      {mode === 'custom' && <><Panel><Heading title="Training style" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {(Object.keys(styleDescriptors) as StyleOption[]).map(style => <Choice key={style} label={style} selected={form.style === style} onPress={() => updateForm({ style })} />)}
       </View><Text style={F.caption}>{styleDescriptors[form.style]}</Text>
-        <Heading title="Equipment" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        </Panel><Panel><Heading title="Equipment" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {equipmentOptions.map(e => <Choice key={e} label={e} selected={form.equipment.includes(e)} onPress={() => updateForm({ equipment: form.equipment.includes(e) ? form.equipment.filter(v => v !== e) : [...form.equipment, e] })} />)}
         </View>
-        <Heading title="Effort" />{intensityCards.map(c => <Choice key={c.value} label={`${c.value} · ${c.body}`} selected={form.intensity === c.value} onPress={() => updateForm({ intensity: c.value })} />)}
+        </Panel><Panel><Heading title="Effort" />{intensityCards.map(c => <Choice key={c.value} label={`${c.value} · ${c.body}`} selected={form.intensity === c.value} onPress={() => updateForm({ intensity: c.value })} />)}
         <Heading title="Experience" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {(['Beginner', 'Intermediate', 'Advanced'] as ExperienceOption[]).map(experience => <Choice key={experience} label={experience} selected={form.experience === experience} onPress={() => updateForm({ experience })} />)}
         </View>
-        <Heading title="Muscles to avoid" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        </Panel><Panel><Heading title="Muscles to avoid" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {avoidMuscleOptions.map(m => <Choice key={m} label={m} selected={form.avoidMuscles.includes(m)} onPress={() => updateForm({ avoidMuscles: form.avoidMuscles.includes(m) ? form.avoidMuscles.filter(v => v !== m) : [...form.avoidMuscles, m] })} />)}
-        </View><Field label="Preferred exercises" value={form.preferredExercises} onChangeText={preferredExercises => updateForm({ preferredExercises })} /></>}
-      <Field label="Anything else to consider?" multiline value={form.freeText} onChangeText={freeText => updateForm({ freeText })} />
+        </View><Field label="Preferred exercises" value={form.preferredExercises} onChangeText={preferredExercises => updateForm({ preferredExercises })} /></Panel></>}
+      <Panel><Field label="Anything else to consider?" multiline value={form.freeText} onChangeText={freeText => updateForm({ freeText })} /></Panel>
       <Panel>
         <Heading title="Your training context" />
         {contextRows.map((r, i) => <Text key={i} style={F.body}>{r}</Text>)}
       </Panel>
       <Button primary disabled={!canGenerate} label={loading ? loadingPhrases[loadingIndex] : 'Generate workout'} onPress={generateWorkout} />
-      <Heading title="Recent suggestions" />{displayedHistory.map(e => <Item key={e.id} title={e.workout.name} detail={new Date(e.createdAt).toLocaleDateString()} onPress={() => setGenerated(e.workout)} action={<IconButton icon="trash-outline" label="Delete suggestion" onPress={() => deleteHistoryItem(e.id)} />} />)}{!!history.length && <Button label={showAllHistory ? 'Show fewer' : 'Show all suggestions'} onPress={() => setShowAllHistory(v => !v)} />}</> :
-      <><Text style={F.body}>{generated.tagline}</Text><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-        <Metric label="Planned time" value={`${generated.duration} min`} />
-        <Metric label="Difficulty" value={generated.difficulty} />
-        <Metric label="Estimated energy" value={`${generated.estimatedCalories} kcal`} />
-      </View><Panel accent>
-          <Text style={F.body}>{generated.coachNote}</Text>
+      <Heading title="Your suggestion archive" detail="Previously generated plans saved on this device." />{displayedHistory.map(e => <Panel key={e.id}><Item title={e.workout.name} detail={new Date(e.createdAt).toLocaleDateString()} onPress={() => setGenerated(e.workout)} action={<IconButton icon="trash-outline" label="Delete suggestion" onPress={() => deleteHistoryItem(e.id)} />} /></Panel>)}{!!history.length && <Button label={showAllHistory ? 'Show fewer' : 'Show all suggestions'} onPress={() => setShowAllHistory(v => !v)} />}</> :
+      <><WorkoutIntro label="Generated plan · review first" title="Your session outline" detail={generated.tagline} icon="sparkles-outline" />
+        <WorkoutStats values={[{ label: 'Planned time', value: `${generated.duration} min` }, { label: 'Difficulty', value: generated.difficulty }, { label: 'Estimated energy', value: `${generated.estimatedCalories} kcal` }]} />
+        <Panel><Heading title="Coach note" /><Text style={F.body}>{generated.coachNote}</Text></Panel>
+        <Panel>
+        <Button label={`Warm-up · ${generated.warmup.length} exercises`} onPress={() => setWarmupOpen(v => !v)} />{warmupOpen && generated.warmup.map((x, i) => <Item key={i} title={x.exercise} detail={`${x.duration}${x.notes ? ` · ${x.notes}` : ''}`} />)}
         </Panel>
         {generated.exercises.map((e, i) => <Panel key={`${e.name}-${i}`}>
-          <Text style={F.eyebrow}>MOVEMENT {i + 1} · {e.muscleGroup}</Text>
-          <Heading title={e.name} detail={`${e.sets} × ${e.reps} · ${e.rest} rest · ${e.weight}`} />
+          <Text style={F.eyebrow}>{e.muscleGroup}</Text>
+          <MovementHeading number={i + 1} title={e.name} detail={`${e.sets} × ${e.reps} · ${e.rest} rest · ${e.weight}`} />
           {!!e.notes && <Text style={F.body}>{e.notes}</Text>}
           {!!e.alternatives?.length && <><Button label="Alternatives" onPress={() => setExpandedAlt(expandedAlt === e.name ? null : e.name)} />{expandedAlt === e.name && e.alternatives.map(a => <Text key={a} style={F.caption}>{a}</Text>)}<Button label="Swap exercise" onPress={() => setSwapExercise(e)} /></>}
         </Panel>)}
-        <Button label={`Warm-up · ${generated.warmup.length} exercises`} onPress={() => setWarmupOpen(v => !v)} />{warmupOpen && generated.warmup.map((x, i) => <Item key={i} title={x.exercise} detail={`${x.duration}${x.notes ? ` · ${x.notes}` : ''}`} />)}<Button label={`Cool-down · ${generated.cooldown.length} exercises`} onPress={() => setCooldownOpen(v => !v)} />{cooldownOpen && generated.cooldown.map((x, i) => <Item key={i} title={x.exercise} detail={`${x.duration}${x.notes ? ` · ${x.notes}` : ''}`} />)}
-        <Button primary label="Start this workout" onPress={startWorkout} /><Button label={savingTemplate ? 'Saving…' : 'Save as template'} disabled={savingTemplate} onPress={saveAsTemplate} /><Button label={loading ? 'Generating…' : 'Regenerate'} disabled={loading} onPress={generateWorkout} /><Button label="Edit preferences" onPress={() => setGenerated(null)} /></>}
+<Panel><Button label={`Cool-down · ${generated.cooldown.length} exercises`} onPress={() => setCooldownOpen(v => !v)} />{cooldownOpen && generated.cooldown.map((x, i) => <Item key={i} title={x.exercise} detail={`${x.duration}${x.notes ? ` · ${x.notes}` : ''}`} />)}</Panel>
+        <Panel><Heading title="Ready to train?" detail="Start opens your session. Saving keeps this as a template." />
+        <Button primary label="Start this workout" onPress={startWorkout} /><Button label={savingTemplate ? 'Saving…' : 'Save as template'} disabled={savingTemplate} onPress={saveAsTemplate} /><Button label={loading ? 'Generating…' : 'Regenerate'} disabled={loading} onPress={generateWorkout} /><Button label="Edit preferences" onPress={() => setGenerated(null)} /></Panel></>}
 
     {!!error && <Empty title="Unable to generate workout" detail={error} />}
 
   </TaskPage><TaskSheet title="Swap exercise" visible={!!swapExercise} onClose={() => setSwapExercise(null)}>
-      {(swapExercise?.alternatives || []).map(alt => <Item key={alt} title={alt} onPress={() => { if (!generated || !swapExercise) return; setGenerated({ ...generated, exercises: generated.exercises.map(e => e.name === swapExercise.name ? { ...e, name: alt } : e) }); setSwapExercise(null); }} />)}
+      <WorkoutIntro label="Alternative movement" title={swapExercise?.name || 'Choose an alternative'} detail="Only the selected movement changes. Review its prescription after swapping." icon="swap-horizontal-outline" />
+      {(swapExercise?.alternatives || []).map(alt => <Panel key={alt}><Item title={alt} onPress={() => { if (!generated || !swapExercise) return; setGenerated({ ...generated, exercises: generated.exercises.map(e => e.name === swapExercise.name ? { ...e, name: alt } : e) }); setSwapExercise(null); }} /></Panel>)}
     </TaskSheet></>
   );
 }

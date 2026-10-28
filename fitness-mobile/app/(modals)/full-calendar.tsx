@@ -1,7 +1,8 @@
 import { useAccountStorage } from '@/services/local/accountStore';
 import { CalendarRecord } from "@/components/somata/CalendarRecord";
-import { Button, Choice, Heading, IconButton, Metric, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { Button, Choice, Heading, IconButton, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { ChoiceRail } from "@/components/homeFlows/FlowUI";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -15,7 +16,8 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
+  useWindowDimensions
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -261,8 +263,15 @@ type StatTileProps = {
 };
 
 export default function FullCalendarScreen() {
+  return <SomataTaskAppearance><CalendarContent /></SomataTaskAppearance>;
+}
+
+function CalendarContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F, t, p } = useTaskPresentation();
+  const { width, fontScale } = useWindowDimensions();
+  const gridWidth = Math.max(width - 50, 336 * Math.min(fontScale, 2));
+  const gridScrolls = gridWidth > width - 50;
 
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
@@ -463,123 +472,136 @@ export default function FullCalendarScreen() {
   }
 
   return (<>
-    <TaskPage title={headerTitle} section="Calendar / your records" onBack={() => router.back()}
-      action={<Button label="Today" onPress={jumpToToday} />}>
-
-      <View style={F.row}>
-        <IconButton icon="chevron-back" label="Previous period" onPress={() => navigatePeriod(-1)} />
-
-        <View style={{ ...F.wrap, flex: 1, justifyContent: "center" }}>
-          {(["week", "month", "year"] as CalendarView[]).map(value => <Choice key={value} label={value[0].toUpperCase() + value.slice(1)} selected={view === value} onPress={() => switchView(value)} />)}
+    <TaskPage title="Calendar" section="Your records / Somata" subtitle="Move through dates. Revisit what you recorded." onBack={() => router.back()}>
+      <Panel accent>
+        <View {...(view === 'month' ? monthPan.panHandlers : view === 'week' ? weekPan.panHandlers : {})} style={{ gap: 16 }}>
+          <View style={{ ...F.row, flexWrap: "wrap" }}>
+            <View style={{ flex: 1, minWidth: 120, gap: 5 }}>
+              <Text style={F.eyebrow}>{view.toUpperCase()} VIEW</Text>
+              <Text accessibilityRole="header" style={{ ...F.heading, fontSize: 26 }}>{headerTitle}</Text>
+            </View>
+            <Button label="Today" onPress={jumpToToday} />
+          </View>
+          <ChoiceRail label="Calendar view" value={view} onChange={switchView}
+            choices={[{ value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }, { value: 'year', label: 'Year' }]} />
+          <View style={F.row}>
+            <IconButton icon="chevron-back" label="Previous period" onPress={() => navigatePeriod(-1)} />
+            <Text style={{ ...F.caption, flex: 1, textAlign: "center" }}>Browse your {view === 'year' ? 'years' : view === 'week' ? 'weeks' : 'months'}</Text>
+            <IconButton icon="chevron-forward" label="Next period" onPress={() => navigatePeriod(1)} />
+          </View>
         </View>
-
-        <IconButton icon="chevron-forward" label="Next period" onPress={() => navigatePeriod(1)} />
-      </View>
+      </Panel>
 
       {view === 'month' && <>
-        <View {...monthPan.panHandlers} style={{ gap: 8 }}>
-
-          <View style={{ flexDirection: 'row' }}>
-            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((label, i) => <Text key={i} style={{ ...F.caption, width: '14.28%', textAlign: 'center' }}>{label}</Text>)}
-          </View>
-
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            {monthCells.map(({ date, inMonth }) => {
-              const key = ymd(date); const day = days[key]; const active = selectedDate === key;
-              return <Pressable key={key} accessibilityRole="button" accessibilityLabel={`${formatNiceDate(key)}${hasAnyData(day) ? ', has records' : ''}${day?.prs?.length ? ', personal record' : ''}`}
-                accessibilityState={{ selected: active }} onPress={() => selectDay(key)} onLongPress={() => openDay(key)}
-                style={{ width: '14.28%', minHeight: 61, padding: 3, opacity: inMonth ? 1 : 0.4 }}>
-
-                <View style={{
-                  flex: 1, borderRadius: 15, backgroundColor: active ? D.lime : key === todayKey ? '#24483A' : D.card, alignItems: 'center', justifyContent: 'center', gap: 6,
-                  borderWidth: day?.prs?.length ? 1 : 0, borderColor: D.amber
-                }}>
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: active ? D.ink : D.text }}>{date.getDate()}</Text>
-
-                  <View style={{ flexDirection: 'row', gap: 3 }}>
-                    {activityDotsForDay(day, colors).map(dot => <View key={dot.key} style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: active ? D.ink : D.teal }} />)}
-                  </View>
-
-                </View>
-              </Pressable>;
-            })}
-          </View>
-
-        </View>
-        <Text style={F.caption}>Dots mark logged activity. Outlined dates have personal records. Hold a date for its full record.</Text>
+        <Panel compact>
+          <ScrollView horizontal={gridScrolls} showsHorizontalScrollIndicator={gridScrolls}>
+            <View {...(!gridScrolls ? monthPan.panHandlers : {})} style={{ width: gridWidth, gap: 8 }}>
+              <View style={{ flexDirection: 'row' }}>
+                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((label, i) => <Text key={i} style={{ ...F.caption, width: '14.285%', textAlign: 'center' }}>{label}</Text>)}
+              </View>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                {monthCells.map(({ date, inMonth }) => {
+                  const key = ymd(date); const day = days[key]; const active = selectedDate === key;
+                  return <Pressable key={key} accessibilityRole="button" accessibilityLabel={`${formatNiceDate(key)}${hasAnyData(day) ? ', has records' : ''}${day?.prs?.length ? ', personal record' : ''}`}
+                    accessibilityState={{ selected: active }} onPress={() => selectDay(key)} onLongPress={() => openDay(key)}
+                    style={{ width: '14.285%', minHeight: 64 * Math.max(1, fontScale * 0.8), padding: 2 }}>
+                    <View style={{ flex: 1, borderRadius: 12, backgroundColor: active ? t.action.primary.background : key === todayKey ? t.selection.background : t.surface.inset,
+                      alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1,
+                      borderColor: active ? t.selection.border : day?.prs?.length ? t.status.warning : key === todayKey ? t.selection.border : 'transparent' }}>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: active ? t.text.onBrand : inMonth ? t.text.primary : t.text.tertiary }}>{date.getDate()}</Text>
+                      <View style={{ flexDirection: 'row', gap: 3, minHeight: 4 }}>
+                        {activityDotsForDay(day, colors).map(dot => <View key={dot.key} style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: active ? t.text.onBrand : t.action.link }} />)}
+                      </View>
+                    </View>
+                  </Pressable>;
+                })}
+              </View>
+            </View>
+          </ScrollView>
+          <Text style={F.caption}>Dots mark logged activity. Outlined dates have personal records. Hold a date for its full record.{gridScrolls ? ' Scroll across for all dates.' : ''} Swipe the period heading to change months.</Text>
+        </Panel>
+        <Heading title="Your month, recorded" detail="Nutrition logging · existing period totals" />
         <View style={F.wrap}>
           <Metric label="Nutrition days" value={`${monthStats.logged}/${Math.max(monthStats.total, 1)}`} />
           <Metric label="Logging score" value={`${monthStats.percent}%`} />
-
           <Metric label="Current streak" value={`${monthStats.streak}d`} />
           <Metric label="Best streak" value={`${monthStats.best}d`} />
         </View>
       </>}
 
-      {view === 'week' && <View {...weekPan.panHandlers} style={{ gap: 10 }}>
+      {view === 'week' && <View {...weekPan.panHandlers} style={{ gap: 12 }}>
+        <Heading title="Seven days at a glance" detail="Energy and protein on their existing weekly scales" />
         {weekDates.map(date => {
-          const key = ymd(date), day = days[key]; return <Pressable key={key}
-            accessibilityRole="button" accessibilityState={{ selected: selectedDate === key }} onPress={() => setSelectedDate(key)} onLongPress={() => openDay(key)}
-            style={{ padding: 17, borderRadius: 19, backgroundColor: selectedDate === key ? D.tint : D.card, gap: 10 }}>
-
-            <Text style={F.heading}>{formatNiceDate(key)}</Text>
-            <Text style={F.body}>{day?.nutrition?.logged ? `${fmt(day.nutrition.calories)} kcal · ${fmt(day.nutrition.protein)} g protein` : 'No nutrition logged'}</Text>
-
-            {!!day?.nutrition?.logged && <View style={{ height: 7, borderRadius: 4, backgroundColor: D.raised }}>
-              <View style={{ height: 7, borderRadius: 4, width: `${clamp(day.nutrition.calories / weekCalorieMax * 100, 0, 100)}%`, backgroundColor: D.teal }} />
-            </View>}
-
-            {!!day?.nutrition?.logged && <View style={{ height: 7, borderRadius: 4, backgroundColor: D.raised }}>
-              <View style={{ height: 7, borderRadius: 4, width: `${clamp(day.nutrition.protein / weekProteinMax * 100, 0, 100)}%`, backgroundColor: D.lime }} />
-            </View>}
-            <Text style={F.caption}>{day?.steps ? `${fmt(day.steps.count)} steps` : 'No steps recorded'}{day?.workout ? ` · ${day.workout.name}` : ''}</Text>
-
+          const key = ymd(date), day = days[key], active = selectedDate === key;
+          return <Pressable key={key} accessibilityRole="button" accessibilityLabel={`${formatNiceDate(key)}, ${day?.nutrition?.logged ? 'nutrition recorded' : 'no nutrition logged'}`}
+            accessibilityState={{ selected: active }} onPress={() => setSelectedDate(key)} onLongPress={() => openDay(key)}>
+            <Panel accent={active}>
+              <View style={{ ...F.row, alignItems: 'flex-start' }}>
+                <View style={{ padding: 12, borderRadius: 14, alignItems: 'center', gap: 3, backgroundColor: active ? t.selection.background : t.surface.inset }}>
+                  <Text style={F.caption}>{formatShortDay(date)}</Text>
+                  <Text style={{ ...F.value, fontSize: 25, color: t.action.link }}>{date.getDate()}</Text>
+                </View>
+                <View style={{ flex: 1, gap: 8 }}>
+                  <Text style={F.heading}>{day?.nutrition?.logged ? `${fmt(day.nutrition.calories)} kcal` : 'No nutrition logged'}</Text>
+                  {!!day?.nutrition?.logged && <>
+                    <Text style={F.caption}>{fmt(day.nutrition.protein)} g protein</Text>
+                    <View accessibilityLabel={`Energy ${fmt(day.nutrition.calories)} kcal`} style={{ height: 6, borderRadius: 3, backgroundColor: t.data.track }}>
+                      <View style={{ height: 6, borderRadius: 3, width: `${clamp(day.nutrition.calories / weekCalorieMax * 100, 0, 100)}%`, backgroundColor: t.action.link }} />
+                    </View>
+                    <View accessibilityLabel={`Protein ${fmt(day.nutrition.protein)} grams`} style={{ height: 6, borderRadius: 3, backgroundColor: t.data.track }}>
+                      <View style={{ height: 6, borderRadius: 3, width: `${clamp(day.nutrition.protein / weekProteinMax * 100, 0, 100)}%`, backgroundColor: t.status.info }} />
+                    </View>
+                  </>}
+                </View>
+                <Ionicons name="chevron-forward" color={t.text.secondary} size={18} />
+              </View>
+              <Text style={F.caption}>{day?.steps ? `${fmt(day.steps.count)} steps` : 'No steps recorded'}{day?.workout ? ` · ${day.workout.name}` : ''}</Text>
+            </Panel>
           </Pressable>;
         })}
-        <Text style={F.caption}>Teal shows energy; the second bar shows protein. Each metric shares its weekly scale. Swipe to change weeks.</Text>
+        <Text style={F.caption}>Orange shows energy; blue shows protein. Each metric shares its weekly scale. Swipe to change weeks.</Text>
       </View>}
 
       {view === 'year' && <>
-        <Heading title="The year in records" detail="Scroll across weeks. Tap a date to inspect its record." />
-        <ScrollView horizontal>
-          <View style={{ flexDirection: 'row', gap: 5 }}>
-            {yearWeeks.map((week, i) => <View key={i} style={{ gap: 5 }}>
-              {week.map(date => {
-                const key = ymd(date), day = days[key]; return <Pressable key={key}
-                  accessibilityRole="button" accessibilityLabel={`${formatNiceDate(key)}${day ? `, score ${day.overallScore}` : ''}`} onPress={() => { setTooltipDate(key); setSelectedDate(key); }}
-                  onLongPress={() => openDay(key)} style={{
-                    width: 46, minHeight: 46, borderRadius: 13, backgroundColor: selectedDate === key ? D.lime : hasAnyData(day) ? D.tint : D.card,
-                    opacity: date.getFullYear() === yearCursor ? 1 : 0.3, alignItems: 'center', justifyContent: 'center'
-                  }}>
-
-                  <Text style={{ color: selectedDate === key ? D.ink : D.text, fontSize: 12 }}>{date.getDate()}</Text>
-                  <Text style={{ color: selectedDate === key ? D.ink : D.muted, fontSize: 9 }}>{date.toLocaleDateString(undefined, { month: 'short' })}</Text>
-
-                </Pressable>;
-              })}
-            </View>)}
-          </View>
-        </ScrollView>
+        <Panel>
+          <Heading title="The year in records" detail="Scroll across weeks. Tap a date to inspect its record." />
+          <ScrollView horizontal showsHorizontalScrollIndicator>
+            <View style={{ flexDirection: 'row', gap: 5 }}>
+              {yearWeeks.map((week, i) => <View key={i} style={{ gap: 5 }}>
+                {week.map(date => {
+                  const key = ymd(date), day = days[key], active = selectedDate === key;
+                  return <Pressable key={key} accessibilityRole="button" accessibilityState={{ selected: active }}
+                    accessibilityLabel={`${formatNiceDate(key)}${day ? `, score ${day.overallScore}` : ''}`}
+                    onPress={() => { setTooltipDate(key); setSelectedDate(key); }} onLongPress={() => openDay(key)}
+                    style={{ width: 50 * Math.max(1, fontScale), minHeight: 54 * Math.max(1, fontScale), borderRadius: 12, borderWidth: 1,
+                      borderColor: active ? t.selection.border : hasAnyData(day) ? p.warmEdge : 'transparent',
+                      backgroundColor: active ? t.action.primary.background : hasAnyData(day) ? t.selection.background : t.surface.inset,
+                      alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                    <Text style={{ color: active ? t.text.onBrand : date.getFullYear() === yearCursor ? D.text : D.dim, fontSize: 14, fontWeight: '700' }}>{date.getDate()}</Text>
+                    <Text style={{ color: active ? t.text.onBrand : D.muted, fontSize: 11 }}>{date.toLocaleDateString(undefined, { month: 'short' })}</Text>
+                  </Pressable>;
+                })}
+              </View>)}
+            </View>
+          </ScrollView>
+        </Panel>
         <View style={F.wrap}>
           <Metric label="Logged days in loaded records" value={String(Object.values(days).filter(day => day.nutrition?.logged).length)} />
-
           <Metric label="Best logging streak" value={`${bestNutritionStreak(days)}d`} />
           <Metric label="Workouts in loaded records" value={String(Object.values(days).filter(day => day.workout).length)} />
-
           <Metric label="Scores of 90+" value={String(Object.values(days).filter(day => day.overallScore >= 90).length)} />
         </View>
       </>}
 
-      <Heading title={formatNiceDate(selectedDate)} detail="Selected day" action={<IconButton icon="expand-outline" label="Open selected day" onPress={() => openDay(selectedDate)} />} />
-
+      <View style={{ height: 1, backgroundColor: t.border.subtle, marginVertical: 4 }} />
+      <Heading title={formatNiceDate(selectedDate)} detail="Selected day / saved records"
+        action={<IconButton icon="expand-outline" label="Open selected day" onPress={() => openDay(selectedDate)} />} />
       <CalendarRecord day={selectedDay} />
-
       {view === 'week' && !!weekActivitySummary && <Text style={F.caption}>{weekActivitySummary}</Text>}
     </TaskPage>
     <DayDetailSheet visible={!!sheetDate} onClose={() => setSheetDate(null)} day={sheetDate ? days[sheetDate] || null : null}
       isToday={sheetDate === todayKey} onLogNutrition={openNutritionLogForSelected} />
-  </>
-  );
+  </>);
 }
 
 const styles = StyleSheet.create({

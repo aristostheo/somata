@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, Pressable, LayoutAnimation, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Swipeable } from "react-native-gesture-handler";
+import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import type { FoodEntry } from "@/services/nutrition";
 import { computeMealHealthScore } from "@/lib/mealHealthScore";
 

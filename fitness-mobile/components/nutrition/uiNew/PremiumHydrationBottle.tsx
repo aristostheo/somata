@@ -28,6 +28,7 @@ import {
   BlurMask,
   Shadow,
   Skia,
+  type SkPath,
 } from "@shopify/react-native-skia";
 
 type BottleColors = {
@@ -108,7 +109,7 @@ function buildBottlePath(w: number, h: number) {
 
   const bodyRadius = bw * 0.18;
 
-  const p = Skia.Path.Make();
+  const p = Skia.PathBuilder.Make();
 
   p.moveTo(neckLeft, y + neckH * 0.12);
   p.quadTo(neckLeft, y, cx, y);
@@ -141,10 +142,10 @@ function buildBottlePath(w: number, h: number) {
   );
 
   p.close();
-  return { path: p };
+  return { path: p.detach() };
 }
 
-function insetPath(original: any, inset: number) {
+function insetPath(original: SkPath, inset: number) {
   const bounds = original.getBounds();
   const cx = bounds.x + bounds.width / 2;
   const cy = bounds.y + bounds.height / 2;
@@ -157,9 +158,9 @@ function insetPath(original: any, inset: number) {
   m.scale(sx, sy);
   m.translate(-cx, -cy);
 
-  const p = original.copy();
+  const p = Skia.PathBuilder.MakeFromPath(original);
   p.transform(m);
-  return p;
+  return p.detach();
 }
 
 function makeWaterPath(
@@ -170,7 +171,7 @@ function makeWaterPath(
   bumpPx: number
 ) {
   "worklet";
-  const p = Skia.Path.Make();
+  const p = Skia.PathBuilder.Make();
 
   const x0 = contentRect.x;
   const x1 = contentRect.x + contentRect.w;
@@ -195,7 +196,7 @@ function makeWaterPath(
   p.lineTo(x0, yBottom);
   p.close();
 
-  return p;
+  return p.detach();
 }
 
 function makeMeniscusPath(
@@ -206,7 +207,7 @@ function makeMeniscusPath(
   bumpPx: number
 ) {
   "worklet";
-  const p = Skia.Path.Make();
+  const p = Skia.PathBuilder.Make();
 
   const x0 = contentRect.x;
   const x1 = contentRect.x + contentRect.w;
@@ -222,11 +223,11 @@ function makeMeniscusPath(
 
   p.moveTo(x0, yL);
   p.quadTo(midX, yM, x1, yR);
-  return p;
+  return p.detach();
 }
 
-function makePourPath(innerPath: any) {
-  const p = Skia.Path.Make();
+function makePourPath(innerPath: SkPath) {
+  const p = Skia.PathBuilder.Make();
   const b = innerPath.getBounds();
 
   const streamX = b.x + b.width * 0.52;
@@ -255,7 +256,7 @@ function makePourPath(innerPath: any) {
   );
   p.close();
 
-  return p;
+  return p.detach();
 }
 
 export function PremiumHydrationBottle({

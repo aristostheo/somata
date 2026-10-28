@@ -1,5 +1,6 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { Button, Choice, Empty, Field, Heading, IconButton, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
 
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -313,7 +314,11 @@ function monthRange(key: string) {
 // ----------------- Screen -----------------
 
 export default function WorkoutHistoryScreen() {
-  const { D, F } = useSomataTheme();
+  return <SomataTaskAppearance><WorkoutHistoryScreenContent /></SomataTaskAppearance>;
+}
+
+function WorkoutHistoryScreenContent() {
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   useLocalSearchParams<{ focus?: string; }>();
@@ -600,7 +605,7 @@ export default function WorkoutHistoryScreen() {
 
       return <Panel>
         <Heading title={item.title || "Workout"} detail={`${timeLabel}${durationMin ? ` · ${durationMin} min` : ''}`} action={<IconButton icon="arrow-forward" label="Open workout recap" onPress={() => goRecap(item.key)} />} />
-        <Text style={F.body}>{exerciseCount} exercises · {sets} sets · {Math.round(vol).toLocaleString()} kg volume</Text>
+        <WorkoutStats values={[{ label: 'Exercises', value: String(exerciseCount) }, { label: 'Sets', value: String(sets) }, { label: 'Volume · kg', value: Math.round(vol).toLocaleString() }]} />
         {prCount > 0 && <Text style={{ ...F.eyebrow, color: D.lime }}>{prCount} personal records</Text>}
       </Panel>;
     },
@@ -622,15 +627,12 @@ export default function WorkoutHistoryScreen() {
     ]
   );
 
-  return (<><TaskPage title="Your training archive" section="Workout history" subtitle={rangeLabel} onBack={() => router.back()}>
+  return (<><TaskPage title="Training history" section="Workout history" subtitle={rangeLabel} onBack={() => router.back()}>
 
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-      <Metric label="Sessions" value={String(totals.sessions)} />
-      <Metric label="Volume · kg" value={fmtCompact(totals.volume)} />
-      <Metric label="Sets" value={String(totals.sets)} />
-      <Metric label="Personal records" value={String(totals.prs)} />
-    </View>
-
+    <Panel accent><Heading title="Recorded work" detail={rangeLabel} />
+      <WorkoutStats values={[{ label: 'Sessions', value: String(totals.sessions) }, { label: 'Volume · kg', value: fmtCompact(totals.volume) }, { label: 'Sets', value: String(totals.sets) }, { label: 'Personal records', value: String(totals.prs) }]} />
+    </Panel>
+    <Panel><Heading title="Find a session" />
     <Field label="Search workouts or exercises" value={query} onChangeText={setQuery} />
     {!!query && <Button label="Clear search" onPress={clearSearch} />}
 
@@ -643,6 +645,7 @@ export default function WorkoutHistoryScreen() {
       <Button label="Custom dates" onPress={() => setCustomOpen(true)} />
     </View>
 
+    </Panel><Heading title="Session timeline" detail="Open a record to revisit your training." />
     {loading ? <Empty title="Loading training history…" /> : !sections.length ? <Empty title={query ? 'No matching sessions' : 'No sessions in this period'} detail="Adjust the search or date range to explore your training." /> : sections.map(s => <View key={s.title} style={{ gap: 10 }}>
       <Heading title={fmtDateNice(s.title)} />
       {s.data.map((item, index) => <View key={item.key}>
@@ -681,7 +684,8 @@ function MonthPickerModal(props: {
   }, []);
 
   return (<TaskSheet title="Choose a month" visible={props.visible} onClose={props.onClose}>
-    {months.map(m => <Item key={m} title={monthLabel(m)} icon="calendar-outline" onPress={() => props.onPick(m)} />)}
+    <WorkoutIntro label="History window" title="One month at a time." detail="Choose from the last 18 months." icon="calendar-outline" />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{months.map(m => <View key={m} style={{ flexGrow: 1, flexBasis: 140 }}><Button label={monthLabel(m)} icon="calendar-outline" onPress={() => props.onPick(m)} /></View>)}</View>
   </TaskSheet>
   );
 }
@@ -742,9 +746,11 @@ function CustomRangeModal(props: {
   };
 
   return (<TaskSheet title="Choose a period" visible={props.visible} onClose={props.onClose}>
-    <Heading title="Date range" detail="Use YYYY-MM-DD. Leave a date blank for an open-ended range." />
+    <WorkoutIntro label="Custom period" title="Choose your window." detail="Use YYYY-MM-DD. Leave a date blank for an open-ended range." icon="calendar-outline" />
+    <Panel><WorkoutFields>
     <Field label="From" value={from} onChangeText={v => { setFrom(v); setErr(''); }} placeholder="YYYY-MM-DD" />
     <Field label="To" value={to} onChangeText={v => { setTo(v); setErr(''); }} placeholder="YYYY-MM-DD" />
+    </WorkoutFields></Panel>
     {!!err && <Empty title={err} />}
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {(['today', 'week', 'month', '90d', 'all'] as Preset[]).map(k => <Button key={k} label={k} onPress={() => quick(k)} />)}

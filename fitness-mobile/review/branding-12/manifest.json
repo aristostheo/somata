@@ -1,0 +1,2652 @@
+{
+  "synthetic": true,
+  "native": false,
+  "entries": [
+    {
+      "name": "S06-sharing",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "before-dark-S06-sharing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S06-sharing",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "after-dark-S06-sharing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S06-sharing",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "after-dark-S06-sharing-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S06-sharing",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "before-light-S06-sharing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S06-sharing",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "after-light-S06-sharing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S06-sharing",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "after-light-S06-sharing-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S06-disabled",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "before-dark-S06-disabled-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S06-disabled",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "after-dark-S06-disabled-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S06-disabled",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "before-light-S06-disabled-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S06-disabled",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "after-light-S06-disabled-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S06-loading",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "before-dark-S06-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S06-loading",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "after-dark-S06-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S06-loading",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "before-light-S06-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S06-loading",
+      "route": "app/profile/friend-visibility.tsx",
+      "file": "after-light-S06-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T02-connections",
+      "route": "app/profile/integrations.tsx",
+      "file": "before-dark-T02-connections-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T02-connections",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-dark-T02-connections-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T02-connections",
+      "route": "app/profile/integrations.tsx",
+      "file": "before-light-T02-connections-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T02-connections",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-light-T02-connections-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T02-disconnected",
+      "route": "app/profile/integrations.tsx",
+      "file": "before-dark-T02-disconnected-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T02-disconnected",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-dark-T02-disconnected-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T02-disconnected",
+      "route": "app/profile/integrations.tsx",
+      "file": "before-light-T02-disconnected-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T02-disconnected",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-light-T02-disconnected-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T02-sync",
+      "route": "app/profile/integrations.tsx",
+      "file": "before-dark-T02-sync-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T02-sync",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-dark-T02-sync-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T02-sync",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-dark-T02-sync-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T02-sync",
+      "route": "app/profile/integrations.tsx",
+      "file": "before-light-T02-sync-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T02-sync",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-light-T02-sync-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T02-sync",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-light-T02-sync-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O34-health",
+      "route": "app/profile/integrations.tsx",
+      "file": "before-dark-O34-health-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O34-health",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-dark-O34-health-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O34-health",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-dark-O34-health-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O34-health",
+      "route": "app/profile/integrations.tsx",
+      "file": "before-light-O34-health-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O34-health",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-light-O34-health-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O34-health",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-light-O34-health-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O34-unavailable",
+      "route": "app/profile/integrations.tsx",
+      "file": "before-dark-O34-unavailable-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O34-unavailable",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-dark-O34-unavailable-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O34-unavailable",
+      "route": "app/profile/integrations.tsx",
+      "file": "before-light-O34-unavailable-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O34-unavailable",
+      "route": "app/profile/integrations.tsx",
+      "file": "after-light-O34-unavailable-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T04-settings",
+      "route": "app/(modals)/settings.tsx",
+      "file": "before-dark-T04-settings-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T04-settings",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-dark-T04-settings-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T04-settings",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-dark-T04-settings-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T04-settings",
+      "route": "app/(modals)/settings.tsx",
+      "file": "before-light-T04-settings-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T04-settings",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-light-T04-settings-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T04-settings",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-light-T04-settings-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T04-loading",
+      "route": "app/(modals)/settings.tsx",
+      "file": "before-dark-T04-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T04-loading",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-dark-T04-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T04-loading",
+      "route": "app/(modals)/settings.tsx",
+      "file": "before-light-T04-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T04-loading",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-light-T04-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T04-disabled",
+      "route": "app/(modals)/settings.tsx",
+      "file": "before-dark-T04-disabled-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T04-disabled",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-dark-T04-disabled-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T04-disabled",
+      "route": "app/(modals)/settings.tsx",
+      "file": "before-light-T04-disabled-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T04-disabled",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-light-T04-disabled-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O24-time",
+      "route": "app/(modals)/settings.tsx",
+      "file": "before-dark-O24-time-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O24-time",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-dark-O24-time-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O24-time",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-dark-O24-time-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O24-time",
+      "route": "app/(modals)/settings.tsx",
+      "file": "before-light-O24-time-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O24-time",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-light-O24-time-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O24-time",
+      "route": "app/(modals)/settings.tsx",
+      "file": "after-light-O24-time-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T06-account",
+      "route": "app/account/index.tsx",
+      "file": "before-dark-T06-account-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T06-account",
+      "route": "app/account/index.tsx",
+      "file": "after-dark-T06-account-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T06-account",
+      "route": "app/account/index.tsx",
+      "file": "after-dark-T06-account-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T06-account",
+      "route": "app/account/index.tsx",
+      "file": "before-light-T06-account-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T06-account",
+      "route": "app/account/index.tsx",
+      "file": "after-light-T06-account-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T06-account",
+      "route": "app/account/index.tsx",
+      "file": "after-light-T06-account-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T06-unverified",
+      "route": "app/account/index.tsx",
+      "file": "before-dark-T06-unverified-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T06-unverified",
+      "route": "app/account/index.tsx",
+      "file": "after-dark-T06-unverified-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T06-unverified",
+      "route": "app/account/index.tsx",
+      "file": "before-light-T06-unverified-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T06-unverified",
+      "route": "app/account/index.tsx",
+      "file": "after-light-T06-unverified-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T06-signed-out",
+      "route": "app/account/index.tsx",
+      "file": "before-dark-T06-signed-out-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T06-signed-out",
+      "route": "app/account/index.tsx",
+      "file": "after-dark-T06-signed-out-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T06-signed-out",
+      "route": "app/account/index.tsx",
+      "file": "before-light-T06-signed-out-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T06-signed-out",
+      "route": "app/account/index.tsx",
+      "file": "after-light-T06-signed-out-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-friends",
+      "route": "app/friends.tsx",
+      "file": "before-dark-S01-friends-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-friends",
+      "route": "app/friends.tsx",
+      "file": "after-dark-S01-friends-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-friends",
+      "route": "app/friends.tsx",
+      "file": "after-dark-S01-friends-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S01-friends",
+      "route": "app/friends.tsx",
+      "file": "before-light-S01-friends-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-friends",
+      "route": "app/friends.tsx",
+      "file": "after-light-S01-friends-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-friends",
+      "route": "app/friends.tsx",
+      "file": "after-light-S01-friends-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S01-requests",
+      "route": "app/friends.tsx",
+      "file": "before-dark-S01-requests-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-requests",
+      "route": "app/friends.tsx",
+      "file": "after-dark-S01-requests-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-requests",
+      "route": "app/friends.tsx",
+      "file": "before-light-S01-requests-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-requests",
+      "route": "app/friends.tsx",
+      "file": "after-light-S01-requests-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-sent",
+      "route": "app/friends.tsx",
+      "file": "before-dark-S01-sent-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-sent",
+      "route": "app/friends.tsx",
+      "file": "after-dark-S01-sent-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-sent",
+      "route": "app/friends.tsx",
+      "file": "before-light-S01-sent-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-sent",
+      "route": "app/friends.tsx",
+      "file": "after-light-S01-sent-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-empty",
+      "route": "app/friends.tsx",
+      "file": "before-dark-S01-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-empty",
+      "route": "app/friends.tsx",
+      "file": "after-dark-S01-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-empty",
+      "route": "app/friends.tsx",
+      "file": "before-light-S01-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-empty",
+      "route": "app/friends.tsx",
+      "file": "after-light-S01-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-loading",
+      "route": "app/friends.tsx",
+      "file": "before-dark-S01-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-loading",
+      "route": "app/friends.tsx",
+      "file": "after-dark-S01-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-loading",
+      "route": "app/friends.tsx",
+      "file": "before-light-S01-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-loading",
+      "route": "app/friends.tsx",
+      "file": "after-light-S01-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-error",
+      "route": "app/friends.tsx",
+      "file": "before-dark-S01-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-error",
+      "route": "app/friends.tsx",
+      "file": "after-dark-S01-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S01-error",
+      "route": "app/friends.tsx",
+      "file": "before-light-S01-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S01-error",
+      "route": "app/friends.tsx",
+      "file": "after-light-S01-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O30-add",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O30-add-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O30-add",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O30-add-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O30-add",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O30-add-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O30-add",
+      "route": "app/friends.tsx",
+      "file": "before-light-O30-add-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O30-add",
+      "route": "app/friends.tsx",
+      "file": "after-light-O30-add-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O30-add",
+      "route": "app/friends.tsx",
+      "file": "after-light-O30-add-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O30-qr",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O30-qr-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O30-qr",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O30-qr-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O30-qr",
+      "route": "app/friends.tsx",
+      "file": "before-light-O30-qr-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O30-qr",
+      "route": "app/friends.tsx",
+      "file": "after-light-O30-qr-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O30-invalid",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O30-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O30-invalid",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O30-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O30-invalid",
+      "route": "app/friends.tsx",
+      "file": "before-light-O30-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O30-invalid",
+      "route": "app/friends.tsx",
+      "file": "after-light-O30-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O30-sending",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O30-sending-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O30-sending",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O30-sending-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O30-sending",
+      "route": "app/friends.tsx",
+      "file": "before-light-O30-sending-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O30-sending",
+      "route": "app/friends.tsx",
+      "file": "after-light-O30-sending-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O31-detail",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O31-detail-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O31-detail",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O31-detail-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O31-detail",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O31-detail-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O31-detail",
+      "route": "app/friends.tsx",
+      "file": "before-light-O31-detail-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O31-detail",
+      "route": "app/friends.tsx",
+      "file": "after-light-O31-detail-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O31-detail",
+      "route": "app/friends.tsx",
+      "file": "after-light-O31-detail-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O31-private",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O31-private-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O31-private",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O31-private-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O31-private",
+      "route": "app/friends.tsx",
+      "file": "before-light-O31-private-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O31-private",
+      "route": "app/friends.tsx",
+      "file": "after-light-O31-private-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O31-profile",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O31-profile-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O31-profile",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O31-profile-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O31-profile",
+      "route": "app/friends.tsx",
+      "file": "before-light-O31-profile-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O31-profile",
+      "route": "app/friends.tsx",
+      "file": "after-light-O31-profile-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O31-meals",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O31-meals-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O31-meals",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O31-meals-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O31-meals",
+      "route": "app/friends.tsx",
+      "file": "before-light-O31-meals-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O31-meals",
+      "route": "app/friends.tsx",
+      "file": "after-light-O31-meals-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O31-workouts",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O31-workouts-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O31-workouts",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O31-workouts-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O31-workouts",
+      "route": "app/friends.tsx",
+      "file": "before-light-O31-workouts-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O31-workouts",
+      "route": "app/friends.tsx",
+      "file": "after-light-O31-workouts-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O32-ping",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O32-ping-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O32-ping",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O32-ping-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O32-ping",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O32-ping-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O32-ping",
+      "route": "app/friends.tsx",
+      "file": "before-light-O32-ping-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O32-ping",
+      "route": "app/friends.tsx",
+      "file": "after-light-O32-ping-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O32-ping",
+      "route": "app/friends.tsx",
+      "file": "after-light-O32-ping-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O33-nickname",
+      "route": "app/friends.tsx",
+      "file": "before-dark-O33-nickname-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O33-nickname",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O33-nickname-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O33-nickname",
+      "route": "app/friends.tsx",
+      "file": "after-dark-O33-nickname-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O33-nickname",
+      "route": "app/friends.tsx",
+      "file": "before-light-O33-nickname-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O33-nickname",
+      "route": "app/friends.tsx",
+      "file": "after-light-O33-nickname-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O33-nickname",
+      "route": "app/friends.tsx",
+      "file": "after-light-O33-nickname-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S02-progress",
+      "route": "app/friends/[id]/progress.tsx",
+      "file": "before-dark-S02-progress-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S02-progress",
+      "route": "app/friends/[id]/progress.tsx",
+      "file": "after-dark-S02-progress-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S02-progress",
+      "route": "app/friends/[id]/progress.tsx",
+      "file": "after-dark-S02-progress-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S02-progress",
+      "route": "app/friends/[id]/progress.tsx",
+      "file": "before-light-S02-progress-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S02-progress",
+      "route": "app/friends/[id]/progress.tsx",
+      "file": "after-light-S02-progress-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S02-progress",
+      "route": "app/friends/[id]/progress.tsx",
+      "file": "after-light-S02-progress-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S02-profile",
+      "route": "app/friends/[id]/profile.tsx",
+      "file": "before-dark-S02-profile-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S02-profile",
+      "route": "app/friends/[id]/profile.tsx",
+      "file": "after-dark-S02-profile-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S02-profile",
+      "route": "app/friends/[id]/profile.tsx",
+      "file": "before-light-S02-profile-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S02-profile",
+      "route": "app/friends/[id]/profile.tsx",
+      "file": "after-light-S02-profile-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S02-nonfriend",
+      "route": "app/friends/[id]/profile.tsx",
+      "file": "before-dark-S02-nonfriend-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S02-nonfriend",
+      "route": "app/friends/[id]/profile.tsx",
+      "file": "after-dark-S02-nonfriend-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S02-nonfriend",
+      "route": "app/friends/[id]/profile.tsx",
+      "file": "before-light-S02-nonfriend-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S02-nonfriend",
+      "route": "app/friends/[id]/profile.tsx",
+      "file": "after-light-S02-nonfriend-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S03-meals",
+      "route": "app/friends/[id].tsx",
+      "file": "before-dark-S03-meals-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S03-meals",
+      "route": "app/friends/[id].tsx",
+      "file": "after-dark-S03-meals-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S03-meals",
+      "route": "app/friends/[id].tsx",
+      "file": "after-dark-S03-meals-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S03-meals",
+      "route": "app/friends/[id].tsx",
+      "file": "before-light-S03-meals-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S03-meals",
+      "route": "app/friends/[id].tsx",
+      "file": "after-light-S03-meals-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S03-meals",
+      "route": "app/friends/[id].tsx",
+      "file": "after-light-S03-meals-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S03-loading",
+      "route": "app/friends/[id].tsx",
+      "file": "before-dark-S03-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S03-loading",
+      "route": "app/friends/[id].tsx",
+      "file": "after-dark-S03-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S03-loading",
+      "route": "app/friends/[id].tsx",
+      "file": "before-light-S03-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S03-loading",
+      "route": "app/friends/[id].tsx",
+      "file": "after-light-S03-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S03-private",
+      "route": "app/friends/[id].tsx",
+      "file": "before-dark-S03-private-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S03-private",
+      "route": "app/friends/[id].tsx",
+      "file": "after-dark-S03-private-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S03-private",
+      "route": "app/friends/[id].tsx",
+      "file": "before-light-S03-private-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S03-private",
+      "route": "app/friends/[id].tsx",
+      "file": "after-light-S03-private-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S03-empty",
+      "route": "app/friends/[id].tsx",
+      "file": "before-dark-S03-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S03-empty",
+      "route": "app/friends/[id].tsx",
+      "file": "after-dark-S03-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S03-empty",
+      "route": "app/friends/[id].tsx",
+      "file": "before-light-S03-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S03-empty",
+      "route": "app/friends/[id].tsx",
+      "file": "after-light-S03-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S04-workouts",
+      "route": "app/friends/[id]/workouts.tsx",
+      "file": "before-dark-S04-workouts-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S04-workouts",
+      "route": "app/friends/[id]/workouts.tsx",
+      "file": "after-dark-S04-workouts-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S04-workouts",
+      "route": "app/friends/[id]/workouts.tsx",
+      "file": "after-dark-S04-workouts-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S04-workouts",
+      "route": "app/friends/[id]/workouts.tsx",
+      "file": "before-light-S04-workouts-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S04-workouts",
+      "route": "app/friends/[id]/workouts.tsx",
+      "file": "after-light-S04-workouts-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S04-workouts",
+      "route": "app/friends/[id]/workouts.tsx",
+      "file": "after-light-S04-workouts-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S04-copy-failed",
+      "route": "app/friends/[id]/workouts.tsx",
+      "file": "before-dark-S04-copy-failed-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S04-copy-failed",
+      "route": "app/friends/[id]/workouts.tsx",
+      "file": "after-dark-S04-copy-failed-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S04-copy-failed",
+      "route": "app/friends/[id]/workouts.tsx",
+      "file": "before-light-S04-copy-failed-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S04-copy-failed",
+      "route": "app/friends/[id]/workouts.tsx",
+      "file": "after-light-S04-copy-failed-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S05-preview",
+      "route": "app/friends/preview.tsx",
+      "file": "before-dark-S05-preview-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S05-preview",
+      "route": "app/friends/preview.tsx",
+      "file": "after-dark-S05-preview-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S05-preview",
+      "route": "app/friends/preview.tsx",
+      "file": "after-dark-S05-preview-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S05-preview",
+      "route": "app/friends/preview.tsx",
+      "file": "before-light-S05-preview-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S05-preview",
+      "route": "app/friends/preview.tsx",
+      "file": "after-light-S05-preview-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S05-preview",
+      "route": "app/friends/preview.tsx",
+      "file": "after-light-S05-preview-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S07-badges",
+      "route": "app/(modals)/badges.tsx",
+      "file": "before-dark-S07-badges-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S07-badges",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-dark-S07-badges-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S07-badges",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-dark-S07-badges-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S07-badges",
+      "route": "app/(modals)/badges.tsx",
+      "file": "before-light-S07-badges-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S07-badges",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-light-S07-badges-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S07-badges",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-light-S07-badges-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "S07-locked",
+      "route": "app/(modals)/badges.tsx",
+      "file": "before-dark-S07-locked-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S07-locked",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-dark-S07-locked-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S07-locked",
+      "route": "app/(modals)/badges.tsx",
+      "file": "before-light-S07-locked-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S07-locked",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-light-S07-locked-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S07-loading",
+      "route": "app/(modals)/badges.tsx",
+      "file": "before-dark-S07-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S07-loading",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-dark-S07-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "S07-loading",
+      "route": "app/(modals)/badges.tsx",
+      "file": "before-light-S07-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "S07-loading",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-light-S07-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O25-earned",
+      "route": "app/(modals)/badges.tsx",
+      "file": "before-dark-O25-earned-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O25-earned",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-dark-O25-earned-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O25-earned",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-dark-O25-earned-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O25-earned",
+      "route": "app/(modals)/badges.tsx",
+      "file": "before-light-O25-earned-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O25-earned",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-light-O25-earned-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O25-earned",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-light-O25-earned-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O25-locked",
+      "route": "app/(modals)/badges.tsx",
+      "file": "before-dark-O25-locked-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O25-locked",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-dark-O25-locked-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O25-locked",
+      "route": "app/(modals)/badges.tsx",
+      "file": "before-light-O25-locked-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O25-locked",
+      "route": "app/(modals)/badges.tsx",
+      "file": "after-light-O25-locked-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T05-theme",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "before-dark-T05-theme-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T05-theme",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-dark-T05-theme-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T05-theme",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-dark-T05-theme-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T05-theme",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "before-light-T05-theme-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T05-theme",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-light-T05-theme-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T05-theme",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-light-T05-theme-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T05-light-palette",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "before-dark-T05-light-palette-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T05-light-palette",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-dark-T05-light-palette-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T05-light-palette",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "before-light-T05-light-palette-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T05-light-palette",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-light-T05-light-palette-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T05-invalid",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "before-dark-T05-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T05-invalid",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-dark-T05-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T05-invalid",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "before-light-T05-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T05-invalid",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-light-T05-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T05-failure",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "before-dark-T05-failure-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T05-failure",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-dark-T05-failure-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T05-failure",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "before-light-T05-failure-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T05-failure",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-light-T05-failure-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T05-loading-error",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "before-dark-T05-loading-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T05-loading-error",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-dark-T05-loading-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T05-loading-error",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "before-light-T05-loading-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T05-loading-error",
+      "route": "app/(modals)/theme-editor.tsx",
+      "file": "after-light-T05-loading-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T08-unavailable",
+      "route": "app/account/legal.tsx",
+      "file": "before-dark-T08-unavailable-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T08-unavailable",
+      "route": "app/account/legal.tsx",
+      "file": "after-dark-T08-unavailable-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T08-unavailable",
+      "route": "app/account/legal.tsx",
+      "file": "after-dark-T08-unavailable-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T08-unavailable",
+      "route": "app/account/legal.tsx",
+      "file": "before-light-T08-unavailable-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T08-unavailable",
+      "route": "app/account/legal.tsx",
+      "file": "after-light-T08-unavailable-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T08-unavailable",
+      "route": "app/account/legal.tsx",
+      "file": "after-light-T08-unavailable-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T08-configured",
+      "route": "app/account/legal.tsx",
+      "file": "before-dark-T08-configured-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T08-configured",
+      "route": "app/account/legal.tsx",
+      "file": "after-dark-T08-configured-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T08-configured",
+      "route": "app/account/legal.tsx",
+      "file": "before-light-T08-configured-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T08-configured",
+      "route": "app/account/legal.tsx",
+      "file": "after-light-T08-configured-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T09-access",
+      "route": "app/paywall.tsx",
+      "file": "before-dark-T09-access-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T09-access",
+      "route": "app/paywall.tsx",
+      "file": "after-dark-T09-access-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T09-access",
+      "route": "app/paywall.tsx",
+      "file": "after-dark-T09-access-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T09-access",
+      "route": "app/paywall.tsx",
+      "file": "before-light-T09-access-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T09-access",
+      "route": "app/paywall.tsx",
+      "file": "after-light-T09-access-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T09-access",
+      "route": "app/paywall.tsx",
+      "file": "after-light-T09-access-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T09-pro",
+      "route": "app/paywall.tsx",
+      "file": "before-dark-T09-pro-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T09-pro",
+      "route": "app/paywall.tsx",
+      "file": "after-dark-T09-pro-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T09-pro",
+      "route": "app/paywall.tsx",
+      "file": "before-light-T09-pro-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T09-pro",
+      "route": "app/paywall.tsx",
+      "file": "after-light-T09-pro-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T09-loading",
+      "route": "app/paywall.tsx",
+      "file": "before-dark-T09-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T09-loading",
+      "route": "app/paywall.tsx",
+      "file": "after-dark-T09-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T09-loading",
+      "route": "app/paywall.tsx",
+      "file": "before-light-T09-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T09-loading",
+      "route": "app/paywall.tsx",
+      "file": "after-light-T09-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-delete",
+      "route": "app/account/delete.tsx",
+      "file": "before-dark-T07-delete-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-delete",
+      "route": "app/account/delete.tsx",
+      "file": "after-dark-T07-delete-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-delete",
+      "route": "app/account/delete.tsx",
+      "file": "before-light-T07-delete-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-delete",
+      "route": "app/account/delete.tsx",
+      "file": "after-light-T07-delete-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-confirm",
+      "route": "app/account/delete.tsx",
+      "file": "before-dark-T07-confirm-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-confirm",
+      "route": "app/account/delete.tsx",
+      "file": "after-dark-T07-confirm-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-confirm",
+      "route": "app/account/delete.tsx",
+      "file": "after-dark-T07-confirm-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T07-confirm",
+      "route": "app/account/delete.tsx",
+      "file": "before-light-T07-confirm-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-confirm",
+      "route": "app/account/delete.tsx",
+      "file": "after-light-T07-confirm-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-confirm",
+      "route": "app/account/delete.tsx",
+      "file": "after-light-T07-confirm-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "T07-reauth-failure",
+      "route": "app/account/delete.tsx",
+      "file": "before-dark-T07-reauth-failure-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-reauth-failure",
+      "route": "app/account/delete.tsx",
+      "file": "after-dark-T07-reauth-failure-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-reauth-failure",
+      "route": "app/account/delete.tsx",
+      "file": "before-light-T07-reauth-failure-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-reauth-failure",
+      "route": "app/account/delete.tsx",
+      "file": "after-light-T07-reauth-failure-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-retention",
+      "route": "app/account/delete.tsx",
+      "file": "before-dark-T07-retention-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-retention",
+      "route": "app/account/delete.tsx",
+      "file": "after-dark-T07-retention-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-retention",
+      "route": "app/account/delete.tsx",
+      "file": "before-light-T07-retention-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-retention",
+      "route": "app/account/delete.tsx",
+      "file": "after-light-T07-retention-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-retry",
+      "route": "app/account/delete.tsx",
+      "file": "before-dark-T07-retry-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-retry",
+      "route": "app/account/delete.tsx",
+      "file": "after-dark-T07-retry-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-retry",
+      "route": "app/account/delete.tsx",
+      "file": "before-light-T07-retry-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-retry",
+      "route": "app/account/delete.tsx",
+      "file": "after-light-T07-retry-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-unavailable-provider",
+      "route": "app/account/delete.tsx",
+      "file": "before-dark-T07-unavailable-provider-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-unavailable-provider",
+      "route": "app/account/delete.tsx",
+      "file": "after-dark-T07-unavailable-provider-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "T07-unavailable-provider",
+      "route": "app/account/delete.tsx",
+      "file": "before-light-T07-unavailable-provider-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "T07-unavailable-provider",
+      "route": "app/account/delete.tsx",
+      "file": "after-light-T07-unavailable-provider-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    }
+  ]
+}

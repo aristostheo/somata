@@ -1,5 +1,6 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { Button, Choice, Empty, Field, Heading, IconButton, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
 import { useAuth } from "@/content/AuthContext";
 import {
   subscribeWorkoutPresets,
@@ -59,7 +60,11 @@ const DEFAULT_EXERCISE_PRESETS = [
 
 // ---------- Screen ----------
 export default function QuickWorkoutScreen() {
-  const { D, F } = useSomataTheme();
+  return <SomataTaskAppearance><QuickWorkoutScreenContent /></SomataTaskAppearance>;
+}
+
+function QuickWorkoutScreenContent() {
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const { user } = useAuth();
@@ -259,11 +264,11 @@ export default function QuickWorkoutScreen() {
     }
   };
 
-  return (<TaskPage title="Build your quick log." section="Training / quick workout"
+  return (<TaskPage title="Quick workout" section="Training / quick workout"
     onBack={() => router.canGoBack() ? router.back() : router.replace("/(tabs)/workouts")}
     footer={<View style={F.wrap}>
       <View style={{ flex: 1 }}>
-        <Button label="Discard" onPress={() => Alert.alert("Discard?", "This will clear your quick workout.", [
+        <Button danger label="Discard" onPress={() => Alert.alert("Discard?", "This will clear your quick workout.", [
           { text: "Cancel", style: "cancel" }, { text: "Discard", style: "destructive", onPress: () => setExercises([]) }])} />
       </View>
 
@@ -272,13 +277,11 @@ export default function QuickWorkoutScreen() {
       </View>
     </View>}>
 
-    <View style={F.wrap}>
-      <Metric label="Exercises" value={String(exercises.length)} />
-      <Metric label="Weight unit" value={unit} />
-    </View>
-
-    <Field label="Workout name" value={workoutName} onChangeText={setWorkoutName} />
-
+    <Panel accent><Heading title="Your workout log" detail="Build the record, then save it when you are ready." />
+      <WorkoutStats values={[{ label: 'Exercises', value: String(exercises.length) }, { label: 'Weight unit', value: unit }]} />
+      <Field label="Workout name" value={workoutName} onChangeText={setWorkoutName} />
+    </Panel>
+    <Panel>
     <Heading title="Start from a template" detail={selectedTemplate ? selectedTemplate.name : "Or build your own exercise list below."} />
 
     <View style={F.wrap}>
@@ -287,7 +290,7 @@ export default function QuickWorkoutScreen() {
       {templates.map(t => <Choice key={t.id} label={t.name} selected={templateId === t.id} onPress={() => applyTemplate(t)} />)}
     </View>
 
-    <Panel>
+    </Panel><Panel>
       <Heading title="Add an exercise" />
       <Field ref={inputRef} label="Exercise" value={exerciseQuery}
         onChangeText={t => { setExerciseQuery(t); setSelectedExerciseName(null); }} placeholder="Search your presets or enter a name" />
@@ -319,12 +322,12 @@ export default function QuickWorkoutScreen() {
 
     {!exercises.length && <Empty title="No exercises yet" detail="Use an exercise preset or add one above." />}
 
-    {exercises.map((ex, index) => <View key={ex.id} style={{ gap: 16, paddingBottom: 22, borderBottomWidth: 1, borderBottomColor: D.line }}>
+    {exercises.map((ex, index) => <Panel key={ex.id}>
 
       <Heading title={`${String(index + 1).padStart(2, "0")}  ${ex.name}`} action={<IconButton icon="trash-outline" label={`Remove ${ex.name}`} onPress={() => Alert.alert("Remove exercise?", ex.name, [
         { text: "Cancel", style: "cancel" }, { text: "Remove", style: "destructive", onPress: () => removeExercise(ex.id) }])} />} />
 
-      {ex.sets.map((set, i) => <Panel key={i}>
+      {ex.sets.map((set, i) => <View key={i} style={{ gap: 12, padding: 14, borderRadius: 16, backgroundColor: D.raised }}>
         <Text style={F.eyebrow}>SET {i + 1}</Text>
         <View style={{ gap: 14 }}>
 
@@ -341,13 +344,13 @@ export default function QuickWorkoutScreen() {
           </View>
 
         </View>
-      </Panel>)}
+      </View>)}
 
       <Button label="Add set" icon="add" onPress={() => addOneSet(ex.id)} />
 
       <Field label={`Notes for ${ex.name}`} value={ex.note ?? ""} onChangeText={t => setExercises(prev => prev.map(p => p.id === ex.id ? { ...p, note: t } : p))} />
 
-    </View>)}
+    </Panel>)}
 
     <Text style={F.caption}>Your saved log uses the first set for its primary reps and weight; varied sets are included in the notes.</Text>
   </TaskPage>

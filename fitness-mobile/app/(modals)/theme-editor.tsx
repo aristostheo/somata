@@ -1,7 +1,9 @@
+import { DeskIntro, DeskSection, DeskColumns, StatusNote } from "@/components/accountSettings/PremiumUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { Button, Empty, Field, Heading, Choice as ModeChoice, Panel, TaskPage } from "@/components/somata/TaskUI";
 import { useSomataTheme } from "@/components/somata/theme";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation, useRouter } from "expo-router";
+import { usePreventRemove, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,11 +18,10 @@ import {
   type PaletteTarget, type ThemeMode, type ThemeSnapshot,
 } from "@/services/theme/themeState";
 
-export default function ThemePickerScreen() {
-  const { D, F } = useSomataTheme();
+function ThemePickerScreen() {
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
-  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const systemScheme = useColorScheme();
   const { modeSetting, themeAccents, isDark, themeReady, themeLoadError, refreshTheme, commitThemeDraft } = useTheme();
@@ -41,9 +42,7 @@ export default function ThemePickerScreen() {
     }
   }, [themeReady, themeLoadError, draft, modeSetting, themeAccents]);
 
-  useEffect(() => navigation.addListener("beforeRemove", (event) => {
-    if (savingRef.current) event.preventDefault();
-  }), [navigation]);
+  const disableRemovalPrevention = usePreventRemove(saving);
 
   const leave = () => {
     if (savingRef.current) return;
@@ -78,6 +77,8 @@ export default function ThemePickerScreen() {
     try {
       await commitThemeDraft(draft);
       savingRef.current = false;
+      setSaving(false);
+      disableRemovalPrevention();
       if (router.canGoBack()) router.back();
       else router.replace("/(modals)/settings");
     } catch (reason: any) {
@@ -106,24 +107,24 @@ export default function ThemePickerScreen() {
   return (<TaskPage title="Your signature look" section="Theme picker" subtitle="Mode and palette edits stay here until you save." onBack={leave} footer={draft ? <>{!!error && <Text accessibilityRole="alert" style={F.body}>{error}</Text>}<Button primary label={saving ? 'Saving…' : 'Save theme'} disabled={saving} onPress={save} /><Button label="Cancel changes" disabled={saving} onPress={leave} /></> : undefined}>
 
     {!themeReady ? <Empty title="Loading saved appearance…" /> : themeLoadError ? <><Empty title="Saved appearance unavailable" detail="Retry before editing to preserve your saved palettes." /><Button label="Retry loading" onPress={() => { void refreshTheme(); }} /></> : draft && <>
-      <Heading title="Appearance mode" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <DeskSection icon="contrast-outline" title="Appearance mode" detail="Choose the system setting or one appearance for this device."><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {(['system', 'light', 'dark'] as ThemeMode[]).map(m => <ModeChoice key={m} label={m[0].toUpperCase() + m.slice(1)} selected={draft.mode === m} onPress={() => changeMode(m)} />)}
-      </View><Text style={F.caption}>{draft.mode === 'system' ? `System currently uses ${systemIsDark ? 'dark' : 'light'} appearance.` : `${draft.mode} appearance selected.`}</Text>
+      </View><Text style={F.caption}>{draft.mode === 'system' ? `System currently uses ${systemIsDark ? 'dark' : 'light'} appearance.` : `${draft.mode} appearance selected.`}</Text></DeskSection>
       <View style={{ gap: 12, padding: 20, borderRadius: 24, backgroundColor: preview.canvas, borderWidth: 1, borderColor: preview.border }}>
         <Text style={{ color: preview.secondary, fontSize: 12, letterSpacing: 1 }}>PALETTE PREVIEW · {target.toUpperCase()}</Text>
-        <Text style={{ color: preview.text, fontSize: 28, fontWeight: '700' }}>A little more you.</Text>
+        <Text style={{ color: preview.text, fontSize: 28, fontWeight: '700' }}>{presetName} / {target}</Text>
         <View style={{ height: 12, borderRadius: 6, backgroundColor: preview.raised, overflow: 'hidden' }}>
           <LinearGradient colors={[primary, accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 12, width: '68%' }} />
         </View>
         <Text style={{ color: preview.secondary, fontSize: 14 }}>Illustrative color sample</Text>
         <View style={{ padding: 18, borderRadius: 18, backgroundColor: preview.card, gap: 12 }}>
-          <Text style={{ color: preview.text, fontSize: 17, fontWeight: '700' }}>Recorded progress</Text>
+          <Text style={{ color: preview.text, fontSize: 17, fontWeight: '700' }}>Your palette, in context</Text>
           <View style={{ alignSelf: 'flex-start', backgroundColor: primary, padding: 12, borderRadius: 12 }}>
             <Text style={{ color: buttonText, fontWeight: '700' }}>Accent preview</Text>
           </View>
         </View>
       </View>
-      <Heading title="Palette library" detail="Light and dark accents are saved independently." /><View style={{ flexDirection: 'row', gap: 8 }}>
+      <StatusNote icon="color-palette-outline" title="Palette library" detail="Light and dark accents are saved independently. Somata’s branded surfaces keep their orange identity; your palette remains available to customizable surfaces." /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {(['light', 'dark'] as PaletteTarget[]).map(t => <ModeChoice key={t} label={`${t} palette`} selected={target === t} onPress={() => setTarget(t)} />)}
       </View>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
@@ -133,12 +134,15 @@ export default function ThemePickerScreen() {
           {presetName === name && <Text style={F.caption}>Selected</Text>}
         </Pressable>)}
       </View>
-      <Panel>
-        <Heading title={`Customize ${target}`} detail="Enter six-digit hex colors." />
+      <DeskSection icon="color-wand-outline" title={`Customize ${target}`} detail="Enter six-digit hex colors."><DeskColumns>
         {(['primary', 'accent'] as const).map(field => <Field key={field} label={field === 'primary' ? 'Primary accent' : 'Secondary accent'} value={draft[target][field]} onChangeText={v => changeColor(field, v)} autoCapitalize="characters" autoCorrect={false} maxLength={7} />)}
-      </Panel>
-      <Heading title="Contrast check" detail={!validPrimary || !validAccent ? 'Enter valid hex colors to check contrast.' : `Primary ${primaryRatio.toFixed(1)}:1 · Secondary ${accentRatio.toFixed(1)}:1 on the card`} />{validPrimary && validAccent && <Text style={F.caption}>{primaryRatio < 3 || accentRatio < 3 ? 'One or both accents may be difficult to distinguish from the card.' : 'Both accents are distinguishable from the card.'}</Text>}<Button label={`Reset ${target} palette to Ocean`} onPress={resetSelected} />
+      </DeskColumns></DeskSection>
+      <DeskSection icon="eye-outline" title="Readability"><Heading title="Contrast check" detail={!validPrimary || !validAccent ? 'Enter valid hex colors to check contrast.' : `Primary ${primaryRatio.toFixed(1)}:1 · Secondary ${accentRatio.toFixed(1)}:1 on the card`} />{validPrimary && validAccent && <Text style={F.caption}>{primaryRatio < 3 || accentRatio < 3 ? 'One or both accents may be difficult to distinguish from the card.' : 'Both accents are distinguishable from the card.'}</Text>}<Button label={`Reset ${target} palette to Ocean`} onPress={resetSelected} /></DeskSection>
     </>}
   </TaskPage>
   );
+}
+
+export default function PremiumThemePickerScreen() {
+  return <SomataTaskAppearance><ThemePickerScreen /></SomataTaskAppearance>;
 }

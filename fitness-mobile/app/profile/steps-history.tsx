@@ -1,5 +1,6 @@
+import { ProfileIntro, ProfileSection } from "@/components/profile/ProfileTaskUI";
 import { ChoiceRail, FlowNotice, FlowPage, SmallStat } from "@/components/homeFlows/FlowUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { useAuth } from "@/content/AuthContext";
 import { subscribeProfile, type Profile } from "@/services/profile";
 import { recordedStepDays } from "@/services/profile/fitadaptInsightData";
@@ -52,8 +53,8 @@ function rangeSubtitle(range: RangeKey, dates: string[]) {
   return `Last 90 days · ${startMonth}-${endMonth}`;
 }
 
-export default function StepsHistoryScreen() {
-  const { D, F } = useSomataTheme();
+function StepsHistoryScreenContent() {
+  const { D, F, t } = useTaskPresentation();
 
   const router = useRouter();
   const { user } = useAuth();
@@ -109,13 +110,14 @@ export default function StepsHistoryScreen() {
 
   return <FlowPage title="Every recorded step." eyebrow="Movement / steps history" onBack={() => router.back()}>
 
+    <ProfileIntro label="Account / dated steps" title="Movement, day by day" detail="Your saved step records. Missing dates stay distinct from recorded zero." />
     <ChoiceRail label="Step history period" value={range} onChange={setRange}
       choices={[{ value: 7, label: "7 days" }, { value: 30, label: "30 days" }, { value: 90, label: "90 days" }]} />
 
     {unavailable ? <FlowNotice title="Step history unavailable" detail={user?.uid ?
       "Your saved profile could not be loaded right now." : "Sign in to view steps saved to your account."} error /> :
       profile === undefined ? <FlowNotice title="Loading your steps…" /> : <>
-        <View style={{ gap: 8 }}>
+        <ProfileSection index="01" title="Period total">
 
           <Text style={F.eyebrow}>STEPS IN THIS PERIOD</Text>
 
@@ -123,8 +125,8 @@ export default function StepsHistoryScreen() {
 
           <Text style={F.body}>{rangeSubtitle(range, dates)}</Text>
 
-        </View>
-        <View style={{ ...F.panel, padding: 16, gap: 20 }}>
+        </ProfileSection>
+        <ProfileSection index="02" title="Dated movement">
 
           <View style={{ ...F.row, flexWrap: "wrap" }}>
 
@@ -148,7 +150,7 @@ export default function StepsHistoryScreen() {
 
                     {recorded(row.date) && row.steps > 0 && <View style={{
                       height: Math.max(2, row.steps / chartMax * 132),
-                      borderRadius: 6, backgroundColor: row.steps >= stepsGoal ? D.lime : D.teal
+                      borderRadius: 6, backgroundColor: row.steps >= stepsGoal ? t.status.success : D.teal
                     }} />}
 
                     {recorded(row.date) && row.steps === 0 && <View style={{ height: 2, backgroundColor: D.teal }} />}
@@ -175,11 +177,11 @@ export default function StepsHistoryScreen() {
 
             <Text style={{ ...F.caption, color: D.teal }}>● Recorded steps</Text>
 
-            <Text style={{ ...F.caption, color: D.lime }}>● Goal reached</Text>
+            <Text style={{ ...F.caption, color: t.status.success }}>● Goal reached</Text>
 
           </View>
 
-        </View>
+        </ProfileSection>
         <View style={F.wrap}>
 
           <SmallStat label="Daily average" value={hasRecords ? avg.toLocaleString() : "—"} detail={`Across all ${range} days`} />
@@ -207,8 +209,8 @@ export default function StepsHistoryScreen() {
             const hit = known && row.steps >= stepsGoal;
             const fraction = known && stepsGoal > 0 ? Math.max(0, Math.min(1, row.steps / stepsGoal)) : 0;
             return <View key={row.date} accessibilityLabel={fmtDayLabel(row.date)} style={{
-              flexDirection: "row", gap: 13, paddingBottom: 17,
-              borderBottomWidth: 1, borderBottomColor: D.line
+              flexDirection: "row", gap: 13, padding: 16, borderRadius: 18,
+              backgroundColor: t.surface.primary, borderWidth: 1, borderColor: t.border.subtle
             }}>
 
               <View style={{ width: 44, alignItems: "center", gap: 4 }}>
@@ -225,14 +227,14 @@ export default function StepsHistoryScreen() {
 
                   <Text style={{ color: D.text, fontSize: 19, fontWeight: "700" }}>{known ? row.steps.toLocaleString() : "—"}</Text>
 
-                  <Text style={{ ...F.caption, color: hit ? D.lime : D.muted }}>{!known ? "No record" : hit ? "Goal reached" :
+                  <Text style={{ ...F.caption, color: hit ? t.status.success : D.muted }}>{!known ? "No record" : hit ? "Goal reached" :
                     row.steps > 0 ? `${Math.max(0, stepsGoal - row.steps).toLocaleString()} to goal` : "0 steps recorded"}</Text>
 
                 </View>
 
                 <View style={{ height: 5, borderRadius: 3, backgroundColor: D.raised }}>
 
-                  {known && <View style={{ height: 5, borderRadius: 3, width: `${fraction * 100}%`, backgroundColor: hit ? D.lime : D.teal }} />}
+                  {known && <View style={{ height: 5, borderRadius: 3, width: `${fraction * 100}%`, backgroundColor: hit ? t.status.success : D.teal }} />}
 
                 </View>
 
@@ -245,4 +247,8 @@ export default function StepsHistoryScreen() {
       </>}
 
   </FlowPage>;
+}
+
+export default function StepsHistoryScreen() {
+  return <SomataTaskAppearance><StepsHistoryScreenContent /></SomataTaskAppearance>;
 }

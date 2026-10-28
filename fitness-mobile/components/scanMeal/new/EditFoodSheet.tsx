@@ -1,5 +1,6 @@
-import { Button, Choice, Field, Panel, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { NutritionContext, NutritionFields } from "@/components/nutrition/NutritionTaskUI";
+import { Button, Choice, Field, Heading, Panel, TaskSheet } from "@/components/somata/TaskUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import React, { useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
@@ -10,7 +11,11 @@ import type {
 import { DEFAULT_UNITS, clamp, roundTo } from "@/components/scanMeal/new/types";
 import { useTheme } from "@/content/ThemeProvider";
 
-export default function EditFoodSheet({
+export default function EditFoodSheet(props: Parameters<typeof EditFoodSheetContent>[0]) {
+  return <SomataTaskAppearance><EditFoodSheetContent {...props} /></SomataTaskAppearance>;
+}
+
+function EditFoodSheetContent({
   visible,
   food,
   onClose,
@@ -23,7 +28,7 @@ export default function EditFoodSheet({
   onSave: (f: DetectedFood) => void;
   onRemove?: () => void;
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors } = useTheme() as any;
 
@@ -102,7 +107,8 @@ export default function EditFoodSheet({
 
   return (<TaskSheet visible={visible} onClose={onClose} title="Refine this food">
 
-    <Field label="Food name" value={name} onChangeText={setName} />
+    <NutritionContext label="Scan refinement" title={food?.name || "Food details"} detail="Adjust the portion or edit the estimate. Save returns to your meal review." icon="create-outline" />
+    <Panel><Heading title="Name & portion" /><Field label="Food name" value={name} onChangeText={setName} />
 
     <Field label="Portion" value={amt} onChangeText={onChangeAmt} keyboardType="decimal-pad" />
 
@@ -112,9 +118,9 @@ export default function EditFoodSheet({
 
     <Text style={F.caption}>Changing the amount scales the current nutrition values.</Text>
 
-    <Panel>
+    </Panel><Panel><Heading title="Estimated nutrition" /><NutritionFields>
       {[{ label: 'Calories', value: cals, set: setCals }, { label: 'Protein (g)', value: p, set: setP }, { label: 'Carbs (g)', value: c, set: setC }, { label: 'Fat (g)', value: f, set: setF }].map(field =>
-        <Field key={field.label} label={field.label} value={field.value} onChangeText={field.set} keyboardType="decimal-pad" />)}
+        <Field key={field.label} label={field.label} value={field.value} onChangeText={field.set} keyboardType="decimal-pad" />)}</NutritionFields>
     </Panel>
 
     <Button label="Save changes" primary disabled={!canSave} onPress={commit} />

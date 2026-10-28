@@ -1,6 +1,11 @@
+import { SomataTaskAppearance } from "@/components/designPreview/Appearance";
+import { Button, Choice, Field, Heading, Panel } from "@/components/somata/TaskUI";
+import { WorkoutIntro } from "@/components/workouts/WorkoutTaskUI";
 import ActivityLogSheet from "@/components/activity/ActivityLogSheet";
-import { Action, Card, GlowPanel, LinkRow, Metric, Page, Section } from "@/components/designPreview/UI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { Action, Card, Grid, Page, RecordSummary, SavedHeading, Section, SessionHero, Stat, Surprise, TemplateCard, Tool } from "@/components/workouts/PremiumWorkoutsUI";
+import { SomataHomeAppearance as WorkoutsAppearance, usePresentation } from "@/components/designPreview/Appearance";
+import { useHomeVisuals } from "@/components/home/PremiumHomeUI";
+import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "@/content/AuthContext";
 import {
   addActivity, deleteActivity, subscribeActivityBetween, updateActivity,
@@ -17,10 +22,15 @@ import { dayKey } from "@/utils/date";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Modal, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 export default function DesignWorkouts() {
-  const { D, F } = useSomataTheme();
+  return <WorkoutsAppearance><WorkoutsContent /></WorkoutsAppearance>;
+}
+
+function WorkoutsContent() {
+  const { D } = usePresentation();
+  const { t, p } = useHomeVisuals();
 
   const router = useRouter();
   const params = useLocalSearchParams<{ activity?: string; }>();
@@ -133,56 +143,38 @@ export default function DesignWorkouts() {
     <Page eyebrow="Movement / recorded work" title="Workouts"
       subtitle="Train, resume, and revisit what you logged.">
 
-      <GlowPanel>
+      <SessionHero onStart={() => router.push("/workouts/session?freshStart=1" as never)}
+        onOpen={() => router.push("/workouts/session")} onPlan={() => setConfigOpen(true)} />
 
-        <Text style={{ color: D.muted, fontSize: 11, fontWeight: "800", letterSpacing: 1.5 }}>YOUR NEXT SESSION</Text>
-
-        <Text style={{ color: D.text, fontSize: 28, fontWeight: "800" }}>Make room to move.</Text>
-
-        <Text style={{ color: D.muted, fontSize: 13, lineHeight: 19 }}>Your session workspace keeps the same logging and editing tools.</Text>
-
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
-
-          <Action label="Start new" icon="add" bright onPress={() => router.push("/workouts/session?freshStart=1" as never)} />
-
-          <Action label="Open session" icon="play-outline" onPress={() => router.push("/workouts/session")} />
-
-          <Action label="Plan a session" icon="options-outline" onPress={() => setConfigOpen(true)} />
-
-        </View>
-
-      </GlowPanel>
-
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
-
-        <Metric label="Sets today" value={rows == null ? "Loading…" : recorded.length ?
+      <Grid>
+        <Stat label="Sets today" icon="stats-chart-outline" value={rows == null ? "Loading…" : recorded.length ?
           String(recorded.reduce((sum, row) => sum + (Number(row.sets) || 0), 0)) : "—"}
           detail={recorded.length ? `${recorded.length} records` : "No workout recorded"} />
-
-        <Metric label="Saved templates" value={templates == null ? "Loading…" : String(visibleTemplates.length)}
-          detail="Your account library" tone="lime" />
-
-      </View>
+        <Stat label="Saved templates" icon="document-text-outline" value={templates == null ? "Loading…" : String(visibleTemplates.length)}
+          detail="Your account library" />
+      </Grid>
 
       <Card>
 
         <Section title="Last seven days" caption="Recorded sets by date" />
 
         <View accessibilityLabel="Recorded workout sets over the past seven days"
-          style={{ height: 103, flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
+          style={{ flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
 
-          {week.map((day, index) => <View key={day.date} style={{ flex: 1, alignItems: "center", gap: 7 }}>
+          {week.map((day, index) => <View key={day.date} accessible
+            accessibilityLabel={`${day.date}: ${rows === null ? "loading" : `${day.sets} recorded sets`}`}
+            style={{ flex: 1, alignItems: "center", gap: 7 }}>
 
             <View style={{ width: "100%", height: 77, justifyContent: "flex-end", backgroundColor: D.low, borderRadius: 7 }}>
 
-              <View style={{
+              <LinearGradient colors={index === 6 ? p.cta : [t.brand.coral, t.brand.orange]} style={{
                 height: day.sets ? Math.max(7, day.sets / max * 77) : 0,
-                borderRadius: 7, backgroundColor: index === 6 ? D.lime : D.teal
+                borderRadius: 7
               }} />
 
             </View>
 
-            <Text style={{ color: D.dim, fontSize: 11 }}>{day.label}</Text>
+            <Text style={{ color: D.muted, fontSize: 11 }}>{day.label}</Text>
 
           </View>)}
 
@@ -194,27 +186,12 @@ export default function DesignWorkouts() {
 
       <Section title="Start with a template" caption="Built-in sessions and your saved library" />
 
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
+      <Grid>
+        {AUTO_TEMPLATES.map((template) => <TemplateCard key={template.id} template={template}
+          onPress={() => { void launchTemplate(template); }} />)}
+      </Grid>
 
-        {AUTO_TEMPLATES.map((template) => <Pressable key={template.id} accessibilityRole="button"
-          accessibilityLabel={`Start ${template.name}`} onPress={() => { void launchTemplate(template); }}
-          style={({ pressed }) => ({
-            width: "48%", minHeight: 111, borderRadius: 17,
-            backgroundColor: D.card, borderColor: D.line, borderWidth: 1,
-            padding: 13, justifyContent: "space-between", opacity: pressed ? 0.7 : 1
-          })}>
-
-          <Text style={{ fontSize: 22 }}>{template.emoji}</Text>
-
-          <Text style={{ color: D.text, fontSize: 14, fontWeight: "800" }}>{template.name}</Text>
-
-          <Text style={{ color: D.dim, fontSize: 11 }}>{template.items.length} movements</Text>
-
-        </Pressable>)}
-
-      </View>
-
-      <Action label="Surprise from saved templates" icon="shuffle-outline" onPress={pickSaved} />
+      <Surprise onPress={pickSaved} />
 
       <Card>
 
@@ -227,11 +204,9 @@ export default function DesignWorkouts() {
               borderColor: D.line, paddingTop: 12
             }}>
 
-              <Text style={{ color: D.text, fontSize: 15, fontWeight: "800" }}>{template.name}</Text>
+              <SavedHeading name={template.name} count={template.items.length} />
 
-              <Text style={{ color: D.dim, fontSize: 11 }}>{template.items.length} movements</Text>
-
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+              <Grid>
 
                 <Action label="Use" icon="play-outline" disabled={templateBusy === template.id}
                   onPress={() => {
@@ -251,10 +226,10 @@ export default function DesignWorkouts() {
                 <Action label="Archive" icon="archive-outline" disabled={templateBusy === template.id}
                   onPress={() => { void manageTemplate(template, "archive"); }} />
 
-                <Action label="Delete" icon="trash-outline" disabled={templateBusy === template.id}
+                <Action label="Delete" icon="trash-outline" danger disabled={templateBusy === template.id}
                   onPress={() => confirmDelete(template)} />
 
-              </View>
+              </Grid>
 
             </View>)}
 
@@ -279,13 +254,8 @@ export default function DesignWorkouts() {
           onPress={() => router.push("/workouts/history")} />} />
 
         {rows === null ? <Text style={{ color: D.muted }}>Loading workouts…</Text> :
-          latest ? <View style={{ gap: 5 }}>
-
-            <Text style={{ color: D.text, fontSize: 17, fontWeight: "700" }}>{latest.sessionTitle || latest.exercise}</Text>
-
-            <Text style={{ color: D.muted, fontSize: 12 }}>{latest.date} · {latest.exercise} · {latest.sets ?? 0} sets</Text>
-
-          </View> : <Text style={{ color: D.muted }}>Your first logged session will appear here.</Text>}
+          latest ? <RecordSummary icon="barbell-outline" title={latest.sessionTitle || latest.exercise}
+            detail={`${latest.date} · ${latest.exercise} · ${latest.sets ?? 0} sets`} /> : <Text style={{ color: D.muted }}>Your first logged session will appear here.</Text>}
 
       </Card>
 
@@ -297,13 +267,10 @@ export default function DesignWorkouts() {
         {activities.length ? activities.map((entry) => <Pressable key={entry.id} accessibilityRole="button"
           accessibilityLabel={`Edit ${entry.type} activity`} onPress={() => { setEditingActivity(entry); setActivityOpen(true); }}
           style={{
-            borderTopWidth: 1, borderColor: D.line, paddingVertical: 10, flexDirection: "row",
-            justifyContent: "space-between", gap: 8
+            borderTopWidth: 1, borderColor: D.line, minHeight: 48
           }}>
 
-          <Text style={{ color: D.text, fontWeight: "700", textTransform: "capitalize" }}>{entry.type}</Text>
-
-          <Text style={{ color: D.muted }}>{entry.minutes} min · Edit</Text>
+          <RecordSummary icon="walk-outline" title={entry.type} detail={`${entry.minutes} min · Edit`} />
 
         </Pressable>) : <Text style={{ color: D.muted, fontSize: 12 }}>No activity recorded today.</Text>}
 
@@ -313,81 +280,53 @@ export default function DesignWorkouts() {
 
         <Section title="Your training tools" />
 
-        <LinkRow title="Template library" detail="Find and launch saved training templates" icon="albums-outline"
+        <Grid>
+        <Tool title="Template library" detail="Find and launch saved training templates" icon="albums-outline"
           onPress={() => router.push("/workouts/templates")} />
 
-        <LinkRow title="Create a template" detail="Build a repeatable session" icon="create-outline"
+        <Tool title="Create a template" detail="Build a repeatable session" icon="create-outline"
           onPress={() => router.push("/(modals)/create-template")} />
 
-        <LinkRow title="Session history" detail="Open logged sessions and recaps" icon="time-outline"
+        <Tool title="Session history" detail="Open logged sessions and recaps" icon="time-outline"
           onPress={() => router.push("/workouts/history")} />
 
-        <LinkRow title="Quick workout" detail="Log exercises without a full session" icon="barbell-outline"
+        <Tool title="Quick workout" detail="Log exercises without a full session" icon="barbell-outline"
           onPress={() => router.push("/(modals)/quick-workout")} />
 
-        <LinkRow title="Connections" detail="Health and wearable integrations" icon="heart-outline"
+        <Tool title="Connections" detail="Health and wearable integrations" icon="heart-outline"
           onPress={() => router.push("/profile/integrations")} />
 
-        <LinkRow title="Coach" detail="Open your existing coaching tools" icon="sparkles-outline"
+        <Tool title="Coach" detail="Open your existing coaching tools" icon="sparkles-outline"
           onPress={() => router.push("/(modals)/coach-spark")} />
 
-        <LinkRow title="Coach quick pick" detail="Use the existing instant workout flow" icon="flash-outline"
+        <Tool title="Coach quick pick" detail="Use the existing instant workout flow" icon="flash-outline"
           onPress={() => router.push({ pathname: "/(modals)/coach-spark", params: { instant: "1", quickPreset: "surprise" } })} />
 
+        </Grid>
       </Card>
 
     </Page>
     <Modal visible={configOpen} transparent animationType="slide" onRequestClose={() => setConfigOpen(false)}>
 
-      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.7)" }}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.7)" }}>
 
-        <View style={{
-          padding: 20, paddingBottom: 36, borderTopLeftRadius: 24, borderTopRightRadius: 24,
-          backgroundColor: D.card, gap: 13
-        }}>
+        <SomataTaskAppearance><ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: "90%", borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: D.card }} contentContainerStyle={{ padding: 20, paddingBottom: 36, gap: 16 }}>
+          <WorkoutIntro label="Session setup" title="Make room to train." detail="Choose a focus and time, then open your session workspace." />
+          <Panel><Field label="Session name (optional)" value={configTitle} onChangeText={setConfigTitle} placeholder="Session name (optional)" /></Panel>
+          <Panel><Heading title="Training focus" />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {[{ key: "", label: "Any focus" }, ...PRIMARY_MUSCLE_OPTIONS.slice(0, 6)].map(part => <Choice key={part.key} label={part.label} selected={configMuscle === part.key} onPress={() => setConfigMuscle(part.key)} />)}
+            </View>
+          </Panel>
+          <Panel><Heading title="Time available" />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{["30", "45", "60", "75"].map(duration => <Choice key={duration} label={`${duration} min`} selected={configDuration === duration} onPress={() => setConfigDuration(duration)} />)}</View>
+          </Panel>
+          <Button label="Start configured workout" icon="arrow-forward" primary onPress={startConfigured} />
+          <Button label="Cancel" icon="close" onPress={() => setConfigOpen(false)} />
+        </ScrollView></SomataTaskAppearance>
 
-          <Section title="Plan a session" caption="Choose a focus, then open the existing workout workspace" />
-
-          <TextInput value={configTitle} onChangeText={setConfigTitle} placeholder="Session name (optional)"
-            placeholderTextColor={D.dim} style={{
-              padding: 13, borderRadius: 13, backgroundColor: D.raised,
-              color: D.text, minHeight: 48
-            }} />
-
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
-
-            {[{ key: "", label: "Any focus" }, ...PRIMARY_MUSCLE_OPTIONS.slice(0, 6)].map((part) =>
-              <Pressable key={part.key} onPress={() => setConfigMuscle(part.key)} accessibilityRole="button"
-                accessibilityState={{ selected: configMuscle === part.key }} style={{
-                  padding: 10, borderRadius: 12,
-                  backgroundColor: configMuscle === part.key ? D.lime : D.raised
-                }}>
-
-                <Text style={{ color: configMuscle === part.key ? D.ink : D.text, fontWeight: "700" }}>{part.label}</Text>
-
-              </Pressable>)}
-
-          </View>
-
-          <View style={{ flexDirection: "row", gap: 8 }}>
-
-            {["30", "45", "60", "75"].map((duration) => <Pressable key={duration} onPress={() => setConfigDuration(duration)}
-              accessibilityRole="button" accessibilityState={{ selected: configDuration === duration }}
-              style={{ padding: 10, borderRadius: 12, backgroundColor: configDuration === duration ? D.lime : D.raised }}>
-
-              <Text style={{ color: configDuration === duration ? D.ink : D.text, fontWeight: "700" }}>{duration} min</Text>
-
-            </Pressable>)}
-
-          </View>
-
-          <Action label="Start configured workout" icon="arrow-forward" bright onPress={startConfigured} />
-
-          <Action label="Cancel" icon="close" onPress={() => setConfigOpen(false)} />
-
-        </View>
-
-      </View>
+      </KeyboardAvoidingView>
 
     </Modal>
     <ActivityLogSheet visible={activityOpen} editing={editingActivity}

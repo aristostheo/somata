@@ -9,3 +9,8 @@ onlyBuiltDependencies:
 
 patchedDependencies:
   react-native-health@1.19.0: patches/react-native-health@1.19.0.patch
+
+# Keep these older libraries on the mobile SDK's native/config-plugin versions.
+overrides:
+  react-native-calendars>react-native-safe-area-context: ~5.10.1
+  react-native-health>@expo/config-plugins: ~58.0.10

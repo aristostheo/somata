@@ -1,6 +1,7 @@
+import { ProfileIntro, ProfileSection, ProfileRecord } from "@/components/profile/ProfileTaskUI";
 import { useAccountStorage } from '@/services/local/accountStore';
 import { Button, Choice, Empty, Field, Heading, Item, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { Trend } from "@/components/somata/Trend";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
@@ -12,7 +13,7 @@ import {
   View
 } from "react-native";
 
-import { useProfileFlowTheme as useTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { usePremiumProfileFlowTheme as useTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
 import { subscribeProfile, type Profile } from "@/services/profile";
 import {
@@ -54,9 +55,9 @@ function scoreColor(score: number, colors: ReturnType<typeof useTheme>["colors"]
   return colors.success;
 }
 
-export default function WeeklyCheckinScreen() {
+function WeeklyCheckinScreenContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors } = useTheme();
   const { user } = useAuth();
@@ -145,21 +146,22 @@ export default function WeeklyCheckinScreen() {
 
   return (<TaskPage title={step === 5 ? 'Your check-in journal' : step === 4 ? 'Week recorded' : 'A moment to check in'} section="Weekly check-in" subtitle={weekLabel} onBack={close} footer={step < 4 ? <Button primary disabled={!nextEnabled} label={step === 3 ? 'Complete check-in' : 'Continue'} onPress={() => { if (step === 3) completeCheckin().catch(() => { }); else setStep(current => (current + 1) as Step); }} /> : undefined}>
 
+    <ProfileIntro label={step < 4 ? "Weekly reflection" : "Your recorded journal"} title={step < 4 ? "A little space to reflect" : "Keep your own perspective"} detail="Your answers are personal reflections. They are separate from measured progress and FitAdapt targets." />
     {step < 4 && <><Text style={F.eyebrow}>QUESTION {step + 1} / 4</Text><View style={{ flexDirection: 'row', gap: 6 }}>
       {[0, 1, 2, 3].map(n => <View key={n} style={{ height: 4, flex: 1, borderRadius: 2, backgroundColor: n <= step ? D.teal : D.raised }} />)}
     </View></>}
 
-    {step === 0 && <><Heading title="How was your energy?" detail="Consider workouts, daily life, and sleep." />{([1, 2, 3, 4, 5] as const).map(score => <Choice key={score} label={`${score} · ${['Exhausted', 'Low', 'Okay', 'Good', 'Great'][score - 1]}`} selected={energy === score} onPress={() => setEnergy(score)} />)}</>}
+    {step === 0 && <ProfileSection index="01" title="How was your energy?" detail="Consider workouts, daily life, and sleep.">{([1, 2, 3, 4, 5] as const).map(score => <Choice key={score} label={`${score} · ${['Exhausted', 'Low', 'Okay', 'Good', 'Great'][score - 1]}`} selected={energy === score} onPress={() => setEnergy(score)} />)}</ProfileSection>}
 
-    {step === 1 && <><Heading title="Does the record match your week?" />{stats ? <><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+    {step === 1 && <ProfileSection index="02" title="Does the record match your week?">{stats ? <><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       <Metric label="Meal logging" value={`${stats.mealsLoggedDays}/7 days`} />
       <Metric label="Workouts" value={String(stats.workoutSessions)} />
       <Metric label="Hydration goal" value={`${stats.hydrationDaysHit}/7 days`} />
-    </View><Text style={F.body}>{stats.observation}</Text></> : <Empty title="Loading this week’s records…" />}{([['accurate', 'Yes, accurate'], ['felt-better', 'It felt better'], ['felt-harder', 'It felt harder']] as const).map(([key, label]) => <Choice key={key} label={label} selected={consistencyRating === key} onPress={() => setConsistencyRating(key)} />)}</>}
+    </View><Text style={F.body}>{stats.observation}</Text></> : <Empty title="Loading this week’s records…" />}{([['accurate', 'Yes, accurate'], ['felt-better', 'It felt better'], ['felt-harder', 'It felt harder']] as const).map(([key, label]) => <Choice key={key} label={label} selected={consistencyRating === key} onPress={() => setConsistencyRating(key)} />)}</ProfileSection>}
 
-    {step === 2 && <><Heading title="What have you noticed?" detail="Choose any that fit. You can leave this blank." />{BODY_OPTIONS.map(option => <Choice key={option} label={option} selected={bodyChanges.includes(option)} onPress={() => setBodyChanges(current => current.includes(option) ? current.filter(x => x !== option) : [...current, option])} />)}<Field label="Body notes · optional" multiline value={bodyNote} onChangeText={setBodyNote} /></>}
+    {step === 2 && <ProfileSection index="03" title="What have you noticed?" detail="Choose any that fit. You can leave this blank.">{BODY_OPTIONS.map(option => <Choice key={option} label={option} selected={bodyChanges.includes(option)} onPress={() => setBodyChanges(current => current.includes(option) ? current.filter(x => x !== option) : [...current, option])} />)}<Field label="Body notes · optional" multiline value={bodyNote} onChangeText={setBodyNote} /></ProfileSection>}
 
-    {step === 3 && <><Heading title="How did the week feel?" />{([1, 2, 3, 4, 5] as const).map(score => <Choice key={score} label={`${score} / 5 · ${['Difficult', 'Low', 'Mixed', 'Good', 'Great'][score - 1]}`} selected={mood === score} onPress={() => setMood(score)} />)}<Field label="Mood notes · optional" multiline value={moodNote} onChangeText={setMoodNote} /></>}
+    {step === 3 && <ProfileSection index="04" title="How did the week feel?">{([1, 2, 3, 4, 5] as const).map(score => <Choice key={score} label={`${score} / 5 · ${['Difficult', 'Low', 'Mixed', 'Good', 'Great'][score - 1]}`} selected={mood === score} onPress={() => setMood(score)} />)}<Field label="Mood notes · optional" multiline value={moodNote} onChangeText={setMoodNote} /></ProfileSection>}
 
     {step === 4 && <><Panel accent>
       <Heading title="A week worth recording" />
@@ -172,12 +174,11 @@ export default function WeeklyCheckinScreen() {
 
     {step === 5 && <><Button label="Back to this week" onPress={() => setStep(4)} />{trendReady ? <><Panel>
       <Heading title="Recorded energy" />
-      <Trend values={energyTrend} unit="/5" />
+      <Trend premiumProfile values={energyTrend} unit="/5" />
     </Panel><Panel>
         <Heading title="Recorded mood" />
-        <Trend values={moodTrend} unit="/5" />
-      </Panel></> : <Empty title="Your journal is taking shape" detail="Four check-ins are needed to show energy and mood trends." />}{history.map(item => <Panel key={item.id}>
-        <Heading title={getWeekRangeLabel(item.weekOf)} />
+        <Trend premiumProfile values={moodTrend} unit="/5" />
+      </Panel></> : <Empty title="Your journal is taking shape" detail="Four check-ins are needed to show energy and mood trends." />}{history.map(item => <ProfileRecord key={item.id} label={getWeekRangeLabel(item.weekOf)}>
         <Text style={F.body}>Energy {item.energy}/5 · Mood {item.mood}/5</Text>
         <Text style={F.caption}>Meals {item.mealsLoggedDays}/7 days · {item.workoutSessions} workouts · Hydration {item.hydrationDaysHit}/7 days</Text>
         <Text style={F.caption}>{item.consistencyRating}</Text>
@@ -185,7 +186,7 @@ export default function WeeklyCheckinScreen() {
         {!!item.bodyNote && <Text style={F.body}>{item.bodyNote}</Text>}
         {!!item.moodNote && <Text style={F.body}>{item.moodNote}</Text>}
         {!!item.aiInsight && <Text style={F.caption}>{item.aiInsight}</Text>}
-      </Panel>)}</>}
+      </ProfileRecord>)}</>}
   </TaskPage>
   );
 }
@@ -394,3 +395,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
+
+export default function WeeklyCheckinScreen() {
+  return <SomataTaskAppearance><WeeklyCheckinScreenContent /></SomataTaskAppearance>;
+}

@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-28",
+  "runtime": "Node 22.23.4; pnpm 10.18.0",
+  "cwd": "/Users/aristos/Documents/fitness-app/fitness-mobile",
+  "checks": [
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS",
+      "exitCode": 0,
+      "log": "/tmp/somata-13-typecheck-final.log"
+    },
+    {
+      "command": "TZ=America/Toronto pnpm exec node --import tsx --test --test-concurrency=2 tests/*.test.ts",
+      "result": "PASS",
+      "tests": 235,
+      "passed": 235,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/tmp/somata-13-tests-final.log"
+    },
+    {
+      "command": "TZ=America/Toronto node --import tsx --test tests/finalQAGates.test.ts",
+      "result": "PASS",
+      "tests": 3,
+      "log": "/tmp/somata-13-gates-final.log"
+    },
+    {
+      "command": "CI=1 pnpm exec expo export --platform ios --platform android --max-workers 2 --output-dir /tmp/somata-13-export-final",
+      "result": "PASS",
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "nativeBuild": false,
+      "log": "/tmp/somata-13-export-final.log"
+    },
+    {
+      "command": "TZ=America/Toronto node tools/render-final-qa.cjs",
+      "result": "PASS",
+      "html": 786,
+      "ids": 98,
+      "log": "/tmp/somata-13-gallery.log"
+    },
+    {
+      "command": "node tools/capture-final-qa.cjs",
+      "result": "PASS",
+      "pages": 786,
+      "pngs": 198,
+      "documentOverflows": 0,
+      "nonScrollingContentOverflows": 0,
+      "truncated": 0,
+      "native": false
+    },
+    {
+      "command": "node tools/audit-final-qa.cjs /tmp/somata-checkpoint13-baseline.json /tmp/somata-checkpoint13-before",
+      "result": "PASS",
+      "baselineFiles": 2850,
+      "changedExisting": 4,
+      "unexpectedChanges": 0,
+      "effectCallbacksUnchanged": true
+    },
+    {
+      "command": "git diff --check -- app/_layout.tsx content/AuthContext.tsx app/+not-found.tsx components/somata/TaskUI.tsx",
+      "result": "PASS"
+    },
+    {
+      "command": "xcrun simctl list devices booted",
+      "result": "READ SUCCEEDED outside sandbox; no booted devices",
+      "nativeUI": "UNTESTED"
+    },
+    {
+      "command": "xcrun simctl boot / bootstatus / get_app_container (iPhone 16e)",
+      "result": "BLOCKED: bootstatus finished, get_app_container failed exit 149 / error 405: Shutting Down",
+      "nativeAppLaunched": false,
+      "cleanup": "QA-touched simulator states checked; no user app opened. Initial iPad UUID selection corrected."
+    }
+  ],
+  "limitations": [
+    "No live backend/emulator E2E or cloud tests this checkpoint",
+    "No paid AI requests or real user data",
+    "No native archive, permissions, camera, Health, VoiceOver or remote push certification",
+    "Historical primary/auth comparison: 86/96 identical HTML bodies, remaining ten Workouts cases use moving calendar fixtures",
+    "Initial broad browser scan included intentional horizontal scrolling and clipped decorative SVG; retained in browser-checks-before-fix.json",
+    "Initial new test expected one Text node; test selector corrected to target error message. Final suite passes."
+  ]
+}

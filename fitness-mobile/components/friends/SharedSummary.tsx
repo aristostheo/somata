@@ -1,3 +1,6 @@
+import { useTaskPresentation } from "@/components/designPreview/Appearance";
+import { Text } from "react-native";
+import { DeskIntro, DeskSection, DeskColumns, StatusNote } from "@/components/accountSettings/PremiumUI";
 import { auth } from "@/lib/firebase";
 import { sharedTemplateItems } from "@/services/friends/summaryData";
 import { useState } from "react";
@@ -12,7 +15,12 @@ import { saveWorkoutTemplate } from "@/services/templates";
 export type SummaryMode = "overview" | "profile" | "meals" | "workouts" | "progress";
 const value = (n: number | null, unit = "") => n === null ? "Not recorded" : `${Math.round(n)}${unit}`;
 function Metric<T>({ title, section, format }: { title: string; section: Section<T>; format: (data: T) => string }) {
-  return <Item title={title} value={section.status === "shared" ? format(section.data) : section.status === "private" ? "Private" : "Not available from recorded data"} />;
+  const { F, t } = useTaskPresentation();
+  return <View style={{ padding: 14, gap: 6, borderRadius: 14, backgroundColor: t.surface.inset, borderWidth: 1, borderColor: t.border.subtle }}>
+    <Text style={F.caption}>{title}</Text>
+    <Text style={{ ...F.heading, fontSize: 18 }}>{section.status === "shared" ? format(section.data) : section.status === "private" ? "Private" : "Not available from recorded data"}</Text>
+    <Text style={{ ...F.caption, color: t.action.link }}>{section.status === "shared" ? "Shared summary" : section.status === "private" ? "Not shared" : "Unavailable"}</Text>
+  </View>;
 }
 export function SharedSummary({ friendUid, name = "Friend", mode = "overview", enabled = true, onNavigate }: {
   friendUid: string; name?: string; mode?: SummaryMode; enabled?: boolean; onNavigate?: () => void;
@@ -63,28 +71,25 @@ export function SharedSummary({ friendUid, name = "Friend", mode = "overview", e
     {loading ? <Empty title="Loading shared activity…" /> : error ? <Empty title="Shared activity unavailable" detail={error} /> : null}
     {!!actionError && <Empty title="Action could not finish" detail={actionError} />}
     {!!data && <>
-      {mode === "overview" && !own && <Panel>
-        <Heading title="Your sharing with this friend" detail={`UID: ${friendUid}. Approval is separate for each person; only saved, enabled fields are shared.`} />
+      {mode === "overview" && !own && <DeskSection icon="shield-checkmark-outline" title="Your sharing with this friend" detail={`UID: ${friendUid}. Approval is separate for each person; only saved, enabled fields are shared.`}>
         <Button label="Choose shared fields" onPress={() => { onNavigate?.(); router.push('/profile/friend-visibility'); }} />
         <Button label={data.sharingWithFriend ? "Stop sharing with this friend" : "Allow my selected fields for this friend"} disabled={busy} onPress={consent} />
-      </Panel>}
+      </DeskSection>}
       {own && <Empty title="Your redacted preview" detail="These are your explicitly saved sharing choices. Only accepted friends you separately approve can view them." />}
       {data.status === "private" ? <Empty title="Activity is private" detail={own ? "Enable and save fields in Friend visibility to preview them." : "Your friend must approve sharing with you and enable the relevant fields. Friendship alone does not share fitness data."} /> : <>
         {(mode === "meals" || mode === "workouts" || mode === "overview") && <>
           <ScrollView horizontal contentContainerStyle={{ gap: 8 }}>{data.days.map(d => <Choice key={d.date} label={d.date === data.window.to ? "Today" : d.date} selected={day?.date === d.date} onPress={() => setDate(d.date)} />)}</ScrollView>
           {!!day && <>
-            {(mode === "meals" || mode === "overview") && <Panel>
-              <Heading title="Shared nutrition" detail={day.date} />
+            {(mode === "meals" || mode === "overview") && <DeskSection icon="nutrition-outline" title="Shared nutrition" detail={day.date}><DeskColumns>
               <Metric title="Calories logged" section={day.calories} format={n => value(n, " kcal")} />
               <Metric title="Macros logged" section={day.macros} format={m => `Protein ${value(m.protein, " g")} · Carbs ${value(m.carbs, " g")} · Fat ${value(m.fat, " g")}`} />
-              {day.meals.status === "shared" ? day.meals.data.length ? day.meals.data.map((m, i) => <Item key={i} title={m.name} value={value(m.calories, " kcal")} />) : <Empty title="No meals recorded for this date" /> : <Empty title={day.meals.status === "private" ? "Meal names are private" : "Meal summary unavailable"} />}
-            </Panel>}
-            {(mode === "workouts" || mode === "overview") && <Panel>
-              <Heading title="Shared training" detail={day.date} />
+              </DeskColumns>{day.meals.status === "shared" ? day.meals.data.length ? day.meals.data.map((m, i) => <Item key={i} title={m.name} value={value(m.calories, " kcal")} />) : <Empty title="No meals recorded for this date" /> : <Empty title={day.meals.status === "private" ? "Meal names are private" : "Meal summary unavailable"} />}
+            </DeskSection>}
+            {(mode === "workouts" || mode === "overview") && <DeskSection icon="barbell-outline" title="Shared training" detail={day.date}>
               <Metric title="Workouts logged" section={day.workoutCount} format={n => `${n} sessions`} />
               {day.workouts.status === "shared" ? day.workouts.data.length ? day.workouts.data.map((w, i) => <View key={i}><Heading title={w.title} />{w.exercises.map((e, j) => <Item key={j} title={e.exercise} detail={`${value(e.sets)} sets · ${value(e.reps)} reps · ${value(e.weightKg, " kg")}`} />)}</View>) : <Empty title="No workouts recorded for this date" /> : <Empty title={day.workouts.status === "private" ? "Workout details are private" : "Workout details unavailable"} />}
               {mode === "workouts" && canCopy && <><Field label="Template name" value={templateName} onChangeText={setTemplateName} /><Button label="Save as template" onPress={copyTemplate} disabled={busy} /></>}
-            </Panel>}
+            </DeskSection>}
             {mode === "overview" && <Metric title="Steps" section={day.steps} format={n => value(n, " steps")} />}
           </>}
         </>}
@@ -97,7 +102,7 @@ export function SharedSummary({ friendUid, name = "Friend", mode = "overview", e
 function Progress({ data }: { data: FriendSummary }) {
   const p = data.progress;
   const streak = (s: { days: number; capped: boolean }) => `${s.days}${s.capped ? "+" : ""} days · last 10 recorded dates`;
-  return <Panel><Heading title="Shared progress" detail={`${data.window.from} – ${data.window.to}. No private targets or plan information.`} />
+  return <DeskSection icon="trending-up-outline" title="Shared progress" detail={`${data.window.from} – ${data.window.to}. No private targets or plan information.`}><DeskColumns>
     <Metric title="Nutrition logging streak" section={p.nutritionStreak} format={streak} />
     <Metric title="Consistency streak" section={p.consistencyStreak} format={streak} />
     <Metric title="Account-recorded badges" section={p.badgeCount} format={n => `${n} badges`} />
@@ -106,5 +111,5 @@ function Progress({ data }: { data: FriendSummary }) {
     <Metric title="Personal records" section={p.personalRecords} format={() => ""} />
     <Metric title="Weekly report card" section={p.weeklyReportCard} format={() => ""} />
     <Metric title="Cardio sessions" section={p.cardio} format={() => ""} />
-  </Panel>;
+  </DeskColumns></DeskSection>;
 }

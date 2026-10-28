@@ -1,0 +1,800 @@
+[
+  {
+    "file": "home-dark-goals.html",
+    "prior": "../branding-3c/home-dark-goals.html",
+    "id": "H01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "home-dark-pending.html",
+    "prior": "../branding-3c/home-dark-pending.html",
+    "id": "H01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "home-dark-empty.html",
+    "prior": "../branding-3c/home-dark-empty.html",
+    "id": "H01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "home-dark-reference.html",
+    "prior": "../branding-3c/home-dark-reference.html",
+    "id": "H01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "home-dark-large-text.html",
+    "prior": "../branding-3c/home-dark-large-text.html",
+    "id": "H01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "home-light-goals.html",
+    "prior": "../branding-3c/home-light-goals.html",
+    "id": "H01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "home-light-pending.html",
+    "prior": "../branding-3c/home-light-pending.html",
+    "id": "H01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "home-light-empty.html",
+    "prior": "../branding-3c/home-light-empty.html",
+    "id": "H01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "home-light-reference.html",
+    "prior": "../branding-3c/home-light-reference.html",
+    "id": "H01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "home-light-large-text.html",
+    "prior": "../branding-3c/home-light-large-text.html",
+    "id": "H01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-dark-populated.html",
+    "prior": "../branding-4/nutrition-dark-populated.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-dark-empty.html",
+    "prior": "../branding-4/nutrition-dark-empty.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-dark-loading.html",
+    "prior": "../branding-4/nutrition-dark-loading.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-dark-error.html",
+    "prior": "../branding-4/nutrition-dark-error.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-dark-past.html",
+    "prior": "../branding-4/nutrition-dark-past.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-dark-pending.html",
+    "prior": "../branding-4/nutrition-dark-pending.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-dark-large-text.html",
+    "prior": "../branding-4/nutrition-dark-large-text.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-light-populated.html",
+    "prior": "../branding-4/nutrition-light-populated.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-light-empty.html",
+    "prior": "../branding-4/nutrition-light-empty.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-light-loading.html",
+    "prior": "../branding-4/nutrition-light-loading.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-light-error.html",
+    "prior": "../branding-4/nutrition-light-error.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-light-past.html",
+    "prior": "../branding-4/nutrition-light-past.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-light-pending.html",
+    "prior": "../branding-4/nutrition-light-pending.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "nutrition-light-large-text.html",
+    "prior": "../branding-4/nutrition-light-large-text.html",
+    "id": "N00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "workouts-dark-populated.html",
+    "prior": "../branding-5b/workouts-dark-populated.html",
+    "id": "W00",
+    "identicalBodyMarkup": false,
+    "identicalVisibleText": false,
+    "firstDifference": {
+      "old": "8px\"><div aria-label=\"2026-10-12: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items",
+      "current": "8px\"><div aria-label=\"2026-10-22: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items"
+    }
+  },
+  {
+    "file": "workouts-dark-empty.html",
+    "prior": "../branding-5b/workouts-dark-empty.html",
+    "id": "W00",
+    "identicalBodyMarkup": false,
+    "identicalVisibleText": false,
+    "firstDifference": {
+      "old": "8px\"><div aria-label=\"2026-10-12: 0 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items",
+      "current": "8px\"><div aria-label=\"2026-10-22: 0 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items"
+    }
+  },
+  {
+    "file": "workouts-dark-loading.html",
+    "prior": "../branding-5b/workouts-dark-loading.html",
+    "id": "W00",
+    "identicalBodyMarkup": false,
+    "identicalVisibleText": false,
+    "firstDifference": {
+      "old": "8px\"><div aria-label=\"2026-10-12: loading\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items:center;",
+      "current": "8px\"><div aria-label=\"2026-10-22: loading\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items:center;"
+    }
+  },
+  {
+    "file": "workouts-dark-large-text.html",
+    "prior": "../branding-5b/workouts-dark-large-text.html",
+    "id": "W00",
+    "identicalBodyMarkup": false,
+    "identicalVisibleText": false,
+    "firstDifference": {
+      "old": "8px\"><div aria-label=\"2026-10-12: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items",
+      "current": "8px\"><div aria-label=\"2026-10-22: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items"
+    }
+  },
+  {
+    "file": "workouts-dark-plan-sheet.html",
+    "prior": "../branding-5b/workouts-dark-plan-sheet.html",
+    "id": "W00",
+    "identicalBodyMarkup": false,
+    "identicalVisibleText": false,
+    "firstDifference": {
+      "old": "8px\"><div aria-label=\"2026-10-12: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items",
+      "current": "8px\"><div aria-label=\"2026-10-22: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items"
+    }
+  },
+  {
+    "file": "workouts-light-populated.html",
+    "prior": "../branding-5b/workouts-light-populated.html",
+    "id": "W00",
+    "identicalBodyMarkup": false,
+    "identicalVisibleText": false,
+    "firstDifference": {
+      "old": "8px\"><div aria-label=\"2026-10-12: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items",
+      "current": "8px\"><div aria-label=\"2026-10-22: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items"
+    }
+  },
+  {
+    "file": "workouts-light-empty.html",
+    "prior": "../branding-5b/workouts-light-empty.html",
+    "id": "W00",
+    "identicalBodyMarkup": false,
+    "identicalVisibleText": false,
+    "firstDifference": {
+      "old": "8px\"><div aria-label=\"2026-10-12: 0 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items",
+      "current": "8px\"><div aria-label=\"2026-10-22: 0 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items"
+    }
+  },
+  {
+    "file": "workouts-light-loading.html",
+    "prior": "../branding-5b/workouts-light-loading.html",
+    "id": "W00",
+    "identicalBodyMarkup": false,
+    "identicalVisibleText": false,
+    "firstDifference": {
+      "old": "8px\"><div aria-label=\"2026-10-12: loading\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items:center;",
+      "current": "8px\"><div aria-label=\"2026-10-22: loading\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items:center;"
+    }
+  },
+  {
+    "file": "workouts-light-large-text.html",
+    "prior": "../branding-5b/workouts-light-large-text.html",
+    "id": "W00",
+    "identicalBodyMarkup": false,
+    "identicalVisibleText": false,
+    "firstDifference": {
+      "old": "8px\"><div aria-label=\"2026-10-12: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items",
+      "current": "8px\"><div aria-label=\"2026-10-22: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items"
+    }
+  },
+  {
+    "file": "workouts-light-plan-sheet.html",
+    "prior": "../branding-5b/workouts-light-plan-sheet.html",
+    "id": "W00",
+    "identicalBodyMarkup": false,
+    "identicalVisibleText": false,
+    "firstDifference": {
+      "old": "8px\"><div aria-label=\"2026-10-12: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items",
+      "current": "8px\"><div aria-label=\"2026-10-22: 2 recorded sets\" class=\"css-view-g5y9jx\" style=\"flex:1;align-items"
+    }
+  },
+  {
+    "file": "profile-dark-goals.html",
+    "prior": "../branding-6b/profile-dark-goals.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-active.html",
+    "prior": "../branding-6b/profile-dark-active.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-pending.html",
+    "prior": "../branding-6b/profile-dark-pending.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-active-pending.html",
+    "prior": "../branding-6b/profile-dark-active-pending.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-busy.html",
+    "prior": "../branding-6b/profile-dark-busy.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-unavailable.html",
+    "prior": "../branding-6b/profile-dark-unavailable.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-incomplete.html",
+    "prior": "../branding-6b/profile-dark-incomplete.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-insufficient.html",
+    "prior": "../branding-6b/profile-dark-insufficient.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-loading.html",
+    "prior": "../branding-6b/profile-dark-loading.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-empty.html",
+    "prior": "../branding-6b/profile-dark-empty.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-syncing.html",
+    "prior": "../branding-6b/profile-dark-syncing.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-stale.html",
+    "prior": "../branding-6b/profile-dark-stale.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-hidden.html",
+    "prior": "../branding-6b/profile-dark-hidden.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-dark-large-text.html",
+    "prior": "../branding-6b/profile-dark-large-text.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-goals.html",
+    "prior": "../branding-6b/profile-light-goals.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-active.html",
+    "prior": "../branding-6b/profile-light-active.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-pending.html",
+    "prior": "../branding-6b/profile-light-pending.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-active-pending.html",
+    "prior": "../branding-6b/profile-light-active-pending.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-busy.html",
+    "prior": "../branding-6b/profile-light-busy.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-unavailable.html",
+    "prior": "../branding-6b/profile-light-unavailable.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-incomplete.html",
+    "prior": "../branding-6b/profile-light-incomplete.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-insufficient.html",
+    "prior": "../branding-6b/profile-light-insufficient.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-loading.html",
+    "prior": "../branding-6b/profile-light-loading.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-empty.html",
+    "prior": "../branding-6b/profile-light-empty.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-syncing.html",
+    "prior": "../branding-6b/profile-light-syncing.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-stale.html",
+    "prior": "../branding-6b/profile-light-stale.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-hidden.html",
+    "prior": "../branding-6b/profile-light-hidden.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "profile-light-large-text.html",
+    "prior": "../branding-6b/profile-light-large-text.html",
+    "id": "P00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-all.html",
+    "prior": "../branding-7/alerts-dark-all.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-friends.html",
+    "prior": "../branding-7/alerts-dark-friends.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-workouts.html",
+    "prior": "../branding-7/alerts-dark-workouts.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-nutrition.html",
+    "prior": "../branding-7/alerts-dark-nutrition.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-streaks.html",
+    "prior": "../branding-7/alerts-dark-streaks.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-coach.html",
+    "prior": "../branding-7/alerts-dark-coach.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-empty.html",
+    "prior": "../branding-7/alerts-dark-empty.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-category-empty.html",
+    "prior": "../branding-7/alerts-dark-category-empty.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-loading.html",
+    "prior": "../branding-7/alerts-dark-loading.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-error.html",
+    "prior": "../branding-7/alerts-dark-error.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-read.html",
+    "prior": "../branding-7/alerts-dark-read.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-busy.html",
+    "prior": "../branding-7/alerts-dark-busy.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-large-text.html",
+    "prior": "../branding-7/alerts-dark-large-text.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-long-text.html",
+    "prior": "../branding-7/alerts-dark-long-text.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-dark-signed-out.html",
+    "prior": "../branding-7/alerts-dark-signed-out.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-all.html",
+    "prior": "../branding-7/alerts-light-all.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-friends.html",
+    "prior": "../branding-7/alerts-light-friends.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-workouts.html",
+    "prior": "../branding-7/alerts-light-workouts.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-nutrition.html",
+    "prior": "../branding-7/alerts-light-nutrition.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-streaks.html",
+    "prior": "../branding-7/alerts-light-streaks.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-coach.html",
+    "prior": "../branding-7/alerts-light-coach.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-empty.html",
+    "prior": "../branding-7/alerts-light-empty.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-category-empty.html",
+    "prior": "../branding-7/alerts-light-category-empty.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-loading.html",
+    "prior": "../branding-7/alerts-light-loading.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-error.html",
+    "prior": "../branding-7/alerts-light-error.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-read.html",
+    "prior": "../branding-7/alerts-light-read.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-busy.html",
+    "prior": "../branding-7/alerts-light-busy.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-large-text.html",
+    "prior": "../branding-7/alerts-light-large-text.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-long-text.html",
+    "prior": "../branding-7/alerts-light-long-text.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "alerts-light-signed-out.html",
+    "prior": "../branding-7/alerts-light-signed-out.html",
+    "id": "L00",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "login-dark-390.html",
+    "prior": "../branding-2b/login-dark-390.html",
+    "id": "A01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "login-dark-320.html",
+    "prior": "../branding-2b/login-dark-320.html",
+    "id": "A01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "login-light-390.html",
+    "prior": "../branding-2b/login-light-390.html",
+    "id": "A01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  },
+  {
+    "file": "login-light-320.html",
+    "prior": "../branding-2b/login-light-320.html",
+    "id": "A01",
+    "identicalBodyMarkup": true,
+    "identicalVisibleText": true,
+    "firstDifference": null
+  }
+]

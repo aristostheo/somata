@@ -1,5 +1,6 @@
+import { NutritionValues } from "@/components/nutrition/NutritionTaskUI";
 import { Button, Choice, Heading, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Text, View } from "react-native";
@@ -108,7 +109,11 @@ function generateSuggestions({
 }
 
 export default function WhatShouldIEatScreen() {
-  const { D, F } = useSomataTheme();
+  return <SomataTaskAppearance><WhatShouldIEatScreenContent /></SomataTaskAppearance>;
+}
+
+function WhatShouldIEatScreenContent() {
+  const { D, F } = useTaskPresentation();
 
   const { colors } = useTheme() as any;
   const { user } = useAuth();
@@ -153,23 +158,28 @@ export default function WhatShouldIEatScreen() {
     [remaining, meal, filter, profile, seed]
   );
 
-  return (<TaskPage title="Find something that fits" section="Meal inspiration" onBack={() => router.back()}>
+  return (<TaskPage title="What should I eat?" section="Meal inspiration" onBack={() => router.back()}>
 
     <Panel accent>
-      <Heading title={`Room for ${mealLabel(meal)}`} detail="Remaining targets for the selected day" />
-      <Text style={{ ...F.value, color: D.lime }}>{remaining.calories} kcal</Text>
-      <Text style={F.body}>Protein {remaining.protein} g · Carbs {remaining.carbs} g · Fat {remaining.fat} g</Text>
+      <Heading title={`Room for ${mealLabel(meal)}`} detail="Remaining amounts passed from your food record" />
+      <NutritionValues values={[
+        { label: 'Energy', value: params.kcalLeft == null || params.kcalLeft === '' ? '—' : `${remaining.calories} kcal` },
+        { label: 'Protein', value: params.proteinLeft == null || params.proteinLeft === '' ? '—' : `${remaining.protein} g` },
+        { label: 'Carbs', value: params.carbsLeft == null || params.carbsLeft === '' ? '—' : `${remaining.carbs} g` },
+        { label: 'Fat', value: params.fatLeft == null || params.fatLeft === '' ? '—' : `${remaining.fat} g` },
+      ]} /><Text style={F.caption}>A dash means a remaining amount was not supplied. Library ideas are estimates; check their ingredients and portions.</Text>
     </Panel>
 
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+    <Panel><Heading title="Browse by preference" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {FILTERS.map(f => <Choice key={f.key} label={f.label} selected={filter === f.key} onPress={() => setFilter(f.key)} />)}
-    </View>
+    </View></Panel>
 
     <Heading title="Meal ideas" detail="Nutrition estimates from the meal library. Confirm your portion when logging." />
     {suggestions.slice(0, 6).map((item, i) => <Panel key={`${item.name}-${i}`}>
-      <Text style={F.eyebrow}>{item.tags.join(' · ')}</Text>
+      <Text style={F.eyebrow}>LIBRARY IDEA {String(i + 1).padStart(2, "0")}</Text>
       <Heading title={item.name} detail={`${item.calories} kcal · P ${item.protein} g · C ${item.carbs} g · F ${item.fat} g`} />
-      <Text style={F.body}>{whyItFits(item, remaining)}</Text>
+      <Text style={F.caption}>{item.tags.join(" · ")}</Text>
+      <Text style={F.body}>{[params.kcalLeft, params.proteinLeft, params.carbsLeft, params.fatLeft].every(v => v != null && v !== '') ? whyItFits(item, remaining) : 'Review the ingredients and portion. Remaining amounts are not fully available here.'}</Text>
       <Button label="Find and log this meal" onPress={() => router.push({ pathname: '/(modals)/add-meal', params: { meal, date: String(params.date || ''), initialTab: 'search', query: item.name } })} />
     </Panel>)}
     <Button label="More ideas" onPress={() => setSeed(v => v + 1)} />

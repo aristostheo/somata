@@ -1,3 +1,5 @@
+import { Choice } from "@/components/somata/TaskUI";
+import { useTaskPresentation } from "@/components/designPreview/Appearance";
 // components/scanMeal/MealCategoryPills.tsx
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
@@ -15,6 +17,8 @@ export default function MealCategoryPills({
   onChange: (v: MealCategory) => void;
 }) {
   const { colors } = useTheme();
+  const { premium } = useTaskPresentation();
+  if (premium) return <View style={styles.row}>{ALL.map(c => <Choice key={c} label={c} selected={c === value} onPress={() => onChange(c)} />)}</View>;
 
   return (
     <View style={styles.row}>

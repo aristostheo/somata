@@ -1,8 +1,9 @@
 import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
-import { Action, ArcProgress, Card, fmt, GoalTrack, LinkRow, Metric, Page, Section } from "@/components/designPreview/UI";
+import { ArcProgress, fmt, GoalTrack } from "@/components/designPreview/UI";
+import { Action, CalendarButton, Card, Grid, Heading, MacroTile, MealCard, Page, Tool, useNutritionVisuals } from "@/components/nutrition/PremiumNutritionUI";
+import { SomataHomeAppearance as NutritionAppearance, usePresentation } from "@/components/designPreview/Appearance";
 import { usePreviewAccount } from "@/components/designPreview/usePreviewAccount";
 import EditFoodSheet from "@/components/nutrition/uiNew/EditFoodSheet";
-import { useSomataTheme } from "@/components/somata/theme";
 import { dashboardLoggedToday } from "@/services/dashboardPreviewData";
 import { deleteFood, subscribeFoodsByDate, updateFood, type FoodEntry } from "@/services/nutrition";
 import { consumePreviewNutritionHandoffs } from "@/services/previewNutritionHandoff";
@@ -10,7 +11,7 @@ import { dayKey } from "@/utils/date";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Alert, Pressable, Text, View, useWindowDimensions } from "react-native";
 
 const MEALS = ["breakfast", "lunch", "dinner", "snacks"] as const;
 function changeDay(date: string, delta: number) {
@@ -24,8 +25,15 @@ function nice(date: string) {
 }
 
 export default function DesignNutrition() {
+  return <NutritionAppearance><NutritionContent /></NutritionAppearance>;
+}
+
+function NutritionContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D } = usePresentation();
+  const { t, p, series } = useNutritionVisuals();
+  const { width, fontScale } = useWindowDimensions();
+  const heroInline = width >= 380 && fontScale <= 1.15;
 
   const router = useRouter();
   const account = usePreviewAccount();
@@ -107,28 +115,20 @@ export default function DesignNutrition() {
   };
   return <>
     <Page eyebrow="Fuel / daily record" title="Nutrition" subtitle="Move through dates, log food, and see what is recorded."
-      headerAction={<Pressable accessibilityRole="button" accessibilityLabel="Open full calendar"
-        onPress={() => router.push("/(modals)/full-calendar")}
-        style={{
-          width: 44, height: 44, borderRadius: 22, backgroundColor: D.card,
-          alignItems: "center", justifyContent: "center"
-        }}>
+      headerAction={<CalendarButton onPress={() => router.push("/(modals)/full-calendar")} />}>
 
-        <Ionicons name="calendar-outline" size={19} color={D.lime} />
-
-      </Pressable>}>
-
-      <Card style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+      <Card>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
 
         <Pressable accessibilityRole="button" accessibilityLabel="Previous day" onPress={() => setDate(changeDay(date, -1))}
-          style={{ minWidth: 44, minHeight: 44, justifyContent: "center" }}>
+          style={{ minWidth: 48, minHeight: 48, justifyContent: "center" }}>
 
           <Ionicons name="chevron-back" size={22} color={D.teal} />
 
         </Pressable>
 
         <Pressable accessibilityRole="button" accessibilityLabel="Go to today" onPress={() => setDate(account.today)}
-          style={{ alignItems: "center", gap: 2 }}>
+          style={{ flex: 1, minHeight: 48, justifyContent: "center", alignItems: "center", gap: 2 }}>
 
           <Text style={{ color: D.text, fontSize: 17, fontWeight: "800" }}>{nice(date)}</Text>
 
@@ -137,49 +137,51 @@ export default function DesignNutrition() {
         </Pressable>
 
         <Pressable accessibilityRole="button" accessibilityLabel="Next day" onPress={() => setDate(changeDay(date, 1))}
-          style={{ minWidth: 44, minHeight: 44, alignItems: "flex-end", justifyContent: "center" }}>
+          style={{ minWidth: 48, minHeight: 48, alignItems: "flex-end", justifyContent: "center" }}>
 
           <Ionicons name="chevron-forward" size={22} color={D.teal} />
 
         </Pressable>
 
+        </View>
       </Card>
 
       <Card accent>
-
-        <Section title="Energy logged" caption={today ? account.plan.title : "Recorded day · no historical target comparison"} />
-
-        <Text style={{ color: D.text, fontSize: 38, fontWeight: "800", fontVariant: ["tabular-nums"] }}>
-          {foods === undefined ? "Loading…" : foods === null ? "Unavailable" : fmt(energy, " kcal")}
-        </Text>
-
-        {today && <ArcProgress ratio={ratio} label={goal?.calories ? `${fmt(goal.calories)} kcal current target` : "No current target available"} />}
-
-        <Text style={{ color: D.muted, fontSize: 11 }}>Missing nutrients stay unknown; logged zero remains zero.</Text>
-
+        <View style={{ flexDirection: heroInline ? "row" : "column", alignItems: heroInline ? "center" : "stretch", gap: 10 }}>
+          <View style={{ flex: heroInline ? 1 : undefined, gap: 12 }}>
+            <Heading title="Energy logged" icon="flame" caption={today ? account.plan.title : "Recorded day · no historical target comparison"} />
+            <Text style={{ color: D.text, fontSize: heroInline ? 34 : 38, fontWeight: "800", fontVariant: ["tabular-nums"] }}>
+              {foods === undefined ? "Loading…" : foods === null ? "Unavailable" : fmt(energy, " kcal")}
+            </Text>
+          </View>
+          {today && <View style={{ alignItems: "center", gap: 4 }}>
+            <ArcProgress ratio={ratio} size={heroInline ? 156 : 220} color={series.energy}
+              label={goal?.calories ? `${fmt(goal.calories)} kcal current target` : "No current target available"} />
+            <Text style={{ color: D.muted, fontSize: 12, textAlign: "center", maxWidth: heroInline ? 156 : undefined }}>
+              {goal?.calories ? `of ${fmt(goal.calories)} kcal` : "No current target available"}
+            </Text>
+          </View>}
+        </View>
+        <Text style={{ color: D.muted, fontSize: 11, lineHeight: 16 }}>Missing nutrients stay unknown; logged zero remains zero.</Text>
       </Card>
 
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
-
-        <Metric label="Protein" value={fmt(totals?.protein, " g")} tone="lime" />
-
-        <Metric label="Carbs" value={fmt(totals?.carbs, " g")} tone="plain" />
-
-        <Metric label="Fat" value={fmt(totals?.fat, " g")} tone="plain" />
-
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <MacroTile label="Protein" value={fmt(totals?.protein, " g")} series="protein" icon="barbell-outline" />
+        <MacroTile label="Carbs" value={fmt(totals?.carbs, " g")} series="carbs" icon="leaf-outline" />
+        <MacroTile label="Fat" value={fmt(totals?.fat, " g")} series="fat" icon="water-outline" />
       </View>
 
       {today && <Card>
 
-        <Section title="Goal tracker" caption="Today's logged amounts against current targets" />
+        <Heading icon="locate-outline" title="Goal tracker" caption="Today's logged amounts against current targets" />
 
-        <GoalTrack label="Energy" logged={totals?.calories} target={goal?.calories} unit=" kcal" />
+        <GoalTrack inline color={series.energy} label="Energy" logged={totals?.calories} target={goal?.calories} unit=" kcal" />
 
-        <GoalTrack label="Protein" logged={totals?.protein} target={goal?.protein} unit=" g" />
+        <GoalTrack inline color={series.protein} label="Protein" logged={totals?.protein} target={goal?.protein} unit=" g" />
 
-        <GoalTrack label="Carbs" logged={totals?.carbs} target={goal?.carbs} unit=" g" />
+        <GoalTrack inline color={series.carbs} label="Carbs" logged={totals?.carbs} target={goal?.carbs} unit=" g" />
 
-        <GoalTrack label="Fat" logged={totals?.fat} target={goal?.fat} unit=" g" />
+        <GoalTrack inline color={series.fat} label="Fat" logged={totals?.fat} target={goal?.fat} unit=" g" />
 
         {!!account.planState?.pending && <Text style={{ color: D.muted, fontSize: 11 }}>
           Pending review is separate; your current targets stay in place.
@@ -189,23 +191,23 @@ export default function DesignNutrition() {
 
       <Card>
 
-        <Section title="On-device hydration" caption="This existing water record stays on this device" />
+        <Heading icon="water-outline" title="On-device hydration" caption="This existing water record stays on this device" />
 
         <Text style={{ color: D.text, fontSize: 24, fontWeight: "800" }}>
           {water == null ? "—" : `${fmt(water)} ml`} <Text style={{ color: D.muted, fontSize: 12, fontWeight: "500" }}> / {fmt(waterGoal)} ml goal</Text>
         </Text>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <Grid>
 
-          <Action label="Add 250 ml" icon="add" onPress={() => { if (water != null) void setWaterStored(water + 250); }} />
+          <Action bright label="Add 250 ml" icon="add" onPress={() => { if (water != null) void setWaterStored(water + 250); }} />
 
           <Action label="Clear day" icon="refresh-outline" onPress={() => { if (water != null) void setWaterStored(0); }} />
 
-        </View>
+        </Grid>
 
       </Card>
 
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
+      <Grid four>
 
         <Action label="Add food" icon="add" bright onPress={() => log("snacks")} />
 
@@ -215,33 +217,23 @@ export default function DesignNutrition() {
 
         <Action label="Meal builder" icon="layers-outline" onPress={() => log("snacks", "/(modals)/meal-builder")} />
 
-      </View>
+      </Grid>
 
-      <Section title="Meal timeline" caption={foods == null ? "Account entries" : `${foods.length} entries on this date`} />
+      <Heading icon="restaurant-outline" title="Meal timeline" caption={foods == null ? "Account entries" : `${foods.length} entries on this date`} />
 
       {MEALS.map((meal) => {
         const entries = (foods ?? []).filter((item) => item.meal === meal);
-        return <Card key={meal}>
-
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-
-            <Text style={{ color: D.text, fontSize: 17, fontWeight: "800", textTransform: "capitalize" }}>{meal}</Text>
-
-            <Action label="Add" icon="add" onPress={() => log(meal)} />
-
-          </View>
-
-          {foods === undefined ? <Text style={{ color: D.muted }}>Loading entries…</Text> : foods === null ?
-            <Text style={{ color: D.muted }}>Entries unavailable. Try again later.</Text> : entries.length === 0 ?
-              <Text style={{ color: D.dim, fontSize: 12 }}>Nothing logged here.</Text> :
+        return <MealCard key={meal} meal={meal} onAdd={() => log(meal)}
+          status={foods === undefined ? "Loading entries…" : foods === null ? "Entries unavailable. Try again later." : entries.length === 0 ? "Nothing logged here." : undefined}>
+          {foods != null && entries.length > 0 &&
               entries.map((item) => <Pressable key={item.id} accessibilityRole="button"
                 accessibilityLabel={`Open ${item.name}`} onPress={() => item.entryKind === "meal" ? remove(item) : setEditing(item)}
                 onLongPress={() => remove(item)} style={{
-                  borderTopWidth: 1, borderColor: D.line,
-                  paddingVertical: 11, flexDirection: "row", gap: 9, alignItems: "center"
+                  borderTopWidth: 1, borderColor: p.edge, minHeight: 52,
+                  paddingVertical: 11, flexDirection: "row", flexWrap: "wrap", gap: 9, alignItems: "center"
                 }}>
 
-                <View style={{ flex: 1, gap: 3 }}>
+                <View style={{ flexGrow: 1, flexShrink: 1, flexBasis: 150 * fontScale, gap: 3 }}>
 
                   <Text style={{ color: D.text, fontSize: 14, fontWeight: "700" }}>{item.name}</Text>
 
@@ -252,29 +244,29 @@ export default function DesignNutrition() {
                 </View>
 
                 <Text style={{ color: D.lime, fontSize: 14, fontWeight: "800" }}>{fmt(item.calories, " kcal")}</Text>
+                <Ionicons name="chevron-forward" size={18} color={D.muted} />
 
               </Pressable>)}
 
-        </Card>;
+        </MealCard>;
       })}
 
-      <Card>
-
-        <Section title="More nutrition tools" />
+      <Heading icon="grid-outline" title="More nutrition tools" />
+      <Grid>
 
         {today && goal && totals && [goal.calories, goal.protein, goal.carbs, goal.fat,
         totals.calories, totals.protein, totals.carbs, totals.fat].every((value) => value != null) &&
-          <LinkRow title="What should I eat?" icon="sparkles-outline"
+          <Tool title="What should I eat?" icon="sparkles-outline"
             detail="Use today's remaining targets" onPress={openSuggestion} />}
 
-        <LinkRow title="Calendar" icon="calendar-outline" onPress={() => router.push("/(modals)/full-calendar")} />
+        <Tool title="Calendar" icon="calendar-outline" onPress={() => router.push("/(modals)/full-calendar")} />
 
-        <LinkRow title="Diet choices" icon="restaurant-outline" onPress={() => router.push("/(modals)/diet-preferences")} />
+        <Tool title="Diet choices" icon="restaurant-outline" onPress={() => router.push("/(modals)/diet-preferences")} />
 
-        <LinkRow title="Quick water log" detail="Separate local quick-log history" icon="water-outline"
+        <Tool title="Quick water log" detail="Separate local quick-log history" icon="water-outline"
           onPress={() => router.push("/(modals)/quick-hydration")} />
 
-      </Card>
+      </Grid>
 
     </Page>
     <EditFoodSheet open={!!editing} item={editing} saving={saving} onClose={() => setEditing(null)}

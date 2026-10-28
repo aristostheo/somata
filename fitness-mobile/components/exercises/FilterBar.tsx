@@ -1,5 +1,5 @@
-import { Button, Choice } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { Button, Choice, Panel } from "@/components/somata/TaskUI";
+import { useTaskPresentation } from "@/components/designPreview/Appearance";
 // components/exercises/FilterBar.tsx
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -32,7 +32,7 @@ export const FilterBar = memo(function FilterBar({
   onChange,
   onOpenAdvanced,
 }: Props) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors, isDark } = useTheme();
 
@@ -102,13 +102,14 @@ export const FilterBar = memo(function FilterBar({
     ];
   }, [filters, onChange]);
 
-  return <View style={{ gap: 10 }}>
-    <Text style={F.caption}>Tap a filter to cycle its options</Text>
+  return <Panel>
+    <Text style={F.eyebrow}>REFINE YOUR SEARCH</Text>
+    <Text style={F.caption}>Tap muscle or equipment to cycle options. Demo limits results to exercises with media.</Text>
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {chips.map(c => <Choice key={c.key} label={c.label} selected={c.selected} onPress={c.onPress} />)}
       {onOpenAdvanced && <Button label="More filters" onPress={onOpenAdvanced} />}
     </View>
-  </View>;
+  </Panel>;
 });
 
 const styles = StyleSheet.create({

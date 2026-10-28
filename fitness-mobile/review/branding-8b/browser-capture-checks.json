@@ -1,0 +1,222 @@
+{
+  "native": false,
+  "synthetic": true,
+  "captures": [
+    {
+      "file": "before-dark-sync-records-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-sync-records-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-sync-records-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-dark-calendar-month-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-calendar-month-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-calendar-month-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-dark-day-record-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-day-record-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-day-record-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-dark-steps-add-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-steps-add-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-steps-add-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-dark-steps-set-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-steps-set-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-steps-set-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-dark-legacy-water-control-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-legacy-water-control-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-legacy-water-control-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-sync-records-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-sync-records-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-sync-records-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-calendar-month-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-calendar-month-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-calendar-month-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-day-record-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-day-record-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-day-record-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-steps-add-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-steps-add-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-steps-add-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-steps-set-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-steps-set-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-steps-set-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-legacy-water-control-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-legacy-water-control-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-legacy-water-control-narrow-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    }
+  ]
+}

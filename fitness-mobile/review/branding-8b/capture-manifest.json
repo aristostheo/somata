@@ -1,0 +1,806 @@
+{
+  "synthetic": true,
+  "native": false,
+  "entries": [
+    {
+      "name": "sync-records",
+      "route": "app/profile/sync-history.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-sync-records-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "sync-records",
+      "route": "app/profile/sync-history.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-sync-records-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "sync-records",
+      "route": "app/profile/sync-history.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-sync-records-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "sync-records",
+      "route": "app/profile/sync-history.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-sync-records-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "sync-empty",
+      "route": "app/profile/sync-history.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-sync-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "sync-empty",
+      "route": "app/profile/sync-history.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-sync-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "sync-loading",
+      "route": "app/profile/sync-history.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-sync-loading-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "sync-loading",
+      "route": "app/profile/sync-history.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-sync-loading-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-month",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-calendar-month-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-month",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-calendar-month-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-month",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-calendar-month-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "calendar-month",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-calendar-month-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "calendar-week",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-calendar-week-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-week",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-calendar-week-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-week",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-calendar-week-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "calendar-week",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-calendar-week-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "calendar-year",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-calendar-year-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-year",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-calendar-year-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-empty",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-calendar-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-empty",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-calendar-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "day-record",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-day-record-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "day-record",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-day-record-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "day-record",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-day-record-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "day-record",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-day-record-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "day-empty",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-day-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "day-empty",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-day-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-add",
+      "route": "app/(tabs)/index.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-steps-add-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-add",
+      "route": "app/(tabs)/index.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-steps-add-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-add",
+      "route": "app/(tabs)/index.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-steps-add-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "steps-add",
+      "route": "app/(tabs)/index.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-steps-add-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "steps-set",
+      "route": "app/(tabs)/index.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-steps-set-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-set",
+      "route": "app/(tabs)/index.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-steps-set-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-set",
+      "route": "app/(tabs)/index.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-steps-set-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "steps-set",
+      "route": "app/(tabs)/index.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-steps-set-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "steps-saving",
+      "route": "app/(tabs)/index.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-steps-saving-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-saving",
+      "route": "app/(tabs)/index.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-steps-saving-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "legacy-water-control",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-legacy-water-control-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "legacy-water-control",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-legacy-water-control-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "legacy-water-control",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "dark": true,
+      "version": "before",
+      "file": "before-dark-legacy-water-control-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "legacy-water-control",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "dark": true,
+      "version": "after",
+      "file": "after-dark-legacy-water-control-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "sync-records",
+      "route": "app/profile/sync-history.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-sync-records-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "sync-records",
+      "route": "app/profile/sync-history.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-sync-records-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "sync-records",
+      "route": "app/profile/sync-history.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-sync-records-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "sync-records",
+      "route": "app/profile/sync-history.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-sync-records-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "sync-empty",
+      "route": "app/profile/sync-history.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-sync-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "sync-empty",
+      "route": "app/profile/sync-history.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-sync-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "sync-loading",
+      "route": "app/profile/sync-history.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-sync-loading-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "sync-loading",
+      "route": "app/profile/sync-history.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-sync-loading-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-month",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-calendar-month-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-month",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-calendar-month-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-month",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-calendar-month-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "calendar-month",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-calendar-month-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "calendar-week",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-calendar-week-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-week",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-calendar-week-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-week",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-calendar-week-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "calendar-week",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-calendar-week-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "calendar-year",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-calendar-year-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-year",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-calendar-year-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-empty",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-calendar-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "calendar-empty",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-calendar-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "day-record",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-day-record-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "day-record",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-day-record-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "day-record",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-day-record-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "day-record",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-day-record-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "day-empty",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-day-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "day-empty",
+      "route": "app/(modals)/full-calendar.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-day-empty-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-add",
+      "route": "app/(tabs)/index.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-steps-add-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-add",
+      "route": "app/(tabs)/index.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-steps-add-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-add",
+      "route": "app/(tabs)/index.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-steps-add-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "steps-add",
+      "route": "app/(tabs)/index.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-steps-add-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "steps-set",
+      "route": "app/(tabs)/index.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-steps-set-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-set",
+      "route": "app/(tabs)/index.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-steps-set-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-set",
+      "route": "app/(tabs)/index.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-steps-set-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "steps-set",
+      "route": "app/(tabs)/index.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-steps-set-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "steps-saving",
+      "route": "app/(tabs)/index.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-steps-saving-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "steps-saving",
+      "route": "app/(tabs)/index.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-steps-saving-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "legacy-water-control",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-legacy-water-control-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "legacy-water-control",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-legacy-water-control-normal.html",
+      "label": "normal",
+      "width": 390,
+      "fontScale": 1
+    },
+    {
+      "name": "legacy-water-control",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "dark": false,
+      "version": "before",
+      "file": "before-light-legacy-water-control-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    },
+    {
+      "name": "legacy-water-control",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "dark": false,
+      "version": "after",
+      "file": "after-light-legacy-water-control-narrow-large.html",
+      "label": "narrow-large",
+      "width": 320,
+      "fontScale": 1.8
+    }
+  ]
+}

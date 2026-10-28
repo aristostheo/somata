@@ -1,5 +1,6 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { Button, Empty, Heading, Item, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -194,7 +195,11 @@ function descriptorTint(scorePct: number, colors: any) {
 }
 
 export default function WorkoutSessionDetailScreen() {
-  const { D, F } = useSomataTheme();
+  return <SomataTaskAppearance><WorkoutSessionDetailScreenContent /></SomataTaskAppearance>;
+}
+
+function WorkoutSessionDetailScreenContent() {
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const { user } = useAuth();
@@ -453,18 +458,9 @@ export default function WorkoutSessionDetailScreen() {
 
   return (<TaskPage title={summary.title} section="Session details" subtitle={summary.dateLabel} onBack={() => router.back()}>
 
-    <Panel accent>
-      <Text style={F.eyebrow}>SESSION SCORE</Text>
-      <Text style={{ ...F.value, fontSize: 52 }}>{summary.score}<Text style={F.caption}> / 100</Text></Text>
-      <Text style={F.body}>{comparison}</Text>
+    <Panel accent><Heading title="Session record" detail={comparison} />
+      <WorkoutStats values={[{ label: 'Session score / 100', value: String(summary.score) }, { label: 'Duration', value: formatDuration(summary.durationMin) }, { label: 'Volume', value: `${Math.round(toDisplayWeight(summary.totalVolumeKg))} ${weightUnit}` }, { label: 'Sets / reps', value: `${summary.totalSets} / ${summary.totalReps}` }, { label: 'Exercises', value: String(summary.exerciseCount) }]} />
     </Panel>
-
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-      <Metric label="Duration" value={formatDuration(summary.durationMin)} />
-      <Metric label="Volume" value={`${Math.round(toDisplayWeight(summary.totalVolumeKg))} ${weightUnit}`} />
-      <Metric label="Sets / reps" value={`${summary.totalSets} / ${summary.totalReps}`} />
-      <Metric label="Exercises" value={String(summary.exerciseCount)} />
-    </View>
 
     <View ref={actionsRef} style={{ gap: 10 }}>
       <Button primary label="Repeat workout" onPress={repeatWorkout} icon="refresh" />
@@ -478,17 +474,18 @@ export default function WorkoutSessionDetailScreen() {
     </Panel>}
 
     <Heading title="Exercises" />
-    {exerciseSummaries.map(e => <Item key={e.exercise} title={e.exercise} detail={`${e.sets} sets · ${e.reps} reps`} value={e.bestLine} />)}
+    {exerciseSummaries.map((e, i) => <Panel key={e.exercise}><MovementHeading number={i + 1} title={e.exercise} detail={`${e.sets} sets · ${e.reps} reps`} /><Text style={F.body}>{e.bestLine}</Text></Panel>)}
 
-    <Heading title="Muscles worked" />
-    {muscles.map(([m, n]) => <Item key={m} title={m} value={`${n} sets`} />)}
+    <Panel><Heading title="Muscles worked" />
+    {muscles.map(([m, n]) => <Item key={m} title={m} value={`${n} sets`} />)}</Panel>
 
     {!!summary.notes.length && <Panel>
       <Heading title="Notes" />
       {summary.notes.map((n, i) => <Text key={i} style={F.body}>{n}</Text>)}
     </Panel>}
 
-    <Button danger disabled={deleting} label={deleting ? 'Deleting…' : 'Delete workout'} onPress={deleteSession} />
+    <Panel><Heading title="Manage this record" detail="Deletion removes this workout from your history." />
+    <Button danger disabled={deleting} label={deleting ? 'Deleting…' : 'Delete workout'} onPress={deleteSession} /></Panel>
   </TaskPage>
   );
 }

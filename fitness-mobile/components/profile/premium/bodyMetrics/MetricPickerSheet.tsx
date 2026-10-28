@@ -1,7 +1,8 @@
+import { ProfileSection } from "@/components/profile/ProfileTaskUI";
 import { Button, Choice, Heading, IconButton, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { useTaskPresentation } from "@/components/designPreview/Appearance";
 // components/profile/bodyMetrics/MetricPickerSheet.tsx
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { usePremiumProfileFlowTheme as useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -51,7 +52,7 @@ export default function MetricPickerSheet({
   onClose,
   onChange,
 }: Props) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors, isDark } = useProfileFlowTheme();
   const reduceMotion = useReducedMotion();
@@ -142,7 +143,8 @@ export default function MetricPickerSheet({
 
   return (<TaskSheet title={title} visible={open} onClose={onClose}>
     <Text style={F.body}>{subtitle}</Text>
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+    <ProfileSection index="±" title="Measurement draft" detail="Choose a value, then save on Body measurements.">
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
       <IconButton icon="remove" label={`Decrease ${title}`} onPress={() => nudge(-1)} />
       <View style={{ flex: 1, alignItems: 'center', gap: 4 }}>
         <Text style={{ ...F.value, fontSize: 42 }}>{internal == null ? nullLabel : display(internal)}</Text>
@@ -150,7 +152,7 @@ export default function MetricPickerSheet({
       </View>
       <IconButton icon="add" label={`Increase ${title}`} onPress={() => nudge(1)} />
     </View>
-    <Heading title="Choose a value" />
+    </ProfileSection><Heading title="Choose a value" detail="Swipe through the available values or use the step controls." />
     <FlatList horizontal data={values} keyExtractor={v => String(v)} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} renderItem={({ item: v }) => <Choice label={display(v)} selected={internal === v} onPress={() => { setInternal(v); onChange(v); Haptics.selectionAsync().catch(() => { }); }} />} />
     {allowNull && <Button label={nullLabel} onPress={() => { setInternal(null); onChange(null); }} />}
     <Button primary label="Done" onPress={onClose} />

@@ -1,6 +1,7 @@
+import { ProfileIntro, ProfileSection, ProfileFields } from "@/components/profile/ProfileTaskUI";
 import { visualTokens } from "@/components/accountSettings/visualTokens";
 import { Button, Choice, Empty, Field, Heading, Item, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { useAuth } from "@/content/AuthContext";
 import { useTheme } from "@/content/ThemeProvider";
 import { auth } from "@/lib/firebase";
@@ -23,8 +24,8 @@ const goalOptions = [["cut", "Lose weight"], ["maintain", "Maintain"], ["lean_bu
 const paceOptions = [["gentle", "Gentle"], ["moderate", "Moderate"], ["aggressive", "Faster"]] as const;
 const strategyOptions = [["standard", "Balanced"], ["high", "Higher protein"], ["very_high", "Very high protein"]] as const;
 
-export default function FitAdaptSetup() {
-  const { D, F } = useSomataTheme();
+function FitAdaptSetupContent() {
+  const { D, F } = useTaskPresentation();
 
   const { user } = useAuth();
   const router = useRouter();
@@ -182,20 +183,21 @@ export default function FitAdaptSetup() {
     </View>
   </View>;
 
-  if (!user || !loaded || !kindLoaded || !draft) return <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: palette.canvas }}>
-    <ActivityIndicator color={palette.primary} />
+  if (!user || !loaded || !kindLoaded || !draft) return <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: D.bg }}>
+    <ActivityIndicator color={D.teal} />
   </View>;
-  if (kindError) return <View style={{ flex: 1, justifyContent: "center", padding: 24, gap: 16, backgroundColor: palette.canvas }}>
+  if (kindError) return <View style={{ flex: 1, justifyContent: "center", padding: 24, gap: 16, backgroundColor: D.bg }}>
 
     <Text accessibilityRole="alert" style={{ color: text, fontSize: 17 }}>Could not read your saved setup status. Your account and goals are unchanged.</Text>
 
-    {button("Return to Profile", () => router.replace("/(tabs)/profile"), true)}
+    <Button primary label="Return to Profile" onPress={() => router.replace("/(tabs)/profile")} />
 
   </View>;
   return (<TaskPage title={kind === 'new' ? 'Your starting point' : 'Complete your profile'} section="FitAdapt setup" onBack={() => router.replace('/(tabs)/profile')} subtitle="Your information helps estimate energy needs. You choose whether to accept a plan.">
-    <View style={F.wrap}>
+    <ProfileIntro fitadapt label="FitAdapt / setup" title={step === "form" ? "Start with your information" : step === "confirm" ? "Review before requesting" : "Your next step"} detail="A review proposes targets. You always decide whether to accept them." />
+    <Panel><View style={F.wrap}>
       {['Details', 'Review', 'Next step'].map((label, i) => <Text key={label} style={{ ...F.eyebrow, color: (step === 'form' ? 0 : step === 'confirm' ? 1 : 2) === i ? D.lime : D.muted }}>{i + 1} / {label}</Text>)}
-    </View>
+    </View></Panel>
     <Panel>
       <Heading title="Personal, for a reason" />
       <Text style={F.body}>Age, measurements, equation sex and activity are used by the energy equation. Unsaved answers stay on this device. On submission, Somata saves your profile and shares only the required fitness fields with FitAdapt.</Text>
@@ -209,28 +211,28 @@ export default function FitAdaptSetup() {
     </Panel> : <>
       {step === 'form' && <>
         {missing.length === 0 && kind === 'existing' ? <Empty title="Ready for a review" detail="Your saved profile has the required inputs. No goals will be changed by requesting a review." /> : <>
-          <Heading title="01 · Measurements" detail="Use the units you're comfortable with." />
+          <ProfileSection index="01" title="Measurements" detail="Use the units you're comfortable with.">
           {(needs('heightCm') || needs('weightKg')) && chips('Units', draft.weightUnit, [['kg', 'kg / cm'], ['lb', 'lb / ft-in']] as const, changeUnit)}
-          <View style={F.wrap}>
+          <ProfileFields>
             {needs('age') && field('Age (years)', draft.age, age => update({ age }), '18–80')}
             {needs('weightKg') && field(`Weight (${draft.weightUnit})`, draft.weight, weight => update({ weight }), 'Current weight')}
-          </View>
-          {needs('heightCm') && (draft.weightUnit === 'kg' ? field('Height (cm)', draft.heightCm, heightCm => update({ heightCm }), 'Height') : <View style={F.wrap}>
+          </ProfileFields>
+          {needs('heightCm') && (draft.weightUnit === 'kg' ? field('Height (cm)', draft.heightCm, heightCm => update({ heightCm }), 'Height') : <ProfileFields>
             {field('Height (ft)', draft.heightFeet, heightFeet => update({ heightFeet }), 'Feet')}
             {field('Inches', draft.heightInches, heightInches => update({ heightInches }), 'Inches')}
-          </View>)}
+          </ProfileFields>)}
           {needs('sex') && chips('Equation sex', draft.sex, [['female', 'Female'], ['male', 'Male']] as const, sex => update({ sex }))}
-          <Heading title="02 · Your direction" />
+          </ProfileSection><ProfileSection index="02" title="Your direction">
           {needs('activityLevel') && chips('Activity level', draft.activityLevel, activityOptions, activityLevel => update({ activityLevel }))}
           {needs('mode') && chips('Goal', draft.mode, goalOptions, mode => update({ mode, pace: mode === 'maintain' ? 'moderate' : '' }))}
           {needs('pace') && draft.mode !== 'maintain' && chips('Weekly pace', draft.pace, paceOptions, pace => update({ pace }))}
           {(needs('pace') || kind === 'new') && <Text style={F.body}>Requested weekly change · {paceSummary}</Text>}
-          {needs('proteinPriority') && chips('Macro strategy', draft.proteinPriority, strategyOptions, proteinPriority => update({ proteinPriority }))}
+          {needs('proteinPriority') && chips('Macro strategy', draft.proteinPriority, strategyOptions, proteinPriority => update({ proteinPriority }))}</ProfileSection>
         </>}
         <Button label="Review details" primary onPress={() => { if (checked && 'errors' in checked && missing.length) setNotice(checked.errors.join(' ')); else { setNotice(''); setStep('confirm'); } }} />
         {kind === 'new' ? <Button label="Sign out and finish later" onPress={() => void (async () => { await draftWriteRef.current.catch(() => { }); await signOut(auth); })()} /> : <Button label="Back to Profile" onPress={() => router.replace('/(tabs)/profile')} />}
       </>}
-      {step === 'confirm' && <><Heading title="Review your details" /><View style={F.wrap}>
+      {step === 'confirm' && <><ProfileSection index="03" title="Review your details" detail="Saved profile inputs • no plan accepted here"><View style={F.wrap}>
         <Metric label="Age" value={draft.age} />
         <Metric label="Weight" value={`${draft.weight} ${draft.weightUnit}`} />
       </View><Panel>
@@ -240,7 +242,7 @@ export default function FitAdaptSetup() {
           <Item title="Goal" value={draft.mode.replaceAll('_', ' ')} />
           <Item title="Weekly change" value={paceSummary} />
           <Item title="Macro strategy" value={draft.proteinPriority.replaceAll('_', ' ')} />
-        </Panel><Text style={F.body}>Your current targets remain active until you explicitly accept a valid proposal.</Text><Button label={busy ? 'Working…' : saved ? 'Retry review' : 'Save and request review'} primary disabled={busy} onPress={() => void submit()} /><Button label="Edit details" disabled={busy} onPress={() => setStep('form')} /></>}
+        </Panel></ProfileSection><Text style={F.body}>Your current targets remain active until you explicitly accept a valid proposal.</Text><Button label={busy ? 'Working…' : saved ? 'Retry review' : 'Save and request review'} primary disabled={busy} onPress={() => void submit()} /><Button label="Edit details" disabled={busy} onPress={() => setStep('form')} /></>}
       {step === 'result' && <Panel accent>
         <Heading title="Your goals are saved" />
         <Button label={busy ? 'Working…' : 'Retry FitAdapt review'} primary disabled={busy} onPress={() => void submit()} />
@@ -250,4 +252,8 @@ export default function FitAdaptSetup() {
     {!!notice && <Text accessibilityRole="alert" style={F.body}>{notice}</Text>}
   </TaskPage>
   );
+}
+
+export default function FitAdaptSetup() {
+  return <SomataTaskAppearance><FitAdaptSetupContent /></SomataTaskAppearance>;
 }

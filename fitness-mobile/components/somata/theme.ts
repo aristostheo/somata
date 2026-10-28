@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 
 /** Presentation tokens only. The provider remains the owner of mode, palettes and persistence. */
 export function useSomataTheme() {
-  const { isDark, colors } = useTheme();
+  const { isDark, colors, semantic } = useTheme();
   const D = {
     bg: isDark ? '#080A09' : '#F3F5F0', card: isDark ? '#191D1B' : '#FFFFFF',
     raised: isDark ? '#252A26' : '#E6EBE3', low: isDark ? '#111512' : '#EDF1E9',
@@ -27,5 +27,6 @@ export function useSomataTheme() {
     row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   });
-  return { D, F, isDark };
+  // New screen work opts into semantic roles; D/F remain compatibility values.
+  return { D, F, isDark, semantic };
 }

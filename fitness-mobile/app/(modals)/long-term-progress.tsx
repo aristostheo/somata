@@ -1,6 +1,7 @@
+import { ProfileIntro, ProfileRecord } from "@/components/profile/ProfileTaskUI";
 import { useAccountStorage } from '@/services/local/accountStore';
 import { Button, Choice, Heading, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { Trend } from "@/components/somata/Trend";
 // app/(modals)/long-term-progress.tsx
 // Drop-in ✅
@@ -220,7 +221,7 @@ function TrendCard({
   ctaLabel?: string;
   infoText?: string;
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
@@ -257,26 +258,29 @@ function TrendCard({
 
   return (<><Panel>
     <Heading title={title} detail={subtitle} />
+    <Text style={F.eyebrow}>LATEST IN SELECTED RANGE</Text>
     <Text style={{ ...F.value, fontSize: 40 }}>{latest == null ? '—' : `${Math.round(latest * 10) / 10} ${unit}`}</Text>
-    {hasEnough ? <Trend values={series.map(p => p.value)} labels={series.map(p => formatFullDate(p.date))} unit={unit} /> : <Text style={F.caption}>Record at least four entries to see this trend.</Text>}
+    {seriesEnd != null && <Text style={F.caption}>{formatFullDate(seriesEnd)} · {series.length} records</Text>}
+    {hasEnough ? <Trend premiumProfile values={series.map(p => p.value)} labels={series.map(p => formatFullDate(p.date))} unit={unit} /> : <Text style={F.caption}>Record at least four entries to see this trend.</Text>}
     {delta != null && <Text style={F.caption}>{delta > 0 ? '+' : ''}{Math.round(delta * 10) / 10} {unit} over this period · {signal}</Text>}
     <Button label="Inspect records" onPress={() => setFocused(true)} />
   </Panel><TaskSheet title={title} visible={focused} onClose={() => setFocused(false)}>
+      <ProfileIntro label="Dated detail" title={`${title} / records`} detail="Most recent ten entries in the selected period." />
       {infoText && <Text style={F.body}>{infoText}</Text>}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         <Metric label="Minimum" value={minVal == null ? '—' : `${Math.round(minVal * 10) / 10} ${unit}`} />
         <Metric label="Maximum" value={maxVal == null ? '—' : `${Math.round(maxVal * 10) / 10} ${unit}`} />
         <Metric label="Records" value={String(series.length)} />
       </View>
-      {recentPoints.map((p, i) => <Item key={i} title={formatFullDate(p.date)} value={`${Math.round(p.value * 10) / 10} ${unit}`} />)}
+      {recentPoints.map((p, i) => <ProfileRecord key={i} label={formatFullDate(p.date)}><Text style={{ ...F.value, fontSize: 26 }}>{Math.round(p.value * 10) / 10} {unit}</Text></ProfileRecord>)}
       {!recentPoints.length && <Text style={F.caption}>No recorded values in this range.</Text>}
     </TaskSheet></>
   );
 }
 
-export default function LongTermProgressModal() {
+function LongTermProgressModalContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const { colors, isDark } = useTheme();
@@ -459,13 +463,16 @@ export default function LongTermProgressModal() {
   const bgBottom = isDark ? "#070A10" : "#070A10";
 
   return (<TaskPage title="The longer view" section="Long-term progress" onBack={() => router.back()}>
+    <ProfileIntro label="Progress / longer view" title="Let the records tell it" detail="Body measurements, training volume and nutrition summaries retain their own sources and units." />
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {RANGE_OPTIONS.map(o => <Choice key={o.key} label={o.label} selected={range === o.key} onPress={() => setRange(o.key)} />)}
     </View>
     <Text style={F.caption}>Recorded trends from the existing history sources. Nutrition consistency compares records with your current calorie goal.</Text>
+    <Heading title="Body records" detail="Device-local measurement history" />
     <TrendCard title="Weight" subtitle="Recorded weight over time" unit={unitFromParams} series={weightSeries} />
     <TrendCard title="Body fat" subtitle="Available measurements only" unit="%" series={bfSeries} />
     <TrendCard title="Waist" subtitle="Optional body measurements" unit="cm" series={waistSeries} />
+    <Heading title="Activity & consistency" detail="Calculated summaries of logged records" />
     <TrendCard title="Training volume" subtitle="Working sets per week" unit="sets/wk" series={workoutSeries} />
     <TrendCard title="Nutrition consistency" subtitle="Daily adherence against the current calorie goal" unit="" series={nutritionSeries} />
   </TaskPage>
@@ -721,3 +728,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
+
+export default function LongTermProgressModal() {
+  return <SomataTaskAppearance><LongTermProgressModalContent /></SomataTaskAppearance>;
+}

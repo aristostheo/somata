@@ -1,5 +1,6 @@
-import { Button, Choice, Field, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { NutritionContext } from "@/components/nutrition/NutritionTaskUI";
+import { Button, Choice, Field, Heading, Panel, TaskSheet } from "@/components/somata/TaskUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { useMemo, useState } from "react";
 import { Text, View } from "react-native";
 
@@ -7,7 +8,11 @@ import type { DetectedFood } from "@/components/scanMeal/new/types";
 import { clamp, roundTo } from "@/components/scanMeal/new/types";
 import { useTheme } from "@/content/ThemeProvider";
 
-export default function AddFoodSheet({
+export default function AddFoodSheet(props: Parameters<typeof AddFoodSheetContent>[0]) {
+  return <SomataTaskAppearance><AddFoodSheetContent {...props} /></SomataTaskAppearance>;
+}
+
+function AddFoodSheetContent({
   visible,
   onClose,
   onAdd,
@@ -16,7 +21,7 @@ export default function AddFoodSheet({
   onClose: () => void;
   onAdd: (food: DetectedFood) => void;
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors } = useTheme() as any;
 
@@ -54,10 +59,12 @@ export default function AddFoodSheet({
 
   return (<TaskSheet visible={visible} onClose={onClose} title="Add a missing item">
 
-    <Text style={F.body}>Name the food and the amount. You’ll review the estimate before logging.</Text>
+    <NutritionContext label="Complete your scan" title="Fill in what was missed" detail="Add the food to your review. You can refine its nutrition before final logging." icon="add-circle-outline" />
+    <Panel><Heading title="Food details" />
 
     <Field label="Food name" value={name} onChangeText={setName} placeholder="What was missed?" />
 
+    </Panel><Panel><Heading title="Portion information" />
     <View style={F.wrap}>
       <Choice label="I know the quantity" selected={!unknownQty} onPress={() => setUnknownQty(false)} />
       <Choice label="Quantity unknown" selected={unknownQty} onPress={() => setUnknownQty(true)} />
@@ -65,6 +72,7 @@ export default function AddFoodSheet({
 
     {!unknownQty && <Field label="Quantity" value={amt} onChangeText={setAmt} keyboardType="decimal-pad" />}
 
+    </Panel>
     <Button label="Add item" primary disabled={!canAdd} onPress={commit} />
   </TaskSheet>
   );

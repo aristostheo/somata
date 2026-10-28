@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-21",
+  "branch": "profile-redesign",
+  "syntheticOnly": true,
+  "nativeVerified": false,
+  "commands": [
+    {
+      "command": "pnpm typecheck",
+      "result": "passed"
+    },
+    {
+      "command": "TZ=America/Toronto node --import tsx --test tests/workoutFamilyPresentation.test.ts",
+      "result": "12 passed"
+    },
+    {
+      "command": "TZ=America/Toronto node --import tsx --test --test-name-pattern='browser favorites' tests/workoutFamilyPresentation.test.ts",
+      "result": "1 passed after catalog scroll-header change"
+    },
+    {
+      "command": "pnpm test",
+      "result": "194 passed; 0 failed"
+    },
+    {
+      "command": "EXPO_OFFLINE=1 pnpm exec expo export --platform ios --output-dir /private/tmp/somata10-ios --max-workers 2",
+      "result": "passed",
+      "platform": "ios",
+      "output": "/private/tmp/somata10-ios",
+      "bundle": "_expo/static/js/ios/entry-a988bd626a7637b1ce3dbf44b7106846.hbc",
+      "assetCount": 68,
+      "allResolved": true
+    },
+    {
+      "command": "EXPO_OFFLINE=1 pnpm exec expo export --platform android --output-dir /private/tmp/somata10-android --max-workers 2",
+      "result": "passed",
+      "platform": "android",
+      "output": "/private/tmp/somata10-android",
+      "bundle": "_expo/static/js/android/entry-06e3cc3b97844232e7d1c936d88f33ca.hbc",
+      "assetCount": 72,
+      "allResolved": true
+    },
+    {
+      "command": "node tools/render-workout-family-preview.cjs --before-root /private/tmp/somata-10-before/fitness-mobile",
+      "result": "202 HTML previews; 90 before and 112 after"
+    },
+    {
+      "command": "node /private/tmp/somata10-controller-audit.cjs",
+      "result": "17 source files; non-JSX controller statements unchanged"
+    },
+    {
+      "command": "node /private/tmp/somata10-preservation.cjs",
+      "result": "1448 / 1466 baseline files byte-identical; 18 existing files intentionally changed; 125 approved artwork files unchanged; 10 main-tab, 24 Home-utility, 84 Nutrition renders identical"
+    },
+    {
+      "command": "node /private/tmp/somata10-capture.cjs",
+      "result": "128 synthetic Chrome PNG captures; no horizontal document overflow"
+    },
+    {
+      "command": "xcrun simctl list devices booted",
+      "result": "failed: CoreSimulatorService connection invalid / connection refused; no native checks claimed"
+    },
+    {
+      "command": "git diff --check -- [17 touched application paths]",
+      "result": "passed"
+    }
+  ],
+  "limitations": [
+    "Browser text scaling approximates Text only; no native keyboard/focus/media/permissions verified.",
+    "Expected mocked write-failure warnings and existing React Native Web/Metro deprecation warnings; no dependency upgrades.",
+    "No live AI requests, emulator writes, production calls or deployment performed."
+  ],
+  "approval": "Stopped for full Workouts-family visual review; no next checkpoint started"
+}

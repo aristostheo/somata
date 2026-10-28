@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { Appearance, ColorSchemeName } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createSemanticTokens, type SemanticTokens } from "@/services/theme/semanticTokens";
 import {
   OCEAN,
   THEME_KEYS,
@@ -77,6 +78,8 @@ type ThemeAccents = {
 
 type ThemeContextShape = {
   colors: ThemeColors;
+  /** Opt-in Somata brand roles; legacy colors and persisted palettes stay intact. */
+  semantic: SemanticTokens;
   isDark: boolean;
   previewVisual: boolean;
   modeSetting: ThemeMode;
@@ -214,7 +217,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const sub = Appearance.addChangeListener(({ colorScheme }) => {
-      setSystemScheme(colorScheme);
+      setSystemScheme(colorScheme ?? "light");
     });
     return () => {
       // RN compatibility
@@ -465,8 +468,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isDark, primary, accent]);
 
+  const semantic = useMemo(() => createSemanticTokens(isDark), [isDark]);
+
   const value: ThemeContextShape = {
     colors,
+    semantic,
     isDark,
     previewVisual: false,
     modeSetting,
@@ -497,6 +503,7 @@ export function PreviewThemeScope({ children }: { children: React.ReactNode }) {
     ...parent,
     previewVisual: true,
     isDark: true,
+    semantic: createSemanticTokens(true),
     colors: {
       ...parent.colors,
       background: "#080A09", bg: "#080A09",

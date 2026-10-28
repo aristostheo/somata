@@ -1,3 +1,5 @@
+import { DeskIntro, DeskSection, DeskColumns, StatusNote } from "@/components/accountSettings/PremiumUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { Button, Heading, Item, Panel, TaskPage } from "@/components/somata/TaskUI";
 import { useSomataTheme } from "@/components/somata/theme";
 import { releaseConfig } from "@/lib/releaseConfig";
@@ -11,8 +13,8 @@ import { useRef, useState } from "react";
 import { Alert, Text } from "react-native";
 
 
-export default function PaywallScreen() {
-  const { D, F } = useSomataTheme();
+function PaywallScreen() {
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const { isPro, loading } = useEntitlements();
@@ -49,16 +51,18 @@ export default function PaywallScreen() {
     }
   }
 
-  return (<TaskPage title="More room to explore" section="Somata Pro" subtitle="AI-assisted tools for your food and training routines." onBack={() => router.back()}>
-    <Panel accent>
-      <Text style={F.eyebrow}>YOUR ACCESS</Text>
-      <Text style={F.value}>{loading ? 'Checking…' : isPro ? 'Pro' : 'Standard'}</Text>
+  return (<TaskPage title="Your access" section="Somata" subtitle="Your current account entitlement and available purchase status." onBack={() => router.back()}>
+    <DeskIntro icon="sparkles-outline" label="Account entitlement" title={loading ? 'Checking…' : isPro ? 'Pro' : 'Standard'}>
       <Text style={F.body}>{releaseConfig.checkoutEnabled ? "Review the price and subscription terms at checkout before confirming." : "Purchases are unavailable in this build. Your existing access is unchanged."}</Text>
       {releaseConfig.checkoutEnabled && <Button label={isPro ? 'Pro is active' : working ? 'Opening checkout…' : 'View checkout'} primary disabled={working || loading || isPro} onPress={startCheckout} />}
-    </Panel>
-    <Heading title="Included tools" />
+    </DeskIntro>
+    <DeskSection icon="grid-outline" title="AI & training tools" detail="Existing tools associated with this access screen; availability follows your current entitlement.">
     {benefits.map((b, i) => <Item key={b} icon={i < 2 ? 'nutrition-outline' : 'sparkles-outline'} title={b} />)}
-    <Button label="Refresh access" icon="refresh" onPress={async () => { try { await auth.currentUser?.getIdToken(true); Alert.alert('Refreshed', 'Your account access has been refreshed.'); } catch (e: any) { Alert.alert('Could not refresh', e?.message || ''); } }} />
+    </DeskSection><Button label="Refresh access" icon="refresh" onPress={async () => { try { await auth.currentUser?.getIdToken(true); Alert.alert('Refreshed', 'Your account access has been refreshed.'); } catch (e: any) { Alert.alert('Could not refresh', e?.message || ''); } }} />
   </TaskPage>
   );
+}
+
+export default function PremiumPaywallScreen() {
+  return <SomataTaskAppearance><PaywallScreen /></SomataTaskAppearance>;
 }

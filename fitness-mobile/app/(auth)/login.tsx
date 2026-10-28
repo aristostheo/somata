@@ -6,7 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from "@/lib/firebase";
 import { authErrorMessage } from "@/lib/authErrorMessage";
 import { AuthLink, AuthMessage, AuthPage, AuthProviders } from "@/components/somata/AuthUI";
-import { Button, Field, IconButton, Toggle } from "@/components/somata/TaskUI";
+import { Button, Field, IconButton, Toggle } from "@/components/somata/AuthControls";
 import { clearFitAdaptSetupMarker, markFitAdaptSetupForSocial, markFitAdaptSetupForUid } from "@/services/fitadaptOnboarding";
 
 export default function Login() {

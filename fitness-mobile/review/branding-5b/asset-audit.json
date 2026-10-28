@@ -1,0 +1,65 @@
+[
+  {
+    "file": "assets/branding/workouts/hero/gym-equipment.png",
+    "width": 900,
+    "height": 760,
+    "bytes": 378541,
+    "sha256": "9448b203f634a64514083c038f768e46207b19e76442d6a307dc4884ca2892d4"
+  },
+  {
+    "file": "assets/branding/workouts/hero/hero-dark.png",
+    "width": 960,
+    "height": 720,
+    "bytes": 413129,
+    "sha256": "e8b835400448a9383cc9c969c8acb6cb1e5d2c6bba67a7f3c6ffac1db21be888"
+  },
+  {
+    "file": "assets/branding/workouts/hero/hero-light.png",
+    "width": 960,
+    "height": 720,
+    "bytes": 478464,
+    "sha256": "66951007e2a335327eaa834f410d753cb04dacc56905b31aa24bdb6c095acaae"
+  },
+  {
+    "file": "assets/branding/workouts/templates/cardio.png",
+    "width": 1122,
+    "height": 1402,
+    "bytes": 1780918,
+    "sha256": "b5d3e373d4058602e0d099fc91d8b09b902b83a7209abc25961932da87098aa6"
+  },
+  {
+    "file": "assets/branding/workouts/templates/legs.png",
+    "width": 1122,
+    "height": 1402,
+    "bytes": 2019711,
+    "sha256": "97efe39548bf801d9f6d0e423fde63295f280bc0274ef39577f7a4fd6578184f"
+  },
+  {
+    "file": "assets/branding/workouts/templates/mobility.png",
+    "width": 1122,
+    "height": 1402,
+    "bytes": 2007073,
+    "sha256": "5d33367fe8ab63f55862918440be7a5b5d020822e764c3226589b8fef2a48a6e"
+  },
+  {
+    "file": "assets/branding/workouts/templates/pull.png",
+    "width": 1122,
+    "height": 1402,
+    "bytes": 1925234,
+    "sha256": "6c4eebae7d95f602361541d25c07660f010ded08366c97521243d261ace589bc"
+  },
+  {
+    "file": "assets/branding/workouts/templates/push.png",
+    "width": 1122,
+    "height": 1402,
+    "bytes": 2176895,
+    "sha256": "1bf84d295d39a8c7e338857c3a170280eff8b89b63e80da389df32c6855f56ec"
+  },
+  {
+    "file": "assets/branding/workouts/templates/upper.png",
+    "width": 1122,
+    "height": 1402,
+    "bytes": 2148635,
+    "sha256": "de0d014aff8adb674ea646b6e213e8bd0bb00ca3f6f287db8d494897fc0ebcbc"
+  }
+]

@@ -1,52 +1,56 @@
 import React, { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { SomataLogo } from "@/components/brand/Brand";
 import * as Apple from "expo-apple-authentication";
 import { type UserCredential } from "firebase/auth";
-import { Button } from "./TaskUI";
-import { useSomataTheme } from "./theme";
+import { Button, useAuthColors } from "./AuthControls";
 import { isAppleSignInAllowed, isGoogleSignInConfigured, signInWithApple, useGoogleLogin } from "@/lib/authSocial";
 
 export function AuthPage({ title, subtitle, children, footer }: {
   title: string; subtitle: string; children: React.ReactNode; footer: React.ReactNode;
 }) {
-  const { D, F } = useSomataTheme();
+  const { colors: C, isDark } = useAuthColors();
   const insets = useSafeAreaInsets();
-  return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: D.bg }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, padding: 24, paddingBottom: insets.bottom + 24 }}>
-      <View style={{ flex: 1, width: "100%", maxWidth: 520, alignSelf: "center", gap: 26 }}>
-        <View style={{ ...F.row, justifyContent: "flex-start", paddingTop: 12 }}>
-          <View style={{ width: 46, height: 46, borderRadius: 16, backgroundColor: D.primary, alignItems: "center", justifyContent: "center" }}>
-            <Ionicons name="pulse" size={28} color={D.onPrimary} />
-          </View>
-          <Text style={{ ...F.heading, letterSpacing: 2 }}>SOMATA</Text>
+  const { width } = useWindowDimensions();
+  const padding = width < 360 ? 20 : 24;
+  // The root stack already reserves the top safe area. Account for that origin
+  // in keyboard avoidance without adding the same top inset a second time.
+  return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.bg }} behavior={Platform.OS === "ios" ? "padding" : undefined}
+    keyboardVerticalOffset={insets.top}>
+    <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+      contentContainerStyle={{ flexGrow: 1, paddingTop: 12, paddingLeft: Math.max(padding, insets.left),
+        paddingRight: Math.max(padding, insets.right), paddingBottom: insets.bottom + 24 }}>
+      <View style={{ width: "100%", maxWidth: 420, alignSelf: "center", gap: 20 }}>
+        <View style={{ alignItems: "flex-start", flexShrink: 0 }}>
+          <SomataLogo size={280} background={isDark ? "dark" : "light"} />
         </View>
-        <View style={{ gap: 12, paddingTop: 18 }}>
-          <Text style={F.eyebrow}>YOUR EVERYDAY, IN MOTION</Text>
-          <Text accessibilityRole="header" style={{ ...F.title, fontSize: 40 }}>{title}</Text>
-          <Text style={F.body}>{subtitle}</Text>
+        <View style={{ gap: 10 }}>
+          <Text style={{ color: C.accent, fontSize: 11, fontWeight: "800", letterSpacing: 1.5 }}>YOUR EVERYDAY, IN MOTION</Text>
+          <Text accessibilityRole="header" style={{ color: C.text, fontWeight: "800", fontSize: width < 360 ? 32 : 36, letterSpacing: -1 }}>{title}</Text>
+          <Text style={{ color: C.muted, fontSize: 14, lineHeight: 21 }}>{subtitle}</Text>
           <View style={{ flexDirection: "row", gap: 6, marginTop: 6 }}>
-            {[D.teal, D.lime, D.raised].map((color, index) => <View key={index} style={{ flex: index === 0 ? 3 : 1, height: 5, borderRadius: 3, backgroundColor: color }} />)}
+            {[C.primary, C.coral, C.border].map((color, index) => <View key={index} style={{ flex: index === 0 ? 3 : 1, height: 5, borderRadius: 3, backgroundColor: color }} />)}
           </View>
         </View>
-        <View style={{ gap: 18 }}>{children}</View>
-        <View style={{ marginTop: "auto", paddingTop: 12, gap: 10 }}>{footer}</View>
+        <View style={{ gap: 16 }}>{children}</View>
+        <View style={{ paddingTop: 8, gap: 10 }}>{footer}</View>
       </View>
     </ScrollView>
   </KeyboardAvoidingView>;
 }
 
 export function AuthMessage({ message, success = false }: { message: string; success?: boolean }) {
-  const { D, F } = useSomataTheme();
-  return message ? <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={{ ...F.body, color: success ? D.teal : D.danger }}>{message}</Text> : null;
+  const { colors: C } = useAuthColors();
+  return message ? <Text accessibilityRole="alert" accessibilityLiveRegion="polite"
+    style={{ fontSize: 14, lineHeight: 21, color: success ? C.accent : C.danger }}>{message}</Text> : null;
 }
 
 export function AuthLink({ label, onPress, disabled = false }: { label: string; onPress: () => void; disabled?: boolean }) {
-  const { D } = useSomataTheme();
+  const { colors: C } = useAuthColors();
   return <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityState={{ disabled }}
-    style={({ pressed }) => ({ minHeight: 48, paddingVertical: 14, opacity: disabled || pressed ? 0.5 : 1 })}>
-    <Text style={{ color: D.teal, fontSize: 15, fontWeight: "700", textAlign: "center" }}>{label}</Text>
+    style={({ pressed }) => ({ minHeight: 48, paddingVertical: 14, borderRadius: 12, backgroundColor: pressed ? C.card : "transparent" })}>
+    <Text style={{ color: disabled ? C.muted : C.accent, fontSize: 15, fontWeight: "700", textAlign: "center", textDecorationLine: "underline" }}>{label}</Text>
   </Pressable>;
 }
 
@@ -58,7 +62,7 @@ function GoogleButton({ busy, run }: ProviderProps) {
 
 /** Never render a provider that the native runtime/configuration cannot support. */
 export function AuthProviders({ busy, run }: ProviderProps) {
-  const { isDark } = useSomataTheme();
+  const { isDark } = useAuthColors();
   const [appleAvailable, setAppleAvailable] = useState(false);
   useEffect(() => {
     let mounted = true;

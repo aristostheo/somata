@@ -1,5 +1,6 @@
+import { ProfileIntro, ProfileSection, ProfileStats } from "@/components/profile/ProfileTaskUI";
 import { Button, Choice, Field, Heading, Panel, TaskPage, Toggle as TaskToggle } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -8,7 +9,7 @@ import {
   View
 } from "react-native";
 
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { usePremiumProfileFlowTheme as useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import {
   calculateMacros,
   getGoalSetupDraft,
@@ -37,8 +38,8 @@ function rebalanceRatios(
   return next;
 }
 
-export default function GoalAdvancedScreen() {
-  const { D, F } = useSomataTheme();
+function GoalAdvancedScreenContent() {
+  const { D, F } = useTaskPresentation();
 
   const { colors } = useProfileFlowTheme();
   const router = useRouter();
@@ -77,22 +78,24 @@ export default function GoalAdvancedScreen() {
 
   return (<TaskPage title="Fine-tune the calculation" section="Advanced goals" subtitle="These edits stay in your goal draft. Save from Goal setup when you are ready." onBack={() => router.back()}>
 
-    <Heading title="Energy model" />
+    <ProfileIntro label="Draft calculation" title="Control the assumptions" detail="These are calculator estimates. Returning keeps your draft; only Goal setup saves it." />
+    <ProfileStats values={[{label: "Draft energy", value: `${result.dailyCalories.toLocaleString()} kcal`}, {label: "Maintenance estimate", value: `${Math.round(result.tdee).toLocaleString()} kcal`}]} />
+    <ProfileSection index="01" title="Energy model">
     <View style={{ gap: 8 }}>
       {[['mifflin', 'Mifflin-St Jeor'], ['harris_benedict', 'Revised Harris-Benedict'], ['katch_mcardle', 'Katch-McArdle']].map(([key, label]) => <Choice key={key} label={label} selected={draft.bmrFormula === key} onPress={() => updateDraft({ bmrFormula: key as GoalInputs['bmrFormula'] })} />)}
     </View>
     {draft.bmrFormula === 'katch_mcardle' && <Text style={F.caption}>Uses body fat when set; otherwise falls back to Mifflin-St Jeor.</Text>}
 
-    <Panel>
+    </ProfileSection><ProfileSection index="02" title="Maintenance override">
       <TaskToggle title="Use my maintenance calories" detail="Overrides the activity multiplier calculation" value={draft.manualTDEEOverride != null} onChange={value => updateDraft({ manualTDEEOverride: value ? result.tdee : null })} />
       {draft.manualTDEEOverride != null && <Field label="Maintenance · kcal" keyboardType="number-pad" value={String(Math.round(draft.manualTDEEOverride))} onChangeText={v => updateDraft({ manualTDEEOverride: v ? Number(v) : null })} />}
-    </Panel>
+    </ProfileSection>
 
-    <Field label="Body fat · % · optional" value={bodyFatInput} keyboardType="decimal-pad" onChangeText={value => { setBodyFatInput(value); const parsed = Number(value); updateDraft({ bodyFatPercent: value === '' || Number.isNaN(parsed) ? null : parsed }); }} />
+    <ProfileSection index="03" title="Body composition" detail="Optional input for the calculation."><Field label="Body fat · % · optional" value={bodyFatInput} keyboardType="decimal-pad" onChangeText={value => { setBodyFatInput(value); const parsed = Number(value); updateDraft({ bodyFatPercent: value === '' || Number.isNaN(parsed) ? null : parsed }); }} />
     {draft.bodyFatPercent != null && (draft.bodyFatPercent < 3 || draft.bodyFatPercent > 50) && <Text style={F.caption}>Body fat must be between 3% and 50%.</Text>}
     {leanMass != null && <Text style={F.body}>Calculated lean mass · {leanMass.toFixed(1)} kg</Text>}
 
-    <Panel>
+    </ProfileSection><ProfileSection index="04" title="Macro distribution">
       <TaskToggle title="Set my macro split" value={draft.manualMacroRatios != null} onChange={value => updateDraft({ manualMacroRatios: value ? { protein: 35, carbs: 40, fat: 25 } : null })} />
       {draft.manualMacroRatios && <>{(['protein', 'carbs', 'fat'] as const).map(key => {
         const ratios = draft.manualMacroRatios!; return <View key={key} style={{ gap: 8 }}>
@@ -100,8 +103,12 @@ export default function GoalAdvancedScreen() {
           <Slider accessibilityLabel={`${key} percentage`} minimumValue={10} maximumValue={70} step={1} minimumTrackTintColor={D.teal} maximumTrackTintColor={D.raised} thumbTintColor={D.lime} value={ratios[key]} onValueChange={(value: number) => updateDraft({ manualMacroRatios: rebalanceRatios(ratios, key, value) })} />
         </View>;
       })}<Text style={F.body}>{result.protein} g protein · {result.carbs} g carbs · {result.fat} g fat</Text>{proteinPctWarning && <Text style={F.caption}>Low protein may reduce muscle retention.</Text>}</>}
-    </Panel>
+    </ProfileSection>
     <Button label="Reset advanced settings" onPress={() => updateDraft({ manualTDEEOverride: null, bodyFatPercent: null, manualMacroRatios: null })} />
   </TaskPage>
   );
+}
+
+export default function GoalAdvancedScreen() {
+  return <SomataTaskAppearance><GoalAdvancedScreenContent /></SomataTaskAppearance>;
 }

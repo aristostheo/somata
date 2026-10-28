@@ -1,0 +1,286 @@
+[
+  {
+    "path": "fitness-mobile/assets/branding/.DS_Store",
+    "sha256": "1a28f9b1a742bd505b4e4a07e2ffa32acd1ae50e71a1bcdc55ff34fecabe2445"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/INVENTORY.md",
+    "sha256": "f4142f6b2e91a4381955bd4c4e086a90f8ee285d0d3e50b02ae66a15c8aca3dc"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/README.md",
+    "sha256": "70e047305466fe39e75872699178fa8504de75eccbe94087111f263877d79408"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/VALIDATION.md",
+    "sha256": "065c8959875be445150f13eb81a2d00301a14bd7bdf255c6b81874169442d0b3"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/app/android-adaptive-foreground.png",
+    "sha256": "f527e538d47fc738395b5f0cbb8d40bec57ac69048a745b2cbc48b2fec30332a"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/app/android-monochrome-foreground.png",
+    "sha256": "0cc1f403d941f1ccd4e56c00f0ec30675932b6655389be45aa3a336487291c20"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/app/ios-tinted-candidate-1024.png",
+    "sha256": "cfb84cf773c16f1eda4a182fc27c0bf9cda0de63e39b7e4cedbdd110a05dd129"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/app/launcher-dark-1024.png",
+    "sha256": "75f9fe429141fbcecae54aaf1f46faa8d4628f4e4520625aff800f5c56e3c61f"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/app/launcher-light-1024.png",
+    "sha256": "97aa78727930164aeaef37d24211724ca43c36b074bb9b1b56325b464bbd1f3f"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/app/splash-symbol.png",
+    "sha256": "88a5b4dfe62c5075ae4f0c020e6d3920fa3e24c6107460365a7e12ad3533acf1"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/asset-manifest.json",
+    "sha256": "247a7084e6e780923f857cfa4d7fd3b61becdd2d4c3261f739363b221eeb4d0f"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/brand-tokens.json",
+    "sha256": "ed55081b932c51c89e68b38ac7b3f0183444f6803713163277d92e102fe66ef5"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/fitadapt/horizontal-dark.png",
+    "sha256": "a118933ab9da523613f0f1fd8b9b2d451cd0e1f01020380fcfe814521183fe72"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/fitadapt/horizontal-light.png",
+    "sha256": "ccbea5a23118e7bd0510f74797d36810e547274badf3386eb4cb7971f67ee81f"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/fitadapt/powered-by-dark.png",
+    "sha256": "2f7bc56151f7abef15271d891646a7d4eb3d8112a28a833b9ef31dca452cfc63"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/fitadapt/powered-by-light.png",
+    "sha256": "1d0f9004fd8214eed44924dd9726a9eb0865f363a58835b541c26db07586adae"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/fitadapt/symbol-color.png",
+    "sha256": "b7e792f6c40810f695f24d5b03eebb5381299ff2605b9c0780f247ead5955a56"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/navigation/community.png",
+    "sha256": "02aecbfc26410bf1bf4677aa0b3e8ca47f4e9809c8b7dab8c33ff147983dc81e"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/navigation/home.png",
+    "sha256": "3d59857a429ba1157207a06568dff933189ae753364cd57c391aae9aff16e56c"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/navigation/nutrition.png",
+    "sha256": "17e0aa725c898d164f89698f8170b600003cca1370b90917fd055dd8b418f7ee"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/navigation/profile.png",
+    "sha256": "c5654a96be13d9f0797e6c961d812bc94a5ffffc73e9430a6957565f64a04fb5"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/navigation/progress.png",
+    "sha256": "105ab85b0c954ee014d7eebca64bc896a027501e16be1c79fa60e2a35eef74dc"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/navigation/recovery.png",
+    "sha256": "de1cd1c8a988cf1cdc2719c8c063e15fc9f478b4a3e260415c9c48fb647baa03"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/navigation/scan.png",
+    "sha256": "2df47713df370e67cfaad820350b8e7f8307a04420de5e0bc49e4334a3d4d0d6"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/navigation/training.png",
+    "sha256": "d75f7d677cc2f971527ecb216e3ac22de68a872d509d070baafd7e2a1096a795"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/.DS_Store",
+    "sha256": "b300ccf38b925cc2808b7d7e57dfd30bdfb0a3af219fc8209609ffc1e80c80da"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/checkpoint-1a/APPROVAL.md",
+    "sha256": "b8463d05db8dc98b406ae5278ec8d56dd46c694bb838aeb3d2632ae8c4f18de7"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/checkpoint-1a/fitadapt-marks.png",
+    "sha256": "5ed4940cbd02819f0cb67251d9ee3a55e90d6096b22837bdbbee9eda81460aee"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/checkpoint-1a/index.html",
+    "sha256": "34c76ed6361e619fd2302cd1dc7592ea260bcafb534e42e804463772a2161a6b"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/checkpoint-1a/launcher-sizes.png",
+    "sha256": "ef72dd2c1f496529dfaf1d79de1c06adbe1543511bc63172a9fe005a3b89ee3d"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/checkpoint-1a/navigation-sizes.png",
+    "sha256": "4d41af6ce7670046aa9b19a7261317e601802126a333c3e1b089f6e8ad5f2a93"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/checkpoint-1a/somata-marks.png",
+    "sha256": "59ab091a6ad6c34eb25e2345a2ed700ad2ed3e3fdcc0773590c1ec9240162aa4"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/checkpoint-1a/verification.json",
+    "sha256": "fff3ca5bcfc79e414916d5c7f7ae411ab59fba4695a7d125bb122017ad0d6b11"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/contact-app.png",
+    "sha256": "ed73891760d990d98f1b103e9cd0b26c76256d941307100a3583c4384054f4db"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/contact-fitadapt.png",
+    "sha256": "22894e85f06b77bfc4e5c92b813c442912543a1346276c4749104573c29b24fe"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/contact-navigation.png",
+    "sha256": "f3ca3156af30a4344602589ec815743120ef30e2bcacc888bb8819f7d8195d33"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/contact-somata.png",
+    "sha256": "08408ad4ed2e705107076d84defd7743b4ff4b8e5fa44df435027f7c2945d2a7"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/review/index.html",
+    "sha256": "409f24b8e8f08f4cfe311ecd2ef48678b56d091ee5a3c0d40af3557c0f559f31"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/horizontal-dark.png",
+    "sha256": "8201a473ae6385775e891900a3ae2a42f0e1c7301decc7a4263c458df6221209"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/horizontal-light.png",
+    "sha256": "41597643966602dce7f018f7c337076f05f94b2d2b6379515ee783d2509d410b"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/horizontal-mono-bone.png",
+    "sha256": "8a654853c79a8cc5033d5abad8db5a4f70881a3f88c360b0acae824de5ad699e"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/horizontal-mono-charcoal.png",
+    "sha256": "f53b78208396fa15f53e1fab12372dba2595833e4836bd40b733b9e59b50b2b0"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/stacked-dark.png",
+    "sha256": "e139aa81a8bb51ab1b7275be0c0b5356b0c494cd1f385c7b67721766929a5c4c"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/stacked-light.png",
+    "sha256": "a382a6c432618bdd91e21211266547a2f7fc4c03f0dcbf2180ae269954014221"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/stacked-mono-bone.png",
+    "sha256": "58cba7eaddc7a85f1cc290d4ff0010091081826f4aeec20864b6bfe3d0b091de"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/stacked-mono-charcoal.png",
+    "sha256": "f40e853344e07390f8f9dfde3a984aac6d6e3ef0200076d52df4f5c44ccbc97b"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/symbol-color.png",
+    "sha256": "3be74bd514c7450fc59adb1fa004ac42940d060103c39acb02b08dbfd6f4afb8"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/symbol-mono-bone.png",
+    "sha256": "a2081d1fc875f8a790784c85e07e1f434e24ac9b937ed17a38fc98b9d799eb29"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/somata/symbol-mono-charcoal.png",
+    "sha256": "ba514a513ffd8f21df6a441a02c824ee82c8c9a49b4fe6a22112410d83e9bfcc"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/.DS_Store",
+    "sha256": "e20d64ae70b67cd6c6553ef1e1506b2466726e76adaadfadfcea2cbff8696d14"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/fitadapt/horizontal.png",
+    "sha256": "51da953dc559abeba8dcd4d63c6e828c049d2bcf9589e6050d61681924d96a8e"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/fitadapt/powered-by.png",
+    "sha256": "9439485b2e5b80bdc1eb16998d1a18f2441e0219e57363e53a64af4bc8efd257"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/fitadapt/symbol.png",
+    "sha256": "c5c2d847849d871fbabd029cdb35bfcf35e727c3edb585f2730a12fc426fbaec"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/navigation/community.png",
+    "sha256": "6c15e24d5d26583c67043929c99584e872c1728a1cae7c36d2ac2f50adcf7465"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/navigation/home.png",
+    "sha256": "2297361af6359b91fbd3b81068b384d75232cc5aa6c67d0f76f394b3f0bdf1a6"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/navigation/nutrition.png",
+    "sha256": "4086e151c2949a551cabbf902d53766cb4e8951a751273e236ef72c9b13c714e"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/navigation/original-icon-sheet.png",
+    "sha256": "4065e52fa90248d042f0ac071958f5eea9fec5c56c344365de59af373bf48341"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/navigation/profile.png",
+    "sha256": "3345e5c0760cca3abdabc1f6006ab8c61e019abac2f22cde1a43770a150610a7"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/navigation/progress.png",
+    "sha256": "ffec231c8e07e5f415e6f932f0a7059de020962e37c39db510950c572249da6a"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/navigation/recovery.png",
+    "sha256": "c95a04a85863d5e47e9790b739e496d6aa65e08a0ec00694c50f00521972ce9c"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/navigation/scan.png",
+    "sha256": "9bca30597a8e227963cddc09fdc0f9017f86682dd722831c5e2a4c8577da889c"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/navigation/training.png",
+    "sha256": "d9ff083c8ba8ded8a4b4721fc384fa420b04c03a8b0e6deed50363167725c9cc"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/references/colours.png",
+    "sha256": "b83461f8e559964de9a9d4a14733cc031298951afe81e960896eaf62fc48d582"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/somata/horizontal.png",
+    "sha256": "34d35432a885e9f991fb523e0e83800b724aeb9542ef0e126dde47e00fda9ea4"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/somata/stacked.png",
+    "sha256": "b9aaac2aa391e77763d658ee58974e444208a9c790dbee756ce6ff416a1794dd"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source/somata/symbol.png",
+    "sha256": "18bb6ecb905296e713552bdd5d7320539f421a5ba74b627b44ea0f5bc0ef6c72"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/source-checksums.json",
+    "sha256": "dc91094f89539c942112e2525fa1ef7563aeb2b22ef85839186528a0973c1d45"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/tools/contact-sheets.swift",
+    "sha256": "c2ca6ea7146f2b5be86dfcf6afc277a57cfae31045ac42325c5e5a92754bd7a8"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/tools/prepare.cjs",
+    "sha256": "b24e74617e826abcf0bb2c8b094c91d48d8f1502149807d0dc9eea5585024474"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/tools/review-index.cjs",
+    "sha256": "bf7bdcceca97cc857e7bdf4dbc09aadf3ae067a254169af0375eec072b4dee39"
+  },
+  {
+    "path": "fitness-mobile/assets/branding/tools/validate.cjs",
+    "sha256": "56f1ffabcab82e595c817c6c25b13b0c643cf5b689bb115ff7c7f419321d83ea"
+  }
+]

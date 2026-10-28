@@ -2,10 +2,11 @@ import { useAccountStorage } from "@/services/local/accountStore";
 import { queueNutritionHandoff } from "@/services/queueNutritionHandoff";
 import { ScanItems } from "@/components/somata/ScanItems";
 import { Button, Choice, Heading, IconButton, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { dayKey } from "@/utils/date";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -280,8 +281,12 @@ function normalizeScanFoods(result: ScanMealResult) {
 }
 
 export default function ScanMealV2Screen() {
+  return <SomataTaskAppearance><ScanMealV2ScreenContent /></SomataTaskAppearance>;
+}
+
+function ScanMealV2ScreenContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -626,7 +631,7 @@ export default function ScanMealV2Screen() {
   const showProcessing = state === "analyzing" || isLogging || isReanalyzing;
 
   return (<>
-    <TaskPage title={showResultsSheet ? 'Review your meal.' : 'Frame your food.'} section="Nutrition / live capture" onBack={() => router.back()}
+    <TaskPage title={showResultsSheet ? 'Meal review' : 'Capture a meal'} section="Nutrition / live capture" onBack={() => router.back()}
       action={<IconButton label="How scanning works" icon="information-circle-outline" onPress={() => setShowExplain(true)} />}
       footer={showResultsSheet ? <Button label={isLogging ? 'Logging…' : 'Add to meal'} primary disabled={showProcessing || !hasFoods} onPress={onConfirm} /> :
         <View style={F.wrap}>
@@ -639,9 +644,13 @@ export default function ScanMealV2Screen() {
           </View>
         </View>}>
 
-      <Text style={F.caption}>{quota.unlimited ? 'Unlimited scans enabled' : `${Math.max(0, quota.remaining)} scans left today`}</Text>
+      <Panel accent><View style={{ ...F.row, alignItems: 'flex-start' }}>
+        <View style={{ flex: 1, gap: 8 }}><Text style={F.eyebrow}>{showResultsSheet ? '02 / REVIEW & CONFIRM' : '01 / CAPTURE'}</Text>
+          <Text style={F.heading}>{showResultsSheet ? 'Your review comes first' : 'One photo. Your food record.'}</Text></View>
+        <Ionicons name="scan-outline" size={30} color={D.teal} />
+      </View><Text style={F.caption}>{quota.unlimited ? 'Unlimited scans enabled' : `${Math.max(0, quota.remaining)} scans left today`}</Text><Text style={F.body}>Foods and portions are estimates. Check each item before confirming.</Text></Panel>
 
-      <View style={{ height: 300, borderRadius: 26, overflow: 'hidden', backgroundColor: D.card }}>
+      <View style={{ minHeight: 250, height: cameraPermission?.granted || photoUri ? (showResultsSheet ? 160 : 300) : undefined, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: D.line, backgroundColor: D.card }}>
 
         {photoUri ? <Image source={{ uri: photoUri }} style={{ flex: 1 }} /> : cameraPermission?.granted ? <CameraView ref={cameraRef} facing="back" enableTorch={torch} style={{ flex: 1 }} /> :
           <View style={{ padding: 22, gap: 18 }}>
@@ -661,9 +670,9 @@ export default function ScanMealV2Screen() {
         <Heading title={isLogging ? 'Logging meal' : isReanalyzing ? 'Updating food' : 'Scanning photo'} detail="Please wait for this operation to finish." />
       </Panel>}
 
-      {showResultsSheet && <><View style={F.wrap}>
+      {showResultsSheet && <><Panel><Heading title="Meal destination" /><View style={F.wrap}>
         {(['Breakfast', 'Lunch', 'Dinner', 'Snack'] as MealCategory[]).map(value => <Choice key={value} label={value} selected={category === value} onPress={() => setCategory(value)} />)}
-      </View>
+      </View></Panel>
         {lowConfidenceCount > 0 && <Text style={{ ...F.body, color: D.amber }}>Check the {lowConfidenceCount} low-confidence items before logging.</Text>}
         <ScanItems step={0.5} foods={foods} totals={totals} onEdit={onOpenEdit} onRemove={onRemove} onAdjust={onQuickAdjustPortion} onAdd={() => setShowAdd(true)} /></>}
     </TaskPage>

@@ -3,6 +3,9 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "strict": true,
+    // SDK 58's supported compatibility mode for existing RN/Moti component types.
+    // Migrate these together before React Native removes the legacy type surface.
+    "customConditions": ["react-native", "react-native-legacy-deep-imports"],
     "noEmit": true,
     "paths": {
       "@/*": ["./*"]

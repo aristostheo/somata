@@ -1,3 +1,4 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { useAccountStorage } from '@/services/local/accountStore';
 import { nutritionTargets } from "@/services/nutritionTargets";
 // app/badges/index.tsx
@@ -66,7 +67,7 @@ function categoryLabel(c: string) {
 }
 
 /* ───────────────── screen ───────────────── */
-export default function BadgesScreen() {
+function BadgesScreen() {
   const localStore = useAccountStorage();
   const router = useRouter();
   const { user } = useAuth() as any;
@@ -358,4 +359,8 @@ export default function BadgesScreen() {
         await saveFeaturedLocal(next, localStore);
       }} />}
   </>;
+}
+
+export default function PremiumBadgesScreen() {
+  return <SomataTaskAppearance><BadgesScreen /></SomataTaskAppearance>;
 }

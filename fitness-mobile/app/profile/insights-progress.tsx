@@ -1,6 +1,7 @@
+import { ProfileIntro, ProfileSection, ProfileRecord } from "@/components/profile/ProfileTaskUI";
 import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
 import { Button, Choice, Empty, Heading, IconButton, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { Trend } from "@/components/somata/Trend";
 import { nutritionTargets } from "@/services/nutritionTargets";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,7 +15,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { usePremiumProfileFlowTheme as useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
 import { subscribeActivityBetween, type ActivityEntry } from "@/services/activity";
 import { BADGE_BY_ID, BADGES } from "@/services/badges/registry";
@@ -250,9 +251,9 @@ type Goals = {
   waterMl: number;
 };
 
-export default function InsightsProgressScreen() {
+function InsightsProgressScreenContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const C = useC();
   const router = useRouter();
@@ -519,7 +520,8 @@ export default function InsightsProgressScreen() {
 
   return (<><TaskPage title="Read your rhythm" section="Progress insights" subtitle={rangeTitle} onBack={() => router.back()} action={<IconButton icon="share-outline" label="Open weekly share card" onPress={() => setShareOpen(true)} />}>
 
-    <View style={{ flexDirection: 'row', gap: 8 }}>
+    <ProfileIntro label="Progress / selected period" title="Patterns from your records" detail="Explore summaries, dated records and your earned collection. These are not FitAdapt explanations." />
+    <ProfileSection index="01" title="Period overview"><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {RANGE_OPTIONS.map(r => <Choice key={r} label={`${r} days`} selected={range === r} onPress={() => setRange(r)} />)}
     </View>
     <Text style={F.caption}>Goal comparisons use your current targets, not historical plans. Some histories are stored on this device.</Text>
@@ -531,7 +533,7 @@ export default function InsightsProgressScreen() {
       <Metric label="Workout sessions" value={workoutsTracked ? String(workoutSessions) : '—'} />
     </View>
 
-    <Panel>
+    </ProfileSection><Panel>
       <Heading title="Consistency calendar" detail={`Current ${heat.current} days · Best ${heat.best} days`} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
         {allRows.map(r => <View key={r.date} accessibilityLabel={`${r.date}: ${hasLogged(r) ? `score ${Math.round(dayScore(r, goals) * 100)}%` : 'no logged data'}`} style={{ width: 20, height: 20, borderRadius: 5, backgroundColor: hasLogged(r) ? dayScore(r, goals) >= 0.7 ? D.lime : D.teal : D.raised }} />)}
@@ -542,7 +544,7 @@ export default function InsightsProgressScreen() {
     {(['calories', 'protein', 'weight'] as ChartKind[]).map(kind => {
       const values = kind === 'weight' ? weights.map(w => w.value) : rows.map(r => r[kind]); return <Panel key={kind}>
         <Item title={kind === 'weight' ? 'Weight · device history' : `${kind[0].toUpperCase() + kind.slice(1)} trend`} onPress={() => setOpenRows(v => ({ ...v, [kind]: !v[kind] }))} action={<IconButton icon="expand" label={`Expand ${kind} trend`} onPress={() => setExpanded(kind)} />} />
-        {openRows[kind] && <Trend values={values} unit={kind === 'weight' ? 'lb' : kind === 'protein' ? 'g' : 'kcal'} goal={kind === 'weight' ? undefined : goals[kind]} />}
+        {openRows[kind] && <Trend premiumProfile values={values} unit={kind === 'weight' ? 'lb' : kind === 'protein' ? 'g' : 'kcal'} goal={kind === 'weight' ? undefined : goals[kind]} />}
         {kind === 'weight' && !weights.length && <Button label="Log weight" onPress={() => router.push('/(modals)/body-metrics')} />}
       </Panel>;
     })}
@@ -568,14 +570,14 @@ export default function InsightsProgressScreen() {
     </Panel>
 
     <Heading title="Personal bests" />
-    {pb.length ? pb.map(p => <Item key={p.title} title={p.title} value={p.value} detail={p.date} />) : <Empty title="No records yet" />}
+    {pb.length ? pb.map(p => <ProfileRecord key={p.title} label={p.date}><Heading title={p.title} /><Text style={{ ...F.value, fontSize: 28 }}>{p.value}</Text></ProfileRecord>) : <Empty title="No records yet" />}
 
-    <Heading title="Your collection" detail={`${unlockedBadges.length} earned · ${lockedBadges.length} shown locked`} />
+    <ProfileSection index="03" title="Your collection" detail={`${unlockedBadges.length} earned · ${lockedBadges.length} shown locked`}>
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {[...unlockedBadges.slice(0, 9), ...lockedBadges].map(b => <Choice key={b.id} label={`${unlocks[b.id] ? '✓' : '○'} ${b.title}`} selected={!!unlocks[b.id]} onPress={() => setBadgeId(b.id)} />)}
     </View>
 
-    <Panel accent>
+    </ProfileSection><Panel accent>
       <Heading title="The period in review" />
       {weeklyBullets.map(b => <Text key={b} style={F.body}>{b}</Text>)}
       <Button label="Open share card" onPress={() => setShareOpen(true)} />
@@ -583,7 +585,8 @@ export default function InsightsProgressScreen() {
     <Button primary label="Explore advanced metrics" onPress={() => router.push('/profile/advanced-metrics')} />
 
   </TaskPage><TaskSheet title={`${expanded || ''} trend`} visible={!!expanded} onClose={() => setExpanded(null)}>
-      <Trend values={expandedValues} unit={expanded === 'weight' ? 'lb' : expanded === 'protein' ? 'g' : 'kcal'} goal={expanded === 'protein' ? goals.protein : expanded === 'calories' ? goals.calories : undefined} />
+      <ProfileIntro label="Expanded record" title={`${expanded || "Recorded"} / ${range} days`} detail="Current goals are reference lines, not historical plan targets." />
+      <Trend premiumProfile values={expandedValues} unit={expanded === 'weight' ? 'lb' : expanded === 'protein' ? 'g' : 'kcal'} goal={expanded === 'protein' ? goals.protein : expanded === 'calories' ? goals.calories : undefined} />
     </TaskSheet><BadgePopover id={badgeId} unlocks={unlocks} onClose={() => setBadgeId(null)} /><ShareCardModal visible={shareOpen} onClose={() => setShareOpen(false)} rangeTitle={rangeTitle} bullets={weeklyBullets} calorieHits={calorieHits} proteinHits={proteinHits} totalDays={totalDays} /></>
   );
 }
@@ -619,7 +622,7 @@ function BadgePopover({
   unlocks: UnlockMap;
   onClose: () => void;
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const C = useC();
   if (!id) return null;
@@ -627,7 +630,7 @@ function BadgePopover({
   if (!badge) return null;
   const unlockedAt = unlocks[id]?.unlockedAt;
   return (<TaskSheet title={badge.title} visible onClose={onClose}>
-    <Ionicons name={badge.icon as any} size={44} color={D.lime} />
+    <Panel accent><View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}><Ionicons name={badge.icon as any} size={44} color={D.lime} /><View style={{ flex: 1, gap: 4 }}><Text style={F.eyebrow}>{unlockedAt ? "EARNED / YOUR COLLECTION" : "YOUR COLLECTION / LOCKED"}</Text><Text style={F.heading}>{badge.title}</Text></View></View></Panel>
     <Text style={F.body}>{badge.description}</Text>
     <Text style={F.caption}>{unlockedAt ? `Earned ${new Date(unlockedAt).toLocaleDateString()}` : badge.criteriaText || 'Keep logging to earn this.'}</Text>
   </TaskSheet>
@@ -651,11 +654,12 @@ function ShareCardModal({
   proteinHits: number;
   totalDays: number;
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const C = useC();
   return (<TaskSheet title="Your week, ready to share" visible={visible} onClose={onClose}>
-    <Panel accent>
+    <ProfileIntro label="Somata / weekly record" title="Your week in view" detail={rangeTitle} />
+    <Panel>
       <Heading title="Somata / Weekly progress" detail={rangeTitle} />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         <Metric label="Calorie goal days" value={`${calorieHits}/${totalDays}`} />
@@ -666,4 +670,8 @@ function ShareCardModal({
     <Text style={F.caption}>Screenshot this card to share your week.</Text>
   </TaskSheet>
   );
+}
+
+export default function InsightsProgressScreen() {
+  return <SomataTaskAppearance><InsightsProgressScreenContent /></SomataTaskAppearance>;
 }

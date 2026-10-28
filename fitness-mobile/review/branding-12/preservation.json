@@ -1,0 +1,29 @@
+{
+  "baselineFiles": 2373,
+  "changedExistingFiles": [
+    "fitness-mobile/app/profile/friend-visibility.tsx",
+    "fitness-mobile/components/homeFlows/BadgeCollection.tsx",
+    "fitness-mobile/app/friends/[id]/profile.tsx",
+    "fitness-mobile/components/friends/SharedSummary.tsx",
+    "fitness-mobile/components/friends/premium/FriendsAddSheet.tsx",
+    "fitness-mobile/app/friends.tsx",
+    "fitness-mobile/app/(modals)/settings.tsx",
+    "fitness-mobile/tools/home-preview-runtime.cjs",
+    "fitness-mobile/app/(modals)/badges.tsx",
+    "fitness-mobile/app/paywall.tsx",
+    "fitness-mobile/app/account/index.tsx",
+    "fitness-mobile/app/account/legal.tsx",
+    "fitness-mobile/app/profile/integrations.tsx",
+    "fitness-mobile/app/friends/[id]/progress.tsx",
+    "fitness-mobile/app/friends/[id].tsx",
+    "fitness-mobile/components/somata/ConnectionsDesk.tsx",
+    "fitness-mobile/app/(modals)/theme-editor.tsx",
+    "fitness-mobile/tests/sdk58ThemeNavigation.test.ts",
+    "fitness-mobile/app/friends/[id]/workouts.tsx",
+    "fitness-mobile/app/account/delete.tsx",
+    "fitness-mobile/app/friends/preview.tsx"
+  ],
+  "unexpected": [],
+  "missing": [],
+  "protected": "All remaining baseline files, including source/processed artwork, five tabs, services, rules, config, prior galleries and debug logs, remain byte-identical."
+}

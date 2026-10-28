@@ -1,6 +1,7 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { useAccountStorage } from '@/services/local/accountStore';
 import { Button, Choice, Empty, Field, Heading, IconButton, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
 // app/workouts/session.tsx
 // Sleek "Apple-ish" log workout page (fast during real workouts)
 // - Uses add-exercise.tsx modal for Browse + Presets
@@ -721,8 +722,12 @@ function makeStyles(p: Palette, isDark: boolean) {
 }
 
 export default function WorkoutSessionScreen() {
+  return <SomataTaskAppearance><WorkoutSessionScreenContent /></SomataTaskAppearance>;
+}
+
+function WorkoutSessionScreenContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const params = useLocalSearchParams<any>();
@@ -1648,17 +1653,49 @@ export default function WorkoutSessionScreen() {
     action={<IconButton icon="pencil" label="Rename workout" onPress={() => { setTitleDraft(draft.title || 'Workout'); setTitleOpen(true); }} />}
     footer={<Button primary label={isFinishing ? 'Saving workout…' : 'Finish workout'} disabled={isFinishing} onPress={finishWorkout} icon="checkmark" />}>
 
-    <View style={{ gap: 8 }}>
-      <Text style={F.eyebrow}>SESSION TIME</Text>
-      <Text style={{ ...F.value, fontSize: 52 }}>{elapsedLabel}</Text>
-      <Text accessibilityLiveRegion="polite" style={F.caption}>{savedToast ? 'Draft saved' : 'Your session saves as you go'}</Text>
-    </View>
+    <Panel accent>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <View style={{ gap: 6 }}><Text style={F.eyebrow}>IN SESSION</Text><Text style={{ ...F.value, fontSize: 36 }}>{elapsedLabel}</Text></View>
+        <Text accessibilityLiveRegion="polite" style={F.caption}>{savedToast ? 'Draft saved' : 'Your session saves as you go'}</Text>
+      </View>
+      <WorkoutStats values={[{ label: 'Exercises', value: String(stats.exCount) }, { label: 'Sets', value: String(stats.totalSets) }, { label: `Volume · ${unit}`, value: String(volumeDisplay) }]} />
+    </Panel>
 
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-      <Metric label="Exercises" value={String(stats.exCount)} />
-      <Metric label="Sets" value={String(stats.totalSets)} />
-      <Metric label="Volume" value={`${volumeDisplay} ${unit}`} />
-    </View>
+    <Heading title="On the floor" detail="Your sets, in one place. Completion stays in your control." />
+
+    {!groups.length && <Empty title="Ready when you are" detail="Browse an exercise or add your first set below." />}
+
+    {groups.map((g, groupIndex) => {
+      const open = expanded[g.name] ?? g.items.length <= 2; return <Panel key={g.name}>
+
+        <MovementHeading number={groupIndex + 1} title={g.name} detail={`${g.items.filter(it => (it as SetDraftItem).done).length} completed · ${g.items.length} logged sets`} />
+        <View style={F.wrap}>
+          <Button label={open ? 'Collapse sets' : 'Show sets'} onPress={() => toggleExpanded(g.name, g.items.length <= 2)} />
+          <Button icon="add" label={`Add set to ${g.name}`} onPress={() => addSet(g.name)} />
+        </View>
+
+        {open && <><View style={{ gap: 6 }}>
+          {g.items.map((it, idx) => <View key={String(it.id)} style={{ padding: 14, gap: 12, borderRadius: 16, backgroundColor: D.raised, borderWidth: 1, borderColor: (it as SetDraftItem).done ? D.teal : D.line }}>
+            <Heading title={`Set ${g.items.length - idx}`} detail={`${it.reps} reps · ${Math.round((unit === 'lb' ? kgToLb(Number(it.weightKg || 0)) : Number(it.weightKg || 0)) * 10) / 10} ${unit}`} />
+            {!!(it as SetDraftItem).note && <Text style={F.caption}>{(it as SetDraftItem).note}</Text>}
+            <View style={F.wrap}>
+              <Choice label={(it as SetDraftItem).done ? 'Completed' : 'Mark complete'} selected={!!(it as SetDraftItem).done} onPress={() => toggleDone(String(it.id))} />
+              <Button icon="create-outline" label={`Edit set ${g.items.length - idx}`} onPress={() => openEdit(it)} />
+              <IconButton icon="trash-outline" label="Remove set" onPress={() => RNAlert.alert('Remove set?', "This can't be undone.", [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: () => removeItem(String(it.id)) }])} />
+            </View>
+          </View>)}
+        </View>
+          {!!g.referenceItems.length && <View style={{ gap: 8 }}>
+            <Text style={F.eyebrow}>PREVIOUS SESSION REFERENCE</Text>
+            {g.referenceItems.map((it, i) => <Text key={i} style={F.caption}>{i + 1}. {it.reps} reps · {Math.round((unit === 'lb' ? kgToLb(it.weightKg) : it.weightKg) * 10) / 10} {unit}{it.note ? ` · ${it.note}` : ''}</Text>)}
+          </View>}
+          <View style={{ gap: 8 }}>
+            <Button label="Save exercise preset" onPress={() => savePresetForExercise(g.name)} />
+            <Button danger label="Delete preset" onPress={() => deletePresetByName(g.name)} />
+          </View></>}
+
+      </Panel>;
+    })}
 
     <Panel>
       <Heading title="Add a set" action={<IconButton icon="search" label="Browse exercises" onPress={() => router.push({ pathname: '/(modals)/browse', params: { returnTo: '/workouts/session' } } as any)} />} />
@@ -1670,62 +1707,38 @@ export default function WorkoutSessionScreen() {
         {PRIMARY_MUSCLE_OPTIONS.map(m => <Choice key={m.key} label={m.label} selected={quickPrimaryMuscle === m.key} onPress={() => setQuickPrimaryMuscle(m.key)} />)}
       </ScrollView>
 
-      <View style={{ flexDirection: 'row', gap: 10 }}>
+      <WorkoutFields>
         <Field label="Reps" value={quickReps} onChangeText={setQuickReps} keyboardType="number-pad" />
         <Field label={`Weight · ${unit}`} value={quickWeight} onChangeText={setQuickWeight} keyboardType="decimal-pad" />
-      </View>
+      </WorkoutFields>
 
       <Button primary label="Add set" onPress={quickAdd} />
       <Button label="Clear entry" onPress={() => { setQuickExercise(''); setQuickPrimaryMuscle(''); setQuickReps('10'); setQuickWeight(''); Keyboard.dismiss(); }} />
     </Panel>
 
-    <Heading title="Session ledger" detail="Mark completed sets, tap a set to edit, or repeat an exercise." />
-
-    {!groups.length && <Empty title="Ready when you are" detail="Browse an exercise or add your first set above." />}
-
-    {groups.map(g => {
-      const open = expanded[g.name] ?? g.items.length <= 2; return <Panel key={g.name}>
-
-        <Item title={g.name} detail={`${g.items.filter(it => (it as SetDraftItem).done).length} completed · ${g.items.length} logged sets`} onPress={() => toggleExpanded(g.name, g.items.length <= 2)} action={<IconButton icon="add" label={`Add set to ${g.name}`} onPress={() => addSet(g.name)} />} />
-
-        {open && <><View style={{ gap: 6 }}>
-          {g.items.map((it, idx) => <Item key={String(it.id)} title={`Set ${g.items.length - idx} · ${it.reps} reps`} detail={`${Math.round((unit === 'lb' ? kgToLb(Number(it.weightKg || 0)) : Number(it.weightKg || 0)) * 10) / 10} ${unit}${(it as SetDraftItem).note ? ` · ${(it as SetDraftItem).note}` : ''}`} onPress={() => openEdit(it)} action={<View style={{ flexDirection: 'row', gap: 4 }}>
-            <IconButton icon={(it as SetDraftItem).done ? 'checkmark-circle' : 'ellipse-outline'} label={(it as SetDraftItem).done ? 'Mark set incomplete' : 'Mark set complete'} onPress={() => toggleDone(String(it.id))} />
-            <IconButton icon="trash-outline" label="Remove set" onPress={() => RNAlert.alert('Remove set?', "This can't be undone.", [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: () => removeItem(String(it.id)) }])} />
-          </View>} />)}
-        </View>
-          {!!g.referenceItems.length && <View style={{ gap: 8 }}>
-            <Text style={F.eyebrow}>PREVIOUS SESSION REFERENCE</Text>
-            {g.referenceItems.map((it, i) => <Text key={i} style={F.caption}>{i + 1}. {it.reps} reps · {Math.round((unit === 'lb' ? kgToLb(it.weightKg) : it.weightKg) * 10) / 10} {unit}{it.note ? ` · ${it.note}` : ''}</Text>)}
-          </View>}
-          <View style={{ gap: 8 }}>
-            <Button label="Save exercise preset" onPress={() => savePresetForExercise(g.name)} />
-            <Button label="Delete preset" onPress={() => deletePresetByName(g.name)} />
-          </View></>}
-
-      </Panel>;
-    })}
-
   </TaskPage>
-    <TaskSheet title="Workout title" visible={titleOpen} onClose={() => setTitleOpen(false)}>
+    <TaskSheet title="Name this session" visible={titleOpen} onClose={() => setTitleOpen(false)}>
+      <WorkoutIntro label="Session identity" title="Make it easy to find later." detail="Save updates this session draft. Cancel keeps its current title." icon="create-outline" />
       <Field label="Title" value={titleDraft} onChangeText={setTitleDraft} onSubmitEditing={saveTitle} />
       <Button primary label="Save title" onPress={saveTitle} />
       <Button label="Cancel" onPress={() => setTitleOpen(false)} />
     </TaskSheet>
     <TaskSheet title={edit.exercise || 'Edit set'} visible={edit.open} onClose={() => setEdit(v => ({ ...v, open: false }))}>
+      <WorkoutIntro label="Set editor" title="Record this effort." detail="Adjust the set, then save. Completion is always your choice." />
+      <Panel>
 
-      <View style={{ flexDirection: 'row', gap: 10 }}>
+      <WorkoutFields>
         <Field label="Reps" value={edit.reps} keyboardType="number-pad" onChangeText={reps => setEdit(v => ({ ...v, reps }))} />
         <Field label={`Weight · ${unit}`} value={edit.weight} keyboardType="decimal-pad" onChangeText={weight => setEdit(v => ({ ...v, weight }))} />
-      </View>
+      </WorkoutFields>
 
-      <Heading title="Primary muscle" />
+      </Panel><Panel><Heading title="Primary muscle" />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         <Choice label="Auto" selected={!edit.primaryMuscle} onPress={() => setEdit(v => ({ ...v, primaryMuscle: '' }))} />
         {PRIMARY_MUSCLE_OPTIONS.map(m => <Choice key={m.key} label={m.label} selected={edit.primaryMuscle === m.key} onPress={() => setEdit(v => ({ ...v, primaryMuscle: m.key }))} />)}
       </View>
 
-      <Field label="Note" multiline value={edit.note} onChangeText={note => setEdit(v => ({ ...v, note }))} />
+      </Panel><Field label="Note" multiline value={edit.note} onChangeText={note => setEdit(v => ({ ...v, note }))} />
       <Choice label={edit.done ? 'Completed' : 'Not completed'} selected={edit.done} onPress={() => setEdit(v => ({ ...v, done: !v.done }))} />
       <Button label="Hide keyboard" onPress={() => Keyboard.dismiss()} />
       <Button primary label="Save set" onPress={applyEdit} />

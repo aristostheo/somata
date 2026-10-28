@@ -1,0 +1,17 @@
+{
+  "existingBrandingFilesChecked": 63,
+  "existingFilesUnchanged": true,
+  "existingAssetValidation": "passed",
+  "candidateFilenamesInChecklist": 30,
+  "navigationSizeBackgroundCombinations": 48,
+  "renderedBoards": [
+    "somata-marks.png",
+    "fitadapt-marks.png",
+    "navigation-sizes.png",
+    "launcher-sizes.png"
+  ],
+  "nativeDeviceVerification": "not performed",
+  "androidProposalApplied": false,
+  "matchedSomataColorTreatments": 9,
+  "galleryLocalLinks": "passed"
+}

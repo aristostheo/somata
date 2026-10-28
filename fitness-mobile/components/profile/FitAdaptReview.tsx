@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { FitAdaptSymbol, PoweredByFitAdapt } from "@/components/brand/Brand";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import type { Profile } from "@/services/profile";
@@ -30,7 +30,7 @@ export function FitAdaptReview({ uid, profile, hidden, palette, onStateChange, o
     {pending ? <LinearGradient colors={[withAlpha(palette.accent, palette.dark ? 0.34 : 0.16), palette.card]}
       style={{ borderRadius: 23, padding: 18, borderWidth: 1, borderColor: withAlpha(palette.accent, 0.36), gap: 11 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Ionicons name="sparkles-outline" color={palette.accent} size={19} />
+        <FitAdaptSymbol size="small" />
         <Text accessibilityRole="header" style={{ color: palette.text, fontSize: 19, fontWeight: "700" }}>Pending review</Text>
       </View>
       <Text style={{ color: palette.secondary, fontSize: 13, lineHeight: 19 }}>Suggested from your saved profile and any available account-scoped dated records. Your current targets stay in place until you accept.</Text>
@@ -54,7 +54,7 @@ export function FitAdaptReview({ uid, profile, hidden, palette, onStateChange, o
     {current && !activeSynced ? <Text style={{ color: palette.secondary, fontSize: 13 }}>Accepted plan is syncing with nutrition targets.</Text> : null}
     <View style={{ borderRadius: 19, borderWidth: 1, borderColor: palette.border, backgroundColor: palette.card, padding: 17, gap: 10 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Ionicons name="pulse-outline" color={palette.primary} size={18} />
+        <FitAdaptSymbol size="small" />
         <Text style={{ color: palette.text, fontWeight: "700", fontSize: 16 }}>FitAdapt review</Text>
       </View>
       <Text style={{ color: palette.secondary, fontSize: 13, lineHeight: 19 }}>When you request a review or your saved fitness data changes, Somata uses your age, height, weight, sex used for the energy equation, activity and goal settings, plus account-scoped dated weight, step and nutrition records. Your name, email and photo are excluded. Your current targets stay active until you accept a proposal.</Text>
@@ -69,7 +69,7 @@ export function FitAdaptReview({ uid, profile, hidden, palette, onStateChange, o
         style={{ minHeight: 46, borderRadius: 14, backgroundColor: palette.primaryTint, alignItems: "center", justifyContent: "center", opacity: busy || !uid ? 0.5 : 1 }}>
         <Text style={{ color: palette.primary, fontWeight: "700" }}>{busy ? "Working…" : loadFailed ? "Retry plan status" : pending ? "Request a fresh review" : "Review my plan"}</Text>
       </Pressable>
-      {(hasLiveResult || pending || current) ? <Text style={{ color: palette.secondary, fontSize: 11 }}>Powered by FitAdapt</Text> : null}
+      {(hasLiveResult || pending || current) ? <PoweredByFitAdapt background={palette.dark ? "dark" : "light"} /> : null}
     </View>
   </View>;
 }

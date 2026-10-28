@@ -1,0 +1,1230 @@
+{
+  "native": false,
+  "synthetic": true,
+  "captures": [
+    {
+      "file": "before-dark-P05-journal-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P05-journal-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P05-journal-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-P05-journal-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P05-journal-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P05-journal-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P05-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P05-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O20-photo-source-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O20-photo-source-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O21-photo-review-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O21-photo-review-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O22-photo-privacy-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O22-photo-privacy-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O23-photo-viewer-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O23-photo-viewer-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "before-dark-P01-goals-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P01-goals-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P01-goals-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-P01-goals-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P01-goals-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P01-goals-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P01-accepted-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P01-accepted-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P01-invalid-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P01-invalid-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P01-busy-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P01-busy-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O29-weight-decision-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O29-weight-decision-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P02-advanced-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P02-advanced-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P02-invalid-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P02-invalid-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P03-details-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-details-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "before-dark-P03-confirm-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P03-confirm-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P03-confirm-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-P03-confirm-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-confirm-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-confirm-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P03-busy-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-busy-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P03-invalid-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-invalid-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P03-insufficient-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-insufficient-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P03-failure-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-failure-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P03-pending-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-pending-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P03-accepted-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-accepted-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P03-loading-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-loading-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P03-status-error-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P03-status-error-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "before-dark-P04-records-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P04-records-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P04-records-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-P04-records-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P04-records-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P04-records-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P04-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P04-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P04-invalid-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P04-invalid-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P04-loading-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P04-loading-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O12-weight-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O12-weight-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O12-target-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O12-target-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O12-height-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O12-height-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-light-O12-height-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O12-height-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-O12-age-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O12-age-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O12-bodyfat-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O12-bodyfat-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O12-waist-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O12-waist-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O12-neck-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O12-neck-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O12-hip-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O12-hip-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O13-discard-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O13-discard-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-light-O13-discard-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O13-discard-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-O14-recalculate-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O14-recalculate-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "before-dark-P06-step-0-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P06-step-0-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "before-light-P06-step-0-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P06-step-0-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P06-step-1-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P06-step-1-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P06-step-2-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P06-step-2-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-light-P06-step-2-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P06-step-2-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P06-step-3-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P06-step-3-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P06-step-4-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P06-step-4-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P06-step-5-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P06-step-5-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P06-empty-history-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P06-empty-history-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "before-dark-P07-steps-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P07-steps-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P07-steps-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-P07-steps-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P07-steps-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P07-steps-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P07-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P07-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P07-loading-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P07-loading-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P07-unavailable-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P07-unavailable-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "before-dark-P08-insights-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P08-insights-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P08-insights-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-P08-insights-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P08-insights-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P08-insights-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P08-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P08-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O26-chart-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O26-chart-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O27-badge-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O27-badge-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O28-share-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O28-share-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "before-dark-P09-longterm-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P09-longterm-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P09-longterm-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-P09-longterm-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P09-longterm-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P09-longterm-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P09-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P09-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-O19-records-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-O19-records-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-calories-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-calories-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-calories-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-calories-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-protein-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-protein-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-protein-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-protein-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-macros-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-macros-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-macros-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-macros-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-weight-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-weight-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-light-P10-weight-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-weight-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P10-weight-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-weight-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-performance-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-performance-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-performance-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-performance-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-hydration-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-hydration-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-hydration-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-hydration-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-activity-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-activity-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-activity-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-activity-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "before-dark-P10-projection-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-projection-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P10-projection-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-P10-projection-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-projection-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-projection-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P10-projection-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P10-projection-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P11-trends-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P11-trends-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P11-hidden-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P11-hidden-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "before-dark-P11-history-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P11-history-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P11-history-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "before-light-P11-history-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P11-history-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P11-history-large.png",
+      "width": 320,
+      "bodyWidth": 320,
+      "scrollWidth": 320
+    },
+    {
+      "file": "after-dark-P11-history-error-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P11-history-error-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P11-history-loading-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P11-history-loading-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P11-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P11-empty-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-dark-P11-empty-history-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    },
+    {
+      "file": "after-light-P11-empty-history-normal.png",
+      "width": 390,
+      "bodyWidth": 390,
+      "scrollWidth": 390
+    }
+  ]
+}

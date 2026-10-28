@@ -1,3 +1,5 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { Button, Heading, Panel, TaskPage } from "@/components/somata/TaskUI";
 import { useAuth } from "@/content/AuthContext";
 import { useTheme } from "@/content/ThemeProvider";
@@ -6,7 +8,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
 const withAlpha = (hex: string, a: number) => {
   const h = hex.replace("#", "");
@@ -27,6 +29,10 @@ type SeedExercise = {
 };
 
 export default function QuickCardioModal() {
+  return <SomataTaskAppearance><QuickCardioModalContent /></SomataTaskAppearance>;
+}
+
+function QuickCardioModalContent() {
   const router = useRouter();
   const { user } = useAuth();
   const uid = user?.uid;
@@ -152,10 +158,13 @@ export default function QuickCardioModal() {
     : withAlpha(colors.text, 0.1);
 
   return (<TaskPage title="Quick cardio" section="Start moving" subtitle="Choose a starting point, then review and log your session." onBack={() => router.back()}>
-    {presets.map(p => <Panel key={p.label}>
-      <Heading title={p.label} detail={p.note} />
-      <Button primary label="Start session" disabled={busy} onPress={() => seedAndOpen(p.name, [{ name: p.name, sets: 1, reps: 1, weightKg: 0, note: p.note }])} />
-    </Panel>)}
+    <WorkoutIntro label="Cardio starter" title="Choose your pace." detail="Open a planned session, then record the work you actually do." />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+    {presets.map((p, i) => <View key={p.label} style={{ flexGrow: 1, flexBasis: 230 }}><Panel>
+      <MovementHeading number={i + 1} title={p.label} detail={p.note} />
+      <Button icon={p.icon} label="Start session" disabled={busy} onPress={() => seedAndOpen(p.name, [{ name: p.name, sets: 1, reps: 1, weightKg: 0, note: p.note }])} />
+    </Panel></View>)}
+    </View>
   </TaskPage>);
 }
 

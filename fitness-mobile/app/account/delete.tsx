@@ -1,3 +1,5 @@
+import { DeskIntro, DeskSection, DeskColumns, StatusNote } from "@/components/accountSettings/PremiumUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { useRef, useState } from "react";
 import { Alert, Text } from "react-native";
 import { useRouter } from "expo-router";
@@ -14,8 +16,8 @@ function GoogleVerify({ onVerified, onError, disabled }: { onVerified: () => voi
   const { reauthenticateGoogle } = useGoogleLogin();
   return <Button label="Verify with Google" disabled={disabled} onPress={() => { void reauthenticateGoogle().then(onVerified).catch(onError); }} />;
 }
-export default function DeleteAccountScreen() {
-  const { user } = useAuth(); const router = useRouter(); const { F } = useSomataTheme();
+function DeleteAccountScreen() {
+  const { user } = useAuth(); const router = useRouter(); const { F } = useTaskPresentation();
   const [password, setPassword] = useState(""); const [confirmation, setConfirmation] = useState("");
   const [verifiedUid, setVerifiedUid] = useState(""); const [busy, setBusy] = useState(false);
   const [error, setError] = useState(""); const [deletedUid, setDeletedUid] = useState("");
@@ -47,23 +49,27 @@ export default function DeleteAccountScreen() {
     ]);
   }
   return <TaskPage title="Delete account" section="Account security" onBack={() => { if (!busy) router.back(); }}>
-    <Panel><Heading title="What is removed" detail="Your saved profile, fitness logs, plans, proposal history, account-scoped server records and app-created connection references. Your Firebase sign-in is removed last." />
+    <StatusNote danger icon="warning-outline" title="Permanent account removal" detail="Cleanup cannot be undone once it starts. Review what is removed before verifying your identity." /><DeskSection icon="documents-outline" title="What is removed" detail="Your saved profile, fitness logs, plans, proposal history, account-scoped server records and app-created connection references. Your Firebase sign-in is removed last.">
       <Text style={F.body}>Shared AI caches, safety records or files with uncertain ownership can pause deletion for an operator review. No other account’s fitness records are deleted.</Text>
-      <Text style={F.body}>New account-scoped device records and progress-photo files are cleared on this device after server deletion. Older records without verified account ownership remain isolated and hidden; they cannot safely be assigned or erased as yours. Copies saved by other people and data in Apple Health or other providers are not recalled.</Text>
+    </DeskSection><DeskSection icon="phone-portrait-outline" title="On this device & outside Somata"><Text style={F.body}>New account-scoped device records and progress-photo files are cleared on this device after server deletion. Older records without verified account ownership remain isolated and hidden; they cannot safely be assigned or erased as yours. Copies saved by other people and data in Apple Health or other providers are not recalled.</Text>
       <Text style={F.body}>A minimal account-deletion marker remains to prevent delayed writes. This action does not revoke Apple or Google authorization or remove provider backups and logs.</Text>
-    </Panel>
+    </DeskSection>
     <Button label="Privacy & support" disabled={busy} onPress={() => router.push('/account/legal')} />
     {!!error && <Empty title={deletedUid ? "Device cleanup needs a retry" : "Deletion has not completed"} detail={error} />}
     {deletedUid ? <Button label="Retry device cleanup and sign out" onPress={() => { void finishLocal(deletedUid); }} /> : user ? <>
-      <Heading title="1. Verify your sign-in" detail="Verification must be within five minutes of deletion. Your password is sent only to Firebase Auth." />
+      <DeskSection icon="key-outline" title="1. Verify your sign-in" detail="Verification must be within five minutes of deletion. Your password is sent only to Firebase Auth.">
       {providers.includes("password") && <><Field label="Current password" secureTextEntry value={password} onChangeText={setPassword} autoCapitalize="none" /><Button disabled={busy || !password} label="Verify password" onPress={() => { void verifyPassword(); }} /></>}
       {providers.includes("google.com") && isGoogleSignInConfigured() && <GoogleVerify disabled={busy} onVerified={verified} onError={verifyError} />}
       {providers.includes("apple.com") && isAppleSignInAllowed() && <Button disabled={busy} label="Verify with Apple" onPress={() => { void signInWithApple(true).then(verified).catch(verifyError); }} />}
       {!providers.includes("password") && !(providers.includes("apple.com") && isAppleSignInAllowed()) && !(providers.includes("google.com") && isGoogleSignInConfigured()) && <Empty title="Sign-in verification is unavailable on this build" detail="Use a build configured for your linked sign-in provider. No deletion will run without verification." />}
       {verifiedUid === user.uid && <Text accessibilityLiveRegion="polite" style={F.body}>Sign-in verified.</Text>}
-      <Heading title="2. Confirm permanent deletion" detail="Type DELETE. You will also confirm in a final dialog." />
+      </DeskSection><DeskSection icon="trash-outline" title="2. Confirm permanent deletion" detail="Type DELETE. You will also confirm in a final dialog.">
       <Field label="Type DELETE" value={confirmation} onChangeText={setConfirmation} autoCapitalize="characters" editable={!busy} />
-      <Button danger label={busy ? "Cleaning up account…" : "Delete my account / resume cleanup"} disabled={busy || verifiedUid !== user.uid || confirmation !== "DELETE"} onPress={confirmDelete} />
+      <Button danger label={busy ? "Cleaning up account…" : "Delete my account / resume cleanup"} disabled={busy || verifiedUid !== user.uid || confirmation !== "DELETE"} onPress={confirmDelete} /></DeskSection>
     </> : <Empty title="Sign in to delete your own account" />}
   </TaskPage>;
+}
+
+export default function PremiumDeleteAccountScreen() {
+  return <SomataTaskAppearance><DeleteAccountScreen /></SomataTaskAppearance>;
 }

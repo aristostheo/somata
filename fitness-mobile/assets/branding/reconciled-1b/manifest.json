@@ -1,0 +1,608 @@
+{
+  "checkpoint": "1B",
+  "status": "Masters approved; new lockup compositions, monochrome F3 and Android enlargement candidates await approval.",
+  "masters": {
+    "somata": {
+      "file": "somata/symbol-color.png",
+      "sha256": "3be74bd514c7450fc59adb1fa004ac42940d060103c39acb02b08dbfd6f4afb8"
+    },
+    "fitadapt": {
+      "file": "fitadapt/symbol-color.png",
+      "sha256": "b7e792f6c40810f695f24d5b03eebb5381299ff2605b9c0780f247ead5955a56"
+    }
+  },
+  "approvedSomataMonochromeValidation": "PASS: exact alpha and RGB-mask derivation for Bone and Charcoal variants.",
+  "sourceColorInterpretation": "sRGB assumed as in 1; no source profile invented.",
+  "recipes": [
+    {
+      "brand": "somata",
+      "layout": "horizontal-s3",
+      "width": 2304,
+      "height": 832,
+      "layers": [
+        {
+          "x": 32,
+          "y": 32,
+          "width": 768,
+          "height": 768,
+          "kind": "approved master",
+          "source": "somata/symbol-color.png",
+          "scale": 1
+        },
+        {
+          "x": 832,
+          "y": 201,
+          "width": 1440,
+          "height": 430,
+          "kind": "lettering",
+          "source": "extracted/somata-wordmark-tagline.png",
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "brand": "somata",
+      "layout": "stacked-s3",
+      "width": 1152,
+      "height": 1160,
+      "layers": [
+        {
+          "x": 192,
+          "y": 24,
+          "width": 768,
+          "height": 768,
+          "kind": "approved master",
+          "source": "somata/symbol-color.png",
+          "scale": 1
+        },
+        {
+          "x": 36,
+          "y": 800,
+          "width": 1080,
+          "height": 323,
+          "kind": "lettering",
+          "source": "extracted/somata-wordmark-tagline.png",
+          "scale": 0.75
+        }
+      ]
+    },
+    {
+      "brand": "fitadapt",
+      "layout": "horizontal-f3",
+      "width": 2099,
+      "height": 832,
+      "layers": [
+        {
+          "x": 32,
+          "y": 32,
+          "width": 768,
+          "height": 768,
+          "kind": "approved master",
+          "source": "fitadapt/symbol-color.png",
+          "scale": 1
+        },
+        {
+          "x": 832,
+          "y": 256,
+          "width": 1235,
+          "height": 320,
+          "kind": "lettering",
+          "source": "extracted/fitadapt-wordmark-tagline.png",
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "brand": "fitadapt",
+      "layout": "powered-by-f3-compact",
+      "width": 1050,
+      "height": 416,
+      "layers": [
+        {
+          "x": 16,
+          "y": 16,
+          "width": 384,
+          "height": 384,
+          "kind": "approved master downsample",
+          "source": "fitadapt/symbol-color.png",
+          "scale": 0.5
+        },
+        {
+          "x": 416,
+          "y": 76,
+          "width": 305,
+          "height": 63,
+          "kind": "phrase",
+          "source": "extracted/powered-by.png",
+          "scale": 0.5
+        },
+        {
+          "x": 416,
+          "y": 151,
+          "width": 618,
+          "height": 160,
+          "kind": "lettering",
+          "source": "extracted/fitadapt-wordmark-no-tagline.png",
+          "scale": 0.5
+        }
+      ]
+    }
+  ],
+  "android": {
+    "currentBody": {
+      "x": 297,
+      "y": 307,
+      "width": 430,
+      "height": 410
+    },
+    "proposedBody": {
+      "x": 272,
+      "y": 283,
+      "width": 479,
+      "height": 458
+    },
+    "scale": 0.7798127035830618,
+    "origin": [
+      212.55192182410428,
+      212.55192182410428
+    ],
+    "nominalIncreasePercent": 11.35,
+    "maskStats": {
+      "circle66dp": {
+        "nonzeroPixelsOutside": 393,
+        "alpha128PixelsOutside": 231,
+        "maxAlphaOutside": 253
+      },
+      "circle72dp": {
+        "nonzeroPixelsOutside": 0,
+        "alpha128PixelsOutside": 0,
+        "maxAlphaOutside": 0
+      }
+    }
+  },
+  "outputs": [
+    {
+      "file": "extracted/somata-wordmark-tagline.png",
+      "sources": [
+        "source/somata/horizontal.png"
+      ],
+      "edits": "Exact RGBA rectangular crop x660 y170 w1440 h430. No retyping, thresholding, or color changes.",
+      "role": "Reusable lettering extraction; not a complete logo.",
+      "width": 1440,
+      "height": 430,
+      "body": {
+        "x": 11,
+        "y": 9,
+        "width": 1393,
+        "height": 378
+      },
+      "bytes": 316958,
+      "sha256": "2ea9565949aecd763c24d60710066ec3a8729c7a033f3718f0e08f2c9df89762"
+    },
+    {
+      "file": "extracted/fitadapt-wordmark-tagline.png",
+      "sources": [
+        "source/fitadapt/powered-by.png"
+      ],
+      "edits": "Exact RGBA rectangular crop x765 y280 w1235 h320. Includes upright wordmark, p descender and original tagline.",
+      "role": "Reusable lettering extraction; not a complete logo.",
+      "width": 1235,
+      "height": 320,
+      "body": {
+        "x": 10,
+        "y": 4,
+        "width": 1202,
+        "height": 303
+      },
+      "bytes": 249283,
+      "sha256": "0d63bafd7cde5478947cb73b680b7a403e4a316ec9e850eb6df74872e6791aca"
+    },
+    {
+      "file": "extracted/fitadapt-wordmark-no-tagline.png",
+      "sources": [
+        "source/fitadapt/powered-by.png"
+      ],
+      "edits": "Same crop, omit source region x<1698 AND y>=540 to separate the tagline. The p descender at x1706..1757 remains intact. No new lettering.",
+      "role": "Compact candidate lettering; explicit tagline omission requires approval.",
+      "width": 1235,
+      "height": 320,
+      "body": {
+        "x": 10,
+        "y": 4,
+        "width": 1202,
+        "height": 303
+      },
+      "bytes": 202070,
+      "sha256": "34788d5415a3a53ef5da4dea2252c2f784c9993cde8804e825dc9f332d897e7f"
+    },
+    {
+      "file": "extracted/powered-by.png",
+      "sources": [
+        "source/fitadapt/powered-by.png"
+      ],
+      "edits": "Exact RGBA rectangular crop x765 y150 w610 h125. Retains original Powered by typography.",
+      "role": "Existing phrase extraction.",
+      "width": 610,
+      "height": 125,
+      "body": {
+        "x": 11,
+        "y": 20,
+        "width": 582,
+        "height": 102
+      },
+      "bytes": 49964,
+      "sha256": "7644afbb50b4e21f747764b22c9e50825709df0bd88fbfd2efb3700e56358ad1"
+    },
+    {
+      "file": "somata/horizontal-s3-dark.png",
+      "sources": [
+        "somata/symbol-color.png",
+        "extracted/somata-wordmark-tagline.png"
+      ],
+      "edits": "Place exact approved master pixels at documented coordinates; downsample only where recipe specifies. Lettering is extracted, never retyped. Original lettering colors retained.",
+      "role": "Reconciled lockup candidate; composition/type choices await approval.",
+      "width": 2304,
+      "height": 832,
+      "body": {
+        "x": 109,
+        "y": 123,
+        "width": 2127,
+        "height": 586
+      },
+      "bytes": 520635,
+      "sha256": "5dfd6d54763f5ae278863e0b63850796eb3094029eb4901b7eb89838cabf9dd7"
+    },
+    {
+      "file": "somata/horizontal-s3-light.png",
+      "sources": [
+        "somata/symbol-color.png",
+        "extracted/somata-wordmark-tagline.png"
+      ],
+      "edits": "Place exact approved master pixels at documented coordinates; downsample only where recipe specifies. Lettering is extracted, never retyped. Recolor neutral lettering to #0B0E12; symbol RGB untouched.",
+      "role": "Reconciled lockup candidate; composition/type choices await approval.",
+      "width": 2304,
+      "height": 832,
+      "body": {
+        "x": 109,
+        "y": 123,
+        "width": 2127,
+        "height": 586
+      },
+      "bytes": 407675,
+      "sha256": "c8c1c459a8cc9a42f1fdbe0b253efa8a8e82cd649b4ea01afb20daf3c42404c4"
+    },
+    {
+      "file": "somata/horizontal-s3-mono-bone.png",
+      "sources": [
+        "somata/horizontal-s3-dark.png"
+      ],
+      "edits": "Set RGB #F4F3EE, preserve all alpha. Internal gradient shading intentionally collapses.",
+      "role": "Monochrome reconciled lockup candidate.",
+      "width": 2304,
+      "height": 832,
+      "body": {
+        "x": 109,
+        "y": 123,
+        "width": 2127,
+        "height": 586
+      },
+      "bytes": 159515,
+      "sha256": "606c3880d462991bf93cd5684a084e06b30c1c2eb7c5a6b8695180a6f3f19fb4"
+    },
+    {
+      "file": "somata/horizontal-s3-mono-charcoal.png",
+      "sources": [
+        "somata/horizontal-s3-dark.png"
+      ],
+      "edits": "Set RGB #0B0E12, preserve all alpha. Internal gradient shading intentionally collapses.",
+      "role": "Monochrome reconciled lockup candidate.",
+      "width": 2304,
+      "height": 832,
+      "body": {
+        "x": 109,
+        "y": 123,
+        "width": 2127,
+        "height": 586
+      },
+      "bytes": 159758,
+      "sha256": "dc787e0a54aac18f0fa755da075fefb020e04c09ae3e9aca2ca894c2e0ea02d3"
+    },
+    {
+      "file": "somata/stacked-s3-dark.png",
+      "sources": [
+        "somata/symbol-color.png",
+        "extracted/somata-wordmark-tagline.png"
+      ],
+      "edits": "Place exact approved master pixels at documented coordinates; downsample only where recipe specifies. Lettering is extracted, never retyped. Original lettering colors retained.",
+      "role": "Reconciled lockup candidate; composition/type choices await approval.",
+      "width": 1152,
+      "height": 1160,
+      "body": {
+        "x": 44,
+        "y": 115,
+        "width": 1045,
+        "height": 975
+      },
+      "bytes": 389718,
+      "sha256": "dcbb7549b42cd2f938e1464e71482d7b0372f9e931e2b98125c9816fc21188fc"
+    },
+    {
+      "file": "somata/stacked-s3-light.png",
+      "sources": [
+        "somata/symbol-color.png",
+        "extracted/somata-wordmark-tagline.png"
+      ],
+      "edits": "Place exact approved master pixels at documented coordinates; downsample only where recipe specifies. Lettering is extracted, never retyped. Recolor neutral lettering to #0B0E12; symbol RGB untouched.",
+      "role": "Reconciled lockup candidate; composition/type choices await approval.",
+      "width": 1152,
+      "height": 1160,
+      "body": {
+        "x": 44,
+        "y": 115,
+        "width": 1045,
+        "height": 975
+      },
+      "bytes": 307609,
+      "sha256": "d3b0aec2da545d34eb8448ea00fc68986c70310d10b0b9c3396110d09981fcfb"
+    },
+    {
+      "file": "somata/stacked-s3-mono-bone.png",
+      "sources": [
+        "somata/stacked-s3-dark.png"
+      ],
+      "edits": "Set RGB #F4F3EE, preserve all alpha. Internal gradient shading intentionally collapses.",
+      "role": "Monochrome reconciled lockup candidate.",
+      "width": 1152,
+      "height": 1160,
+      "body": {
+        "x": 44,
+        "y": 115,
+        "width": 1045,
+        "height": 975
+      },
+      "bytes": 110876,
+      "sha256": "6d81dc8dbf1e01c4cc2b8c1a776a82d356673c8915685ffee5ba1b795e18a17f"
+    },
+    {
+      "file": "somata/stacked-s3-mono-charcoal.png",
+      "sources": [
+        "somata/stacked-s3-dark.png"
+      ],
+      "edits": "Set RGB #0B0E12, preserve all alpha. Internal gradient shading intentionally collapses.",
+      "role": "Monochrome reconciled lockup candidate.",
+      "width": 1152,
+      "height": 1160,
+      "body": {
+        "x": 44,
+        "y": 115,
+        "width": 1045,
+        "height": 975
+      },
+      "bytes": 110874,
+      "sha256": "7e8cefc2713f7b699130e09628bd58ba755fb5f637ee4744c88a4ea1552fce0f"
+    },
+    {
+      "file": "fitadapt/horizontal-f3-dark.png",
+      "sources": [
+        "fitadapt/symbol-color.png",
+        "extracted/fitadapt-wordmark-tagline.png"
+      ],
+      "edits": "Place exact approved master pixels at documented coordinates; downsample only where recipe specifies. Lettering is extracted, never retyped. Original lettering colors retained.",
+      "role": "Reconciled lockup candidate; composition/type choices await approval.",
+      "width": 2099,
+      "height": 832,
+      "body": {
+        "x": 128,
+        "y": 190,
+        "width": 1916,
+        "height": 452
+      },
+      "bytes": 398706,
+      "sha256": "83a4be4787a20ce98ef359ccaea281babdfc134c7d51b4a502ce54b0ea90fd76"
+    },
+    {
+      "file": "fitadapt/horizontal-f3-light.png",
+      "sources": [
+        "fitadapt/symbol-color.png",
+        "extracted/fitadapt-wordmark-tagline.png"
+      ],
+      "edits": "Place exact approved master pixels at documented coordinates; downsample only where recipe specifies. Lettering is extracted, never retyped. Recolor neutral lettering to #0B0E12; symbol RGB untouched.",
+      "role": "Reconciled lockup candidate; composition/type choices await approval.",
+      "width": 2099,
+      "height": 832,
+      "body": {
+        "x": 128,
+        "y": 190,
+        "width": 1916,
+        "height": 452
+      },
+      "bytes": 367147,
+      "sha256": "97aa79c292a9dcdc9d5a87a5b4caffd691d2a541d2475c6cf50731aa78e351b9"
+    },
+    {
+      "file": "fitadapt/horizontal-f3-mono-bone.png",
+      "sources": [
+        "fitadapt/horizontal-f3-dark.png"
+      ],
+      "edits": "Set RGB #F4F3EE, preserve all alpha. Internal gradient shading intentionally collapses.",
+      "role": "Monochrome reconciled lockup candidate.",
+      "width": 2099,
+      "height": 832,
+      "body": {
+        "x": 128,
+        "y": 190,
+        "width": 1916,
+        "height": 452
+      },
+      "bytes": 114514,
+      "sha256": "aa43eaa96f8a5db31bf612da890141b8e1f85a25d7a822ab68f3db44ed113b83"
+    },
+    {
+      "file": "fitadapt/horizontal-f3-mono-charcoal.png",
+      "sources": [
+        "fitadapt/horizontal-f3-dark.png"
+      ],
+      "edits": "Set RGB #0B0E12, preserve all alpha. Internal gradient shading intentionally collapses.",
+      "role": "Monochrome reconciled lockup candidate.",
+      "width": 2099,
+      "height": 832,
+      "body": {
+        "x": 128,
+        "y": 190,
+        "width": 1916,
+        "height": 452
+      },
+      "bytes": 114529,
+      "sha256": "c501ac0eef64db4ada58f0603ab5f57b05f52b31b19d41ad875085a089a3aa88"
+    },
+    {
+      "file": "fitadapt/powered-by-f3-compact-dark.png",
+      "sources": [
+        "fitadapt/symbol-color.png",
+        "extracted/powered-by.png",
+        "extracted/fitadapt-wordmark-no-tagline.png"
+      ],
+      "edits": "Place exact approved master pixels at documented coordinates; downsample only where recipe specifies. Lettering is extracted, never retyped. Original lettering colors retained.",
+      "role": "Reconciled lockup candidate; composition/type choices await approval.",
+      "width": 1050,
+      "height": 416,
+      "body": {
+        "x": 64,
+        "y": 86,
+        "width": 958,
+        "height": 235
+      },
+      "bytes": 120729,
+      "sha256": "cac0d46562d164a30e39e9e92d4da90b406eaa24adba30c9f0f6013253f05599"
+    },
+    {
+      "file": "fitadapt/powered-by-f3-compact-light.png",
+      "sources": [
+        "fitadapt/symbol-color.png",
+        "extracted/powered-by.png",
+        "extracted/fitadapt-wordmark-no-tagline.png"
+      ],
+      "edits": "Place exact approved master pixels at documented coordinates; downsample only where recipe specifies. Lettering is extracted, never retyped. Recolor neutral lettering to #0B0E12; symbol RGB untouched.",
+      "role": "Reconciled lockup candidate; composition/type choices await approval.",
+      "width": 1050,
+      "height": 416,
+      "body": {
+        "x": 64,
+        "y": 86,
+        "width": 958,
+        "height": 235
+      },
+      "bytes": 107570,
+      "sha256": "647ba13e08990be626f976e6c21cad5c227e68ee4b0de2555a785b3202386059"
+    },
+    {
+      "file": "fitadapt/powered-by-f3-compact-mono-bone.png",
+      "sources": [
+        "fitadapt/powered-by-f3-compact-dark.png"
+      ],
+      "edits": "Set RGB #F4F3EE, preserve all alpha. Internal gradient shading intentionally collapses.",
+      "role": "Monochrome reconciled lockup candidate.",
+      "width": 1050,
+      "height": 416,
+      "body": {
+        "x": 64,
+        "y": 86,
+        "width": 958,
+        "height": 235
+      },
+      "bytes": 39373,
+      "sha256": "f593390144f26f44e911095a64ee382594abfef86c1fc33925cf405b40ec9603"
+    },
+    {
+      "file": "fitadapt/powered-by-f3-compact-mono-charcoal.png",
+      "sources": [
+        "fitadapt/powered-by-f3-compact-dark.png"
+      ],
+      "edits": "Set RGB #0B0E12, preserve all alpha. Internal gradient shading intentionally collapses.",
+      "role": "Monochrome reconciled lockup candidate.",
+      "width": 1050,
+      "height": 416,
+      "body": {
+        "x": 64,
+        "y": 86,
+        "width": 958,
+        "height": 235
+      },
+      "bytes": 39378,
+      "sha256": "bb190882dbddbb96a5a89a13e6a142669001843707f1c3e32217f199c5319de9"
+    },
+    {
+      "file": "fitadapt/symbol-f3-mono-bone.png",
+      "sources": [
+        "fitadapt/symbol-color.png"
+      ],
+      "edits": "Set RGB #F4F3EE; all 768x768 source alpha values unchanged.",
+      "role": "Standalone F3 monochrome candidate.",
+      "width": 768,
+      "height": 768,
+      "body": {
+        "x": 96,
+        "y": 158,
+        "width": 576,
+        "height": 452
+      },
+      "bytes": 32670,
+      "sha256": "5d5825c8de8b3e019d44bfbd810728e275dda65884bf2005ab45bbae1777a576"
+    },
+    {
+      "file": "fitadapt/symbol-f3-mono-charcoal.png",
+      "sources": [
+        "fitadapt/symbol-color.png"
+      ],
+      "edits": "Set RGB #0B0E12; all 768x768 source alpha values unchanged.",
+      "role": "Standalone F3 monochrome candidate.",
+      "width": 768,
+      "height": 768,
+      "body": {
+        "x": 96,
+        "y": 158,
+        "width": 576,
+        "height": 452
+      },
+      "bytes": 32681,
+      "sha256": "d191feffdb0c0ef73475b203eeac1cfafd6ecaafeaccf1a0ca58540e0cf4b839"
+    },
+    {
+      "file": "app/android-adaptive-foreground-s3-plus11_35.png",
+      "sources": [
+        "somata/symbol-color.png",
+        "app/android-adaptive-foreground.png"
+      ],
+      "edits": "Approved S3 uniformly resampled at scale 0.7798127035830618, origin (212.55192182410428,212.55192182410428); centered body. Target width 478.80499999999995px = old width *1.1135. Full source retained on canvas; no tip removal.",
+      "role": "Separate enlarged Android candidate; masks/motion need approval.",
+      "width": 1024,
+      "height": 1024,
+      "body": {
+        "x": 272,
+        "y": 283,
+        "width": 479,
+        "height": 458
+      },
+      "bytes": 124798,
+      "sha256": "191743a54cd85300f8313950692b7c75dd72cf8c2a87c6c8b4ecc8cae99a4ccb"
+    },
+    {
+      "file": "app/android-monochrome-foreground-s3-plus11_35.png",
+      "sources": [
+        "app/android-adaptive-foreground-s3-plus11_35.png"
+      ],
+      "edits": "Same alpha, RGB white. No shape changes.",
+      "role": "Matching enlarged Android themed mask candidate.",
+      "width": 1024,
+      "height": 1024,
+      "body": {
+        "x": 272,
+        "y": 283,
+        "width": 479,
+        "height": 458
+      },
+      "bytes": 30585,
+      "sha256": "2479b8c44d5ffb73a0b072dce06aa360eb8ec301faf5e02a600712b1941e16cb"
+    }
+  ]
+}

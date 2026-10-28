@@ -1,10 +1,12 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { Button, Heading, Panel, TaskPage } from "@/components/somata/TaskUI";
 import { useAuth } from "@/content/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
 const withAlpha = (hex: string, a: number) => {
   const h = hex.replace("#", "");
@@ -17,6 +19,10 @@ const withAlpha = (hex: string, a: number) => {
 };
 
 export default function QuickMobilityModal() {
+  return <SomataTaskAppearance><QuickMobilityModalContent /></SomataTaskAppearance>;
+}
+
+function QuickMobilityModalContent() {
   const router = useRouter();
   const { user } = useAuth();
   const uid = user?.uid;
@@ -71,12 +77,13 @@ export default function QuickMobilityModal() {
   }
 
   return (<TaskPage title="Quick mobility" section="Start moving" subtitle="Choose a starting point, then review and log your session." onBack={() => router.back()}>
+    <WorkoutIntro label="Mobility starter" title="A little room to move." detail="Both options open the existing three-movement sequence for review and logging." icon="body-outline" />
     <Panel accent>
-      <Heading title="10 minutes" detail="Hip opener flow, thoracic rotation, and hamstring stretch." />
+      <MovementHeading number={1} title="10 minutes" detail="Hip opener flow, thoracic rotation, and hamstring stretch." />
       <Button primary disabled={busy} label="Start 10-minute flow" onPress={() => seedAndOpen('10')} />
     </Panel>
     <Panel>
-      <Heading title="15 minutes" detail="Take a little longer with the same mobility sequence." />
+      <MovementHeading number={2} title="15 minutes" detail="Take a little longer with the same mobility sequence." />
       <Button disabled={busy} label="Start 15-minute flow" onPress={() => seedAndOpen('15')} />
     </Panel>
   </TaskPage>);

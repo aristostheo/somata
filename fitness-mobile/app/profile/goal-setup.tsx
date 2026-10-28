@@ -1,6 +1,7 @@
+import { ProfileIntro, ProfileSection, ProfileStats, ProfileFields } from "@/components/profile/ProfileTaskUI";
 import { useAccountStorage } from '@/services/local/accountStore';
 import { Button, Choice, Field, Heading, Panel, TaskPage, TaskSheet, Toggle as TaskToggle } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -9,7 +10,7 @@ import {
   View
 } from "react-native";
 
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { usePremiumProfileFlowTheme as useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
 import {
   buildGoalInputsFromProfile,
@@ -112,9 +113,9 @@ function numberString(value: number) {
     : "";
 }
 
-export default function GoalSetupScreen() {
+function GoalSetupScreenContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors, isDark } = useProfileFlowTheme();
   const { user } = useAuth();
@@ -363,18 +364,19 @@ export default function GoalSetupScreen() {
       <Heading title="Your accepted plan stays active" detail="Saving these goals does not replace FitAdapt targets. Review and explicitly accept a new proposal on Profile to change your plan." />
     </Panel>}
 
-    <Heading title="01 / Direction" />
+    <ProfileIntro label="Saved-goal workspace" title="Build your starting point" detail="Review the calculation below, then save when your details are right. Accepted FitAdapt targets remain separate." />
+    <ProfileSection index="01" title="Direction" detail="Choose the goal and pace used by the saved-goal calculator.">
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {(['cut', 'maintain', 'lean_bulk', 'bulk'] as const).map(mode => <Choice key={mode} label={labelize(mode)} selected={inputs.mode === mode} onPress={() => updateDraft({ mode })} />)}
     </View>
     {inputs.mode !== 'maintain' && paceOptionsByMode[inputs.mode].map(o => <Choice key={o.value} label={`${labelize(o.value)} · ${o.rate} · ${o.descriptor}`} selected={inputs.pace === o.value} onPress={() => updateDraft({ pace: o.value })} />)}
 
-    <Heading title="02 / Your measurements" detail="These inputs support the calorie calculation. Review them before saving." />
+    </ProfileSection><ProfileSection index="02" title="Your measurements" detail="These inputs support the calorie calculation. Review them before saving.">
 
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+    <ProfileFields>
       <Field label={`Current weight · ${unitMode}`} keyboardType="decimal-pad" value={currentWeightInput} onChangeText={value => { setCurrentWeightInput(value); const parsed = Number(value); if (!Number.isFinite(parsed) || parsed <= 0) return; updateDraft({ currentWeight: unitMode === 'lb' ? lbToKg(parsed) : parsed }); }} />
       {inputs.mode !== 'maintain' && <Field label={`Goal weight · ${unitMode}`} keyboardType="decimal-pad" value={goalWeightInput} onChangeText={value => { setGoalWeightInput(value); const parsed = Number(value); if (!Number.isFinite(parsed) || parsed <= 0) return; updateDraft({ goalWeight: unitMode === 'lb' ? lbToKg(parsed) : parsed }); }} />}
-    </View>
+    </ProfileFields>
     {!!currentWeightError && <Text style={F.caption}>{currentWeightError}</Text>}
     {!!goalWeightError && <Text style={F.caption}>{goalWeightError}</Text>}
 
@@ -386,13 +388,13 @@ export default function GoalSetupScreen() {
     <Field label="Age" value={ageInput} keyboardType="number-pad" onChangeText={value => { setAgeInput(value); const parsed = Number(value); if (!Number.isFinite(parsed)) return; updateDraft({ age: parsed }); }} />
     {!!ageError && <Text style={F.caption}>{ageError}</Text>}
 
-    {unitMode === 'kg' ? <Field label="Height · cm" value={heightMetricInput} keyboardType="decimal-pad" onChangeText={value => { setHeightMetricInput(value); const parsed = Number(value); if (!Number.isFinite(parsed)) return; updateDraft({ heightCm: parsed }); }} /> : <View style={{ flexDirection: 'row', gap: 10 }}>
+    {unitMode === 'kg' ? <Field label="Height · cm" value={heightMetricInput} keyboardType="decimal-pad" onChangeText={value => { setHeightMetricInput(value); const parsed = Number(value); if (!Number.isFinite(parsed)) return; updateDraft({ heightCm: parsed }); }} /> : <ProfileFields>
       <Field label="Height · feet" value={heightFeetInput} keyboardType="number-pad" onChangeText={value => { setHeightFeetInput(value); const ft = Number(value), inches = Number(heightInchesInput || 0); if (!Number.isFinite(ft)) return; updateDraft({ heightCm: feetInchesToCm(ft, Number.isFinite(inches) ? inches : 0) }); }} />
       <Field label="Height · inches" value={heightInchesInput} keyboardType="number-pad" onChangeText={value => { setHeightInchesInput(value); const inches = Number(value), ft = Number(heightFeetInput || 0); if (!Number.isFinite(inches)) return; updateDraft({ heightCm: feetInchesToCm(Number.isFinite(ft) ? ft : 0, inches) }); }} />
-    </View>}
+    </ProfileFields>}
     {!!heightError && <Text style={F.caption}>{heightError}</Text>}
 
-    <Heading title="03 / Your rhythm" />
+    </ProfileSection><ProfileSection index="03" title="Your rhythm">
     <View style={{ gap: 8 }}>
       {[['sedentary', 'Mostly sitting'], ['light', 'Light movement'], ['active', 'Active'], ['very_active', 'Very active'], ['extra_active', 'Extra active']].map(([key, label]) => <Choice key={key} label={label} selected={inputs.activityLevel === key} onPress={() => updateDraft({ activityLevel: key as GoalInputs['activityLevel'] })} />)}
     </View>
@@ -401,7 +403,7 @@ export default function GoalSetupScreen() {
       {Array.from({ length: 8 }, (_, i) => i).map(day => <Choice key={day} label={String(day)} selected={inputs.trainingDaysPerWeek === day} onPress={() => updateDraft({ trainingDaysPerWeek: day })} />)}
     </View>
 
-    <Button label={`Smart options · ${smartSummary}`} onPress={() => setSmartOpen(v => !v)} />
+    </ProfileSection><Button label={`Smart options · ${smartSummary}`} onPress={() => setSmartOpen(v => !v)} />
     {smartOpen && <Panel>
       <Heading title="Protein priority" />
       {(['standard', 'high', 'very_high'] as const).map(proteinPriority => <Choice key={proteinPriority} label={labelize(proteinPriority)} selected={inputs.proteinPriority === proteinPriority} onPress={() => updateDraft({ proteinPriority })} />)}
@@ -414,22 +416,26 @@ export default function GoalSetupScreen() {
 
     <Button label="Advanced calculation settings" onPress={() => router.push('/profile/goal-advanced')} />
 
-    <Panel>
+    <ProfileSection index="04" title="Calculation preview" detail="Calculated from this draft; not an accepted FitAdapt plan.">
       <Heading title="Saved-goal calculation" detail={formulaLabel(inputs.bmrFormula)} />
       <Text style={{ ...F.value, fontSize: 44 }}>{result.dailyCalories.toLocaleString()}<Text style={F.caption}> kcal</Text></Text>
-      <Text style={F.body}>P {result.protein} g · C {result.carbs} g · F {result.fat} g</Text>
+      <ProfileStats values={[{label: "Protein", value: `${result.protein} g`}, {label: "Carbs", value: `${result.carbs} g`}, {label: "Fat", value: `${result.fat} g`}]} />
       <Text style={F.caption}>Calculator confidence · {labelize(result.confidence)}</Text>
       {inputs.cyclingEnabled && result.trainingDayCalories && result.restDayCalories ? <Text style={F.caption}>Training {result.trainingDayCalories} kcal · Rest {result.restDayCalories} kcal</Text> : null}
       {inputs.mode !== 'maintain' && <Text style={F.caption}>Estimated pace {result.weeklyPaceKg >= 0 ? '+' : ''}{result.weeklyPaceKg.toFixed(2)} kg/week · {result.weeksToGoal ? `About ${Math.max(1, Math.round(result.weeksToGoal))} weeks to goal` : 'Timeline unavailable'}</Text>}
       <Text style={F.body}>{result.healthNote}</Text>
       {lastUpdated && <Text style={F.caption}>Last updated {lastUpdated}</Text>}
-    </Panel>
+    </ProfileSection>
 
   </TaskPage><TaskSheet title="Weight has changed" visible={recalcOpen} onClose={() => { setRecalcOpen(false); setConfirmedWeightRecalc(true); }}>
       <Text style={F.body}>Review the updated saved-goal calculation before applying it. An accepted FitAdapt plan remains unchanged.</Text>
-      <Text style={F.caption}>{Number(profile?.weightKg ?? inputs.currentWeight).toFixed(1)} → {inputs.currentWeight.toFixed(1)} kg</Text>
+      <ProfileStats values={[{label: "Previous · kg", value: Number(profile?.weightKg ?? inputs.currentWeight).toFixed(1)}, {label: "Draft · kg", value: inputs.currentWeight.toFixed(1)}]} />
       <Button primary label="Recalculate and save" onPress={() => { setRecalcOpen(false); setConfirmedWeightRecalc(true); handleSave(); }} />
       <Button label="Keep reviewing" onPress={() => { setRecalcOpen(false); setConfirmedWeightRecalc(true); }} />
     </TaskSheet></>
   );
+}
+
+export default function GoalSetupScreen() {
+  return <SomataTaskAppearance><GoalSetupScreenContent /></SomataTaskAppearance>;
 }

@@ -1,4 +1,6 @@
-import { Button, Empty, Field, Heading, Item, TaskPage } from "@/components/somata/TaskUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
+import { Button, Empty, Field, Heading, Item, Panel, TaskPage } from "@/components/somata/TaskUI";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -33,6 +35,10 @@ function createdAtMs(r: any) {
 }
 
 export default function SaveWorkoutAsTemplateModal() {
+  return <SomataTaskAppearance><SaveWorkoutAsTemplateModalContent /></SomataTaskAppearance>;
+}
+
+function SaveWorkoutAsTemplateModalContent() {
   const router = useRouter();
   const { user } = useAuth();
   const uid = user?.uid;
@@ -138,12 +144,14 @@ export default function SaveWorkoutAsTemplateModal() {
 
   return (<TaskPage title="Make it repeatable" section="Save workout template" onBack={close} footer={<Button primary label="Save template" onPress={save} disabled={!canSave || !uid} />}>
 
+    <WorkoutIntro label="From your history" title="Keep the structure. Start fresh." detail="Save a reusable routine from this session without changing the recorded workout." icon="copy-outline" />
+    <Panel><Heading title="Name your routine" />
     <Field label="Template name" value={name} onChangeText={setName} />
-    <Field label="Emoji" value={emoji} onChangeText={setEmoji} />
+    <Field label="Emoji" value={emoji} onChangeText={setEmoji} /></Panel>
     <Heading title={`${mappedItems.length} exercises`} detail="Review the workout that will become your template." />
 
     {!mappedItems.length && <Empty title="No matching workout records" detail="Return to the workout and check that the session is available." />}
-    {mappedItems.map((it, i) => <Item key={i} title={`${i + 1}. ${it.exercise}`} detail={`${it.sets} × ${it.reps} · ${it.weightKg} kg${it.notes ? ` · ${it.notes}` : ''}`} />)}
+    {mappedItems.map((it, i) => <Panel key={i}><MovementHeading number={i + 1} title={it.exercise} detail={`${it.sets} × ${it.reps} · ${it.weightKg} kg${it.notes ? ` · ${it.notes}` : ''}`} /></Panel>)}
   </TaskPage>
   );
 }

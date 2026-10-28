@@ -1,9 +1,10 @@
+import { NutritionContext, NutritionFields, FoodSourceTile } from "@/components/nutrition/NutritionTaskUI";
 import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
 import { Alert } from "react-native";
 import { queueNutritionHandoff } from "@/services/queueNutritionHandoff";
 import { validateMealEstimate } from "@/services/aiValidation";
 import { Button, Choice, Empty, Field as FormField, Heading, IconButton, Item, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { dayKey } from "@/utils/date";
 import Constants from "expo-constants";
 // app/(modals)/add-meal.tsx
@@ -539,7 +540,7 @@ function ConfirmSheetContent({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const scrollRef = React.useRef<ScrollView>(null);
 
@@ -610,29 +611,27 @@ function ConfirmSheetContent({
 
   return (<View style={{ gap: 21 }}>
 
-    <View style={{ gap: 6 }}>
-      <Text style={F.eyebrow}>PORTION & NUTRITION</Text>
-      <Text style={F.heading}>{edits.name || 'Food'}</Text>
-    </View>
+    <NutritionContext label="Ready for your review" title={edits.name || "Food"} detail="Check the portion and label values. Add to log is your final confirmation." icon="checkmark-circle-outline" />
 
-    <FormField label="Food name" value={edits.name} onChangeText={text => setEdits((prev: any) => ({ ...prev, name: text }))} />
+    <Panel><Heading title="Food & portion" /><FormField label="Food name" value={edits.name} onChangeText={text => setEdits((prev: any) => ({ ...prev, name: text }))} />
 
-    <View style={F.wrap}>
+    <NutritionFields>
       <FormField ref={qtyRef} label="Quantity" value={edits.qty} keyboardType="decimal-pad"
         onChangeText={text => setEdits((prev: any) => scaleQtyMacros(prev, numOnly(text)))} />
 
       <FormField label="Unit" value={edits.unit} onChangeText={text => setEdits((prev: any) => ({ ...prev, unit: text }))} />
-    </View>
+    </NutritionFields>
 
-    <Text style={F.caption}>Quantity changes scale the original nutrition values. You can edit totals below.</Text>
+    <Text style={F.caption}>Quantity changes scale the original nutrition values. You can edit totals below.</Text></Panel>
 
-    <View style={F.wrap}>
+    <Panel><Heading title="Nutrition for this portion" /><View style={F.wrap}>
       {[['calories', 'Calories'], ['protein', 'Protein (g)'], ['carbs', 'Carbs (g)'], ['fat', 'Fat (g)'], ['sugar', 'Sugar (g)'], ['fiber', 'Fiber (g)']].map(([key, label]) =>
         <View key={key} style={{ flex: 1, minWidth: 130 }}>
           <FormField label={label} value={edits[key]} keyboardType="decimal-pad" onChangeText={text => setEdits((prev: any) => ({ ...prev, [key]: numOnly(text) }))} />
         </View>)}
     </View>
 
+    </Panel>
     <Button label={advancedOpen ? 'Hide additional nutrients' : 'Additional nutrients & food details'} icon={advancedOpen ? 'remove' : 'add'} onPress={() => { Haptics.selectionAsync().catch(() => { }); setAdvancedOpen(value => !value); }} />
 
     {advancedOpen && <View style={{ gap: 13 }}>
@@ -650,8 +649,12 @@ function ConfirmSheetContent({
 
 /* ───────────── Main ───────────── */
 export default function AddMealModal() {
+  return <SomataTaskAppearance><AddMealModalContent /></SomataTaskAppearance>;
+}
+
+function AddMealModalContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors, isDark } = useTheme() as any;
   const { user } = useAuth();
@@ -1329,29 +1332,28 @@ export default function AddMealModal() {
   }
 
   return (<>
-    <TaskPage title="Build your food record." section={`Nutrition / ${formatSheetDate(date)}`} onBack={() => router.back()}
+    <TaskPage title="Add food" section={`Nutrition / ${formatSheetDate(date)}`} onBack={() => router.back()}
       action={<IconButton label="Scan a meal photo" icon="camera-outline" onPress={openPhotoScan} />}>
 
+      <Panel accent>
+        <Heading title={formatSheetDate(date)} detail="Choose the meal for this food record." />
+        <View style={F.wrap}>
+          {(['breakfast', 'lunch', 'dinner', 'snacks'] as MealKey[]).map(value => <Choice key={value} label={value[0].toUpperCase() + value.slice(1)} selected={meal === value} onPress={() => setMeal(value)} />)}
+        </View>
+      </Panel>
+      <Heading title="Choose your starting point" detail="Find a food, then check its portion before adding it." />
       <View style={F.wrap}>
-        {(['breakfast', 'lunch', 'dinner', 'snacks'] as MealKey[]).map(value => <Choice key={value} label={value[0].toUpperCase() + value.slice(1)} selected={meal === value} onPress={() => setMeal(value)} />)}
+        {([
+          ['search', 'Search', 'search-outline'], ['recents', 'Recent', 'time-outline'], ['favorites', 'Frequent', 'repeat-outline'],
+          ['describe', 'Describe', 'chatbubble-outline'], ['barcode', 'Barcode', 'barcode-outline'], ['manual', 'Manual', 'create-outline']
+        ] as const).map(([value, label, icon]) => <FoodSourceTile key={value} label={label} icon={icon} selected={tab === value} onPress={() => setTab(value)} />)}
       </View>
-
-      <View style={{ gap: 12 }}>
-        <Heading title="How would you like to log?" />
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7 }}>
-          {([
-            ['search', 'Search'], ['recents', 'Recent'], ['favorites', 'Frequent'], ['describe', 'Describe'], ['barcode', 'Barcode'], ['manual', 'Manual']
-          ] as [TabKey, string][]).map(([value, label]) => <Choice key={value} label={label} selected={tab === value} onPress={() => setTab(value)} />)}
-        </ScrollView>
-      </View>
-
       {tab === 'recents' && <>
         <Heading title="Your frequent foods" detail="Quick picks from your own food record" />
         {topFoodsLoading ? <Empty title="Loading frequent foods…" /> : !quickTiles.length ? <Text style={F.body}>Foods you log regularly will appear here.</Text> :
           <View style={F.wrap}>
             {quickTiles.slice(0, 6).map((food, i) => <Pressable key={i} accessibilityRole="button" onPress={() => pick(food, 'recent')}
-              style={{ flex: 1, minWidth: 140, padding: 18, borderRadius: 20, backgroundColor: '#1D3B31', gap: 8 }}>
+              style={{ flex: 1, minWidth: 140, padding: 18, borderRadius: 20, backgroundColor: D.low, borderWidth: 1, borderColor: D.line, gap: 8 }}>
               <Text style={F.heading}>{food.name}</Text>
               <Text style={{ ...F.body, color: D.lime }}>{Math.round(food.calories)} kcal</Text>
               <Text style={F.caption}>Review portion →</Text>
@@ -1364,7 +1366,7 @@ export default function AddMealModal() {
         {myRecents.length > recentVisible && <Button label="Show more recent foods" onPress={() => setRecentVisible(v => Math.min(v + 15, 50, myRecents.length))} />}
       </>}
 
-      {tab === 'search' && <><FormField label="Search foods" value={q} onChangeText={setQ} placeholder="Food, brand or a recent date" autoFocus />
+      {tab === 'search' && <><Panel><Heading title="Food search" detail="Database and your saved records" /><FormField label="Search foods" value={q} onChangeText={setQ} placeholder="Food, brand or a recent date" autoFocus /></Panel>
         {searchLoading ? <Empty title="Searching foods…" /> : !q.trim() ? <Empty title="Find a food" detail="Search by name, such as chicken, rice or a brand." /> : !results.length ? <Empty title="No matching foods" detail="Try a simpler search term." /> :
           <View>
             {results.slice(0, 20).map((food: any, i: number) => <Item key={`${food.id || food.name}-${i}`} title={titleCaseFoodName(String(food.name || 'Food'))}
@@ -1400,18 +1402,18 @@ export default function AddMealModal() {
         <Button label={candidatePending ? 'Looking up…' : 'Find product'} primary disabled={candidatePending || manualBarcode.trim().length < 6} onPress={() => { const code = manualBarcode.trim(); if (!code) return; Keyboard.dismiss(); setScannedBarcode(code); void resolveAndMaybePick(code); }} />
       </>}
 
-      {tab === 'manual' && <><Heading title="Enter the label values" detail="These values apply to the quantity you enter." />
-        <FormField label="Food name" value={name} onChangeText={setName} /><View style={F.wrap}>
+      {tab === 'manual' && <><Panel accent><Heading title="Enter the label values" detail="These values apply to the quantity you enter." />
+        <FormField label="Food name" value={name} onChangeText={setName} /><NutritionFields>
 
           <FormField label="Quantity" value={qty} onChangeText={t => setQty(t.replace(/[^0-9.]/g, ''))} keyboardType="decimal-pad" />
 
           <FormField label="Unit" value={unit} onChangeText={setUnit} />
-        </View>
-        <Panel>
+        </NutritionFields></Panel>
+        <Panel><Heading title="Nutrition on the label" /><NutritionFields>
           {[{ label: 'Calories', value: calories, set: setCalories }, { label: 'Protein (g)', value: protein, set: setProtein },
           { label: 'Carbs (g)', value: carbs, set: setCarbs }, { label: 'Fat (g)', value: fat, set: setFat }].map(field => <FormField key={field.label} label={field.label} value={field.value}
             onChangeText={t => field.set(t.replace(/[^0-9.]/g, ''))} keyboardType="decimal-pad" />)}
-        </Panel>
+        </NutritionFields></Panel>
         <Button label="Review & confirm" primary disabled={!name.trim()} onPress={commitManual} /></>}
 
       <Button label="Scan a meal photo" icon="camera-outline" onPress={openPhotoScan} />
@@ -1422,7 +1424,7 @@ export default function AddMealModal() {
     </TaskSheet>
     <TaskSheet title="Choose a product match" visible={pickOpen} onClose={() => setPickOpen(false)}>
 
-      <Text style={F.body}>Choose the matching product. You can edit the portion and nutrition next.</Text>
+      <NutritionContext label="Barcode results" title="Match the package" detail="Choose the matching product. You can edit the portion and nutrition next." icon="barcode-outline" />
 
       {candidates.map((candidate, i) => <Item key={i} title={candidate.name} detail={`${candidate.brand ? `${candidate.brand} · ` : ''}${candidate.unit}`}
         value={`${Math.round(Number(candidate.nutrients.calories || 0))} kcal`} onPress={async () => { setPickOpen(false); if (Platform.OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { }); await startEditFromBarcodeResolved(candidate); }} />)}

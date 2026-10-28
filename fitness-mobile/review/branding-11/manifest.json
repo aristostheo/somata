@@ -1,0 +1,3084 @@
+{
+  "synthetic": true,
+  "native": false,
+  "entries": [
+    {
+      "name": "P05-journal",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-dark-P05-journal-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P05-journal",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-dark-P05-journal-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P05-journal",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-dark-P05-journal-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P05-journal",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-light-P05-journal-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P05-journal",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-light-P05-journal-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P05-journal",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-light-P05-journal-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P05-empty",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-dark-P05-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P05-empty",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-dark-P05-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P05-empty",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-light-P05-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P05-empty",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-light-P05-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O20-photo-source",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-dark-O20-photo-source-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O20-photo-source",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-dark-O20-photo-source-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O20-photo-source",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-light-O20-photo-source-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O20-photo-source",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-light-O20-photo-source-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O21-photo-review",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-dark-O21-photo-review-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O21-photo-review",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-dark-O21-photo-review-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O21-photo-review",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-light-O21-photo-review-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O21-photo-review",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-light-O21-photo-review-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O22-photo-privacy",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-dark-O22-photo-privacy-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O22-photo-privacy",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-dark-O22-photo-privacy-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O22-photo-privacy",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-light-O22-photo-privacy-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O22-photo-privacy",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-light-O22-photo-privacy-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O23-photo-viewer",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-dark-O23-photo-viewer-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O23-photo-viewer",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-dark-O23-photo-viewer-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O23-photo-viewer",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "before-light-O23-photo-viewer-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O23-photo-viewer",
+      "route": "app/(modals)/progress-photos.tsx",
+      "file": "after-light-O23-photo-viewer-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P01-goals",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "before-dark-P01-goals-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P01-goals",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-dark-P01-goals-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P01-goals",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-dark-P01-goals-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P01-goals",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "before-light-P01-goals-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P01-goals",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-light-P01-goals-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P01-goals",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-light-P01-goals-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P01-accepted",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "before-dark-P01-accepted-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P01-accepted",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-dark-P01-accepted-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P01-accepted",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "before-light-P01-accepted-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P01-accepted",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-light-P01-accepted-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P01-invalid",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "before-dark-P01-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P01-invalid",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-dark-P01-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P01-invalid",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "before-light-P01-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P01-invalid",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-light-P01-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P01-busy",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "before-dark-P01-busy-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P01-busy",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-dark-P01-busy-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P01-busy",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "before-light-P01-busy-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P01-busy",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-light-P01-busy-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O29-weight-decision",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "before-dark-O29-weight-decision-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O29-weight-decision",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-dark-O29-weight-decision-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O29-weight-decision",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "before-light-O29-weight-decision-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O29-weight-decision",
+      "route": "app/profile/goal-setup.tsx",
+      "file": "after-light-O29-weight-decision-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P02-advanced",
+      "route": "app/profile/goal-advanced.tsx",
+      "file": "before-dark-P02-advanced-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P02-advanced",
+      "route": "app/profile/goal-advanced.tsx",
+      "file": "after-dark-P02-advanced-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P02-advanced",
+      "route": "app/profile/goal-advanced.tsx",
+      "file": "before-light-P02-advanced-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P02-advanced",
+      "route": "app/profile/goal-advanced.tsx",
+      "file": "after-light-P02-advanced-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P02-invalid",
+      "route": "app/profile/goal-advanced.tsx",
+      "file": "before-dark-P02-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P02-invalid",
+      "route": "app/profile/goal-advanced.tsx",
+      "file": "after-dark-P02-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P02-invalid",
+      "route": "app/profile/goal-advanced.tsx",
+      "file": "before-light-P02-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P02-invalid",
+      "route": "app/profile/goal-advanced.tsx",
+      "file": "after-light-P02-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-details",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-dark-P03-details-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-details",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-details-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-details",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-light-P03-details-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-details",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-details-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-confirm",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-dark-P03-confirm-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-confirm",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-confirm-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-confirm",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-confirm-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P03-confirm",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-light-P03-confirm-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-confirm",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-confirm-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-confirm",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-confirm-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P03-busy",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-dark-P03-busy-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-busy",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-busy-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-busy",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-light-P03-busy-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-busy",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-busy-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-invalid",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-dark-P03-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-invalid",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-invalid",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-light-P03-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-invalid",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-insufficient",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-dark-P03-insufficient-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-insufficient",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-insufficient-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-insufficient",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-light-P03-insufficient-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-insufficient",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-insufficient-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-failure",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-dark-P03-failure-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-failure",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-failure-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-failure",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-light-P03-failure-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-failure",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-failure-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-pending",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-dark-P03-pending-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-pending",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-pending-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-pending",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-light-P03-pending-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-pending",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-pending-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-accepted",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-dark-P03-accepted-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-accepted",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-accepted-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-accepted",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-light-P03-accepted-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-accepted",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-accepted-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-loading",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-dark-P03-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-loading",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-loading",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-light-P03-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-loading",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-status-error",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-dark-P03-status-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-status-error",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-dark-P03-status-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P03-status-error",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "before-light-P03-status-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P03-status-error",
+      "route": "app/fitadapt-setup.tsx",
+      "file": "after-light-P03-status-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P04-records",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-P04-records-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P04-records",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-P04-records-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P04-records",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-P04-records-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P04-records",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-P04-records-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P04-records",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-P04-records-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P04-records",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-P04-records-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P04-empty",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-P04-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P04-empty",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-P04-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P04-empty",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-P04-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P04-empty",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-P04-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P04-invalid",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-P04-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P04-invalid",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-P04-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P04-invalid",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-P04-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P04-invalid",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-P04-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P04-loading",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-P04-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P04-loading",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-P04-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P04-loading",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-P04-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P04-loading",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-P04-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-weight",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-O12-weight-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-weight",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O12-weight-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-weight",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-O12-weight-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-weight",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O12-weight-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-target",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-O12-target-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-target",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O12-target-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-target",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-O12-target-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-target",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O12-target-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-height",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-O12-height-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-height",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O12-height-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-height",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O12-height-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O12-height",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-O12-height-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-height",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O12-height-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-height",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O12-height-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O12-age",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-O12-age-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-age",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O12-age-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-age",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-O12-age-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-age",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O12-age-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-bodyfat",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-O12-bodyfat-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-bodyfat",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O12-bodyfat-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-bodyfat",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-O12-bodyfat-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-bodyfat",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O12-bodyfat-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-waist",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-O12-waist-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-waist",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O12-waist-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-waist",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-O12-waist-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-waist",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O12-waist-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-neck",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-O12-neck-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-neck",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O12-neck-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-neck",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-O12-neck-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-neck",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O12-neck-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-hip",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-O12-hip-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-hip",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O12-hip-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O12-hip",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-O12-hip-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O12-hip",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O12-hip-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O13-discard",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-O13-discard-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O13-discard",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O13-discard-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O13-discard",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O13-discard-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O13-discard",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-O13-discard-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O13-discard",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O13-discard-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O13-discard",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O13-discard-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O14-recalculate",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-dark-O14-recalculate-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O14-recalculate",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-dark-O14-recalculate-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O14-recalculate",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "before-light-O14-recalculate-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O14-recalculate",
+      "route": "app/(modals)/body-metrics.tsx",
+      "file": "after-light-O14-recalculate-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-0",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-dark-P06-step-0-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-0",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-dark-P06-step-0-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-0",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-light-P06-step-0-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-0",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-light-P06-step-0-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-1",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-dark-P06-step-1-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-1",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-dark-P06-step-1-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-1",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-light-P06-step-1-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-1",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-light-P06-step-1-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-2",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-dark-P06-step-2-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-2",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-dark-P06-step-2-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-2",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-dark-P06-step-2-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-2",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-light-P06-step-2-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-2",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-light-P06-step-2-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-2",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-light-P06-step-2-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-3",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-dark-P06-step-3-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-3",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-dark-P06-step-3-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-3",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-light-P06-step-3-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-3",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-light-P06-step-3-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-4",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-dark-P06-step-4-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-4",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-dark-P06-step-4-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-4",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-light-P06-step-4-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-4",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-light-P06-step-4-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-5",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-dark-P06-step-5-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-5",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-dark-P06-step-5-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-step-5",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-light-P06-step-5-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-step-5",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-light-P06-step-5-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-empty-history",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-dark-P06-empty-history-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-empty-history",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-dark-P06-empty-history-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P06-empty-history",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "before-light-P06-empty-history-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P06-empty-history",
+      "route": "app/(modals)/weekly-checkin.tsx",
+      "file": "after-light-P06-empty-history-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P07-steps",
+      "route": "app/profile/steps-history.tsx",
+      "file": "before-dark-P07-steps-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P07-steps",
+      "route": "app/profile/steps-history.tsx",
+      "file": "after-dark-P07-steps-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P07-steps",
+      "route": "app/profile/steps-history.tsx",
+      "file": "after-dark-P07-steps-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P07-steps",
+      "route": "app/profile/steps-history.tsx",
+      "file": "before-light-P07-steps-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P07-steps",
+      "route": "app/profile/steps-history.tsx",
+      "file": "after-light-P07-steps-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P07-steps",
+      "route": "app/profile/steps-history.tsx",
+      "file": "after-light-P07-steps-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P07-empty",
+      "route": "app/profile/steps-history.tsx",
+      "file": "before-dark-P07-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P07-empty",
+      "route": "app/profile/steps-history.tsx",
+      "file": "after-dark-P07-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P07-empty",
+      "route": "app/profile/steps-history.tsx",
+      "file": "before-light-P07-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P07-empty",
+      "route": "app/profile/steps-history.tsx",
+      "file": "after-light-P07-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P07-loading",
+      "route": "app/profile/steps-history.tsx",
+      "file": "before-dark-P07-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P07-loading",
+      "route": "app/profile/steps-history.tsx",
+      "file": "after-dark-P07-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P07-loading",
+      "route": "app/profile/steps-history.tsx",
+      "file": "before-light-P07-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P07-loading",
+      "route": "app/profile/steps-history.tsx",
+      "file": "after-light-P07-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P07-unavailable",
+      "route": "app/profile/steps-history.tsx",
+      "file": "before-dark-P07-unavailable-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P07-unavailable",
+      "route": "app/profile/steps-history.tsx",
+      "file": "after-dark-P07-unavailable-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P07-unavailable",
+      "route": "app/profile/steps-history.tsx",
+      "file": "before-light-P07-unavailable-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P07-unavailable",
+      "route": "app/profile/steps-history.tsx",
+      "file": "after-light-P07-unavailable-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P08-insights",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "before-dark-P08-insights-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P08-insights",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-dark-P08-insights-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P08-insights",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-dark-P08-insights-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P08-insights",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "before-light-P08-insights-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P08-insights",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-light-P08-insights-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P08-insights",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-light-P08-insights-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P08-empty",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "before-dark-P08-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P08-empty",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-dark-P08-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P08-empty",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "before-light-P08-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P08-empty",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-light-P08-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O26-chart",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "before-dark-O26-chart-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O26-chart",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-dark-O26-chart-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O26-chart",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "before-light-O26-chart-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O26-chart",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-light-O26-chart-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O27-badge",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "before-dark-O27-badge-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O27-badge",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-dark-O27-badge-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O27-badge",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "before-light-O27-badge-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O27-badge",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-light-O27-badge-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O28-share",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "before-dark-O28-share-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O28-share",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-dark-O28-share-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O28-share",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "before-light-O28-share-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O28-share",
+      "route": "app/profile/insights-progress.tsx",
+      "file": "after-light-O28-share-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P09-longterm",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "before-dark-P09-longterm-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P09-longterm",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "after-dark-P09-longterm-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P09-longterm",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "after-dark-P09-longterm-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P09-longterm",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "before-light-P09-longterm-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P09-longterm",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "after-light-P09-longterm-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P09-longterm",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "after-light-P09-longterm-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P09-empty",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "before-dark-P09-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P09-empty",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "after-dark-P09-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P09-empty",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "before-light-P09-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P09-empty",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "after-light-P09-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O19-records",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "before-dark-O19-records-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O19-records",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "after-dark-O19-records-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O19-records",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "before-light-O19-records-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O19-records",
+      "route": "app/(modals)/long-term-progress.tsx",
+      "file": "after-light-O19-records-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-calories",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-calories-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-calories",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-calories-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-calories",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-calories-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-calories",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-calories-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-calories-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-calories-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-calories-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-calories-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-calories-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-calories-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-calories-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-calories-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-protein",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-protein-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-protein",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-protein-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-protein",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-protein-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-protein",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-protein-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-protein-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-protein-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-protein-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-protein-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-protein-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-protein-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-protein-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-protein-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-macros",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-macros-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-macros",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-macros-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-macros",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-macros-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-macros",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-macros-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-macros-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-macros-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-macros-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-macros-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-macros-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-macros-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-macros-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-macros-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-weight",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-weight-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-weight",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-weight-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-weight",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-weight-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P10-weight",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-weight-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-weight",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-weight-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-weight",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-weight-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P10-weight-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-weight-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-weight-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-weight-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-weight-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-weight-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-weight-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-weight-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-performance",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-performance-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-performance",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-performance-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-performance",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-performance-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-performance",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-performance-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-performance-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-performance-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-performance-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-performance-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-performance-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-performance-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-performance-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-performance-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-hydration",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-hydration-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-hydration",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-hydration-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-hydration",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-hydration-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-hydration",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-hydration-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-hydration-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-hydration-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-hydration-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-hydration-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-hydration-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-hydration-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-hydration-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-hydration-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-activity",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-activity-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-activity",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-activity-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-activity",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-activity-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-activity",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-activity-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-activity-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-activity-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-activity-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-activity-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-activity-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-activity-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-activity-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-activity-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-projection",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-projection-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-projection",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-projection-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-projection",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-projection-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P10-projection",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-projection-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-projection",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-projection-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-projection",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-projection-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P10-projection-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-dark-P10-projection-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-projection-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-dark-P10-projection-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P10-projection-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "before-light-P10-projection-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P10-projection-empty",
+      "route": "app/profile/advanced-metrics.tsx",
+      "file": "after-light-P10-projection-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-trends",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-dark-P11-trends-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-trends",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-dark-P11-trends-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-trends",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-light-P11-trends-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-trends",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-light-P11-trends-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-hidden",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-dark-P11-hidden-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-hidden",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-dark-P11-hidden-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-hidden",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-light-P11-hidden-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-hidden",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-light-P11-hidden-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-history",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-dark-P11-history-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-history",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-dark-P11-history-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-history",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-dark-P11-history-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P11-history",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-light-P11-history-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-history",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-light-P11-history-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-history",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-light-P11-history-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "P11-history-error",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-dark-P11-history-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-history-error",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-dark-P11-history-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-history-error",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-light-P11-history-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-history-error",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-light-P11-history-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-history-loading",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-dark-P11-history-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-history-loading",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-dark-P11-history-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-history-loading",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-light-P11-history-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-history-loading",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-light-P11-history-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-empty",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-dark-P11-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-empty",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-dark-P11-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-empty",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-light-P11-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-empty",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-light-P11-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-empty-history",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-dark-P11-empty-history-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-empty-history",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-dark-P11-empty-history-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "P11-empty-history",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "before-light-P11-empty-history-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "P11-empty-history",
+      "route": "app/profile/fitadapt-insights.tsx",
+      "file": "after-light-P11-empty-history-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    }
+  ]
+}

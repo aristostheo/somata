@@ -15,19 +15,21 @@ const config: ExpoConfig = {
   version: "1.0.0",
   orientation: "portrait",
   platforms: ["ios", "android"],
-  icon: "./assets/images/icon.png",
+  icon: "./assets/branding/app/launcher-dark-1024.png",
   userInterfaceStyle: "automatic",
 
   plugins: [
     "expo-dev-client",
+    "@react-native-community/datetimepicker",
+    "expo-status-bar",
     ["expo-build-properties", { ios: { deploymentTarget: "16.4" } }],
     "expo-font",
     [
       "expo-splash-screen",
       {
-        image: "./assets/images/icon.png",
+        image: "./assets/branding/app/splash-symbol.png",
         resizeMode: "contain",
-        backgroundColor: "#0a0812",
+        backgroundColor: "#0B0E12",
       },
     ],
     "expo-apple-authentication",
@@ -56,7 +58,7 @@ const config: ExpoConfig = {
   ],
 
   ios: {
-    icon: "./assets/images/icon.png",
+    icon: "./assets/branding/app/launcher-dark-1024.png",
     bundleIdentifier: "com.aristos.fitnessmobile",
     usesAppleSignIn: true,
     infoPlist: {
@@ -75,10 +77,11 @@ const config: ExpoConfig = {
   },
 
   android: {
-    icon: "./assets/images/icon.png",
+    icon: "./assets/branding/app/launcher-dark-1024.png",
     adaptiveIcon: {
-      foregroundImage: "./assets/images/icon.png",
-      backgroundColor: "#0a0812",
+      foregroundImage: "./assets/branding/app/android-adaptive-foreground.png",
+      monochromeImage: "./assets/branding/app/android-monochrome-foreground.png",
+      backgroundColor: "#0B0E12",
     },
     predictiveBackGestureEnabled: false,
   },
@@ -88,7 +91,8 @@ const config: ExpoConfig = {
   },
 
   runtimeVersion: {
-    policy: "appVersion",
+    // Native SDK changes must not share OTA updates with older binaries.
+    policy: "fingerprint",
   },
 
   extra: {

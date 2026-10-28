@@ -1,5 +1,6 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { Button, Choice, Empty, Field, Heading, Item, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
@@ -44,7 +45,11 @@ function extractTags(template: DbWorkoutTemplate) {
 }
 
 export default function TemplatesLibraryScreen() {
-  const { D, F } = useSomataTheme();
+  return <SomataTaskAppearance><TemplatesLibraryScreenContent /></SomataTaskAppearance>;
+}
+
+function TemplatesLibraryScreenContent() {
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const { user } = useAuth();
@@ -120,16 +125,18 @@ export default function TemplatesLibraryScreen() {
     } as any);
   }
 
-  return (<TaskPage title="Training, on repeat" section="Template library" onBack={() => router.back()}>
+  return (<TaskPage title="Your routines" section="Template library" onBack={() => router.back()}>
+    <WorkoutIntro label="Saved library" title="A familiar place to start." detail="Your saved routines stay separate from recorded sessions." icon="albums-outline" />
+    <Panel>
     <Field label="Search templates" value={query} onChangeText={setQuery} />
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
       {TAGS.map(t => <Choice key={t} label={t} selected={filter === t} onPress={() => setFilter(t)} />)}
-    </ScrollView>
+    </ScrollView></Panel>
     <Heading title="Ready to train" detail="Choose a routine to start a session." />
-    {rows.map(t => <Panel key={t.id}>
+    {rows.map((t, i) => <Panel key={t.id}>
       <Text style={F.eyebrow}>{t.tags.join(' · ') || 'GENERAL'}</Text>
-      <Heading title={t.name} detail={`${t.exercises} exercises`} />
-      <Button primary label="Start routine" icon="play" onPress={() => startFromTemplate(t as any)} />
+      <MovementHeading number={i + 1} title={t.name} detail={`${t.exercises} exercises`} />
+      <Button label="Start routine" icon="play" onPress={() => startFromTemplate(t as any)} />
     </Panel>)}
     {!rows.length && <Empty title="No matching templates" detail="Try another filter or save a workout as a template." />}
     {!!archivedRows.length && <><Heading title="Archived" />{archivedRows.map(t => <Item key={t.id} title={t.name} detail="Archived template" />)}</>}

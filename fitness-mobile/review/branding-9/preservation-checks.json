@@ -1,0 +1,462 @@
+{
+  "baselineFiles": 1155,
+  "unchangedFiles": 1139,
+  "changedExistingFiles": [
+    "fitness-mobile/app/(modals)/add-meal.tsx",
+    "fitness-mobile/app/(modals)/ai-meal-suggestions.tsx",
+    "fitness-mobile/app/(modals)/diet-preferences.tsx",
+    "fitness-mobile/app/(modals)/meal-builder.tsx",
+    "fitness-mobile/app/(modals)/quick-add.tsx",
+    "fitness-mobile/app/(modals)/quick-hydration.tsx",
+    "fitness-mobile/app/(modals)/what-should-i-eat.tsx",
+    "fitness-mobile/app/nutrition/scan-meal-v2.tsx",
+    "fitness-mobile/app/nutrition/scan-meal.tsx",
+    "fitness-mobile/components/nutrition/uiNew/EditFoodSheet.tsx",
+    "fitness-mobile/components/scanMeal/new/AddFoodSheet.tsx",
+    "fitness-mobile/components/scanMeal/new/EditFoodSheet.tsx",
+    "fitness-mobile/components/scanMeal/new/ExplainAIModal.tsx",
+    "fitness-mobile/components/scanMeal/new/MealCategoryPills.tsx",
+    "fitness-mobile/components/somata/ScanItems.tsx",
+    "fitness-mobile/tools/home-preview-runtime.cjs"
+  ],
+  "approvedArtworkUnchanged": 125,
+  "allOtherBaselineFilesUnchanged": true,
+  "primaryTabRenders": [
+    {
+      "tab": "Home",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "c0d907109baad2e1048817f41e7cf8fa4b43b55b420a5aae64c312a7f72dda09"
+    },
+    {
+      "tab": "Workouts",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "6b3e12a86f78c1f0e4ec537a106652c9341980d38b57d3e4931570099b01a648"
+    },
+    {
+      "tab": "Nutrition",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "50289c5369c2abab0b9bda5937e8020833187e2a31aea67da0269b5300ee4d36"
+    },
+    {
+      "tab": "Alerts",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "7f9c344a84dee3d6da657a3f5d232c86453f18b03c769909a8f0ad6777326f83"
+    },
+    {
+      "tab": "Profile",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "9c8a9a28344f1de72e2bd0488e5ffeb9f944d885d19069ffd04bce0662edabec"
+    },
+    {
+      "tab": "Home",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "53531b7260ff99871ca09bd16774805364a27aa3c14014b5101607a959fe8c90"
+    },
+    {
+      "tab": "Workouts",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "47ecb5c52911439ce87c0fc98c74353f8bce03feebf0f8874ffcac8be3995711"
+    },
+    {
+      "tab": "Nutrition",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "76b196d1bc1594bbcfa3f0aed27f0aaec764bb825dde76ec0e4c695a56ec6ec1"
+    },
+    {
+      "tab": "Alerts",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "783b954b7bbad64b2e54b7433fb8d7738bb03985dd84867c4cf0e3907cbd0fe7"
+    },
+    {
+      "tab": "Profile",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "835572119c00108ff6d190e0b9c7ae5f893c4c1c269ec53fb698ca9896d2de67"
+    }
+  ],
+  "homeUtilityRenders": [
+    {
+      "name": "sync-records",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "2ba23d87cd2af2f9e4886d42770f6f36051f963992f8a62d4ca5d79a579b630f"
+    },
+    {
+      "name": "sync-empty",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "b8abbe20aa35f7abc726a7f8e52f625dec9406f15424510a6e21bff9ebfd862e"
+    },
+    {
+      "name": "sync-loading",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "36589a3e57723027c25da240955528709913cf92bf90846b4ce0d9c677f219ac"
+    },
+    {
+      "name": "calendar-month",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "77e61fc96285d5a0c4c7d201938fa3c7cfd045ebbf76fa37d64b1b09d3306ad3"
+    },
+    {
+      "name": "calendar-week",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "35b6a049d2b4573749391198a3dc259fa55ec42aa62cdc73aa7e80a8cd6adf2b"
+    },
+    {
+      "name": "calendar-year",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "5e2f21ca7faaaa61adef9fd28a4cad9e20bf3d5dd1e42d24f2855d99abb2b874"
+    },
+    {
+      "name": "calendar-empty",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "723e4a4e10b02f1d8cd8142fb9da8b67cbb0df3c1c5c3e4a80828fbc8fc6e372"
+    },
+    {
+      "name": "day-record",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "e5494a91fa3f1f709cfdbc739c0d5e2bf37f52ae29c02296bc799a630cf7a636"
+    },
+    {
+      "name": "day-empty",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "ac590206cb70e49e724bbab8faef79f567f37197b57f7ff0db79711758a9c5dc"
+    },
+    {
+      "name": "steps-add",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "636e55da89c753d2a60312622ab064d7c179840b915d8faa0b11d11b9ddf71eb"
+    },
+    {
+      "name": "steps-set",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "921a55a2dee176934be7141a1b4fec5c86334ec643aa0dc3e368b6631dac2599"
+    },
+    {
+      "name": "steps-saving",
+      "mode": "dark",
+      "sameMarkup": true,
+      "sha256": "23f606359879e15b3c44ee61cd1ce32e31627e47603f658de66e87ef3da59698"
+    },
+    {
+      "name": "sync-records",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "c5a6b8f28c4cb0d2d4a3a1f3c3914505b294e88b43edc9c1b76cd3056a65c54f"
+    },
+    {
+      "name": "sync-empty",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "36cc9d069cde8fd9e225b399f58d63b048b275310b0a739c7376f819d7d7de16"
+    },
+    {
+      "name": "sync-loading",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "aaf0e0fa381ab1d7de8b200db286fc73e8ea22d7aef6f25b44892872bf3cae7f"
+    },
+    {
+      "name": "calendar-month",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "ca6805b947231e2f915083c44c4a833540f0c6bb376ad9cbc95a1f2e4b061d5d"
+    },
+    {
+      "name": "calendar-week",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "f33b1c47d6a07445e85fa2be37f09ed434665f2de07e4da9412c46a47c78aea6"
+    },
+    {
+      "name": "calendar-year",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "6c33a587c6e3bc374f68f6a4f0b36d3fac821e57ab25bc5ab0bfce1bc9042e20"
+    },
+    {
+      "name": "calendar-empty",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "f0066f57c790b2e47dc4d062187a686411cebfeabd7f67c1bcec81e629f9b314"
+    },
+    {
+      "name": "day-record",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "a762e066829d151de6070ef8dac823d4c2674ed55fcc25d28771a7f673ceb45f"
+    },
+    {
+      "name": "day-empty",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "1e239cc814bf9563a230f9a0739f1246d9f19c9f10be85ec717a9e88a9390521"
+    },
+    {
+      "name": "steps-add",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "652c167f76c5ec2b2af5891e3f6a6ff9485e6311e524841dcc8b169c1352b168"
+    },
+    {
+      "name": "steps-set",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "62ced16184e547a90e58ce4dbff4f8992550f5ea3fc034b5213a321cbd039214"
+    },
+    {
+      "name": "steps-saving",
+      "mode": "light",
+      "sameMarkup": true,
+      "sha256": "9fcd2d11663cefd5d32aa63f3cd8ba48b807c888dacf339bfae576061c9da779"
+    }
+  ],
+  "controllerAudit": [
+    {
+      "file": "app/(modals)/add-meal.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "withAlpha",
+        "toNum",
+        "clamp0",
+        "formatSheetDate",
+        "defaultMealForTime",
+        "titleCaseFoodName",
+        "safeJsonParse",
+        "extractJsonFromText",
+        "unwrapDescribePayload",
+        "normalizeDescribeItem",
+        "searchFDC",
+        "lookupOpenFoodFacts",
+        "lookupFDCByBarcode",
+        "variantsFor",
+        "getCache",
+        "setCache",
+        "cacheSave",
+        "cacheLoad",
+        "scoreCandidate",
+        "resolveBarcodeCandidates",
+        "ConfirmSheet",
+        "AddMealModal",
+        "done",
+        "openPhotoScan",
+        "closeConfirm",
+        "openConfirm",
+        "confirmAndAdd",
+        "pick",
+        "normalizeQueryText",
+        "parseDateFromQuery",
+        "sameDay",
+        "filterCatalogResults",
+        "calculateFromDescription",
+        "startEditFromBarcodeResolved",
+        "resolveAndMaybePick",
+        "onBarcodeScanned",
+        "commitManual",
+        "openQuickAddConfirm"
+      ]
+    },
+    {
+      "file": "app/(modals)/quick-add.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "withAlpha",
+        "foodKey",
+        "toNum",
+        "mealLabel",
+        "QuickAddModal",
+        "done",
+        "resolveDefault",
+        "instantAdd",
+        "submitQuickMacros",
+        "macroInput"
+      ]
+    },
+    {
+      "file": "app/(modals)/meal-builder.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "withAlpha",
+        "pad",
+        "isoToday",
+        "foodKey",
+        "fmtMacroRow",
+        "quantityStep",
+        "MealBuilderScreen",
+        "appendFoods",
+        "addFood",
+        "updateQty",
+        "updateUnit",
+        "removeItem",
+        "moveItem",
+        "resetMethodState",
+        "openMethod",
+        "resetMeal",
+        "applyPreset",
+        "closeMethod",
+        "runDescribe",
+        "submitDescribeFoods",
+        "submitManualFood",
+        "runBarcodeLookup",
+        "ensureCameraAccess",
+        "pickScanPhoto",
+        "onInlineBarcodeScanned",
+        "onSavePreset",
+        "onLogMeal",
+        "topIconButton",
+        "miniIconButton",
+        "methodActionButton",
+        "methodActionText",
+        "primaryMethodButton",
+        "primaryMethodText",
+        "methodInput",
+        "labelForMealType"
+      ]
+    },
+    {
+      "file": "app/(modals)/diet-preferences.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "Section",
+        "Chip",
+        "toggleInList",
+        "TokenInput",
+        "DietPreferencesModal"
+      ]
+    },
+    {
+      "file": "app/(modals)/what-should-i-eat.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "parseNum",
+        "timeBucket",
+        "mealLabel",
+        "generateSuggestions",
+        "WhatShouldIEatScreen",
+        "whyItFits"
+      ]
+    },
+    {
+      "file": "app/(modals)/quick-hydration.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "QuickHydrationModal",
+        "close",
+        "showToast",
+        "add"
+      ]
+    },
+    {
+      "file": "app/(modals)/ai-meal-suggestions.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "AiMealSuggestions",
+        "fetchIdeas",
+        "onGenerate",
+        "onRegenerate",
+        "addToMeal"
+      ]
+    },
+    {
+      "file": "app/nutrition/scan-meal.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "categoryToMealKey",
+        "safeMealKey",
+        "guessCategoryByTime",
+        "round1",
+        "safeJsonParse",
+        "extractJsonFromText",
+        "unwrapDescribePayload",
+        "normalizeDescribeMacros",
+        "reanalyzeFoodMacros",
+        "ScanMealScreen"
+      ]
+    },
+    {
+      "file": "app/nutrition/scan-meal-v2.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "withAlpha",
+        "round1",
+        "safeMealKey",
+        "guessCategoryByTime",
+        "categoryToMealKey",
+        "safeJsonParse",
+        "extractJsonFromText",
+        "unwrapDescribePayload",
+        "normalizeDescribeMacros",
+        "reanalyzeFoodMacros",
+        "normalizeScanFoods",
+        "ScanMealV2Screen",
+        "confidenceTint"
+      ]
+    },
+    {
+      "file": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "numOnly",
+        "toNum",
+        "scaleText",
+        "sourceLabel",
+        "mealLabel",
+        "mealForTime",
+        "EditFoodSheet",
+        "stopHold",
+        "applyQty",
+        "nudgeQty",
+        "startHold",
+        "submit"
+      ]
+    },
+    {
+      "file": "components/scanMeal/new/AddFoodSheet.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "AddFoodSheet",
+        "inputStyle",
+        "withAlpha"
+      ]
+    },
+    {
+      "file": "components/scanMeal/new/EditFoodSheet.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "EditFoodSheet",
+        "inputStyle",
+        "parseLooseNumber",
+        "scaleField",
+        "formatMaybeInt",
+        "formatMaybeFloat",
+        "withAlpha"
+      ]
+    },
+    {
+      "file": "components/scanMeal/new/ExplainAIModal.tsx",
+      "nonJSXFunctionStatementsUnchanged": true,
+      "functions": [
+        "ExplainAIModal"
+      ]
+    }
+  ],
+  "controllerAuditScope": "Non-JSX function body statements; excludes theme-hook destructuring. Inline JSX callbacks additionally covered by regression tests. Not a proof of native runtime behavior."
+}

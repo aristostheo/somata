@@ -1,13 +1,12 @@
 import { useAccountStorage } from '@/services/local/accountStore';
 import { Button, Empty, Heading, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { FlowNotice } from "@/components/homeFlows/FlowUI";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 
 import {
   clearSyncHistory,
@@ -17,74 +16,60 @@ import {
   type IntegrationSnapshot
 } from "@/services/integrations";
 
-function useC() {
-  const { colors } = useProfileFlowTheme();
-  return {
-    bg: colors.background as string,
-    card: colors.surface1 as string,
-    card2: colors.surface2 as string,
-    text: colors.textPrimary as string,
-    muted: colors.textTertiary as string,
-    hairline: colors.border as string,
-    purple: colors.primary as string,
-    green: colors.success as string,
-    amber: colors.warning as string,
-    red: colors.danger as string,
-  };
-}
-
-function alpha(hex: string, a: number) {
-  const h = hex.replace("#", "");
-  return `rgba(${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(
-    h.slice(4, 6),
-    16
-  )},${a})`;
-}
-
 export default function SyncHistoryScreen() {
-  const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  return <SomataTaskAppearance><SyncHistoryContent /></SomataTaskAppearance>;
+}
 
-  const C = useC();
+function SyncHistoryContent() {
+  const localStore = useAccountStorage();
+  const { D, F, t } = useTaskPresentation();
+
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [snapshot, setSnapshot] = useState<IntegrationSnapshot | null>(null);
 
   useEffect(() => subscribeIntegrations(setSnapshot, localStore), []);
 
   const history = snapshot?.settings.history || [];
 
-  return (<TaskPage title="Your sync journal." section="Connections / history" onBack={() => router.back()}
-    footer={history.length ? <Button label="Clear history" danger icon="trash-outline" onPress={() => clearSyncHistory(localStore)} /> : undefined}>
-
-    {!snapshot ? <Empty title="Loading sync events…" /> : !history.length ? <Empty title="No sync history yet" detail="Connect a source and run a sync to see its recorded events." /> : <>
-      <View style={F.wrap}>
-        <Metric label="Recorded events" value={String(history.length)} />
-      </View>
-      <View>
-        {history.map(event => <View key={event.id} style={{ flexDirection: 'row', gap: 16 }}>
-
-          <View style={{ alignItems: 'center', width: 24 }}>
-            <Ionicons name={event.failed.length ? 'alert-circle-outline' : 'checkmark-circle'} color={event.failed.length ? D.amber : D.teal} size={23} />
-            <View style={{ flex: 1, width: 1, backgroundColor: D.line }} />
+  return <TaskPage title="Sync history" section="Connections / your records" subtitle="A journal of what your connected sources returned." onBack={() => router.back()}>
+    {!snapshot ? <FlowNotice title="Loading sync events…" /> : !history.length ?
+      <Empty title="Your journal is clear" detail="Connect a source and run a sync to see its recorded events." /> : <>
+      <Panel accent>
+        <View style={{ ...F.row, alignItems: "flex-start" }}>
+          <View style={{ flex: 1, gap: 6 }}>
+            <Text style={F.eyebrow}>ON THIS DEVICE</Text>
+            <Text style={{ ...F.value, fontSize: 38 }}>{history.length} <Text style={F.body}>recorded events</Text></Text>
           </View>
-
-          <View style={{ flex: 1, gap: 12, paddingBottom: 24 }}>
+          <Ionicons name="sync-outline" color={t.action.link} size={32} />
+        </View>
+        <Text style={F.body}>Latest record · {formatLastSync(history[0].finishedAt)}</Text>
+      </Panel>
+      <Heading title="Event journal" detail="Most recent first · saved for this account" />
+      {history.map(event => <Panel key={event.id}>
+        <View style={{ ...F.row, alignItems: "flex-start" }}>
+          <View style={{ backgroundColor: t.surface.inset, padding: 12, borderRadius: 14 }}>
+            <Ionicons name={event.failed.length ? 'alert-circle-outline' : 'checkmark-circle-outline'}
+              color={event.failed.length ? t.status.warning : t.status.success} size={24} />
+          </View>
+          <View style={{ flex: 1, gap: 5 }}>
+            <Text style={{ ...F.caption, color: event.failed.length ? t.status.warning : t.status.success, fontWeight: "700" }}>
+              {event.failed.length ? `${event.failed.length} failed` : 'Successful'}
+            </Text>
+            <Text style={F.heading}>{event.reason.replace('_', ' ')}</Text>
             <Text style={F.caption}>{formatLastSync(event.finishedAt)}</Text>
-            <Heading title={event.reason.replace('_', ' ')}
-              detail={event.integrations.map(id => INTEGRATIONS.find(x => x.id === id)?.name || id).join(' · ')} />
-
-            <Panel>
-              <Text style={{ ...F.heading, color: event.failed.length ? D.amber : D.lime }}>{event.failed.length ? `${event.failed.length} failed` : 'Successful'}</Text>
-
-              <Text style={F.body}>{event.dataPointsReceived} data points · {Math.max(1, Math.round(event.durationMs / 1000))}s</Text>
-
-              {!!event.failed.length && <Text style={F.caption}>Failed: {event.failed.map(id => INTEGRATIONS.find(x => x.id === id)?.name || id).join(', ')}</Text>}
-            </Panel>
           </View>
-
-        </View>)}
-      </View></>}
-  </TaskPage>
-  );
+        </View>
+        <Text style={F.body}>{event.integrations.map(id => INTEGRATIONS.find(x => x.id === id)?.name || id).join(' · ')}</Text>
+        <View style={F.wrap}>
+          <Metric label="Data points received" value={String(event.dataPointsReceived)} />
+          <Metric label="Duration" value={`${Math.max(1, Math.round(event.durationMs / 1000))}s`} />
+        </View>
+        {!!event.failed.length && <FlowNotice error title="Some sources did not sync" detail={`Failed: ${event.failed.map(id => INTEGRATIONS.find(x => x.id === id)?.name || id).join(', ')}`} />}
+      </Panel>)}
+      <View style={{ gap: 10, paddingTop: 8 }}>
+        <Text style={F.caption}>Clear this account's sync journal on this device.</Text>
+        <Button label="Clear history" danger icon="trash-outline" onPress={() => clearSyncHistory(localStore)} />
+      </View>
+    </>}
+  </TaskPage>;
 }

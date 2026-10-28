@@ -1,15 +1,24 @@
-import { Action, Card, fmt, GlowPanel, LinkRow, Metric, Page, Section, SegmentedProgress } from "@/components/designPreview/UI";
+import { Button as TaskButton, Field, Panel, TaskSheet } from "@/components/somata/TaskUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { PoweredByFitAdapt } from "@/components/brand/Brand";
+import { fmt, SegmentedProgress } from "@/components/designPreview/UI";
+import { Action, ActionGrid, Bell, Card, LinkRow, Macro, Metric, Page, Recommendation, Section } from "@/components/home/PremiumHomeUI";
 import { usePreviewAccount } from "@/components/designPreview/usePreviewAccount";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataHomeAppearance, usePresentation } from "@/components/designPreview/Appearance";
 import { addStepsForDate, setStepsForDate } from "@/services/profile";
 import { kgToLb } from "@/utils/units";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
 
 export default function DesignHome() {
-  const { D, F } = useSomataTheme();
+  return <SomataHomeAppearance><HomeContent /></SomataHomeAppearance>;
+}
+
+function HomeContent() {
+  const { D, semantic: t } = usePresentation();
+  const [stepFieldFocused, setStepFieldFocused] = useState(false);
 
   const router = useRouter();
   const data = usePreviewAccount();
@@ -55,94 +64,68 @@ export default function DesignHome() {
   return <>
     <Page eyebrow="Today / Somata" title={`Hello, ${data.profile?.displayName?.trim()?.split(" ")[0] || data.user?.displayName?.trim()?.split(" ")[0] || "you"}`}
       subtitle="A clear view of what you recorded today."
-      headerAction={<Pressable accessibilityRole="button" accessibilityLabel="Open alerts"
-        onPress={() => router.push("/(tabs)/notifications")}
-        style={{
-          width: 45, height: 45, borderRadius: 23, backgroundColor: D.card,
-          alignItems: "center", justifyContent: "center"
-        }}>
+      headerAction={<Bell onPress={() => router.push("/(tabs)/notifications")} />}>
 
-        <Ionicons name="notifications-outline" size={20} color={D.lime} />
-
-      </Pressable>}>
-
-      <GlowPanel>
-
-        <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
-
-          <View style={{ flex: 1, gap: 4 }}>
-
-            <Text style={{ color: D.muted, fontSize: 11, fontWeight: "800", letterSpacing: 1.5 }}>{data.plan.title.toUpperCase()}</Text>
-
-            <Text style={{ color: D.text, fontSize: 25, fontWeight: "800" }}>Today, in motion</Text>
-
+      <Card hero>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <View style={{ flex: 1, gap: 3 }}>
+            <Text style={{ color: t.action.link, fontSize: 11, fontWeight: "800", letterSpacing: 1.6 }}>{data.plan.title.toUpperCase()}</Text>
+            <Text style={{ color: D.text, fontSize: 23, fontWeight: "800", letterSpacing: -0.7 }}>Today, in motion</Text>
           </View>
-
-          <Text style={{ color: D.text, fontSize: 39, fontWeight: "800", fontVariant: ["tabular-nums"] }}>
-            {ratio == null ? "—" : `${Math.round(Math.min(1, ratio) * 100)}%`}
-          </Text>
-
+          <View style={{ width: 38, height: 42, borderRadius: 13, alignItems: "center", justifyContent: "center", backgroundColor: t.selection.background }}>
+            <Ionicons name="flame" size={26} color={t.action.link} />
+          </View>
         </View>
+        <View style={{ flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 8, rowGap: 2 }}>
+          <Text style={{ color: D.text, fontSize: 32, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{fmt(energy)}</Text>
+          <Text style={{ color: D.muted, fontSize: 14 }}>/ {fmt(target?.calories, " kcal")} target</Text>
+          {ratio != null && <Text style={{ color: D.muted, fontSize: 12 }}>
+            {`${Math.round(Math.min(1, ratio) * 100)}%`}
+          </Text>}
+        </View>
+        <SegmentedProgress compact ratio={ratio} label={ratio == null ? "Progress unavailable · Logged energy against your current daily target" : "Logged energy against your current daily target"} />
 
-        <SegmentedProgress ratio={ratio} label="Logged energy against your current daily target" />
-
-        <Text style={{ color: D.text, fontSize: 16, fontWeight: "800" }}>
-          {fmt(energy)} logged <Text style={{ color: D.muted, fontSize: 14, fontWeight: "500" }}> / {fmt(target?.calories, " kcal")} target</Text>
-        </Text>
-
-        {data.plan.kind === "active" && <Text style={{ color: D.lime, fontSize: 11, fontWeight: "700" }}>Powered by FitAdapt</Text>}
+        {data.plan.kind === "active" && <PoweredByFitAdapt />}
 
         {!!data.planState?.pending && <Action label="Pending FitAdapt review" icon="sparkles-outline"
           onPress={() => router.push("/(tabs)/profile")} />}
 
-      </GlowPanel>
+      </Card>
 
-      <Section title="At a glance" caption="Only account records appear here" />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: t.space.md }}>
 
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
+        <Metric icon="footsteps-outline" label="Steps today" value={fmt(data.steps)} detail={data.stepGoal ? `${fmt(data.stepGoal)} goal` : "Recorded steps"} />
 
-        <Metric label="Steps today" value={fmt(data.steps)} detail={data.stepGoal ? `${fmt(data.stepGoal)} goal` : "Recorded steps"} />
-
-        <Metric label="Latest weight" value={weightText} detail="Dated measurement" tone="lime" />
+        <Metric icon="scale-outline" label="Latest weight" value={weightText} detail="Dated measurement" />
 
       </View>
 
       <Card>
 
-        <Section title="Nutrition pulse" action={<Pressable onPress={() => router.push("/(tabs)/nutrition")}
-          accessibilityRole="button">
+        <Section title="Nutrition pulse" caption="Logged amounts are not a full-day estimate." action={<Pressable onPress={() => router.push("/(tabs)/nutrition")}
+          accessibilityRole="button" accessibilityLabel="Open Nutrition" hitSlop={{ top: 8, bottom: 8 }} style={{ minHeight: 32, minWidth: t.layout.minTouchTarget, alignItems: "center", justifyContent: "center" }}>
           <Text style={{ color: D.lime, fontSize: 13, fontWeight: "700" }}>Open →</Text>
         </Pressable>} />
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: t.space.sm }}>
 
-          <Metric label="Protein" value={fmt(data.logged?.protein, " g")} tone="lime" />
+          <Macro icon="barbell-outline" label="Protein" value={fmt(data.logged?.protein, " g")} series="protein" />
 
-          <Metric label="Carbs" value={fmt(data.logged?.carbs, " g")} tone="plain" />
+          <Macro icon="leaf-outline" label="Carbs" value={fmt(data.logged?.carbs, " g")} series="carbohydrate" />
 
-          <Metric label="Fat" value={fmt(data.logged?.fat, " g")} tone="plain" />
+          <Macro icon="water-outline" label="Fat" value={fmt(data.logged?.fat, " g")} series="fat" />
 
         </View>
 
-        <Text style={{ color: D.muted, fontSize: 11 }}>Logged amounts are not a full-day estimate.</Text>
 
       </Card>
 
-      <Card accent>
-
-        <Section title="A useful next step" caption="Based on the records available today" />
-
-        <Text style={{ color: D.text, fontSize: 17, fontWeight: "800" }}>{nextMove.title}</Text>
-
-        <Text style={{ color: D.muted, fontSize: 12, lineHeight: 18 }}>{nextMove.detail}</Text>
-
-        <Action label={nextMove.label} icon="arrow-forward" onPress={() => router.push(nextMove.route as never)} />
-
-      </Card>
+      <Recommendation title={nextMove.title} detail={nextMove.detail} label={nextMove.label}
+        onPress={() => router.push(nextMove.route as never)} />
 
       <Section title="Quick actions" />
 
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
+      <ActionGrid>
 
         <Action label="Log food" icon="add" bright onPress={() => router.push(`/(modals)/add-meal?date=${data.today}` as never)} />
 
@@ -160,12 +143,13 @@ export default function DesignHome() {
 
         <Action label="Water log" icon="water-outline" onPress={() => router.push("/(modals)/quick-hydration")} />
 
-      </View>
+      </ActionGrid>
 
       <Card>
 
         <Section title="Explore" />
 
+        <ActionGrid explore>
         <LinkRow title="Calendar" icon="calendar-outline" onPress={() => router.push("/(modals)/full-calendar")} />
 
         <LinkRow title="Insights & history" icon="analytics-outline" onPress={() => router.push("/profile/fitadapt-insights")} />
@@ -173,39 +157,37 @@ export default function DesignHome() {
         <LinkRow title="Connections" icon="heart-outline" onPress={() => router.push("/profile/integrations")} />
 
         <LinkRow title="Badges" icon="ribbon-outline" onPress={() => router.push("/(modals)/badges")} />
+        </ActionGrid>
 
       </Card>
 
     </Page>
-    <Modal visible={stepsOpen} transparent animationType="slide" onRequestClose={() => setStepsOpen(false)}>
-
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.7)" }}>
-
-        <View style={{
-          backgroundColor: D.card, borderTopLeftRadius: 24, borderTopRightRadius: 24,
-          padding: 22, gap: 15
-        }}>
-
-          <Section title={stepsMode === "set" ? "Set today's steps" : "Add to today's steps"} />
-
-          <Text style={{ color: D.muted, fontSize: 13 }}>Saved to your account for {data.today}.</Text>
-
-          <TextInput keyboardType="number-pad" value={stepsText} onChangeText={setStepsText}
-            placeholder="Step count" placeholderTextColor={D.dim} accessibilityLabel="Step count"
-            style={{
-              minHeight: 54, borderRadius: 14, backgroundColor: D.raised, paddingHorizontal: 15,
-              color: D.text, fontSize: 20
-            }} />
-
-          <Action label={saving ? "Saving…" : "Save steps"} icon="checkmark" bright onPress={saveSteps} />
-
-          <Action label="Cancel" icon="close" onPress={() => setStepsOpen(false)} />
-
-        </View>
-
-      </KeyboardAvoidingView>
-
-    </Modal>
+    <SomataTaskAppearance>
+      <TaskSheet visible={stepsOpen} onClose={() => setStepsOpen(false)} dismissOnBackdrop={false}
+        title={stepsMode === "set" ? "Set today's steps" : "Add to today's steps"}>
+        <StepsContext mode={stepsMode} recorded={data.steps} date={data.today} />
+        <Field label={stepsMode === "set" ? "Today's total" : "Steps to add"} accessibilityLabel="Step count"
+          keyboardType="number-pad" value={stepsText} onChangeText={setStepsText} placeholder="Step count"
+          onFocus={() => setStepFieldFocused(true)} onBlur={() => setStepFieldFocused(false)} />
+        <TaskButton label={saving ? "Saving…" : "Save steps"} icon="checkmark" primary disabled={saving} onPress={saveSteps} />
+        <TaskButton label="Cancel" icon="close" onPress={() => setStepsOpen(false)} />
+      </TaskSheet>
+    </SomataTaskAppearance>
   </>;
+}
+
+/** Presentation only: the existing Home controller owns validation and writes. */
+function StepsContext({ mode, recorded, date }: { mode: "add" | "set"; recorded: number | null | undefined; date: string }) {
+  const { F, t } = useTaskPresentation();
+  return <Panel accent>
+    <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+      <Ionicons name="footsteps-outline" color={t.action.link} size={30} />
+      <View style={{ flex: 1, gap: 5 }}>
+        <Text style={F.eyebrow}>RECORDED TODAY</Text>
+        <Text style={F.value}>{fmt(recorded)} <Text style={F.body}>steps</Text></Text>
+      </View>
+    </View>
+    <Text style={F.body}>{mode === "set" ? "Replace today's recorded total." : "Add this amount to today's recorded total."}</Text>
+    <Text style={F.caption}>Saved to your account for {date}. Use a whole number from 0 to 200,000.</Text>
+  </Panel>;
 }

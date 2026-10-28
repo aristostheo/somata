@@ -1,5 +1,6 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { Button, Choice, Empty, Field, Heading, Item, Metric, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
@@ -293,7 +294,11 @@ function enterMotion(reduceMotion: boolean, delay: number, distance = 8) {
 }
 
 export default function WorkoutRecapScreen() {
-  const { D, F } = useSomataTheme();
+  return <SomataTaskAppearance><WorkoutRecapScreenContent /></SomataTaskAppearance>;
+}
+
+function WorkoutRecapScreenContent() {
+  const { D, F, t } = useTaskPresentation();
 
   const router = useRouter();
   const { user } = useAuth();
@@ -713,24 +718,26 @@ export default function WorkoutRecapScreen() {
 
   return (<TaskPage title={meta.title} section="Workout recap" subtitle={formatHeaderDate(meta.dateISO)} onBack={onDone} footer={<><Button label="Session actions · repeat, template or delete" onPress={() => router.push({ pathname: "/workouts/session-detail", params: { sessionKey } })} /><Button primary label="Done" onPress={onDone} /><Button label={sharing ? 'Sharing…' : 'Share summary'} disabled={sharing} onPress={onShare} icon="share-outline" /></>}>
 
-    <View style={{ gap: 8 }}>
-      <Text style={F.eyebrow}>SESSION SCORE</Text>
-      <Text style={{ ...F.value, fontSize: 64, color: D.lime }}>{score}<Text style={F.caption}> / 100</Text></Text>
-      <Text style={F.body}>{comparisonCopy}</Text>
-    </View>
-
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-      <Metric label="Duration" value={formatDuration(meta.durationMin)} />
-      <Metric label="Volume" value={formatVolume(Math.round(toDisplayWeight(meta.totalVolumeKg)), weightUnit)} />
-      <Metric label="Sets / reps" value={`${meta.totalSets} / ${meta.totalReps}`} />
-      <Metric label="Exercises" value={String(meta.exerciseCount)} />
-    </View>
+    <Panel accent><Heading title="Your recorded session" detail={comparisonCopy} />
+      <WorkoutStats values={[{ label: 'Session score / 100', value: String(score) }, { label: 'Duration', value: formatDuration(meta.durationMin) }, { label: 'Volume', value: formatVolume(Math.round(toDisplayWeight(meta.totalVolumeKg)), weightUnit) }, { label: 'Sets / reps', value: `${meta.totalSets} / ${meta.totalReps}` }, { label: 'Exercises', value: String(meta.exerciseCount) }]} />
+    </Panel>
 
     {!!prRows.length && <Panel accent>
       <Heading title="Personal records" />
       {prRows.map((p, i) => <Item key={i} title={p.exercise} value={p.repShape} detail={`Previous best · ${Math.round(toDisplayWeight(p.prevWeightKg))} ${weightUnit}`} />)}
     </Panel>}
 
+    <Panel>
+      <Heading title="Muscle map" detail="Tap a region to inspect the recorded work." />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
+        {(['front', 'back'] as const).map(side => <Body key={side} data={bodyData} gender={sex} side={side} scale={0.8} border="none" defaultFill={D.raised} colors={[t.data.carbohydrate, t.data.energy, t.data.fat]} onBodyPartPress={(part: ExtendedBodyPart) => { const slug = part.slug as BodySlug | undefined; if (!slug) return; const key = SLUG_TO_KEYS[slug]?.[0]; if (key) setActiveMuscle(key); }} />)}
+      </View>
+      {activeMuscle && activeMuscleDetail && <Text style={F.body}>{REGION_LABELS[activeMuscle]} · {activeMuscleDetail.exercise} · {activeMuscleDetail.sets} sets</Text>}
+    </Panel>
+
+    <Heading title="What you logged" />
+    {exerciseSummaries.map((e, i) => <Panel key={e.name}><MovementHeading number={i + 1} title={e.name} detail={`${e.totalSets} sets · ${e.totalReps} reps`} /><Text style={F.value}>{e.bestRepShape}</Text></Panel>)}
+    <Panel>
     <Heading title="How did that feel?" />
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {FATIGUE_OPTIONS.map(o => <Choice key={o.key} label={o.label} selected={fatigue === o.key} onPress={() => onSelectFatigue(o.key)} />)}
@@ -739,16 +746,7 @@ export default function WorkoutRecapScreen() {
     <Button label={notesExpanded ? 'Close session note' : 'Add a session note'} onPress={() => setNotesExpanded(v => !v)} />
     {notesExpanded && <Field label="Session note" multiline value={note} onChangeText={setNote} onBlur={onBlurNote} />}
 
-    <Panel>
-      <Heading title="Muscle map" detail="Tap a region to inspect the recorded work." />
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
-        {(['front', 'back'] as const).map(side => <Body key={side} data={bodyData} gender={sex} side={side} scale={0.8} border="none" defaultFill={D.raised} colors={['#347D71', '#54B9A6', '#D1EF72']} onBodyPartPress={(part: ExtendedBodyPart) => { const slug = part.slug as BodySlug | undefined; if (!slug) return; const key = SLUG_TO_KEYS[slug]?.[0]; if (key) setActiveMuscle(key); }} />)}
-      </View>
-      {activeMuscle && activeMuscleDetail && <Text style={F.body}>{REGION_LABELS[activeMuscle]} · {activeMuscleDetail.exercise} · {activeMuscleDetail.sets} sets</Text>}
     </Panel>
-
-    <Heading title="What you logged" />
-    {exerciseSummaries.map(e => <Item key={e.name} title={e.name} detail={`${e.totalSets} sets · ${e.totalReps} reps`} value={e.bestRepShape} />)}
   </TaskPage>
   );
 }

@@ -1,5 +1,7 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
-import { Button, Choice, Empty, Field, Heading, IconButton, Item, TaskPage } from "@/components/somata/TaskUI";
+import { Button, Choice, Empty, Field, Heading, IconButton, Item, Panel, TaskPage } from "@/components/somata/TaskUI";
 // app/session/exercise-browser.tsx
 // Modal Exercise Browser (opened from session.tsx)
 // - Firestore-first (subscribeExercises) + seed fallback
@@ -90,6 +92,10 @@ function sectionTitle(scope: Scope, count: number) {
 }
 
 export default function ExerciseBrowserModal() {
+  return <SomataTaskAppearance><ExerciseBrowserModalContent /></SomataTaskAppearance>;
+}
+
+function ExerciseBrowserModalContent() {
   const localStore = useAccountStorage();
   const router = useRouter();
   const params = useLocalSearchParams<{ returnTo?: string; }>();
@@ -222,20 +228,22 @@ export default function ExerciseBrowserModal() {
     []
   );
 
-  return (<><TaskPage scroll={false} title="Find your next movement" section="Exercise library" onBack={() => router.back()} action={scope === 'recent' ? <IconButton icon="trash-outline" label="Clear recent exercises" onPress={onClearRecents} /> : undefined}>
+  return (<><TaskPage scroll={false} title="Exercise library" section="Exercise library" onBack={() => router.back()} action={scope === 'recent' ? <IconButton icon="trash-outline" label="Clear recent exercises" onPress={onClearRecents} /> : undefined}>
 
+    <FlatList ListHeaderComponent={<View style={{ gap: 16, paddingBottom: 16 }}>
+    <Panel accent><Heading title="Find your movement" detail="Search by name, muscle or equipment. Preview before adding." />
     <Field ref={inputRef} label="Search the library" value={query} onChangeText={setQuery} placeholder="Exercise, muscle, equipment" onSubmitEditing={() => Keyboard.dismiss()} />
 
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {segmented.map(s => <Choice key={s.key} label={s.label} selected={scope === s.key} onPress={() => { Haptics.selectionAsync().catch(() => { }); setScope(s.key); }} />)}
     </View>
 
+    </Panel>
     <FilterBar filters={filters} onChange={setFilters} />
     <Heading title={sectionTitle(scope, activeCount)} />
 
-    <FlatList style={{ flex: 1 }} keyboardShouldPersistTaps="handled" data={data} keyExtractor={e => e.id} renderItem={({ item: e }) => <Item title={e.name} detail={[...(e.primaryMuscles ?? []), ...(e.equipment ?? [])].join(' · ')} onPress={() => openPreview(e)} action={<IconButton icon={favorites.has(e.id) ? 'heart' : 'heart-outline'} label={favorites.has(e.id) ? `Unfavorite ${e.name}` : `Favorite ${e.name}`} onPress={() => onToggleFavorite(e.id)} />} />} ListEmptyComponent={<Empty title="No matching movements" detail="Try another search or broaden your filters." />} />
+    </View>} ListFooterComponent={<Button label="Reset search and filters" onPress={() => { setQuery(''); setFilters({ muscle: 'all', equipment: 'all', hasDemo: false }); }} />} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" data={data} keyExtractor={e => e.id} renderItem={({ item: e }) => <Panel><Item title={e.name} detail={[...(e.primaryMuscles ?? []), ...(e.equipment ?? [])].join(' · ')} onPress={() => openPreview(e)} action={<IconButton icon={favorites.has(e.id) ? 'heart' : 'heart-outline'} label={favorites.has(e.id) ? `Unfavorite ${e.name}` : `Favorite ${e.name}`} onPress={() => onToggleFavorite(e.id)} />} /></Panel>} ListEmptyComponent={<Empty title="No matching movements" detail="Try another search or broaden your filters." />} />
 
-    <Button label="Reset search and filters" onPress={() => { setQuery(''); setFilters({ muscle: 'all', equipment: 'all', hasDemo: false }); }} />
 
   </TaskPage><ExercisePreviewSheet visible={previewOpen} exercise={preview} isFavorite={preview ? favorites.has(preview.id) : false} onClose={closePreview} onToggleFavorite={() => preview && onToggleFavorite(preview.id)} onUse={() => preview && onUseExercise(preview)} /></>
   );

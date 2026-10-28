@@ -1,5 +1,6 @@
+import { NutritionContext } from "@/components/nutrition/NutritionTaskUI";
 import { Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { useAuth } from "@/content/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -21,7 +22,11 @@ const withAlpha = (hex: string, a: number) => {
 type HydrationLog = { ts: number; ml: number; };
 
 export default function QuickHydrationModal() {
-  const { D, F } = useSomataTheme();
+  return <SomataTaskAppearance><QuickHydrationModalContent /></SomataTaskAppearance>;
+}
+
+function QuickHydrationModalContent() {
+  const { D, F } = useTaskPresentation();
 
   const router = useRouter();
   const { user } = useAuth();
@@ -77,28 +82,19 @@ export default function QuickHydrationModal() {
     setTimeout(close, 420);
   }
 
-  return (<TaskPage title="A moment to hydrate." section="Quick log / water" onBack={close}
+  return (<TaskPage title="Quick water log" section="Quick log / water" onBack={close}
     subtitle="Choose the amount you drank. A tap saves your entry and closes this screen.">
 
-    <Panel accent>
-      <Ionicons name="water-outline" size={48} color={D.teal} />
-      <Text style={F.heading}>How much did you drink?</Text>
-
-      <Text style={F.body}>Quick water entries are saved on this device for your account.</Text>
-    </Panel>
-
-    <View style={{ gap: 10 }}>
+    <NutritionContext label="On this device" title="Choose your amount" detail="A quick entry for your account. This is separate from the Nutrition dashboard’s hydration counter." icon="water-outline" />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
       {sizes.map((ml, index) => <Pressable key={ml} disabled={busy || !uid}
         accessibilityRole="button" accessibilityLabel={`Log ${ml} milliliters`} accessibilityState={{ disabled: busy || !uid }} onPress={() => add(ml)}
-        style={({ pressed }) => ({ ...F.row, padding: 18, minHeight: 75, borderRadius: 20, backgroundColor: D.card, opacity: pressed || busy ? 0.6 : 1 })}>
-
-        <Text style={F.eyebrow}>{String(index + 1).padStart(2, "0")}</Text>
-        <Text style={{ ...F.value, flex: 1 }}>{ml} <Text style={F.body}>ml</Text></Text>
-
-        <Ionicons name="add-circle" color={D.lime} size={30} />
+        style={({ pressed }) => ({ flexGrow: 1, flexBasis: 145, minHeight: 118, gap: 12, padding: 18, borderRadius: 20,
+          borderWidth: 1, borderColor: D.line, backgroundColor: pressed ? D.tint : D.card, opacity: busy || !uid ? 0.6 : 1 })}>
+        <View style={{ ...F.row }}><Ionicons name="water-outline" color={D.teal} size={24} /><Ionicons name="add" color={D.teal} size={22} /></View>
+        <Text style={F.value}>{ml} <Text style={F.body}>ml</Text></Text>
       </Pressable>)}
     </View>
-
     {!!toast && <Text accessibilityLiveRegion="polite" style={{ ...F.body, color: D.lime }}>{toast}</Text>}
 
     {!uid && <Text style={F.body}>Sign in to save a water entry.</Text>}

@@ -1,3 +1,5 @@
+import { NutritionContext } from "@/components/nutrition/NutritionTaskUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { Button, Choice, Field, Heading, IconButton, Item, Panel, TaskPage } from "@/components/somata/TaskUI";
 // app/(modals)/diet-preferences.tsx
 // Drop-in ✅
@@ -223,6 +225,10 @@ function TokenInput({
 }
 
 export default function DietPreferencesModal() {
+  return <SomataTaskAppearance><DietPreferencesModalContent /></SomataTaskAppearance>;
+}
+
+function DietPreferencesModalContent() {
   const router = useRouter();
   const { colors, isDark } = useProfileFlowTheme();
   const { user } = useAuth();
@@ -810,32 +816,29 @@ export default function DietPreferencesModal() {
     </ScrollView>
   );
 
-  return (<TaskPage title="Make food feel like you" section="Diet preferences" subtitle="Optional preferences for meal suggestions. Leave anything blank." onBack={() => router.back()} footer={<Button primary label={saving ? "Saving…" : "Save preferences"} disabled={saving} onPress={onSave} />}>
-    <Field label="Find a preference" value={query} onChangeText={setQuery} />
-    <View style={{ gap: 12 }}>
-      <Heading title="Dietary restrictions" />
+  return (<TaskPage title="Diet choices" section="Diet preferences" subtitle="Optional preferences for meal suggestions. Leave anything blank." onBack={() => router.back()} footer={<Button primary label={saving ? "Saving…" : "Save preferences"} disabled={saving} onPress={onSave} />}>
+    <NutritionContext label="Personal, optional" title="Food that works for you" detail="Choose what matters to you. Nothing changes until you save your preferences." icon="leaf-outline" />
+    <Panel><Heading title="Find your choices" /><Field label="Find a preference" value={query} onChangeText={setQuery} /></Panel>
+    <Panel><Heading title="Dietary restrictions" detail="Select the dietary patterns you follow." />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {RESTRICTIONS.filter(o => !query.trim() || o.label.toLowerCase().includes(query.toLowerCase())).map(o => <Choice key={o.key} label={o.label} selected={prefs.restrictions.includes(o.key)} onPress={() => setPrefs(p => ({ ...p, restrictions: toggleInList(p.restrictions, o.key) }))} />)}
       </View>
-    </View>
-    <View style={{ gap: 12 }}>
-      <Heading title="Allergies" />
+    </Panel>
+    <Panel><Heading title="Allergies" detail="Keep your recorded allergy choices together." />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {ALLERGIES.filter(o => !query.trim() || o.label.toLowerCase().includes(query.toLowerCase())).map(o => <Choice key={o.key} label={o.label} selected={prefs.allergies.includes(o.key)} onPress={() => setPrefs(p => ({ ...p, allergies: toggleInList(p.allergies, o.key) }))} />)}
       </View>
-    </View>
-    <View style={{ gap: 12 }}>
-      <Heading title="More of" />
+    </Panel>
+    <Panel><Heading title="More of" detail="Foods and nutrients you want to emphasize." />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {MORE_OF.filter(o => !query.trim() || o.label.toLowerCase().includes(query.toLowerCase())).map(o => <Choice key={o.key} label={o.label} selected={prefs.moreOf.includes(o.key)} onPress={() => setPrefs(p => ({ ...p, moreOf: toggleInList(p.moreOf, o.key) }))} />)}
       </View>
-    </View>
-    <View style={{ gap: 12 }}>
-      <Heading title="Avoid or limit" />
+    </Panel>
+    <Panel><Heading title="Avoid or limit" detail="Choose what you prefer to limit." />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {AVOID_LIMIT.filter(o => !query.trim() || o.label.toLowerCase().includes(query.toLowerCase())).map(o => <Choice key={o.key} label={o.label} selected={prefs.avoidLimit.includes(o.key)} onPress={() => setPrefs(p => ({ ...p, avoidLimit: toggleInList(p.avoidLimit, o.key) }))} />)}
       </View>
-    </View>
+    </Panel>
     <Panel>
       <Heading title="Foods you enjoy" />
       <TokenInput placeholder="Add a food" onAdd={t => setPrefs(p => ({ ...p, likes: uniqTokens([...(p.likes || []), t]) }))} />
@@ -850,7 +853,7 @@ export default function DietPreferencesModal() {
         {(prefs.dislikes || []).map(t => <Item key={t} title={t} action={<IconButton icon="close" label={`Remove ${t}`} onPress={() => setPrefs(p => ({ ...p, dislikes: (p.dislikes || []).filter(x => x !== t) }))} />} />)}
       </View>
     </Panel>
-    <Field label="Notes" multiline value={prefs.notes || ""} onChangeText={notes => setPrefs(p => ({ ...p, notes }))} />
+    <Panel><Heading title="Anything else?" /><Field label="Notes" multiline value={prefs.notes || ""} onChangeText={notes => setPrefs(p => ({ ...p, notes }))} style={{ minHeight: 110, textAlignVertical: "top" }} /></Panel>
     <Button label="Reset to empty" onPress={() => { Haptics.selectionAsync(); setPrefs(DEFAULT_DIET_PREFERENCES); }} />
   </TaskPage>);
 }

@@ -1,3 +1,5 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
 import { Button, Choice, Field, Heading, Item, Panel, TaskSheet } from "@/components/somata/TaskUI";
 // components/activity/ActivityLogSheet.tsx
 
@@ -50,7 +52,11 @@ type Props = {
 
 type Tab = "quick" | "log";
 
-export default function ActivityLogSheet({
+export default function ActivityLogSheet(props: Props) {
+  return <SomataTaskAppearance><ActivityLogSheetContent {...props} /></SomataTaskAppearance>;
+}
+
+function ActivityLogSheetContent({
   visible,
   onClose,
   editing,
@@ -218,21 +224,21 @@ export default function ActivityLogSheet({
 
   return (<TaskSheet title={editing ? 'Edit activity' : 'Move your way'} visible={visible} onClose={onClose}>
 
-    <View style={{ flexDirection: 'row', gap: 8 }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {(['quick', 'log'] as const).map(t => <Choice key={t} label={t === 'quick' ? 'Quick log' : 'Custom activity'} selected={tab === t} onPress={() => { hapticLight(); setTab(t); }} />)}
     </View>
 
-    {tab === 'quick' && !editing ? <><Heading title="A little movement counts" detail="Choose a preset to add it to your activity log." />{defaultPresets.map((p, i) => <Item key={i} title={p.label || p.type} detail={`${p.minutes} minutes · ${p.intensity}`} icon="walk-outline" onPress={() => quickAdd(p)} />)}<Button label="More options" onPress={() => { hapticLight(); setTab('log'); }} /></> : <>
-      <Heading title="Activity" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+    {tab === 'quick' && !editing ? <><WorkoutIntro label="Quick activity" title="A short session still counts." detail="Selecting a preset logs it immediately. Use Custom activity to enter your own details." icon="walk-outline" /><Heading title="A little movement counts" detail="Choose a preset to add it to your activity log." />{defaultPresets.map((p, i) => <Panel key={i}><Item title={p.label || p.type} detail={`${p.minutes} minutes · ${p.intensity}`} icon="walk-outline" onPress={() => quickAdd(p)} /></Panel>)}<Button label="More options" onPress={() => { hapticLight(); setTab('log'); }} /></> : <>
+      <Panel accent><Heading title="Activity & effort" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {types.map(t => <Choice key={t} label={t} selected={type === t} onPress={() => { hapticLight(); setType(t); }} />)}
       </View>
       <Field label="Duration · minutes" value={minutes} keyboardType="number-pad" onChangeText={v => setMinutes(v.replace(/[^\d]/g, ''))} /><Heading title="Intensity" /><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {intensities.map(i => <Choice key={i} label={i} selected={intensity === i} onPress={() => { hapticLight(); setIntensity(i); }} />)}
       </View>
-      <Panel>
+      </Panel><Panel>
         <Heading title="Optional details" detail="Leave values blank when they are not recorded." />
-        <Field label="Calories" keyboardType="number-pad" value={calories} onChangeText={v => setCalories(v.replace(/[^\d]/g, ''))} />
-        <Field label="Steps" keyboardType="number-pad" value={steps} onChangeText={v => setSteps(v.replace(/[^\d]/g, ''))} />
+        <WorkoutFields><Field label="Calories" keyboardType="number-pad" value={calories} onChangeText={v => setCalories(v.replace(/[^\d]/g, ''))} />
+        <Field label="Steps" keyboardType="number-pad" value={steps} onChangeText={v => setSteps(v.replace(/[^\d]/g, ''))} /></WorkoutFields>
         <Field label="Note" multiline value={note} onChangeText={setNote} />
       </Panel><Button primary label={editing ? 'Save changes' : 'Log activity'} onPress={saveFromForm} />{!!editing && <Button danger label="Delete activity" onPress={confirmDelete} />}</>}
   </TaskSheet>

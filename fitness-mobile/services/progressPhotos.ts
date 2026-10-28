@@ -1,6 +1,7 @@
 import { accountStorage, type AccountStore } from '@/services/local/accountStore';
 import * as FileSystem from "expo-file-system/legacy";
 import { accountPhotoDirectory, deleteOwnedPhoto } from "./local/accountFiles";
+import { ownedPhotoRelativePath, resolveOwnedPhotoUri } from './local/photoPaths';
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 
 import { loadBodyMetricsHistory } from "@/services/profile/bodyMetrics";
@@ -12,6 +13,8 @@ export interface ProgressPhoto {
   weight: number | null;
   note: string | null;
   createdAt: string;
+  /** Read-time availability only; never persisted over the original record. */
+  imageStatus?: 'available' | 'missing' | 'unverified' | 'unavailable';
 }
 
 const KEY = "progress_photos";
@@ -96,7 +99,8 @@ export async function addPhoto(uri: string, note?: string, localStore: AccountSt
     createdAt: created,
   };
   const current = await readAll(localStore);
-  current.push(photo);
+  // Persist the owner-relative filename, not an installation-specific iOS sandbox path.
+  current.push({ ...photo, uri: ownedPhotoRelativePath(localStore.uid!, ownedUri)! });
   current.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   await writeAll(current, localStore);
   return photo;
@@ -104,7 +108,25 @@ export async function addPhoto(uri: string, note?: string, localStore: AccountSt
 
 export async function getPhotos(localStore: AccountStore = accountStorage()): Promise<ProgressPhoto[]> {
   const rows = await readAll(localStore);
-  return rows.slice().sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  localStore.assertCurrent();
+  const resolved = await Promise.all(rows.map(async photo => {
+    localStore.assertCurrent();
+    const relative = ownedPhotoRelativePath(localStore.uid!, photo.uri);
+    if (!relative) return { ...photo, uri: '', imageStatus: 'unverified' as const };
+    if (!FileSystem.documentDirectory) return { ...photo, uri: '', imageStatus: 'unavailable' as const };
+    const uri = resolveOwnedPhotoUri(localStore.uid!, relative, FileSystem.documentDirectory)!;
+    let imageStatus: ProgressPhoto['imageStatus'];
+    try {
+      const info = await FileSystem.getInfoAsync(uri);
+      imageStatus = info.exists && !info.isDirectory ? 'available' : 'missing';
+    } catch {
+      imageStatus = 'unavailable';
+    }
+    localStore.assertCurrent();
+    return { ...photo, uri, imageStatus };
+  }));
+  localStore.assertCurrent();
+  return resolved.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
 export async function deletePhoto(id: string, localStore: AccountStore = accountStorage()): Promise<void> {
@@ -112,7 +134,11 @@ export async function deletePhoto(id: string, localStore: AccountStore = account
   const target = rows.find((item) => item.id === id);
   const next = rows.filter((item) => item.id !== id);
   await writeAll(next, localStore);
-  if (target?.uri) await deleteOwnedPhoto(localStore.uid!, target.uri);
+  // Removing a journal record never authorizes deleting an ambiguous legacy file.
+  if (target?.uri && ownedPhotoRelativePath(localStore.uid!, target.uri)) {
+    localStore.assertCurrent();
+    await deleteOwnedPhoto(localStore.uid!, target.uri);
+  }
 }
 
 export async function getLatestPhoto(localStore: AccountStore = accountStorage()): Promise<ProgressPhoto | null> {

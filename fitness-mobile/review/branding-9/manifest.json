@@ -1,0 +1,1662 @@
+{
+  "synthetic": true,
+  "native": false,
+  "entries": [
+    {
+      "name": "N01-search",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-dark-N01-search-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-search",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-N01-search-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-search",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-N01-search-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N01-search",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-light-N01-search-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-search",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-N01-search-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-search",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-N01-search-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N01-empty",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-dark-N01-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-empty",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-N01-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-empty",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-light-N01-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-empty",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-N01-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-loading",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-dark-N01-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-loading",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-N01-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-loading",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-light-N01-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-loading",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-N01-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-frequent",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-dark-N01-frequent-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-frequent",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-N01-frequent-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-frequent",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-light-N01-frequent-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-frequent",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-N01-frequent-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-describe-error",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-dark-N01-describe-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-describe-error",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-N01-describe-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-describe-error",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-light-N01-describe-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-describe-error",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-N01-describe-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-barcode",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-dark-N01-barcode-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-barcode",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-N01-barcode-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-barcode",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-light-N01-barcode-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-barcode",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-N01-barcode-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-manual",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-dark-N01-manual-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-manual",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-N01-manual-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N01-manual",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-light-N01-manual-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N01-manual",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-N01-manual-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O05-review",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-dark-O05-review-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O05-review",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-O05-review-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O05-review",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-O05-review-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O05-review",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-light-O05-review-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O05-review",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-O05-review-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O05-review",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-O05-review-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O06-matches",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-dark-O06-matches-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O06-matches",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-dark-O06-matches-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O06-matches",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "before-light-O06-matches-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O06-matches",
+      "route": "app/(modals)/add-meal.tsx",
+      "file": "after-light-O06-matches-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N02-picks",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "before-dark-N02-picks-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N02-picks",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "after-dark-N02-picks-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N02-picks",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "before-light-N02-picks-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N02-picks",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "after-light-N02-picks-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N02-empty",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "before-dark-N02-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N02-empty",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "after-dark-N02-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N02-empty",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "before-light-N02-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N02-empty",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "after-light-N02-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O07-macros",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "before-dark-O07-macros-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O07-macros",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "after-dark-O07-macros-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O07-macros",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "before-light-O07-macros-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O07-macros",
+      "route": "app/(modals)/quick-add.tsx",
+      "file": "after-light-O07-macros-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O04-edit",
+      "route": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "file": "before-dark-O04-edit-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O04-edit",
+      "route": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "file": "after-dark-O04-edit-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O04-edit",
+      "route": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "file": "after-dark-O04-edit-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O04-edit",
+      "route": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "file": "before-light-O04-edit-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O04-edit",
+      "route": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "file": "after-light-O04-edit-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O04-edit",
+      "route": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "file": "after-light-O04-edit-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O04-saving",
+      "route": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "file": "before-dark-O04-saving-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O04-saving",
+      "route": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "file": "after-dark-O04-saving-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O04-saving",
+      "route": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "file": "before-light-O04-saving-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O04-saving",
+      "route": "components/nutrition/uiNew/EditFoodSheet.tsx",
+      "file": "after-light-O04-saving-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N03-capture",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "before-dark-N03-capture-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N03-capture",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "after-dark-N03-capture-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N03-capture",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "before-light-N03-capture-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N03-capture",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "after-light-N03-capture-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N03-review",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "before-dark-N03-review-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N03-review",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "after-dark-N03-review-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N03-review",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "after-dark-N03-review-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N03-review",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "before-light-N03-review-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N03-review",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "after-light-N03-review-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N03-review",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "after-light-N03-review-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N03-processing",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "before-dark-N03-processing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N03-processing",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "after-dark-N03-processing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N03-processing",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "before-light-N03-processing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N03-processing",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "after-light-N03-processing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N03-error",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "before-dark-N03-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N03-error",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "after-dark-N03-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N03-error",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "before-light-N03-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N03-error",
+      "route": "app/nutrition/scan-meal.tsx",
+      "file": "after-light-N03-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N04-capture",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "before-dark-N04-capture-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N04-capture",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "after-dark-N04-capture-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N04-capture",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "after-dark-N04-capture-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N04-capture",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "before-light-N04-capture-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N04-capture",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "after-light-N04-capture-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N04-capture",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "after-light-N04-capture-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N04-review",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "before-dark-N04-review-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N04-review",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "after-dark-N04-review-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N04-review",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "before-light-N04-review-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N04-review",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "after-light-N04-review-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N04-processing",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "before-dark-N04-processing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N04-processing",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "after-dark-N04-processing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N04-processing",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "before-light-N04-processing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N04-processing",
+      "route": "app/nutrition/scan-meal-v2.tsx",
+      "file": "after-light-N04-processing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O09-add",
+      "route": "components/scanMeal/new/AddFoodSheet.tsx",
+      "file": "before-dark-O09-add-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O09-add",
+      "route": "components/scanMeal/new/AddFoodSheet.tsx",
+      "file": "after-dark-O09-add-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O09-add",
+      "route": "components/scanMeal/new/AddFoodSheet.tsx",
+      "file": "before-light-O09-add-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O09-add",
+      "route": "components/scanMeal/new/AddFoodSheet.tsx",
+      "file": "after-light-O09-add-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O09-unknown",
+      "route": "components/scanMeal/new/AddFoodSheet.tsx",
+      "file": "before-dark-O09-unknown-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O09-unknown",
+      "route": "components/scanMeal/new/AddFoodSheet.tsx",
+      "file": "after-dark-O09-unknown-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O09-unknown",
+      "route": "components/scanMeal/new/AddFoodSheet.tsx",
+      "file": "before-light-O09-unknown-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O09-unknown",
+      "route": "components/scanMeal/new/AddFoodSheet.tsx",
+      "file": "after-light-O09-unknown-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O10-edit",
+      "route": "components/scanMeal/new/EditFoodSheet.tsx",
+      "file": "before-dark-O10-edit-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O10-edit",
+      "route": "components/scanMeal/new/EditFoodSheet.tsx",
+      "file": "after-dark-O10-edit-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O10-edit",
+      "route": "components/scanMeal/new/EditFoodSheet.tsx",
+      "file": "before-light-O10-edit-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O10-edit",
+      "route": "components/scanMeal/new/EditFoodSheet.tsx",
+      "file": "after-light-O10-edit-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O11-explain",
+      "route": "components/scanMeal/new/ExplainAIModal.tsx",
+      "file": "before-dark-O11-explain-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O11-explain",
+      "route": "components/scanMeal/new/ExplainAIModal.tsx",
+      "file": "after-dark-O11-explain-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O11-explain",
+      "route": "components/scanMeal/new/ExplainAIModal.tsx",
+      "file": "before-light-O11-explain-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O11-explain",
+      "route": "components/scanMeal/new/ExplainAIModal.tsx",
+      "file": "after-light-O11-explain-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N05-builder",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-dark-N05-builder-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N05-builder",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-dark-N05-builder-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N05-builder",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-dark-N05-builder-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N05-builder",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-light-N05-builder-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N05-builder",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-light-N05-builder-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N05-builder",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-light-N05-builder-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N05-empty",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-dark-N05-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N05-empty",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-dark-N05-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N05-empty",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-light-N05-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N05-empty",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-light-N05-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N05-transfer-error",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-dark-N05-transfer-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N05-transfer-error",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-dark-N05-transfer-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N05-transfer-error",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-light-N05-transfer-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N05-transfer-error",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-light-N05-transfer-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O08-scan",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-dark-O08-scan-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O08-scan",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-dark-O08-scan-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O08-scan",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-light-O08-scan-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O08-scan",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-light-O08-scan-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O08-describe",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-dark-O08-describe-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O08-describe",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-dark-O08-describe-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O08-describe",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-light-O08-describe-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O08-describe",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-light-O08-describe-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O08-barcode",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-dark-O08-barcode-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O08-barcode",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-dark-O08-barcode-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O08-barcode",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-light-O08-barcode-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O08-barcode",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-light-O08-barcode-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O08-manual",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-dark-O08-manual-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O08-manual",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-dark-O08-manual-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O08-manual",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "before-light-O08-manual-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O08-manual",
+      "route": "app/(modals)/meal-builder.tsx",
+      "file": "after-light-O08-manual-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N07-selected",
+      "route": "app/(modals)/diet-preferences.tsx",
+      "file": "before-dark-N07-selected-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N07-selected",
+      "route": "app/(modals)/diet-preferences.tsx",
+      "file": "after-dark-N07-selected-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N07-selected",
+      "route": "app/(modals)/diet-preferences.tsx",
+      "file": "after-dark-N07-selected-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N07-selected",
+      "route": "app/(modals)/diet-preferences.tsx",
+      "file": "before-light-N07-selected-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N07-selected",
+      "route": "app/(modals)/diet-preferences.tsx",
+      "file": "after-light-N07-selected-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N07-selected",
+      "route": "app/(modals)/diet-preferences.tsx",
+      "file": "after-light-N07-selected-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N07-empty",
+      "route": "app/(modals)/diet-preferences.tsx",
+      "file": "before-dark-N07-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N07-empty",
+      "route": "app/(modals)/diet-preferences.tsx",
+      "file": "after-dark-N07-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N07-empty",
+      "route": "app/(modals)/diet-preferences.tsx",
+      "file": "before-light-N07-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N07-empty",
+      "route": "app/(modals)/diet-preferences.tsx",
+      "file": "after-light-N07-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N06-ideas",
+      "route": "app/(modals)/what-should-i-eat.tsx",
+      "file": "before-dark-N06-ideas-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N06-ideas",
+      "route": "app/(modals)/what-should-i-eat.tsx",
+      "file": "after-dark-N06-ideas-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N06-ideas",
+      "route": "app/(modals)/what-should-i-eat.tsx",
+      "file": "before-light-N06-ideas-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N06-ideas",
+      "route": "app/(modals)/what-should-i-eat.tsx",
+      "file": "after-light-N06-ideas-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N06-missing",
+      "route": "app/(modals)/what-should-i-eat.tsx",
+      "file": "before-dark-N06-missing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N06-missing",
+      "route": "app/(modals)/what-should-i-eat.tsx",
+      "file": "after-dark-N06-missing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N06-missing",
+      "route": "app/(modals)/what-should-i-eat.tsx",
+      "file": "before-light-N06-missing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N06-missing",
+      "route": "app/(modals)/what-should-i-eat.tsx",
+      "file": "after-light-N06-missing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N08-water",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "before-dark-N08-water-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N08-water",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "after-dark-N08-water-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N08-water",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "after-dark-N08-water-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N08-water",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "before-light-N08-water-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N08-water",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "after-light-N08-water-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N08-water",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "after-light-N08-water-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "N08-busy",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "before-dark-N08-busy-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N08-busy",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "after-dark-N08-busy-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N08-busy",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "before-light-N08-busy-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N08-busy",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "after-light-N08-busy-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N08-signed-out",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "before-dark-N08-signed-out-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N08-signed-out",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "after-dark-N08-signed-out-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N08-signed-out",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "before-light-N08-signed-out-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N08-signed-out",
+      "route": "app/(modals)/quick-hydration.tsx",
+      "file": "after-light-N08-signed-out-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N09-empty",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "before-dark-N09-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N09-empty",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "after-dark-N09-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N09-empty",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "before-light-N09-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N09-empty",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "after-light-N09-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N09-loading",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "before-dark-N09-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N09-loading",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "after-dark-N09-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N09-loading",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "before-light-N09-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N09-loading",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "after-light-N09-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N09-ideas",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "before-dark-N09-ideas-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N09-ideas",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "after-dark-N09-ideas-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "N09-ideas",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "before-light-N09-ideas-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "N09-ideas",
+      "route": "app/(modals)/ai-meal-suggestions.tsx",
+      "file": "after-light-N09-ideas-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    }
+  ]
+}

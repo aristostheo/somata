@@ -1,3 +1,4 @@
+import { SomataTaskAppearance } from "@/components/designPreview/Appearance";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useAuth } from "@/content/AuthContext";
@@ -14,7 +15,7 @@ import { FitAdaptInsightsView } from "@/components/homeFlows/FitAdaptInsightsVie
 
 type Range = 30 | 90;
 
-export default function FitAdaptInsightsScreen() {
+function FitAdaptInsightsScreenContent() {
   const { user } = useAuth();
   const router = useRouter();
   const [range, setRange] = useState<Range>(30);
@@ -113,3 +114,5 @@ export default function FitAdaptInsightsScreen() {
     events={currentEvents} busy={historyBusy} error={historyError}
     hasMore={historyUid === user?.uid && hasMore} loadHistory={(more) => { void loadHistory(more); }} />;
 }
+
+export default function FitAdaptInsightsScreen() { return <SomataTaskAppearance><FitAdaptInsightsScreenContent /></SomataTaskAppearance>; }

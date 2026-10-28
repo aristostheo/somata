@@ -1,0 +1,1411 @@
+{
+  "schemaVersion": 1,
+  "expoVersion": "57.0.24",
+  "status": "Asset preparation only; pending visual approval. Source shape variations and tiny attribution remain review items.",
+  "codec": "pngjs@3.4.0",
+  "processing": "Deterministic raster operations; source colors and alpha preserved except explicitly labeled neutral-lettering recolor, monochrome and launcher composites. Source PNGs have no color profile; interpreted as sRGB. No vector output.",
+  "sources": [
+    {
+      "path": "source/fitadapt/horizontal.png",
+      "bytes": 569546,
+      "sha256": "51da953dc559abeba8dcd4d63c6e828c049d2bcf9589e6050d61681924d96a8e",
+      "signature": "89504e470d0a1a0a",
+      "width": 2172,
+      "height": 724,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1168340,
+      "partialAlphaPixels": 398570,
+      "opaquePixels": 5618,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 55,
+        "y": 23,
+        "width": 2077,
+        "height": 643
+      },
+      "bodyBoundsAlpha128": {
+        "x": 82,
+        "y": 161,
+        "width": 2002,
+        "height": 423
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/fitadapt/powered-by.png",
+      "bytes": 512926,
+      "sha256": "9439485b2e5b80bdc1eb16998d1a18f2441e0219e57363e53a64af4bc8efd257",
+      "signature": "89504e470d0a1a0a",
+      "width": 2172,
+      "height": 724,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1198431,
+      "partialAlphaPixels": 368927,
+      "opaquePixels": 5170,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 87,
+        "y": 39,
+        "width": 2027,
+        "height": 661
+      },
+      "bodyBoundsAlpha128": {
+        "x": 195,
+        "y": 125,
+        "width": 1782,
+        "height": 462
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/fitadapt/symbol.png",
+      "bytes": 429458,
+      "sha256": "c5c2d847849d871fbabd029cdb35bfcf35e727c3edb585f2730a12fc426fbaec",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1246783,
+      "partialAlphaPixels": 323939,
+      "opaquePixels": 1794,
+      "nonzeroAlphaEdgePixels": 22,
+      "allAlphaBounds": {
+        "x": 41,
+        "y": 71,
+        "width": 1179,
+        "height": 1183
+      },
+      "bodyBoundsAlpha128": {
+        "x": 189,
+        "y": 282,
+        "width": 927,
+        "height": 728
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/navigation/community.png",
+      "bytes": 568409,
+      "sha256": "6c15e24d5d26583c67043929c99584e872c1728a1cae7c36d2ac2f50adcf7465",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1095852,
+      "partialAlphaPixels": 475059,
+      "opaquePixels": 1605,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 33,
+        "y": 45,
+        "width": 1201,
+        "height": 1161
+      },
+      "bodyBoundsAlpha128": {
+        "x": 90,
+        "y": 341,
+        "width": 1074,
+        "height": 653
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/navigation/home.png",
+      "bytes": 406391,
+      "sha256": "2297361af6359b91fbd3b81068b384d75232cc5aa6c67d0f76f394b3f0bdf1a6",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1252779,
+      "partialAlphaPixels": 317759,
+      "opaquePixels": 1978,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 69,
+        "y": 39,
+        "width": 1137,
+        "height": 1199
+      },
+      "bodyBoundsAlpha128": {
+        "x": 199,
+        "y": 228,
+        "width": 856,
+        "height": 807
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/navigation/nutrition.png",
+      "bytes": 686392,
+      "sha256": "4086e151c2949a551cabbf902d53766cb4e8951a751273e236ef72c9b13c714e",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1031004,
+      "partialAlphaPixels": 538767,
+      "opaquePixels": 2745,
+      "nonzeroAlphaEdgePixels": 5,
+      "allAlphaBounds": {
+        "x": 33,
+        "y": 0,
+        "width": 1203,
+        "height": 1192
+      },
+      "bodyBoundsAlpha128": {
+        "x": 143,
+        "y": 179,
+        "width": 991,
+        "height": 957
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/navigation/original-icon-sheet.png",
+      "bytes": 530361,
+      "sha256": "4065e52fa90248d042f0ac071958f5eea9fec5c56c344365de59af373bf48341",
+      "signature": "89504e470d0a1a0a",
+      "width": 1448,
+      "height": 1086,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1245644,
+      "partialAlphaPixels": 318720,
+      "opaquePixels": 8164,
+      "nonzeroAlphaEdgePixels": 10,
+      "allAlphaBounds": {
+        "x": 0,
+        "y": 20,
+        "width": 1428,
+        "height": 1033
+      },
+      "bodyBoundsAlpha128": {
+        "x": 67,
+        "y": 202,
+        "width": 1326,
+        "height": 751
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/navigation/profile.png",
+      "bytes": 537314,
+      "sha256": "3345e5c0760cca3abdabc1f6006ab8c61e019abac2f22cde1a43770a150610a7",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1132755,
+      "partialAlphaPixels": 437471,
+      "opaquePixels": 2290,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 130,
+        "y": 136,
+        "width": 959,
+        "height": 1032
+      },
+      "bodyBoundsAlpha128": {
+        "x": 174,
+        "y": 164,
+        "width": 902,
+        "height": 963
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/navigation/progress.png",
+      "bytes": 439779,
+      "sha256": "ffec231c8e07e5f415e6f932f0a7059de020962e37c39db510950c572249da6a",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1224018,
+      "partialAlphaPixels": 346808,
+      "opaquePixels": 1690,
+      "nonzeroAlphaEdgePixels": 54,
+      "allAlphaBounds": {
+        "x": 258,
+        "y": 101,
+        "width": 934,
+        "height": 1153
+      },
+      "bodyBoundsAlpha128": {
+        "x": 265,
+        "y": 245,
+        "width": 780,
+        "height": 793
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/navigation/recovery.png",
+      "bytes": 433332,
+      "sha256": "c95a04a85863d5e47e9790b739e496d6aa65e08a0ec00694c50f00521972ce9c",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1245697,
+      "partialAlphaPixels": 324649,
+      "opaquePixels": 2170,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 65,
+        "y": 46,
+        "width": 1133,
+        "height": 1192
+      },
+      "bodyBoundsAlpha128": {
+        "x": 195,
+        "y": 224,
+        "width": 879,
+        "height": 834
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/navigation/scan.png",
+      "bytes": 447720,
+      "sha256": "9bca30597a8e227963cddc09fdc0f9017f86682dd722831c5e2a4c8577da889c",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1244288,
+      "partialAlphaPixels": 326490,
+      "opaquePixels": 1738,
+      "nonzeroAlphaEdgePixels": 15,
+      "allAlphaBounds": {
+        "x": 0,
+        "y": 53,
+        "width": 1236,
+        "height": 1201
+      },
+      "bodyBoundsAlpha128": {
+        "x": 181,
+        "y": 206,
+        "width": 893,
+        "height": 839
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/navigation/training.png",
+      "bytes": 513633,
+      "sha256": "d9ff083c8ba8ded8a4b4721fc384fa420b04c03a8b0e6deed50363167725c9cc",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1140516,
+      "partialAlphaPixels": 430083,
+      "opaquePixels": 1917,
+      "nonzeroAlphaEdgePixels": 4,
+      "allAlphaBounds": {
+        "x": 0,
+        "y": 99,
+        "width": 1210,
+        "height": 1115
+      },
+      "bodyBoundsAlpha128": {
+        "x": 80,
+        "y": 344,
+        "width": 1093,
+        "height": 610
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/references/colours.png",
+      "bytes": 304536,
+      "sha256": "b83461f8e559964de9a9d4a14733cc031298951afe81e960896eaf62fc48d582",
+      "signature": "89504e470d0a1a0a",
+      "width": 1448,
+      "height": 1086,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1410992,
+      "partialAlphaPixels": 158962,
+      "opaquePixels": 2574,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 35,
+        "y": 268,
+        "width": 1381,
+        "height": 656
+      },
+      "bodyBoundsAlpha128": {
+        "x": 39,
+        "y": 405,
+        "width": 1371,
+        "height": 257
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/somata/horizontal.png",
+      "bytes": 534423,
+      "sha256": "34d35432a885e9f991fb523e0e83800b724aeb9542ef0e126dde47e00fda9ea4",
+      "signature": "89504e470d0a1a0a",
+      "width": 2172,
+      "height": 724,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1110538,
+      "partialAlphaPixels": 457638,
+      "opaquePixels": 4352,
+      "nonzeroAlphaEdgePixels": 11,
+      "allAlphaBounds": {
+        "x": 33,
+        "y": 9,
+        "width": 2053,
+        "height": 715
+      },
+      "bodyBoundsAlpha128": {
+        "x": 107,
+        "y": 106,
+        "width": 1957,
+        "height": 497
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/somata/stacked.png",
+      "bytes": 539486,
+      "sha256": "b9aaac2aa391e77763d658ee58974e444208a9c790dbee756ce6ff416a1794dd",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1152784,
+      "partialAlphaPixels": 415616,
+      "opaquePixels": 4116,
+      "nonzeroAlphaEdgePixels": 112,
+      "allAlphaBounds": {
+        "x": 0,
+        "y": 19,
+        "width": 1240,
+        "height": 1235
+      },
+      "bodyBoundsAlpha128": {
+        "x": 98,
+        "y": 192,
+        "width": 1058,
+        "height": 887
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    },
+    {
+      "path": "source/somata/symbol.png",
+      "bytes": 684829,
+      "sha256": "18bb6ecb905296e713552bdd5d7320539f421a5ba74b627b44ea0f5bc0ef6c72",
+      "signature": "89504e470d0a1a0a",
+      "width": 1254,
+      "height": 1254,
+      "depth": 8,
+      "color_type": 6,
+      "compression": 0,
+      "filter": 0,
+      "interlace": 0,
+      "transparentPixels": 1043096,
+      "partialAlphaPixels": 527593,
+      "opaquePixels": 1827,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 49,
+        "y": 35,
+        "width": 1165,
+        "height": 1195
+      },
+      "bodyBoundsAlpha128": {
+        "x": 88,
+        "y": 101,
+        "width": 1111,
+        "height": 1063
+      },
+      "pngChunks": [
+        "IHDR",
+        "caBX",
+        "IDAT",
+        "IEND"
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "path": "somata/horizontal-dark.png",
+      "source": "source/somata/horizontal.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":33,\"y\":9,\"width\":2053,\"height\":715}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs.",
+      "usage": "horizontal brand lockup; no lettering, slogan or mark geometry redrawn. Original white lettering for dark backgrounds.",
+      "status": "review-required",
+      "width": 1600,
+      "height": 578,
+      "transparentPixels": 649528,
+      "partialAlphaPixels": 275256,
+      "opaquePixels": 16,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 16,
+        "y": 16,
+        "width": 1568,
+        "height": 546
+      },
+      "bodyBoundsAlpha128": {
+        "x": 73,
+        "y": 91,
+        "width": 1494,
+        "height": 378
+      },
+      "bytes": 298539,
+      "sha256": "8201a473ae6385775e891900a3ae2a42f0e1c7301decc7a4263c458df6221209",
+      "pngColorType": 6
+    },
+    {
+      "path": "somata/horizontal-light.png",
+      "source": "source/somata/horizontal.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":33,\"y\":9,\"width\":2053,\"height\":715}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs. Before resize, recolor 289553 neutral white pixels (min RGB>=128, max-min<=32) to Charcoal #0B0E12; original alpha and every other RGB pixel unchanged.",
+      "usage": "horizontal brand lockup; no lettering, slogan or mark geometry redrawn. Charcoal lettering for light backgrounds; review small-size contrast.",
+      "status": "review-required",
+      "width": 1600,
+      "height": 578,
+      "transparentPixels": 649528,
+      "partialAlphaPixels": 275256,
+      "opaquePixels": 16,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 16,
+        "y": 16,
+        "width": 1568,
+        "height": 546
+      },
+      "bodyBoundsAlpha128": {
+        "x": 73,
+        "y": 91,
+        "width": 1494,
+        "height": 378
+      },
+      "bytes": 225835,
+      "sha256": "41597643966602dce7f018f7c337076f05f94b2d2b6379515ee783d2509d410b",
+      "pngColorType": 6
+    },
+    {
+      "path": "somata/horizontal-mono-bone.png",
+      "source": "source/somata/horizontal.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":33,\"y\":9,\"width\":2053,\"height\":715}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs. Then set RGB to #F4F3EE; alpha unchanged. Gradient shading intentionally collapsed.",
+      "usage": "horizontal monochrome lockup; Bone for dark, Charcoal for light backgrounds.",
+      "status": "review-required",
+      "width": 1600,
+      "height": 578,
+      "transparentPixels": 649528,
+      "partialAlphaPixels": 275256,
+      "opaquePixels": 16,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 16,
+        "y": 16,
+        "width": 1568,
+        "height": 546
+      },
+      "bodyBoundsAlpha128": {
+        "x": 73,
+        "y": 91,
+        "width": 1494,
+        "height": 378
+      },
+      "bytes": 102551,
+      "sha256": "8a654853c79a8cc5033d5abad8db5a4f70881a3f88c360b0acae824de5ad699e",
+      "pngColorType": 6
+    },
+    {
+      "path": "somata/horizontal-mono-charcoal.png",
+      "source": "source/somata/horizontal.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":33,\"y\":9,\"width\":2053,\"height\":715}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs. Then set RGB to #0B0E12; alpha unchanged. Gradient shading intentionally collapsed.",
+      "usage": "horizontal monochrome lockup; Bone for dark, Charcoal for light backgrounds.",
+      "status": "review-required",
+      "width": 1600,
+      "height": 578,
+      "transparentPixels": 649528,
+      "partialAlphaPixels": 275256,
+      "opaquePixels": 16,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 16,
+        "y": 16,
+        "width": 1568,
+        "height": 546
+      },
+      "bodyBoundsAlpha128": {
+        "x": 73,
+        "y": 91,
+        "width": 1494,
+        "height": 378
+      },
+      "bytes": 102652,
+      "sha256": "f53b78208396fa15f53e1fab12372dba2595833e4836bd40b733b9e59b50b2b0",
+      "pngColorType": 6
+    },
+    {
+      "path": "somata/stacked-dark.png",
+      "source": "source/somata/stacked.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":0,\"y\":19,\"width\":1240,\"height\":1235}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs.",
+      "usage": "stacked brand lockup; no lettering, slogan or mark geometry redrawn. Original white lettering for dark backgrounds.",
+      "status": "review-required",
+      "width": 1272,
+      "height": 1267,
+      "transparentPixels": 1191892,
+      "partialAlphaPixels": 415616,
+      "opaquePixels": 4116,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 16,
+        "y": 16,
+        "width": 1240,
+        "height": 1235
+      },
+      "bodyBoundsAlpha128": {
+        "x": 114,
+        "y": 189,
+        "width": 1058,
+        "height": 887
+      },
+      "bytes": 456710,
+      "sha256": "e139aa81a8bb51ab1b7275be0c0b5356b0c494cd1f385c7b67721766929a5c4c",
+      "pngColorType": 6
+    },
+    {
+      "path": "somata/stacked-light.png",
+      "source": "source/somata/stacked.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":0,\"y\":19,\"width\":1240,\"height\":1235}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs. Before resize, recolor 155351 neutral white pixels (min RGB>=128, max-min<=32) to Charcoal #0B0E12; original alpha and every other RGB pixel unchanged.",
+      "usage": "stacked brand lockup; no lettering, slogan or mark geometry redrawn. Charcoal lettering for light backgrounds; review small-size contrast.",
+      "status": "review-required",
+      "width": 1272,
+      "height": 1267,
+      "transparentPixels": 1191892,
+      "partialAlphaPixels": 415616,
+      "opaquePixels": 4116,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 16,
+        "y": 16,
+        "width": 1240,
+        "height": 1235
+      },
+      "bodyBoundsAlpha128": {
+        "x": 114,
+        "y": 189,
+        "width": 1058,
+        "height": 887
+      },
+      "bytes": 381524,
+      "sha256": "a382a6c432618bdd91e21211266547a2f7fc4c03f0dcbf2180ae269954014221",
+      "pngColorType": 6
+    },
+    {
+      "path": "somata/stacked-mono-bone.png",
+      "source": "source/somata/stacked.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":0,\"y\":19,\"width\":1240,\"height\":1235}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs. Then set RGB to #F4F3EE; alpha unchanged. Gradient shading intentionally collapsed.",
+      "usage": "stacked monochrome lockup; Bone for dark, Charcoal for light backgrounds.",
+      "status": "review-required",
+      "width": 1272,
+      "height": 1267,
+      "transparentPixels": 1191892,
+      "partialAlphaPixels": 415616,
+      "opaquePixels": 4116,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 16,
+        "y": 16,
+        "width": 1240,
+        "height": 1235
+      },
+      "bodyBoundsAlpha128": {
+        "x": 114,
+        "y": 189,
+        "width": 1058,
+        "height": 887
+      },
+      "bytes": 131130,
+      "sha256": "58cba7eaddc7a85f1cc290d4ff0010091081826f4aeec20864b6bfe3d0b091de",
+      "pngColorType": 6
+    },
+    {
+      "path": "somata/stacked-mono-charcoal.png",
+      "source": "source/somata/stacked.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":0,\"y\":19,\"width\":1240,\"height\":1235}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs. Then set RGB to #0B0E12; alpha unchanged. Gradient shading intentionally collapsed.",
+      "usage": "stacked monochrome lockup; Bone for dark, Charcoal for light backgrounds.",
+      "status": "review-required",
+      "width": 1272,
+      "height": 1267,
+      "transparentPixels": 1191892,
+      "partialAlphaPixels": 415616,
+      "opaquePixels": 4116,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 16,
+        "y": 16,
+        "width": 1240,
+        "height": 1235
+      },
+      "bodyBoundsAlpha128": {
+        "x": 114,
+        "y": 189,
+        "width": 1058,
+        "height": 887
+      },
+      "bytes": 130596,
+      "sha256": "f40e853344e07390f8f9dfde3a984aac6d6e3ef0200076d52df4f5c44ccbc97b",
+      "pngColorType": 6
+    },
+    {
+      "path": "fitadapt/horizontal-dark.png",
+      "source": "source/fitadapt/horizontal.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":55,\"y\":23,\"width\":2077,\"height\":643}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs.",
+      "usage": "horizontal brand lockup; no lettering, slogan or mark geometry redrawn. Original white lettering for dark backgrounds.",
+      "status": "review-required",
+      "width": 1600,
+      "height": 517,
+      "transparentPixels": 589733,
+      "partialAlphaPixels": 237466,
+      "opaquePixels": 1,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 16,
+        "y": 16,
+        "width": 1568,
+        "height": 485
+      },
+      "bodyBoundsAlpha128": {
+        "x": 37,
+        "y": 120,
+        "width": 1511,
+        "height": 319
+      },
+      "bytes": 306955,
+      "sha256": "a118933ab9da523613f0f1fd8b9b2d451cd0e1f01020380fcfe814521183fe72",
+      "pngColorType": 6
+    },
+    {
+      "path": "fitadapt/horizontal-light.png",
+      "source": "source/fitadapt/horizontal.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":55,\"y\":23,\"width\":2077,\"height\":643}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs. Before resize, recolor 125430 neutral white pixels (min RGB>=128, max-min<=32) to Charcoal #0B0E12; original alpha and every other RGB pixel unchanged.",
+      "usage": "horizontal brand lockup; no lettering, slogan or mark geometry redrawn. Charcoal lettering for light backgrounds; review small-size contrast.",
+      "status": "review-required",
+      "width": 1600,
+      "height": 517,
+      "transparentPixels": 589733,
+      "partialAlphaPixels": 237466,
+      "opaquePixels": 1,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 16,
+        "y": 16,
+        "width": 1568,
+        "height": 485
+      },
+      "bodyBoundsAlpha128": {
+        "x": 37,
+        "y": 120,
+        "width": 1511,
+        "height": 319
+      },
+      "bytes": 276320,
+      "sha256": "ccbea5a23118e7bd0510f74797d36810e547274badf3386eb4cb7971f67ee81f",
+      "pngColorType": 6
+    },
+    {
+      "path": "fitadapt/powered-by-dark.png",
+      "source": "source/fitadapt/powered-by.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":87,\"y\":39,\"width\":2027,\"height\":661}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs.",
+      "usage": "Existing attribution lockup; retain original tagline. Not suitable for tiny inline attribution without an approved simpler master. Original white lettering for dark backgrounds.",
+      "status": "review-required",
+      "width": 960,
+      "height": 334,
+      "transparentPixels": 239633,
+      "partialAlphaPixels": 81007,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 17,
+        "y": 53,
+        "width": 866,
+        "height": 217
+      },
+      "bodyBoundsAlpha128": {
+        "x": 65,
+        "y": 55,
+        "width": 816,
+        "height": 212
+      },
+      "bytes": 116040,
+      "sha256": "2f7bc56151f7abef15271d891646a7d4eb3d8112a28a833b9ef31dca452cfc63",
+      "pngColorType": 6
+    },
+    {
+      "path": "fitadapt/powered-by-light.png",
+      "source": "source/fitadapt/powered-by.png",
+      "edits": "Crop fully transparent outer padding to {\"x\":87,\"y\":39,\"width\":2027,\"height\":661}; proportional area downsample; add 16px transparent margin; source RGB/alpha retained; metadata omitted. No edge repairs. Before resize, recolor 131344 neutral white pixels (min RGB>=128, max-min<=32) to Charcoal #0B0E12; original alpha and every other RGB pixel unchanged.",
+      "usage": "Existing attribution lockup; retain original tagline. Not suitable for tiny inline attribution without an approved simpler master. Charcoal lettering for light backgrounds; review small-size contrast.",
+      "status": "review-required",
+      "width": 960,
+      "height": 334,
+      "transparentPixels": 239633,
+      "partialAlphaPixels": 81007,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 17,
+        "y": 53,
+        "width": 866,
+        "height": 217
+      },
+      "bodyBoundsAlpha128": {
+        "x": 65,
+        "y": 55,
+        "width": 816,
+        "height": 212
+      },
+      "bytes": 107040,
+      "sha256": "1d0f9004fd8214eed44924dd9726a9eb0865f363a58835b541c26db07586adae",
+      "pngColorType": 6
+    },
+    {
+      "path": "somata/symbol-color.png",
+      "source": "source/somata/symbol.png",
+      "edits": "Center alpha>=128 body; retain all source pixels; proportional downsample onto transparent 768 square. Same color asset for light and dark surfaces.",
+      "usage": "Standalone mark on light/dark surfaces; review shape consistency with the separate lockup sources.",
+      "status": "review-required",
+      "width": 768,
+      "height": 768,
+      "transparentPixels": 426589,
+      "partialAlphaPixels": 163235,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 58,
+        "y": 63,
+        "width": 635,
+        "height": 638
+      },
+      "bodyBoundsAlpha128": {
+        "x": 77,
+        "y": 91,
+        "width": 614,
+        "height": 586
+      },
+      "bytes": 188712,
+      "sha256": "3be74bd514c7450fc59adb1fa004ac42940d060103c39acb02b08dbfd6f4afb8",
+      "pngColorType": 6
+    },
+    {
+      "path": "somata/symbol-mono-bone.png",
+      "source": "source/somata/symbol.png",
+      "edits": "Same prepared silhouette; set RGB to #F4F3EE, alpha unchanged. Internal gradient folds intentionally collapse in monochrome.",
+      "usage": "Single-color symbol: Bone on dark, Charcoal on light. Silhouette approval required.",
+      "status": "review-required",
+      "width": 768,
+      "height": 768,
+      "transparentPixels": 426589,
+      "partialAlphaPixels": 163235,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 58,
+        "y": 63,
+        "width": 635,
+        "height": 638
+      },
+      "bodyBoundsAlpha128": {
+        "x": 77,
+        "y": 91,
+        "width": 614,
+        "height": 586
+      },
+      "bytes": 34576,
+      "sha256": "a2081d1fc875f8a790784c85e07e1f434e24ac9b937ed17a38fc98b9d799eb29",
+      "pngColorType": 6
+    },
+    {
+      "path": "somata/symbol-mono-charcoal.png",
+      "source": "source/somata/symbol.png",
+      "edits": "Same prepared silhouette; set RGB to #0B0E12, alpha unchanged. Internal gradient folds intentionally collapse in monochrome.",
+      "usage": "Single-color symbol: Bone on dark, Charcoal on light. Silhouette approval required.",
+      "status": "review-required",
+      "width": 768,
+      "height": 768,
+      "transparentPixels": 426589,
+      "partialAlphaPixels": 163235,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 58,
+        "y": 63,
+        "width": 635,
+        "height": 638
+      },
+      "bodyBoundsAlpha128": {
+        "x": 77,
+        "y": 91,
+        "width": 614,
+        "height": 586
+      },
+      "bytes": 34584,
+      "sha256": "ba514a513ffd8f21df6a441a02c824ee82c8c9a49b4fe6a22112410d83e9bfcc",
+      "pngColorType": 6
+    },
+    {
+      "path": "fitadapt/symbol-color.png",
+      "source": "source/fitadapt/symbol.png",
+      "edits": "Center alpha>=128 body; retain all source pixels; proportional downsample onto transparent 768 square. Same color asset for light and dark surfaces.",
+      "usage": "Standalone mark on light/dark surfaces; review shape consistency with the separate lockup sources.",
+      "status": "review-required",
+      "width": 768,
+      "height": 768,
+      "transparentPixels": 463034,
+      "partialAlphaPixels": 126790,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 5,
+        "y": 42,
+        "width": 730,
+        "height": 720
+      },
+      "bodyBoundsAlpha128": {
+        "x": 96,
+        "y": 158,
+        "width": 576,
+        "height": 452
+      },
+      "bytes": 141481,
+      "sha256": "b7e792f6c40810f695f24d5b03eebb5381299ff2605b9c0780f247ead5955a56",
+      "pngColorType": 6
+    },
+    {
+      "path": "navigation/home.png",
+      "source": "source/navigation/home.png",
+      "edits": "192 square; center alpha>=128 body; body maximum 144px, reduced only if necessary to keep every nonzero source pixel inside 4px margin. Premultiplied-alpha area downsample. No stroke or color editing.",
+      "usage": "Existing matching feature icon only; no tab additions. Raster supports up to 64pt at 3x; inspect at 24/32pt.",
+      "status": "review-required",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 29242,
+      "partialAlphaPixels": 7622,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 29,
+        "y": 35,
+        "width": 133,
+        "height": 124
+      },
+      "bodyBoundsAlpha128": {
+        "x": 32,
+        "y": 35,
+        "width": 129,
+        "height": 122
+      },
+      "bytes": 10968,
+      "sha256": "3d59857a429ba1157207a06568dff933189ae753364cd57c391aae9aff16e56c",
+      "pngColorType": 6
+    },
+    {
+      "path": "navigation/nutrition.png",
+      "source": "source/navigation/nutrition.png",
+      "edits": "192 square; center alpha>=128 body; body maximum 144px, reduced only if necessary to keep every nonzero source pixel inside 4px margin. Premultiplied-alpha area downsample. No stroke or color editing.",
+      "usage": "Existing matching feature icon only; no tab additions. Raster supports up to 64pt at 3x; inspect at 24/32pt.",
+      "status": "review-required",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 25984,
+      "partialAlphaPixels": 10880,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 26,
+        "y": 28,
+        "width": 140,
+        "height": 135
+      },
+      "bodyBoundsAlpha128": {
+        "x": 26,
+        "y": 29,
+        "width": 139,
+        "height": 133
+      },
+      "bytes": 15526,
+      "sha256": "17e0aa725c898d164f89698f8170b600003cca1370b90917fd055dd8b418f7ee",
+      "pngColorType": 6
+    },
+    {
+      "path": "navigation/training.png",
+      "source": "source/navigation/training.png",
+      "edits": "192 square; center alpha>=128 body; body maximum 144px, reduced only if necessary to keep every nonzero source pixel inside 4px margin. Premultiplied-alpha area downsample. No stroke or color editing.",
+      "usage": "Existing matching feature icon only; no tab additions. Raster supports up to 64pt at 3x; inspect at 24/32pt.",
+      "status": "review-required",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 29170,
+      "partialAlphaPixels": 7694,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 24,
+        "y": 55,
+        "width": 145,
+        "height": 82
+      },
+      "bodyBoundsAlpha128": {
+        "x": 25,
+        "y": 56,
+        "width": 143,
+        "height": 80
+      },
+      "bytes": 10692,
+      "sha256": "d75f7d677cc2f971527ecb216e3ac22de68a872d509d070baafd7e2a1096a795",
+      "pngColorType": 6
+    },
+    {
+      "path": "navigation/progress.png",
+      "source": "source/navigation/progress.png",
+      "edits": "192 square; center alpha>=128 body; body maximum 144px, reduced only if necessary to keep every nonzero source pixel inside 4px margin. Premultiplied-alpha area downsample. No stroke or color editing.",
+      "usage": "Existing matching feature icon only; no tab additions. Raster supports up to 64pt at 3x; inspect at 24/32pt.",
+      "status": "review-required",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 28731,
+      "partialAlphaPixels": 8133,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 36,
+        "y": 36,
+        "width": 119,
+        "height": 120
+      },
+      "bodyBoundsAlpha128": {
+        "x": 37,
+        "y": 37,
+        "width": 117,
+        "height": 119
+      },
+      "bytes": 12185,
+      "sha256": "105ab85b0c954ee014d7eebca64bc896a027501e16be1c79fa60e2a35eef74dc",
+      "pngColorType": 6
+    },
+    {
+      "path": "navigation/recovery.png",
+      "source": "source/navigation/recovery.png",
+      "edits": "192 square; center alpha>=128 body; body maximum 144px, reduced only if necessary to keep every nonzero source pixel inside 4px margin. Premultiplied-alpha area downsample. No stroke or color editing.",
+      "usage": "Existing matching feature icon only; no tab additions. Raster supports up to 64pt at 3x; inspect at 24/32pt.",
+      "status": "review-required",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 28842,
+      "partialAlphaPixels": 8022,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 28,
+        "y": 32,
+        "width": 137,
+        "height": 129
+      },
+      "bodyBoundsAlpha128": {
+        "x": 29,
+        "y": 32,
+        "width": 135,
+        "height": 128
+      },
+      "bytes": 14036,
+      "sha256": "de1cd1c8a988cf1cdc2719c8c063e15fc9f478b4a3e260415c9c48fb647baa03",
+      "pngColorType": 6
+    },
+    {
+      "path": "navigation/community.png",
+      "source": "source/navigation/community.png",
+      "edits": "192 square; center alpha>=128 body; body maximum 144px, reduced only if necessary to keep every nonzero source pixel inside 4px margin. Premultiplied-alpha area downsample. No stroke or color editing.",
+      "usage": "Existing matching feature icon only; no tab additions. Raster supports up to 64pt at 3x; inspect at 24/32pt.",
+      "status": "review-required",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 28047,
+      "partialAlphaPixels": 8817,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 23,
+        "y": 50,
+        "width": 145,
+        "height": 91
+      },
+      "bodyBoundsAlpha128": {
+        "x": 24,
+        "y": 52,
+        "width": 144,
+        "height": 88
+      },
+      "bytes": 13275,
+      "sha256": "02aecbfc26410bf1bf4677aa0b3e8ca47f4e9809c8b7dab8c33ff147983dc81e",
+      "pngColorType": 6
+    },
+    {
+      "path": "navigation/scan.png",
+      "source": "source/navigation/scan.png",
+      "edits": "192 square; center alpha>=128 body; body maximum 144px, reduced only if necessary to keep every nonzero source pixel inside 4px margin. Premultiplied-alpha area downsample. No stroke or color editing.",
+      "usage": "Existing matching feature icon only; no tab additions. Raster supports up to 64pt at 3x; inspect at 24/32pt.",
+      "status": "review-required",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 29739,
+      "partialAlphaPixels": 7125,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 24,
+        "y": 26,
+        "width": 154,
+        "height": 149
+      },
+      "bodyBoundsAlpha128": {
+        "x": 31,
+        "y": 35,
+        "width": 130,
+        "height": 123
+      },
+      "bytes": 14224,
+      "sha256": "2df47713df370e67cfaad820350b8e7f8307a04420de5e0bc49e4334a3d4d0d6",
+      "pngColorType": 6
+    },
+    {
+      "path": "navigation/profile.png",
+      "source": "source/navigation/profile.png",
+      "edits": "192 square; center alpha>=128 body; body maximum 144px, reduced only if necessary to keep every nonzero source pixel inside 4px margin. Premultiplied-alpha area downsample. No stroke or color editing.",
+      "usage": "Existing matching feature icon only; no tab additions. Raster supports up to 64pt at 3x; inspect at 24/32pt.",
+      "status": "review-required",
+      "width": 192,
+      "height": 192,
+      "transparentPixels": 26741,
+      "partialAlphaPixels": 10123,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 28,
+        "y": 24,
+        "width": 136,
+        "height": 145
+      },
+      "bodyBoundsAlpha128": {
+        "x": 29,
+        "y": 24,
+        "width": 134,
+        "height": 144
+      },
+      "bytes": 14070,
+      "sha256": "c5654a96be13d9f0797e6c961d812bc94a5ffffc73e9430a6957565f64a04fb5",
+      "pngColorType": 6
+    },
+    {
+      "path": "app/launcher-dark-1024.png",
+      "source": "source/somata/symbol.png",
+      "edits": "Existing S centered at 72% body size, entire source retained; composite onto #0B0E12; encode opaque RGB PNG, no rounded corners.",
+      "usage": "Candidate default/legacy launcher or iOS light/dark PNG; platform-required opaque background, not a new logo background.",
+      "status": "review-required",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 0,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 1048576,
+      "nonzeroAlphaEdgePixels": 4092,
+      "allAlphaBounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 1024
+      },
+      "bodyBoundsAlpha128": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 1024
+      },
+      "bytes": 209023,
+      "sha256": "75f9fe429141fbcecae54aaf1f46faa8d4628f4e4520625aff800f5c56e3c61f",
+      "pngColorType": 2
+    },
+    {
+      "path": "app/launcher-light-1024.png",
+      "source": "source/somata/symbol.png",
+      "edits": "Existing S centered at 72% body size, entire source retained; composite onto #F4F3EE; encode opaque RGB PNG, no rounded corners.",
+      "usage": "Candidate default/legacy launcher or iOS light/dark PNG; platform-required opaque background, not a new logo background.",
+      "status": "review-required",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 0,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 1048576,
+      "nonzeroAlphaEdgePixels": 4092,
+      "allAlphaBounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 1024
+      },
+      "bodyBoundsAlpha128": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 1024
+      },
+      "bytes": 206964,
+      "sha256": "97aa78727930164aeaef37d24211724ca43c36b074bb9b1b56325b464bbd1f3f",
+      "pngColorType": 2
+    },
+    {
+      "path": "app/splash-symbol.png",
+      "source": "source/somata/symbol.png",
+      "edits": "Same 72% centered S on transparent 1024 square; no background or wordmark added.",
+      "usage": "expo-splash-screen image; background configured separately in a later checkpoint.",
+      "status": "review-required",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 813308,
+      "partialAlphaPixels": 235268,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 121,
+        "y": 125,
+        "width": 763,
+        "height": 767
+      },
+      "bodyBoundsAlpha128": {
+        "x": 144,
+        "y": 160,
+        "width": 737,
+        "height": 705
+      },
+      "bytes": 264364,
+      "sha256": "88a5b4dfe62c5075ae4f0c020e6d3920fa3e24c6107460365a7e12ad3533acf1",
+      "pngColorType": 6
+    },
+    {
+      "path": "app/android-adaptive-foreground.png",
+      "source": "source/somata/symbol.png",
+      "edits": "Transparent 1024 square; all nonzero alpha fitted inside central 66/108 diameter safe circle with 4px rounding margin. No background.",
+      "usage": "Android adaptive foreground; eventual background Charcoal or Bone set separately.",
+      "status": "review-required",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 968437,
+      "partialAlphaPixels": 80139,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 284,
+        "y": 289,
+        "width": 445,
+        "height": 444
+      },
+      "bodyBoundsAlpha128": {
+        "x": 297,
+        "y": 307,
+        "width": 430,
+        "height": 410
+      },
+      "bytes": 104737,
+      "sha256": "f527e538d47fc738395b5f0cbb8d40bec57ac69048a745b2cbc48b2fec30332a",
+      "pngColorType": 6
+    },
+    {
+      "path": "app/android-monochrome-foreground.png",
+      "source": "source/somata/symbol.png",
+      "edits": "Same adaptive foreground alpha; RGB white; no gradient/fold shading.",
+      "usage": "Android 13+ themed icon mask; OS supplies color.",
+      "status": "review-required",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 968437,
+      "partialAlphaPixels": 80139,
+      "opaquePixels": 0,
+      "nonzeroAlphaEdgePixels": 0,
+      "allAlphaBounds": {
+        "x": 284,
+        "y": 289,
+        "width": 445,
+        "height": 444
+      },
+      "bodyBoundsAlpha128": {
+        "x": 297,
+        "y": 307,
+        "width": 430,
+        "height": 410
+      },
+      "bytes": 25739,
+      "sha256": "0cc1f403d941f1ccd4e56c00f0ec30675932b6655389be45aa3a336487291c20",
+      "pngColorType": 6
+    },
+    {
+      "path": "app/ios-tinted-candidate-1024.png",
+      "source": "source/somata/symbol.png",
+      "edits": "Launcher silhouette RGB white over opaque black, alpha composited; internal shading omitted.",
+      "usage": "Optional iOS tinted PNG candidate; native appearance review required.",
+      "status": "review-required",
+      "width": 1024,
+      "height": 1024,
+      "transparentPixels": 0,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 1048576,
+      "nonzeroAlphaEdgePixels": 4092,
+      "allAlphaBounds": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 1024
+      },
+      "bodyBoundsAlpha128": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 1024
+      },
+      "bytes": 65331,
+      "sha256": "cfb84cf773c16f1eda4a182fc27c0bf9cda0de63e39b7e4cedbdd110a05dd129",
+      "pngColorType": 2
+    }
+  ]
+}

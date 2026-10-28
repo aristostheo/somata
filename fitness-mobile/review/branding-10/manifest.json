@@ -1,0 +1,1824 @@
+{
+  "synthetic": true,
+  "native": false,
+  "entries": [
+    {
+      "name": "W01-long-name",
+      "route": "app/workouts/session.tsx",
+      "file": "before-dark-W01-long-name-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W01-long-name",
+      "route": "app/workouts/session.tsx",
+      "file": "after-dark-W01-long-name-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W01-long-name",
+      "route": "app/workouts/session.tsx",
+      "file": "after-dark-W01-long-name-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W01-long-name",
+      "route": "app/workouts/session.tsx",
+      "file": "before-light-W01-long-name-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W01-long-name",
+      "route": "app/workouts/session.tsx",
+      "file": "after-light-W01-long-name-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W01-long-name",
+      "route": "app/workouts/session.tsx",
+      "file": "after-light-W01-long-name-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W03-long-name",
+      "route": "app/workouts/templates.tsx",
+      "file": "before-dark-W03-long-name-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W03-long-name",
+      "route": "app/workouts/templates.tsx",
+      "file": "after-dark-W03-long-name-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W03-long-name",
+      "route": "app/workouts/templates.tsx",
+      "file": "after-dark-W03-long-name-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W03-long-name",
+      "route": "app/workouts/templates.tsx",
+      "file": "before-light-W03-long-name-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W03-long-name",
+      "route": "app/workouts/templates.tsx",
+      "file": "after-light-W03-long-name-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W03-long-name",
+      "route": "app/workouts/templates.tsx",
+      "file": "after-light-W03-long-name-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O15-media",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-dark-O15-media-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O15-media",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-dark-O15-media-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O15-media",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-light-O15-media-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O15-media",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-light-O15-media-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O15-no-instructions",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-dark-O15-no-instructions-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O15-no-instructions",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-dark-O15-no-instructions-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O15-no-instructions",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-light-O15-no-instructions-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O15-no-instructions",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-light-O15-no-instructions-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W01-active",
+      "route": "app/workouts/session.tsx",
+      "file": "before-dark-W01-active-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W01-active",
+      "route": "app/workouts/session.tsx",
+      "file": "after-dark-W01-active-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W01-active",
+      "route": "app/workouts/session.tsx",
+      "file": "after-dark-W01-active-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W01-active",
+      "route": "app/workouts/session.tsx",
+      "file": "before-light-W01-active-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W01-active",
+      "route": "app/workouts/session.tsx",
+      "file": "after-light-W01-active-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W01-active",
+      "route": "app/workouts/session.tsx",
+      "file": "after-light-W01-active-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W01-empty",
+      "route": "app/workouts/session.tsx",
+      "file": "before-dark-W01-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W01-empty",
+      "route": "app/workouts/session.tsx",
+      "file": "after-dark-W01-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W01-empty",
+      "route": "app/workouts/session.tsx",
+      "file": "before-light-W01-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W01-empty",
+      "route": "app/workouts/session.tsx",
+      "file": "after-light-W01-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W01-loading",
+      "route": "app/workouts/session.tsx",
+      "file": "before-dark-W01-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W01-loading",
+      "route": "app/workouts/session.tsx",
+      "file": "after-dark-W01-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W01-loading",
+      "route": "app/workouts/session.tsx",
+      "file": "before-light-W01-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W01-loading",
+      "route": "app/workouts/session.tsx",
+      "file": "after-light-W01-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W01-finishing",
+      "route": "app/workouts/session.tsx",
+      "file": "before-dark-W01-finishing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W01-finishing",
+      "route": "app/workouts/session.tsx",
+      "file": "after-dark-W01-finishing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W01-finishing",
+      "route": "app/workouts/session.tsx",
+      "file": "before-light-W01-finishing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W01-finishing",
+      "route": "app/workouts/session.tsx",
+      "file": "after-light-W01-finishing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O37-title",
+      "route": "app/workouts/session.tsx",
+      "file": "before-dark-O37-title-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O37-title",
+      "route": "app/workouts/session.tsx",
+      "file": "after-dark-O37-title-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O37-title",
+      "route": "app/workouts/session.tsx",
+      "file": "before-light-O37-title-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O37-title",
+      "route": "app/workouts/session.tsx",
+      "file": "after-light-O37-title-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O38-set",
+      "route": "app/workouts/session.tsx",
+      "file": "before-dark-O38-set-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O38-set",
+      "route": "app/workouts/session.tsx",
+      "file": "after-dark-O38-set-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O38-set",
+      "route": "app/workouts/session.tsx",
+      "file": "after-dark-O38-set-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O38-set",
+      "route": "app/workouts/session.tsx",
+      "file": "before-light-O38-set-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O38-set",
+      "route": "app/workouts/session.tsx",
+      "file": "after-light-O38-set-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O38-set",
+      "route": "app/workouts/session.tsx",
+      "file": "after-light-O38-set-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W02-search",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-dark-W02-search-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W02-search",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-dark-W02-search-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W02-search",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-dark-W02-search-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W02-search",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-light-W02-search-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W02-search",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-light-W02-search-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W02-search",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-light-W02-search-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W02-empty",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-dark-W02-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W02-empty",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-dark-W02-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W02-empty",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-light-W02-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W02-empty",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-light-W02-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W02-favorites",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-dark-W02-favorites-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W02-favorites",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-dark-W02-favorites-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W02-favorites",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-light-W02-favorites-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W02-favorites",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-light-W02-favorites-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O15-preview",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-dark-O15-preview-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O15-preview",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-dark-O15-preview-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O15-preview",
+      "route": "app/(modals)/browse.tsx",
+      "file": "before-light-O15-preview-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O15-preview",
+      "route": "app/(modals)/browse.tsx",
+      "file": "after-light-O15-preview-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W03-library",
+      "route": "app/workouts/templates.tsx",
+      "file": "before-dark-W03-library-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W03-library",
+      "route": "app/workouts/templates.tsx",
+      "file": "after-dark-W03-library-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W03-library",
+      "route": "app/workouts/templates.tsx",
+      "file": "before-light-W03-library-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W03-library",
+      "route": "app/workouts/templates.tsx",
+      "file": "after-light-W03-library-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W03-empty",
+      "route": "app/workouts/templates.tsx",
+      "file": "before-dark-W03-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W03-empty",
+      "route": "app/workouts/templates.tsx",
+      "file": "after-dark-W03-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W03-empty",
+      "route": "app/workouts/templates.tsx",
+      "file": "before-light-W03-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W03-empty",
+      "route": "app/workouts/templates.tsx",
+      "file": "after-light-W03-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W04-create",
+      "route": "app/(modals)/create-template.tsx",
+      "file": "before-dark-W04-create-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W04-create",
+      "route": "app/(modals)/create-template.tsx",
+      "file": "after-dark-W04-create-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W04-create",
+      "route": "app/(modals)/create-template.tsx",
+      "file": "after-dark-W04-create-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W04-create",
+      "route": "app/(modals)/create-template.tsx",
+      "file": "before-light-W04-create-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W04-create",
+      "route": "app/(modals)/create-template.tsx",
+      "file": "after-light-W04-create-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W04-create",
+      "route": "app/(modals)/create-template.tsx",
+      "file": "after-light-W04-create-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O17-add",
+      "route": "app/(modals)/create-template.tsx",
+      "file": "before-dark-O17-add-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O17-add",
+      "route": "app/(modals)/create-template.tsx",
+      "file": "after-dark-O17-add-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O17-add",
+      "route": "app/(modals)/create-template.tsx",
+      "file": "before-light-O17-add-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O17-add",
+      "route": "app/(modals)/create-template.tsx",
+      "file": "after-light-O17-add-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W10-save",
+      "route": "app/(modals)/save-workout-as-templates.tsx",
+      "file": "before-dark-W10-save-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W10-save",
+      "route": "app/(modals)/save-workout-as-templates.tsx",
+      "file": "after-dark-W10-save-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W10-save",
+      "route": "app/(modals)/save-workout-as-templates.tsx",
+      "file": "before-light-W10-save-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W10-save",
+      "route": "app/(modals)/save-workout-as-templates.tsx",
+      "file": "after-light-W10-save-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W07-history",
+      "route": "app/workouts/history.tsx",
+      "file": "before-dark-W07-history-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W07-history",
+      "route": "app/workouts/history.tsx",
+      "file": "after-dark-W07-history-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W07-history",
+      "route": "app/workouts/history.tsx",
+      "file": "after-dark-W07-history-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W07-history",
+      "route": "app/workouts/history.tsx",
+      "file": "before-light-W07-history-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W07-history",
+      "route": "app/workouts/history.tsx",
+      "file": "after-light-W07-history-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W07-history",
+      "route": "app/workouts/history.tsx",
+      "file": "after-light-W07-history-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W07-empty",
+      "route": "app/workouts/history.tsx",
+      "file": "before-dark-W07-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W07-empty",
+      "route": "app/workouts/history.tsx",
+      "file": "after-dark-W07-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W07-empty",
+      "route": "app/workouts/history.tsx",
+      "file": "before-light-W07-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W07-empty",
+      "route": "app/workouts/history.tsx",
+      "file": "after-light-W07-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W07-loading",
+      "route": "app/workouts/history.tsx",
+      "file": "before-dark-W07-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W07-loading",
+      "route": "app/workouts/history.tsx",
+      "file": "after-dark-W07-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W07-loading",
+      "route": "app/workouts/history.tsx",
+      "file": "before-light-W07-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W07-loading",
+      "route": "app/workouts/history.tsx",
+      "file": "after-light-W07-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O35-month",
+      "route": "app/workouts/history.tsx",
+      "file": "before-dark-O35-month-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O35-month",
+      "route": "app/workouts/history.tsx",
+      "file": "after-dark-O35-month-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O35-month",
+      "route": "app/workouts/history.tsx",
+      "file": "before-light-O35-month-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O35-month",
+      "route": "app/workouts/history.tsx",
+      "file": "after-light-O35-month-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O36-dates",
+      "route": "app/workouts/history.tsx",
+      "file": "before-dark-O36-dates-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O36-dates",
+      "route": "app/workouts/history.tsx",
+      "file": "after-dark-O36-dates-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O36-dates",
+      "route": "app/workouts/history.tsx",
+      "file": "before-light-O36-dates-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O36-dates",
+      "route": "app/workouts/history.tsx",
+      "file": "after-light-O36-dates-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O36-invalid",
+      "route": "app/workouts/history.tsx",
+      "file": "before-dark-O36-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O36-invalid",
+      "route": "app/workouts/history.tsx",
+      "file": "after-dark-O36-invalid-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O36-invalid",
+      "route": "app/workouts/history.tsx",
+      "file": "before-light-O36-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O36-invalid",
+      "route": "app/workouts/history.tsx",
+      "file": "after-light-O36-invalid-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W08-recap",
+      "route": "app/workouts/recap.tsx",
+      "file": "before-dark-W08-recap-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W08-recap",
+      "route": "app/workouts/recap.tsx",
+      "file": "after-dark-W08-recap-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W08-recap",
+      "route": "app/workouts/recap.tsx",
+      "file": "after-dark-W08-recap-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W08-recap",
+      "route": "app/workouts/recap.tsx",
+      "file": "before-light-W08-recap-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W08-recap",
+      "route": "app/workouts/recap.tsx",
+      "file": "after-light-W08-recap-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W08-recap",
+      "route": "app/workouts/recap.tsx",
+      "file": "after-light-W08-recap-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W08-missing",
+      "route": "app/workouts/recap.tsx",
+      "file": "before-dark-W08-missing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W08-missing",
+      "route": "app/workouts/recap.tsx",
+      "file": "after-dark-W08-missing-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W08-missing",
+      "route": "app/workouts/recap.tsx",
+      "file": "before-light-W08-missing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W08-missing",
+      "route": "app/workouts/recap.tsx",
+      "file": "after-light-W08-missing-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W09-detail",
+      "route": "app/workouts/session-detail.tsx",
+      "file": "before-dark-W09-detail-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W09-detail",
+      "route": "app/workouts/session-detail.tsx",
+      "file": "after-dark-W09-detail-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W09-detail",
+      "route": "app/workouts/session-detail.tsx",
+      "file": "before-light-W09-detail-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W09-detail",
+      "route": "app/workouts/session-detail.tsx",
+      "file": "after-light-W09-detail-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W09-deleting",
+      "route": "app/workouts/session-detail.tsx",
+      "file": "before-dark-W09-deleting-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W09-deleting",
+      "route": "app/workouts/session-detail.tsx",
+      "file": "after-dark-W09-deleting-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W09-deleting",
+      "route": "app/workouts/session-detail.tsx",
+      "file": "before-light-W09-deleting-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W09-deleting",
+      "route": "app/workouts/session-detail.tsx",
+      "file": "after-light-W09-deleting-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W05-quick",
+      "route": "app/(modals)/quick-workout.tsx",
+      "file": "before-dark-W05-quick-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W05-quick",
+      "route": "app/(modals)/quick-workout.tsx",
+      "file": "after-dark-W05-quick-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W05-quick",
+      "route": "app/(modals)/quick-workout.tsx",
+      "file": "after-dark-W05-quick-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W05-quick",
+      "route": "app/(modals)/quick-workout.tsx",
+      "file": "before-light-W05-quick-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W05-quick",
+      "route": "app/(modals)/quick-workout.tsx",
+      "file": "after-light-W05-quick-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W05-quick",
+      "route": "app/(modals)/quick-workout.tsx",
+      "file": "after-light-W05-quick-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W05-empty",
+      "route": "app/(modals)/quick-workout.tsx",
+      "file": "before-dark-W05-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W05-empty",
+      "route": "app/(modals)/quick-workout.tsx",
+      "file": "after-dark-W05-empty-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W05-empty",
+      "route": "app/(modals)/quick-workout.tsx",
+      "file": "before-light-W05-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W05-empty",
+      "route": "app/(modals)/quick-workout.tsx",
+      "file": "after-light-W05-empty-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O02-plan",
+      "route": "app/(tabs)/workouts.tsx",
+      "file": "before-dark-O02-plan-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O02-plan",
+      "route": "app/(tabs)/workouts.tsx",
+      "file": "after-dark-O02-plan-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O02-plan",
+      "route": "app/(tabs)/workouts.tsx",
+      "file": "before-light-O02-plan-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O02-plan",
+      "route": "app/(tabs)/workouts.tsx",
+      "file": "after-light-O02-plan-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O03-quick",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "before-dark-O03-quick-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O03-quick",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "after-dark-O03-quick-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O03-quick",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "before-light-O03-quick-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O03-quick",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "after-light-O03-quick-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O03-manual",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "before-dark-O03-manual-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O03-manual",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "after-dark-O03-manual-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O03-manual",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "after-dark-O03-manual-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O03-manual",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "before-light-O03-manual-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O03-manual",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "after-light-O03-manual-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O03-manual",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "after-light-O03-manual-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "O03-edit",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "before-dark-O03-edit-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O03-edit",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "after-dark-O03-edit-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O03-edit",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "before-light-O03-edit-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O03-edit",
+      "route": "components/activity/ActivityLogSheet.tsx",
+      "file": "after-light-O03-edit-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-quick",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-dark-W06-quick-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-quick",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-dark-W06-quick-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-quick",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-light-W06-quick-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-quick",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-light-W06-quick-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-custom",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-dark-W06-custom-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-custom",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-dark-W06-custom-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-custom",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-light-W06-custom-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-custom",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-light-W06-custom-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-loading",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-dark-W06-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-loading",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-dark-W06-loading-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-loading",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-light-W06-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-loading",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-light-W06-loading-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-error",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-dark-W06-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-error",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-dark-W06-error-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-error",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-light-W06-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-error",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-light-W06-error-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-review",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-dark-W06-review-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-review",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-dark-W06-review-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-review",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-dark-W06-review-large.html",
+      "dark": true,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W06-review",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-light-W06-review-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-review",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-light-W06-review-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-review",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-light-W06-review-large.html",
+      "dark": false,
+      "width": 320,
+      "fontScale": 1.8,
+      "version": "after"
+    },
+    {
+      "name": "W06-archive",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-dark-W06-archive-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-archive",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-dark-W06-archive-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W06-archive",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-light-W06-archive-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W06-archive",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-light-W06-archive-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O16-swap",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-dark-O16-swap-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O16-swap",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-dark-O16-swap-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "O16-swap",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "before-light-O16-swap-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "O16-swap",
+      "route": "app/(modals)/coach-spark.tsx",
+      "file": "after-light-O16-swap-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W11-cardio",
+      "route": "app/(modals)/quick-cardio.tsx",
+      "file": "before-dark-W11-cardio-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W11-cardio",
+      "route": "app/(modals)/quick-cardio.tsx",
+      "file": "after-dark-W11-cardio-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W11-cardio",
+      "route": "app/(modals)/quick-cardio.tsx",
+      "file": "before-light-W11-cardio-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W11-cardio",
+      "route": "app/(modals)/quick-cardio.tsx",
+      "file": "after-light-W11-cardio-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W12-strength",
+      "route": "app/(modals)/quick-strength.tsx",
+      "file": "before-dark-W12-strength-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W12-strength",
+      "route": "app/(modals)/quick-strength.tsx",
+      "file": "after-dark-W12-strength-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W12-strength",
+      "route": "app/(modals)/quick-strength.tsx",
+      "file": "before-light-W12-strength-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W12-strength",
+      "route": "app/(modals)/quick-strength.tsx",
+      "file": "after-light-W12-strength-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W13-mobility",
+      "route": "app/(modals)/quick-mobility.tsx",
+      "file": "before-dark-W13-mobility-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W13-mobility",
+      "route": "app/(modals)/quick-mobility.tsx",
+      "file": "after-dark-W13-mobility-normal.html",
+      "dark": true,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    },
+    {
+      "name": "W13-mobility",
+      "route": "app/(modals)/quick-mobility.tsx",
+      "file": "before-light-W13-mobility-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "before"
+    },
+    {
+      "name": "W13-mobility",
+      "route": "app/(modals)/quick-mobility.tsx",
+      "file": "after-light-W13-mobility-normal.html",
+      "dark": false,
+      "width": 390,
+      "fontScale": 1,
+      "version": "after"
+    }
+  ]
+}

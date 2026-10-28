@@ -1,7 +1,8 @@
+import { NutritionContext, NutritionValues, NutritionFields, FoodSourceTile } from "@/components/nutrition/NutritionTaskUI";
 import { appendScannedItems, createBuilderAdditionConsumer } from "@/services/mealBuilderHandoff";
 import { accountUidKeyStorage, useAccountStorage } from "@/services/local/accountStore";
 import { Button, Choice, Empty, Field, Heading, IconButton, Item, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
@@ -128,8 +129,12 @@ const mealTargets: Record<
 };
 
 export default function MealBuilderScreen() {
+  return <SomataTaskAppearance><MealBuilderScreenContent /></SomataTaskAppearance>;
+}
+
+function MealBuilderScreenContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors, isDark } = useTheme() as any;
   const { user } = useAuth();
@@ -764,34 +769,36 @@ export default function MealBuilderScreen() {
     }
   }
 
-  return (<><TaskPage title={mealName.trim() || 'Build a meal'} section="Meal workspace" subtitle={dateISO} onBack={() => router.back()} action={<IconButton icon="refresh-outline" label="Reset meal" onPress={resetMeal} />} footer={<Button primary label={busy ? 'Logging…' : 'Log meal'} disabled={busy || !items.length} onPress={onLogMeal} />}>
+  return (<><TaskPage title="Meal Builder" section="Meal workspace" subtitle={dateISO} onBack={() => router.back()} action={<IconButton icon="refresh-outline" label="Reset meal" onPress={resetMeal} />} footer={<Button primary label={busy ? 'Logging…' : 'Log meal'} disabled={busy || !items.length} onPress={onLogMeal} />}>
 
+    <Panel accent><Heading title="Your meal workspace" detail="Build ingredients first. Review the complete meal before logging." />
+    <Field label="Meal name · optional" value={mealName} onChangeText={setMealName} />
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {MEAL_TYPES.map(m => <Choice key={m.key} label={m.label} selected={mealType === m.key} onPress={() => setMealType(m.key)} />)}
     </View>
 
-    <Panel accent>
-      <Text style={F.eyebrow}>MEAL TOTAL</Text>
-      <Text style={{ ...F.value, fontSize: 44 }}>{Math.round(totals.calories)}<Text style={F.caption}> kcal</Text></Text>
-      <Text style={F.body}>Protein {Math.round(totals.protein)} g · Carbs {Math.round(totals.carbs)} g · Fat {Math.round(totals.fat)} g</Text>
-      <Text style={F.caption}>Meal guide: {macroTargets.calories} kcal · P {macroTargets.protein} g · C {macroTargets.carbs} g · F {macroTargets.fat} g. These are meal-builder guides, not your active daily targets.</Text>
     </Panel>
-
-    <Field label="Meal name · optional" value={mealName} onChangeText={setMealName} />
-
+    <Heading title="Add an ingredient" detail="Choose a source or search your foods." />
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-      {(['scan', 'describe', 'barcode', 'manual'] as const).map(m => <Button key={m} label={m === 'scan' ? 'Photo' : m === 'describe' ? 'Describe' : m === 'barcode' ? 'Barcode' : 'Manual'} onPress={() => openMethod(m)} />)}
+      {(['scan', 'describe', 'barcode', 'manual'] as const).map(m => <FoodSourceTile key={m} icon={m === 'scan' ? 'camera-outline' : m === 'describe' ? 'chatbubble-outline' : m === 'barcode' ? 'barcode-outline' : 'create-outline'} label={m === 'scan' ? 'Photo' : m === 'describe' ? 'Describe' : m === 'barcode' ? 'Barcode' : 'Manual'} onPress={() => openMethod(m)} />)}
     </View>
 
+    <Panel>
+    <Field label="Search foods" value={query} onChangeText={setQuery} placeholder="Find an ingredient" />
+    {suggestedResults.map(row => <Item key={row.key} title={row.item.name} detail={`${fmtMacroRow(row.item)}${lastAddedKey === row.key ? ' · Added' : ''}`} onPress={() => addFood(row.item)} />)}
+
+    {!suggestedResults.length && <Empty title="No matching foods" detail="Try another search or enter food manually." />}
+
+    </Panel>
     <Heading title="Ingredients" detail="Adjust portions and arrange foods before logging." />
     {handoffNotice && <Panel><Text accessibilityLiveRegion="polite" style={F.body}>{handoffNotice}</Text><Button label={handoffCanRetry ? "Retry scan transfer" : "Dismiss"} onPress={() => handoffCanRetry ? setHandoffRetry(n => n + 1) : setHandoffNotice(null)} /></Panel>}
     {!items.length && <Empty title="Your meal starts here" detail="Add a food below or use a capture method above." />}
 
     {items.map((item, i) => <Panel key={item.id}>
-      <Heading title={item.name} detail={fmtMacroRow(item)} />
+      <Text style={F.eyebrow}>INGREDIENT {String(i + 1).padStart(2, "0")}</Text><Heading title={item.name} detail={fmtMacroRow(item)} />
       <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-end' }}>
         <IconButton icon="remove" label={`Reduce ${item.name}`} onPress={() => updateQty(item.id, Math.max(0, item.qty - quantityStep(item)))} />
-        <Field label="Quantity" keyboardType="decimal-pad" value={String(item.qty)} onChangeText={text => updateQty(item.id, Number(text.replace(/[^0-9.]/g, '')) || 0)} />
+        <View style={{ flex: 1, minWidth: 0 }}><Field label="Quantity" keyboardType="decimal-pad" value={String(item.qty)} onChangeText={text => updateQty(item.id, Number(text.replace(/[^0-9.]/g, '')) || 0)} /></View>
         <IconButton icon="add" label={`Increase ${item.name}`} onPress={() => updateQty(item.id, item.qty + quantityStep(item))} />
       </View>
       <Field label="Unit" value={item.unit} onChangeText={text => updateUnit(item.id, text)} />
@@ -802,17 +809,21 @@ export default function MealBuilderScreen() {
       </View>
     </Panel>)}
 
-    <Field label="Search foods" value={query} onChangeText={setQuery} placeholder="Find an ingredient" />
-    {suggestedResults.map(row => <Item key={row.key} title={row.item.name} detail={`${fmtMacroRow(row.item)}${lastAddedKey === row.key ? ' · Added' : ''}`} onPress={() => addFood(row.item)} />)}
+    <Panel accent>
+      <Heading title="Final meal review" detail="Review all ingredients before logging this meal." />
+      <NutritionValues values={[{ label: 'Energy', value: `${Math.round(totals.calories)} kcal` }, { label: 'Protein', value: `${Math.round(totals.protein)} g` }, { label: 'Carbs', value: `${Math.round(totals.carbs)} g` }, { label: 'Fat', value: `${Math.round(totals.fat)} g` }]} />
+      <Text style={F.caption}>Meal guide: {macroTargets.calories} kcal · P {macroTargets.protein} g · C {macroTargets.carbs} g · F {macroTargets.fat} g. These are meal-builder guides, not your active daily targets.</Text>
+    </Panel>
 
-    {!suggestedResults.length && <Empty title="No matching foods" detail="Try another search or enter food manually." />}
-
+    <Panel><Heading title="Meal presets" detail="Save this combination or reuse one from your library." />
     <Button label={presetBusy ? 'Saving…' : presetJustSaved ? 'Preset saved' : 'Save as a meal preset'} disabled={presetBusy} onPress={onSavePreset} />
     <Button label={showPresets ? 'Hide meal presets' : 'Browse meal presets'} onPress={() => setShowPresets(v => !v)} />
     {(showPresets ? presets : presetPreview).map(p => <Item key={p.id} title={p.name} detail={`${p.items.length} foods`} onPress={() => applyPreset(p)} />)}
 
+    </Panel>
   </TaskPage><TaskSheet title={activeMethod === 'scan' ? 'Capture food' : activeMethod === 'describe' ? 'Describe your meal' : activeMethod === 'barcode' ? 'Scan a barcode' : 'Manual food'} visible={!!activeMethod} onClose={closeMethod}>
 
+      <NutritionContext label="Ingredient input" title={activeMethod === 'manual' ? 'From the food label' : activeMethod === 'barcode' ? 'Match the package' : activeMethod === 'scan' ? 'Capture, then check' : 'Describe, then check'} detail="Added foods return to your workspace. Log meal remains the final action." icon={activeMethod === 'barcode' ? 'barcode-outline' : 'restaurant-outline'} />
       {!!methodError && <Empty title="Could not add food" detail={methodError} />}
       {methodBusy && <Text accessibilityLiveRegion="polite" style={F.body}>Working…</Text>}
 
@@ -821,11 +832,11 @@ export default function MealBuilderScreen() {
         <Button label="Choose photo" disabled={methodBusy} onPress={() => pickScanPhoto('library')} />
       </View>{scanResults.map((food, i) => <Item key={i} title={food.name} detail={`${food.qty} ${food.unit} · ${fmtMacroRow(food)}`} />)}{!!scanResults.length && <Button primary label="Add detected foods" onPress={() => { appendFoods(scanResults, null); closeMethod(); }} />}</>}
 
-      {activeMethod === 'describe' && <><Field label="What did you eat?" multiline value={describeText} onChangeText={setDescribeText} /><Button label="Calculate nutrition" disabled={methodBusy || !describeText.trim()} onPress={runDescribe} />{describeResults.map((food, i) => <Item key={i} title={food.name} detail={`${food.qty} ${food.unit} · ${fmtMacroRow(food)}`} />)}{!!describeResults.length && <Button primary label="Add foods" onPress={submitDescribeFoods} />}</>}
+      {activeMethod === 'describe' && <><Field label="What did you eat?" multiline style={{ minHeight: 120, textAlignVertical: "top" }} value={describeText} onChangeText={setDescribeText} /><Button label="Calculate nutrition" disabled={methodBusy || !describeText.trim()} onPress={runDescribe} />{describeResults.map((food, i) => <Item key={i} title={food.name} detail={`${food.qty} ${food.unit} · ${fmtMacroRow(food)}`} />)}{!!describeResults.length && <Button primary label="Add foods" onPress={submitDescribeFoods} />}</>}
 
       {activeMethod === 'barcode' && <>{cameraPermission?.granted ? <CameraView style={{ height: 220, borderRadius: 18 }} facing="back" barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'code39'] }} onBarcodeScanned={({ data }) => onInlineBarcodeScanned(data)} /> : <Button label="Enable camera" onPress={ensureCameraAccess} />}<Field label="Barcode" value={barcodeInput} onChangeText={setBarcodeInput} keyboardType="number-pad" /><Button label="Look up barcode" disabled={methodBusy || !barcodeInput.trim()} onPress={() => runBarcodeLookup()} />{barcodeCandidates.map((food, i) => <Item key={i} title={food.name} detail={fmtMacroRow(food)} onPress={() => { appendFoods([food], null); closeMethod(); }} />)}</>}
 
-      {activeMethod === 'manual' && <>{(['name', 'qty', 'unit', 'calories', 'protein', 'carbs', 'fat'] as const).map(k => <Field key={k} label={k} value={manualDraft[k]} keyboardType={k === 'name' || k === 'unit' ? 'default' : 'decimal-pad'} onChangeText={text => setManualDraft(v => ({ ...v, [k]: text }))} />)}<Button primary label="Add food" onPress={submitManualFood} /></>}
+      {activeMethod === 'manual' && <><NutritionFields>{(['name', 'qty', 'unit', 'calories', 'protein', 'carbs', 'fat'] as const).map(k => <Field key={k} label={k} value={manualDraft[k]} keyboardType={k === 'name' || k === 'unit' ? 'default' : 'decimal-pad'} onChangeText={text => setManualDraft(v => ({ ...v, [k]: text }))} />)}</NutritionFields><Button primary label="Add food" onPress={submitManualFood} /></>}
     </TaskSheet></>
   );
 }

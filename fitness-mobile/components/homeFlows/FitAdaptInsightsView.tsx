@@ -1,5 +1,6 @@
-import { Action } from "@/components/designPreview/UI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { Button as Action, Panel } from "@/components/somata/TaskUI";
+import { ProfileIntro, ProfileRecord } from "@/components/profile/ProfileTaskUI";
+import { useTaskPresentation } from "@/components/designPreview/Appearance";
 import { previousAcceptedTargets, type FitAdaptHistoryEvent } from "@/services/profile/fitadaptHistoryData";
 import { measuredChange, measuredTrendPath, type RecordedDay } from "@/services/profile/fitadaptInsightData";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,7 +18,7 @@ function dayLabel(date: string) {
 }
 
 function TrendDetail({ metric, hidden }: { metric: InsightMetric; hidden: boolean; }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { days, display } = metric;
   const first = days[0];
@@ -29,7 +30,7 @@ function TrendDetail({ metric, hidden }: { metric: InsightMetric; hidden: boolea
   if (!latest) return <FlowNotice title="A little history starts here" detail={`No ${metric.title.toLowerCase()} records in this period. Only saved measurements appear.`} />;
   return <View style={{ gap: 16 }}>
 
-    <View style={{ ...F.panel, padding: 22, backgroundColor: D.tint }}>
+    <Panel accent>
 
       <Text style={{ ...F.eyebrow, color: D.lime }}>LATEST RECORDED · {dayLabel(latest.date).toUpperCase()}</Text>
 
@@ -38,7 +39,7 @@ function TrendDetail({ metric, hidden }: { metric: InsightMetric; hidden: boolea
       {path && !hidden ? <Svg width="100%" height={150} viewBox="0 0 320 150"
         accessibilityLabel={`${metric.title}, recorded trend from ${dayLabel(first.date)} to ${dayLabel(latest.date)}`}>
 
-        {[35, 75, 115].map((y) => <Line key={y} x1={7} y1={y} x2={313} y2={y} stroke="#38604E" strokeDasharray="3 7" />)}
+        {[35, 75, 115].map((y) => <Line key={y} x1={7} y1={y} x2={313} y2={y} stroke={D.line} strokeDasharray="3 7" />)}
 
         <Path d={path} stroke={D.lime} strokeWidth={3.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
 
@@ -56,7 +57,7 @@ function TrendDetail({ metric, hidden }: { metric: InsightMetric; hidden: boolea
 
       </View>
 
-    </View>
+    </Panel>
 
     <View style={F.wrap}>
 
@@ -74,7 +75,7 @@ function Decision({ event, prior, hidden }: {
   event: FitAdaptHistoryEvent;
   prior: FitAdaptHistoryEvent["targets"]; hidden: boolean
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const accepted = event.status === "accepted";
   const label = accepted ? "Accepted" : event.status === "declined" ? "Declined" : "Superseded";
@@ -93,9 +94,9 @@ function Decision({ event, prior, hidden }: {
 
     </View>
 
-    <View style={{ flex: 1, gap: 12, paddingBottom: 25 }}>
+    <View style={{ flex: 1, gap: 12, paddingBottom: 20 }}><ProfileRecord label={date}>
 
-      <Text style={F.caption}>{date}</Text>
+      <Text style={F.eyebrow}>RESOLVED PROPOSAL</Text>
 
       <Text accessibilityRole="header" style={F.heading}>{label}</Text>
 
@@ -124,7 +125,7 @@ function Decision({ event, prior, hidden }: {
 
       {!accepted && <Text style={F.caption}>This proposal did not change active targets.</Text>}
 
-    </View>
+    </ProfileRecord></View>
 
   </View>;
 }
@@ -136,7 +137,7 @@ export function FitAdaptInsightsView({ onBack, range, setRange, hidden, setHidde
     events: FitAdaptHistoryEvent[]; busy: boolean; error: boolean; hasMore: boolean;
     loadHistory: (more: boolean) => void;
   }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const [section, setSection] = useState<"trends" | "decisions">("trends");
   const [metricId, setMetricId] = useState("weight");
@@ -152,11 +153,12 @@ export function FitAdaptInsightsView({ onBack, range, setRange, hidden, setHidde
 
     </Pressable>}>
 
+    <ProfileIntro fitadapt label="FitAdapt / insights & history" title={section === "trends" ? "Measured, not predicted" : "Your plan decision trail"} detail={section === "trends" ? "Explore real account records. FitAdapt decision history is kept separately." : "A factual record of resolved proposals. Pending reviews stay on Profile."} />
     <ChoiceRail label="Insights view" value={section} onChange={setSection}
       choices={[{ value: "trends", label: "Measured trends" }, { value: "decisions", label: "Plan decisions" }]} />
 
     {section === "trends" ? <>
-      <ChoiceRail label="Trend period" value={range} onChange={setRange}
+      <Panel><ChoiceRail label="Trend period" value={range} onChange={setRange}
         choices={[{ value: 30, label: "30 days" }, { value: 90, label: "90 days" }]} />
       <View style={F.wrap}>
 
@@ -174,7 +176,7 @@ export function FitAdaptInsightsView({ onBack, range, setRange, hidden, setHidde
         </Pressable>)}
 
       </View>
-      <TrendDetail metric={metric} hidden={hidden} />
+      </Panel><TrendDetail metric={metric} hidden={hidden} />
       <Text style={F.body}>{metric.context}</Text>
       <Text style={F.caption}>Only recorded days appear. Missing days are omitted. These trends are not comparisons with historical plan targets.</Text>
     </> : <>

@@ -1,219 +1,72 @@
-import { useSomataTheme } from "@/components/somata/theme";
-import type { BadgeDef, BadgeUnlockState } from "@/services/badges/types";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import { LinearGradient } from "expo-linear-gradient";
-import { Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FlowPage } from "./FlowUI";
+import { useTaskPresentation } from '@/components/designPreview/Appearance';
+import { DeskIntro, DeskColumns, DeskSection, StatusNote } from '@/components/accountSettings/PremiumUI';
+import { Button, TaskSheet } from '@/components/somata/TaskUI';
+import type { BadgeDef, BadgeUnlockState } from '@/services/badges/types';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { Pressable, Text, View } from 'react-native';
+import { FlowPage } from './FlowUI';
 
 function iconFor(badge: BadgeDef): keyof typeof Ionicons.glyphMap {
-  return badge.icon in Ionicons.glyphMap ? badge.icon as keyof typeof Ionicons.glyphMap : "ribbon";
+  return badge.icon in Ionicons.glyphMap ? badge.icon as keyof typeof Ionicons.glyphMap : 'ribbon';
 }
-function rarityLabel(rarity: string) {
-  return rarity === "common" ? "Common" : rarity === "rare" ? "Rare" : "Epic";
-}
+function rarityLabel(rarity: string) { return rarity === 'common' ? 'Common' : rarity === 'rare' ? 'Rare' : 'Epic'; }
 
 export function BadgeCollection({ loaded, groups, unlocks, featured, unlockedCount, onSelect, onBack }: {
-  loaded: boolean; groups: { key: string; label: string; items: BadgeDef[]; }[];
+  loaded: boolean; groups: { key: string; label: string; items: BadgeDef[] }[];
   unlocks: Record<string, BadgeUnlockState>; featured: string[]; unlockedCount: number;
   onSelect: (id: string) => void; onBack: () => void;
 }) {
-  const { D, F } = useSomataTheme();
-
-  const { width, fontScale } = useWindowDimensions();
-  const singleColumn = width < 350 || fontScale > 1.3;
+  const { F, t, p } = useTaskPresentation();
   return <FlowPage title="Your collection." eyebrow="Badges" onBack={onBack}>
-
-    <LinearGradient colors={[D.tint, D.card]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-      style={{ padding: 24, borderRadius: 26, gap: 14 }}>
-
-      <View style={{ ...F.row, alignItems: "flex-start", flexWrap: "wrap" }}>
-
-        <View style={{ flex: 1, minWidth: 140, gap: 4 }}>
-
-          <Text style={{ ...F.eyebrow, color: D.lime }}>LOCAL COLLECTION</Text>
-
-          <Text style={{ ...F.value, fontSize: 58 }}>{loaded ? unlockedCount : "—"}</Text>
-
-          <Text style={{ ...F.body, color: D.muted }}>{loaded ? "badges unlocked" : "Reading local collection…"}</Text>
-
-        </View>
-
-        <View style={{
-          width: 76, height: 76, borderRadius: 38, borderWidth: 1,
-          borderColor: "#578B65", alignItems: "center", justifyContent: "center"
-        }}>
-
-          <Ionicons name="ribbon-outline" size={40} color={D.lime} />
-
-        </View>
-
-      </View>
-
-      <Text style={{ ...F.caption, color: D.muted }}>Stored on this device. Open a badge to see its criteria or manage your featured selection.</Text>
-
-    </LinearGradient>
-
+    <DeskIntro icon="ribbon-outline" label="Account / on this device" title="Small wins. Recorded.">
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: 12 }}>
+        <Text style={{ ...F.value, fontSize: 56 }}>{loaded ? unlockedCount : '—'}</Text>
+        <Text style={F.body}>{loaded ? 'badges unlocked' : 'Reading local collection…'}</Text>
+      </View><Text style={F.caption}>Open a badge for its criteria or to manage your featured selection. This collection is stored on this device.</Text>
+    </DeskIntro>
     {groups.map((group, index) => <View key={group.key} style={{ gap: 14 }}>
-
-      <View style={{ ...F.row, alignItems: "flex-start" }}>
-
-        <View style={{ flex: 1, gap: 5 }}>
-
-          <Text style={F.eyebrow}>{String(index + 1).padStart(2, "0")} / COLLECTION</Text>
-
-          <Text accessibilityRole="header" style={F.heading}>{group.label}</Text>
-
+      <View style={{ gap: 7 }}><Text style={F.eyebrow}>{String(index + 1).padStart(2, '0')} / COLLECTION</Text>
+        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'baseline' }}>
+          <Text accessibilityRole="header" style={{ ...F.heading, flex: 1 }}>{group.label}</Text>
+          <Text style={F.caption}>{loaded ? `${group.items.filter(b => !!unlocks[b.id]).length}/${group.items.length} earned` : 'Loading…'}</Text>
         </View>
-
-        <Text style={F.caption}>{group.items.filter((b) => !!unlocks[b.id]).length}/{group.items.length}</Text>
-
       </View>
-
-      <View style={F.wrap}>
-
-        {group.items.map((badge) => {
-          const unlocked = !!unlocks[badge.id];
-          const isFeatured = featured.includes(badge.id);
-          return <Pressable key={badge.id} onPress={() => onSelect(badge.id)} accessibilityRole="button"
-            accessibilityLabel={`${badge.title}, ${unlocked ? "unlocked" : "locked"}${isFeatured ? ", featured" : ""}. View details`}
-            style={({ pressed }) => ({
-              width: singleColumn ? "100%" : "48%", flexGrow: 1,
-              padding: 17, gap: 14, borderRadius: 21, backgroundColor: unlocked ? D.tint : D.card,
-              opacity: pressed ? 0.7 : 1, borderWidth: 1, borderColor: unlocked ? "#355344" : D.line
-            })}>
-
-            <View style={F.row}>
-
-              <View style={{
-                width: 49, height: 49, borderRadius: 17, backgroundColor: unlocked ? D.lime : D.raised,
-                justifyContent: "center", alignItems: "center"
-              }}>
-
-                <Ionicons name={iconFor(badge)} color={unlocked ? D.ink : D.muted} size={26} />
-
-              </View>
-
-              <Ionicons name={isFeatured ? "star" : unlocked ? "checkmark-circle" : "lock-closed-outline"}
-                size={17} color={unlocked || isFeatured ? D.lime : D.muted} />
-
-            </View>
-
-            <View style={{ gap: 5 }}>
-
-              <Text style={{ ...F.heading, fontSize: 17 }}>{badge.title}</Text>
-
-              <Text style={F.caption}>{badge.subtitle}</Text>
-
-            </View>
-
-            <Text style={{ ...F.caption, color: unlocked ? D.lime : D.muted }}>
-              {rarityLabel(badge.rarity)} · {unlocked ? "Unlocked" : "Locked"}
-            </Text>
-
-          </Pressable>;
-        })}
-
-      </View>
-
+      <DeskColumns>{group.items.map(badge => {
+        const unlocked = !!unlocks[badge.id], isFeatured = featured.includes(badge.id);
+        return <Pressable key={badge.id} onPress={() => onSelect(badge.id)} accessibilityRole="button"
+          accessibilityLabel={`${badge.title}, ${unlocked ? 'unlocked' : 'locked'}${isFeatured ? ', featured' : ''}. View details`}
+          style={({ pressed }) => ({ flex: 1, padding: 16, gap: 14, borderRadius: 20, backgroundColor: t.surface.primary,
+            borderWidth: 1, borderColor: unlocked ? p.warmEdge : t.border.subtle, opacity: pressed ? .75 : 1 })}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ padding: 14, borderRadius: 18, backgroundColor: unlocked ? t.selection.background : t.surface.inset }}>
+              <Ionicons name={iconFor(badge)} size={30} color={unlocked ? t.status.warning : t.text.tertiary} />
+            </View><Ionicons name={isFeatured ? 'star' : unlocked ? 'checkmark-circle' : 'lock-closed-outline'} size={19} color={unlocked ? t.status.warning : t.text.tertiary} />
+          </View><Text style={{ ...F.heading, fontSize: 17 }}>{badge.title}</Text>
+          <Text style={F.caption}>{badge.subtitle}</Text>
+          <Text style={{ ...F.caption, color: unlocked ? t.status.warning : t.text.secondary }}>{rarityLabel(badge.rarity)} · {unlocked ? 'Unlocked' : 'Locked'}{isFeatured ? ' · Featured' : ''}</Text>
+        </Pressable>;
+      })}</DeskColumns>
     </View>)}
-
   </FlowPage>;
 }
-
 export function BadgeCollectionDetail({ badge, unlocked, category, isFeatured, onToggleFeature, onClose }: {
   badge: BadgeDef; unlocked?: BadgeUnlockState; category: string; isFeatured: boolean;
   onToggleFeature: () => void; onClose: () => void;
 }) {
-  const { D, F } = useSomataTheme();
-
-  const reduceMotion = useReducedMotion();
-  const insets = useSafeAreaInsets();
+  const { F, t } = useTaskPresentation();
   const criteria = Array.isArray(badge.criteriaText) ? badge.criteriaText.map(String) : badge.criteriaText ? [String(badge.criteriaText)] : [];
-  return <Modal transparent animationType={reduceMotion ? "none" : "fade"} onRequestClose={onClose}>
-
-    <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "#000000B3" }}>
-
-      <Pressable accessibilityRole="button" accessibilityLabel="Close badge details" onPress={onClose}
-        style={{ position: "absolute", inset: 0 }} />
-
-      <View accessibilityViewIsModal style={{
-        maxHeight: "90%", backgroundColor: D.bg,
-        borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingTop: 12
-      }}>
-
-        <View style={{ ...F.row, paddingHorizontal: 24 }}>
-
-          <Text style={{ ...F.eyebrow, flex: 1 }}>BADGE / {category.toUpperCase()}</Text>
-
-          <Pressable accessibilityRole="button" accessibilityLabel="Close badge details"
-            onPress={() => { void Haptics.selectionAsync(); onClose(); }}
-            style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: D.card, alignItems: "center", justifyContent: "center" }}>
-
-            <Ionicons name="close" size={23} color={D.text} />
-
-          </Pressable>
-
-        </View>
-
-        <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 28, gap: 24 }}>
-
-          <View style={{ alignItems: "center", gap: 14 }}>
-
-            <LinearGradient colors={unlocked ? [D.teal, D.lime] : ["#343D39", "#1D2522"]}
-              style={{ width: 114, height: 114, borderRadius: 57, alignItems: "center", justifyContent: "center" }}>
-
-              <Ionicons name={iconFor(badge)} size={52} color={unlocked ? D.ink : D.muted} />
-
-            </LinearGradient>
-
-            <Text accessibilityRole="header" style={{ ...F.title, fontSize: 30, textAlign: "center" }}>{badge.title}</Text>
-
-            <Text style={{ ...F.body, textAlign: "center" }}>{badge.subtitle}</Text>
-
-            <Text style={{ ...F.caption, color: D.lime }}>{rarityLabel(badge.rarity)} · {unlocked ? "Unlocked" : "Locked"}
-              {unlocked?.unlockedAt ? ` · ${new Date(unlocked.unlockedAt).toLocaleDateString()}` : ""}</Text>
-
-          </View>
-
-          <Text style={F.body}>{badge.description}</Text>
-
-          <View style={{ gap: 16 }}>
-
-            <Text accessibilityRole="header" style={F.heading}>How it’s earned</Text>
-
-            {criteria.map((criterion, index) => <View key={index} style={{ flexDirection: "row", gap: 13 }}>
-
-              <Text style={{ ...F.eyebrow, paddingTop: 3 }}>{String(index + 1).padStart(2, "0")}</Text>
-
-              <Text style={{ ...F.body, flex: 1, color: D.text }}>{criterion}</Text>
-
-            </View>)}
-
-          </View>
-
-          {!!badge.canFeature && <Pressable accessibilityRole="button"
-            onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onToggleFeature(); }}
-            style={({ pressed }) => ({
-              ...F.row, justifyContent: "center", padding: 18, borderRadius: 18,
-              minHeight: 52, backgroundColor: D.lime, opacity: pressed ? 0.75 : 1
-            })}>
-
-            <Ionicons name={isFeatured ? "star" : "star-outline"} size={21} color={D.ink} />
-
-            <Text style={{ flexShrink: 1, color: D.ink, fontSize: 15, fontWeight: "800" }}>
-              {isFeatured ? "Remove from featured" : "Feature on profile"}
-            </Text>
-
-          </Pressable>}
-
-        </ScrollView>
-
-      </View>
-
-    </View>
-
-  </Modal>;
+  return <TaskSheet visible title="Badge details" onClose={onClose}>
+    <DeskIntro icon={iconFor(badge)} label={category} title={badge.title} detail={badge.subtitle}>
+      <StatusNote icon={unlocked ? 'checkmark-circle-outline' : 'lock-closed-outline'} title={`${rarityLabel(badge.rarity)} · ${unlocked ? 'Unlocked' : 'Locked'}`}
+        detail={unlocked?.unlockedAt ? `Earned ${new Date(unlocked.unlockedAt).toLocaleDateString()}` : undefined} />
+    </DeskIntro><Text style={F.body}>{badge.description}</Text>
+    <DeskSection icon="flag-outline" title="How it’s earned">
+      {criteria.map((criterion, i) => <View key={i} style={{ flexDirection: 'row', gap: 12, paddingVertical: 6 }}>
+        <Text style={{ ...F.eyebrow, color: t.status.warning }}>{String(i + 1).padStart(2, '0')}</Text><Text style={{ ...F.body, flex: 1 }}>{criterion}</Text>
+      </View>)}
+    </DeskSection>
+    {!!badge.canFeature && <Button primary icon={isFeatured ? 'star' : 'star-outline'} label={isFeatured ? 'Remove from featured' : 'Feature on profile'}
+      onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onToggleFeature(); }} />}
+  </TaskSheet>;
 }

@@ -1,0 +1,57 @@
+{
+  "checkpoint": 11,
+  "branch": "profile-redesign",
+  "surfaceCount": 23,
+  "typecheck": "passed",
+  "fullSuite": {
+    "passed": 205,
+    "failed": 0
+  },
+  "focusedFamily": {
+    "passed": 11,
+    "failed": 0
+  },
+  "stageSuites": [
+    12,
+    14,
+    13
+  ],
+  "exports": {
+    "ios": {
+      "passed": true,
+      "output": "/private/tmp/somata11-ios",
+      "bundle": "entry-ba78ef670ea5c1aa0c532f0d744a3202.hbc"
+    },
+    "android": {
+      "passed": true,
+      "output": "/private/tmp/somata11-android",
+      "bundle": "entry-4e8d5604860a545b1bb1feca996bf7fc.hbc"
+    }
+  },
+  "native": {
+    "verified": false,
+    "reason": "simctl: CoreSimulatorService connection invalid / refused in this session"
+  },
+  "gallery": {
+    "synthetic": true,
+    "personalData": false,
+    "html": 342,
+    "scenarios": 79,
+    "source": "actual React Native JSX rendered through offline React Native Web adapters",
+    "browserCaptures": 204,
+    "horizontalOverflow": 0
+  },
+  "preserved": {
+    "mainProfile": true,
+    "allFiveTabs": true,
+    "brandingFiles": 125,
+    "backend": true,
+    "calculations": true,
+    "storage": true,
+    "routes": true,
+    "permissions": true
+  },
+  "deployed": false,
+  "committed": false,
+  "pushed": false
+}

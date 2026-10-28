@@ -1,3 +1,5 @@
+import { DeskIntro, DeskSection, DeskColumns, StatusNote } from "@/components/accountSettings/PremiumUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { SharedSummary } from "@/components/friends/SharedSummary";
 import { Button, Choice, Empty, Field, IconButton, Item, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
 import { useSomataTheme } from "@/components/somata/theme";
@@ -92,8 +94,8 @@ function relativeTimeFromMs(ms: number) {
   return `${day}d ago`;
 }
 
-export default function FriendsPage() {
-  const { F } = useSomataTheme();
+function FriendsPage() {
+  const { F, t } = useTaskPresentation();
 
   const { colors } = useProfileFlowTheme();
   const { user } = useAuth();
@@ -406,24 +408,29 @@ export default function FriendsPage() {
 
   return (<><TaskPage title="Your circle" section="Friends" subtitle="Share what you choose, with people you trust." onBack={() => router.back()} action={<IconButton icon="person-add-outline" label="Add friend" onPress={() => setAddOpen(true)} />}>
 
+    <DeskIntro icon="people-outline" label="Your connections" title="A circle, on your terms." detail="Friendship and fitness sharing are separate choices.">
+      <DeskColumns><Button primary label="Add someone" icon="person-add-outline" onPress={() => setAddOpen(true)} />
+      <Button label="Copy my UID" icon="copy-outline" onPress={() => { if (user?.uid) handleCopyUid(user.uid); }} /></DeskColumns>
+    </DeskIntro>
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {(['friends', 'requests', 'sent'] as FriendsTabKey[]).map(t => <Choice key={t} label={t === 'friends' ? `Friends · ${friendsUI.length}` : t === 'requests' ? `Requests · ${requestsUI.length}` : `Sent · ${sentUI.length}`} selected={tab === t} onPress={() => setTab(t)} />)}
     </View>
 
-    <Field label="Find a friend" value={search} onChangeText={setSearch} />
+    <Field label="Find a friend" placeholder="Name, email or UID" value={search} onChangeText={setSearch} />
     {!!errorMsg && <Empty title="Could not load friends" detail={errorMsg} />}
     {(loadingA || loadingB) && <Text style={F.caption}>Loading connections…</Text>}
 
     {data.map(friend => <Panel key={friend.id}>
-      <Item title={friend.name} detail={tab === 'friends' ? "Open shared activity · sharing approval required" : friend.uidLabel} onPress={tab === 'friends' ? () => openDetail(friend) : undefined} />
-      {tab === 'friends' ? <Button label="Send a nudge" onPress={() => openPing(friend)} /> : tab === 'requests' ? <View style={{ gap: 8 }}>
+      <Text style={F.eyebrow}>{tab === 'friends' ? 'CONNECTED' : tab === 'requests' ? 'RECEIVED REQUEST' : 'AWAITING RESPONSE'}</Text>
+      <Item icon="person-circle-outline" title={friend.name} detail={tab === 'friends' ? "Open shared activity · sharing approval required" : friend.uidLabel} onPress={tab === 'friends' ? () => openDetail(friend) : undefined} />
+      {tab === 'friends' ? <Button icon="paper-plane-outline" label="Send a nudge" onPress={() => openPing(friend)} /> : tab === 'requests' ? <DeskColumns>
         <Button primary label="Accept request" onPress={() => handleRespond(friend.friendUid, true)} />
         <Button label="Decline request" onPress={() => handleRespond(friend.friendUid, false)} />
-      </View> : <Button label="Cancel request" onPress={() => handleCancelOutgoing(friend.friendUid)} />}
+      </DeskColumns> : <Button label="Cancel request" onPress={() => handleCancelOutgoing(friend.friendUid)} />}
     </Panel>)}
 
     {!data.length && !loadingA && !loadingB && <Empty title={tab === 'friends' ? 'No friends to show' : tab === 'requests' ? 'No pending requests' : 'No sent requests'} detail="Connect using an email or UID, or share your own UID privately." />}
-    <Button label="Copy my UID" onPress={() => { if (user?.uid) handleCopyUid(user.uid); }} />
+
 
     {!!toast && <Text accessibilityLiveRegion="polite" style={F.body}>{toast}</Text>}
 
@@ -434,21 +441,31 @@ export default function FriendsPage() {
         {([null, 'profile', 'meals', 'workouts'] as const).map(v => <Choice key={v || 'overview'} label={v || 'Overview'} selected={activeModal === v} onPress={() => setActiveModal(v)} />)}
       </View>
         <SharedSummary key={selected.friendUid} friendUid={selected.friendUid} name={selected.name} mode={activeModal || "overview"} onNavigate={() => setDetailOpen(false)} enabled={detailOpen && !pingPickerOpen && !nicknameEditorOpen} />
-        {!activeModal && <><Button label="Copy UID" onPress={() => handleCopyUid(selected.friendUid)} /><Button label="Send a nudge" onPress={() => openPing(selected)} /><Button label="Edit nickname" onPress={() => { setNicknameValue(selected.raw.friendDisplayName || ''); setNicknameEditorOpen(true); }} /><Button danger label="Remove friend" onPress={() => handleRemove(selected)} /><Button danger label="Block" onPress={() => handleBlock(selected)} /><Button label="Report" onPress={() => handleReport(selected)} /></>}
+        {!activeModal && <><DeskSection icon="chatbubble-ellipses-outline" title="Stay connected">
+          <DeskColumns><Button icon="copy-outline" label="Copy UID" onPress={() => handleCopyUid(selected.friendUid)} /><Button icon="paper-plane-outline" label="Send a nudge" onPress={() => openPing(selected)} /></DeskColumns>
+          <Button icon="pencil-outline" label="Edit nickname" onPress={() => { setNicknameValue(selected.raw.friendDisplayName || ''); setNicknameEditorOpen(true); }} />
+        </DeskSection><DeskSection icon="shield-outline" title="Relationship controls">
+          <Button danger label="Remove friend" onPress={() => handleRemove(selected)} /><DeskColumns><Button danger label="Block" onPress={() => handleBlock(selected)} /><Button label="Report" onPress={() => handleReport(selected)} /></DeskColumns>
+        </DeskSection></>}
         {activeModal === 'workouts' && <Button label="Open workouts and save a shared template" onPress={() => { setDetailOpen(false); router.push(`/friends/${encodeURIComponent(selected.friendUid)}/workouts?name=${encodeURIComponent(selected.name)}`); }} />}
         {activeModal === 'profile' && <Button label="Shared progress" onPress={() => { setDetailOpen(false); router.push(`/friends/${encodeURIComponent(selected.friendUid)}/progress?name=${encodeURIComponent(selected.name)}`); }} />}
       </>}
 
     </TaskSheet>
     <TaskSheet title={`Nudge ${pendingPing?.name || 'friend'}`} visible={pingPickerOpen} onClose={() => setPingPickerOpen(false)}>
-      <Text style={F.body}>They’ll receive a gentle notification.</Text>
-      {PING_PRESETS.map(p => <Choice key={p} label={p} selected={selectedPingPreset === p} onPress={() => setSelectedPingPreset(p)} />)}
-      <Choice label="Blank ping" selected={selectedPingPreset === ''} onPress={() => setSelectedPingPreset('')} />
+      <StatusNote icon="paper-plane-outline" title="A little encouragement" detail="They’ll receive a gentle notification." />
+      <DeskColumns>{PING_PRESETS.map(p => <Choice key={p} label={p} selected={selectedPingPreset === p} onPress={() => setSelectedPingPreset(p)} />)}
+      <Choice label="Blank ping" selected={selectedPingPreset === ''} onPress={() => setSelectedPingPreset('')} /></DeskColumns>
       <Button primary label="Send" disabled={selectedPingPreset === null} onPress={async () => { if (!pendingPing) return; await sendPing(pendingPing, selectedPingPreset || ''); setPingPickerOpen(false); }} />
     </TaskSheet>
     <TaskSheet title="A name just for you" visible={nicknameEditorOpen} onClose={() => setNicknameEditorOpen(false)}>
+      <StatusNote icon="lock-closed-outline" title="Only you see this name" detail="Changing a nickname does not change your friend’s profile." />
       <Field label="Nickname" value={nicknameValue} onChangeText={setNicknameValue} />
       <Button primary label="Save nickname" onPress={handleNicknameSave} />
     </TaskSheet></>
   );
+}
+
+export default function PremiumFriendsPage() {
+  return <SomataTaskAppearance><FriendsPage /></SomataTaskAppearance>;
 }

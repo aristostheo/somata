@@ -1,6 +1,7 @@
+import { DeskIntro, DeskSection, DeskColumns, StatusNote } from "@/components/accountSettings/PremiumUI";
 import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
-import { Button, Field, Heading, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { Button, Field, Heading, Panel, TaskSheet } from "@/components/somata/TaskUI";
+import { useTaskPresentation } from "@/components/designPreview/Appearance";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useState } from "react";
@@ -28,7 +29,7 @@ export function FriendsAddSheet({
   privacyNote?: string;
   myUid?: string;
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors, isDark } = useProfileFlowTheme();
   const [target, setTarget] = useState("");
@@ -53,18 +54,18 @@ export function FriendsAddSheet({
   if (!open) return null;
 
   return (<TaskSheet title="Grow your circle" visible={open} onClose={onClose}>
-    <Text style={F.body}>{privacyNote || 'Connect using an email or UID. Share your UID only with someone you trust.'}</Text>
-    <Field label="Email or UID" value={target} onChangeText={setTarget} autoCapitalize="none" autoCorrect={false} />
+    <StatusNote title="Invitation only" detail={privacyNote || 'Connect using an email or UID. Share your UID only with someone you trust.'} />
+    <DeskSection icon="person-add-outline" title="Send an invitation"><Field label="Email or UID" value={target} onChangeText={setTarget} autoCapitalize="none" autoCorrect={false} />
     <Field label="Nickname · visible only to you" value={displayName} onChangeText={setDisplayName} />
     <Button primary disabled={!canSend || sending} label={sending ? 'Sending…' : 'Send request'} onPress={async () => { Haptics.selectionAsync().catch(() => { }); await onSend(target, displayName); }} />
-    <Heading title="Let someone find you" />
+    </DeskSection><DeskSection icon="qr-code-outline" title="Let someone find you" detail="Share your code privately; accepting a request does not enable fitness sharing.">
     <Button label="Copy my UID" onPress={async () => { if (!myUid) return; await Clipboard.setStringAsync(myUid); Haptics.selectionAsync().catch(() => { }); }} />
     <Button label={showQr ? 'Hide my QR' : 'Show my QR'} onPress={() => setShowQr(v => !v)} />
     {showQr && myUid && <View style={{ alignItems: 'center', gap: 12, padding: 20, backgroundColor: '#FFFFFF', borderRadius: 20 }}>
       <QRCode value={myUid} size={156} backgroundColor="#FFFFFF" color="#111111" />
       <Text selectable style={{ color: '#111111' }}>{myUid}</Text>
     </View>}
-  </TaskSheet>
+  </DeskSection></TaskSheet>
   );
 }
 

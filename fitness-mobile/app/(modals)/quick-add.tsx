@@ -1,8 +1,9 @@
+import { NutritionContext, NutritionFields } from "@/components/nutrition/NutritionTaskUI";
 import { useAccountStorage } from "@/services/local/accountStore";
 import { Alert } from "react-native";
 import { queueNutritionHandoff } from "@/services/queueNutritionHandoff";
-import { Button, Choice, Empty, Field, Heading, Item, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { Button, Choice, Empty, Field, Heading, Item, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { dayKey } from "@/utils/date";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
@@ -95,8 +96,12 @@ function mealLabel(meal: MealKey) {
 }
 
 export default function QuickAddModal() {
+  return <SomataTaskAppearance><QuickAddModalContent /></SomataTaskAppearance>;
+}
+
+function QuickAddModalContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors, isDark } = useTheme() as any;
   const { user } = useAuth();
@@ -383,26 +388,29 @@ export default function QuickAddModal() {
     });
   }
 
-  return (<><TaskPage title="Food, without the fuss" section="Quick add" subtitle={date} onBack={() => router.back()}>
+  return (<><TaskPage title="Quick add" section="Quick add" subtitle={date} onBack={() => router.back()}>
 
+    <Panel accent><Heading title="Straight to your meal" detail="Choose a meal, then tap a food to use its last-used portion." />
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {(['breakfast', 'lunch', 'dinner', 'snacks'] as MealKey[]).map(m => <Choice key={m} label={mealLabel(m)} selected={meal === m} onPress={() => setMeal(m)} />)}
     </View>
 
-    <Field ref={inputRef} label="Find a food" value={query} onChangeText={setQuery} placeholder="Search your foods and the database" />
+    </Panel>
+    <Panel><Field ref={inputRef} label="Find a food" value={query} onChangeText={setQuery} placeholder="Search your foods and the database" />
 
-    <Button label="Enter calories and macros" icon="add" onPress={() => setMacroOpen(true)} />
+    <Button label="Enter calories and macros" icon="add" onPress={() => setMacroOpen(true)} /></Panel>
 
     {searching && <Text accessibilityLiveRegion="polite" style={F.caption}>Searching…</Text>}
 
     <Heading title={query ? 'Matching foods' : 'Your quick picks'} detail="Tap a food to add the last-used portion." />
-    {quickPicks.map(row => { const v = resolveDefault(row.item); return <Item key={row.key} title={row.item.name} detail={`${v.qty} ${v.unit} · ${Math.round(v.calories)} kcal · ${row.sourceBucket}${lastAddedKey === row.key ? ' · Added' : ''}`} onPress={() => instantAdd(row.item, row.sourceBucket === 'recent' ? 'recent' : row.sourceBucket === 'frequent' ? 'popular' : 'catalog')} />; })}
+    <Panel>{quickPicks.map(row => { const v = resolveDefault(row.item); return <Item key={row.key} title={row.item.name} detail={`${v.qty} ${v.unit} · ${Math.round(v.calories)} kcal · ${row.sourceBucket}${lastAddedKey === row.key ? ' · Added' : ''}`} onPress={() => instantAdd(row.item, row.sourceBucket === 'recent' ? 'recent' : row.sourceBucket === 'frequent' ? 'popular' : 'catalog')} />; })}
 
-    {!quickPicks.length && !searching && <Empty title="No foods here yet" detail="Search for a food or enter its nutrition directly." />}
+    {!quickPicks.length && !searching && <Empty title="No foods here yet" detail="Search for a food or enter its nutrition directly." />}</Panel>
 
   </TaskPage><TaskSheet title="Quick nutrition entry" visible={macroOpen} onClose={() => setMacroOpen(false)}>
+      <NutritionContext label="Quick macros" title="Record the numbers" detail="Enter nutrition for one serving. Nothing is added until you confirm." icon="calculator-outline" />
       <Field label="Food name" value={quickDraft.name} onChangeText={name => setQuickDraft(v => ({ ...v, name }))} />
-      {(['calories', 'protein', 'carbs', 'fat'] as const).map(k => <Field key={k} label={`${k} · ${k === 'calories' ? 'kcal' : 'g'}`} keyboardType="decimal-pad" value={quickDraft[k]} onChangeText={text => setQuickDraft(v => ({ ...v, [k]: text }))} />)}
+      <Panel><Heading title="Nutrition per serving" /><NutritionFields>{(['calories', 'protein', 'carbs', 'fat'] as const).map(k => <Field key={k} label={`${k} · ${k === 'calories' ? 'kcal' : 'g'}`} keyboardType="decimal-pad" value={quickDraft[k]} onChangeText={text => setQuickDraft(v => ({ ...v, [k]: text }))} />)}</NutritionFields></Panel>
       <Button primary label="Add to meal" onPress={submitQuickMacros} />
     </TaskSheet></>
   );

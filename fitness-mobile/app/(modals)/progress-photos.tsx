@@ -1,6 +1,7 @@
+import { ProfileIntro, ProfileSection, ProfileRecord } from "@/components/profile/ProfileTaskUI";
 import { useAccountStorage } from '@/services/local/accountStore';
 import { Button, Empty, Field, Heading, IconButton, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -11,11 +12,13 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  View
+  View,
+  type StyleProp,
+  type ViewStyle,
 } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { usePremiumProfileFlowTheme as useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import {
   addPhoto,
   deletePhoto,
@@ -36,9 +39,26 @@ function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export default function ProgressPhotosScreen() {
+/** Keep the journal/caption visible when its device-local image cannot be read. */
+function JournalImage({ photo, style, contain = false }: {
+  photo: ProgressPhoto; style: StyleProp<ViewStyle>; contain?: boolean;
+}) {
+  const { D, F } = useTaskPresentation();
+  const [failedUri, setFailedUri] = useState<string | null>(null);
+  const unavailable = !photo.uri || failedUri === photo.uri ||
+    (photo.imageStatus !== undefined && photo.imageStatus !== 'available');
+  return <View style={[style, { overflow: 'hidden', backgroundColor: D.card }]}>
+    {unavailable ? <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 8 }}>
+      <Text style={[F.caption, { textAlign: 'center' }]}>Image unavailable on this device</Text>
+    </View> : <Image source={{ uri: photo.uri }} style={StyleSheet.absoluteFill}
+      resizeMode={contain ? 'contain' : 'cover'} accessibilityLabel={`Progress photo from ${photo.date}`}
+      onError={() => setFailedUri(photo.uri)} />}
+  </View>;
+}
+
+function ProgressPhotosScreenContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors } = useProfileFlowTheme();
   const reduceMotion = useReducedMotion();
@@ -146,45 +166,49 @@ export default function ProgressPhotosScreen() {
 
   return (<><TaskPage title="See your own story" section="Progress photos" subtitle="A private collection stored on this device." onBack={() => router.back()} action={<IconButton label="Add progress photo" icon="add" onPress={() => setPickerOpen(true)} />}>
 
+    <ProfileIntro label="Private / on this device" title="Your visual journal" detail="Choose your own baseline and selected image. Nothing is uploaded or shared from this collection." />
+    {photos.some(photo => photo.imageStatus && photo.imageStatus !== 'available') && <Text style={F.body} accessibilityRole="alert">Some images are unavailable on this device. Your dates and notes have been kept. If an old image file was removed, it must be added again from your photo library.</Text>}
     {!photos.length ? <Empty title="Your collection starts with one photo" detail="Choose an image or take a photo when you feel ready." /> : <>
-      <View style={{ flexDirection: 'row', gap: 10 }}>
-        {[{ label: 'Baseline', photo: baseline }, { label: 'Selected', photo: current }].map(({ label, photo }) => <View key={label} style={{ flex: 1, gap: 8 }}>
+      <ProfileSection index="01" title="Side by side" detail="Your selected photographs, without generated comparisons."><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+        {[{ label: 'Baseline', photo: baseline }, { label: 'Selected', photo: current }].map(({ label, photo }) => <View key={label} style={{ flexGrow: 1, flexBasis: 120, minWidth: 110, gap: 8 }}>
           <Text style={F.eyebrow}>{label}</Text>
           {photo && <Pressable accessibilityRole="button" accessibilityLabel={`Open ${label} photo`} onPress={() => setViewerIndex(photos.findIndex(p => p.id === photo.id))}>
-            <Image source={{ uri: photo.uri }} style={{ width: '100%', aspectRatio: 0.75, borderRadius: 20 }} />
+            <JournalImage photo={photo} style={{ width: '100%', aspectRatio: 0.75, borderRadius: 20 }} />
           </Pressable>}
           <Text style={F.caption}>{photo ? formatDate(photo.date) : '—'}</Text>
         </View>)}
       </View>{weightDelta != null && <Text style={F.body}>Recorded weight difference · {weightDelta > 0 ? '+' : ''}{weightDelta.toFixed(1)} lb</Text>}
-      <Heading title="Photo journal" detail="Tap to compare. Hold a photo to set it as your baseline." />
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-        {photos.map((photo, i) => <View key={photo.id} style={{ width: '47%', gap: 8 }}>
+      </ProfileSection><Heading title="Photo journal" detail="Tap to compare. Hold a photo to set it as your baseline." />
+      <View style={{ gap: 12 }}>
+        {photos.map((photo, i) => <ProfileRecord key={photo.id} label={`${formatDate(photo.date)}${baselineId === photo.id ? ' · Baseline' : ''}`}><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14 }}><View style={{ width: 96 }}>
           <Pressable accessibilityRole="button" accessibilityLabel={`Select photo from ${photo.date}`} onPress={() => setSelectedId(photo.id)} onLongPress={() => setBaselineId(photo.id)}>
-            <Image source={{ uri: photo.uri }} style={{ width: '100%', aspectRatio: 0.75, borderRadius: 16, borderWidth: selectedId === photo.id ? 2 : 0, borderColor: D.lime }} />
+            <JournalImage photo={photo} style={{ width: '100%', aspectRatio: 0.75, borderRadius: 16, borderWidth: selectedId === photo.id ? 2 : 0, borderColor: D.lime }} />
           </Pressable>
-          <Text style={F.caption}>{formatDate(photo.date)}{baselineId === photo.id ? ' · Baseline' : ''}</Text>
+          </View><View style={{ flexGrow: 1, flexBasis: 160, gap: 8 }}>
           {!!photo.note && <Text style={F.body}>{photo.note}</Text>}
           <Button label="Set baseline" onPress={() => setBaselineId(photo.id)} />
           <Button label="View photo" onPress={() => setViewerIndex(i)} />
-        </View>)}
+        </View></View></ProfileRecord>)}
       </View></>}
 
   </TaskPage><TaskSheet title="Add to your journal" visible={pickerOpen} onClose={() => setPickerOpen(false)}>
+      <ProfileIntro label="New journal entry" title="Choose your source" detail="You will review the image and optional note before saving." />
       <Button label="Take photo" onPress={() => startAdd('camera')} />
       <Button label="Choose from library" onPress={() => startAdd('library')} />
     </TaskSheet>
     <TaskSheet title="Keep this moment" visible={!!pendingUri} onClose={() => setPendingUri(null)}>
+      <Text style={F.eyebrow}>PRIVATE PHOTO / REVIEW BEFORE SAVING</Text>
       {pendingUri && <Image source={{ uri: pendingUri }} style={{ width: '100%', height: 260, borderRadius: 20 }} resizeMode="contain" />}
       <Field label="Note · optional" multiline value={note} onChangeText={setNote} />
       <Button primary label="Save photo" onPress={confirmAdd} />
       <Button label="Cancel" onPress={() => setPendingUri(null)} />
     </TaskSheet>
     <TaskSheet title="Private by default" visible={privacyOpen} onClose={() => setPrivacyOpen(false)}>
-      <Text style={F.body}>Photos are stored only on your device. They are never uploaded or shared.</Text>
+      <ProfileIntro label="Device-local collection" title="For your own reflection" detail="Photos are stored only on your device. They are never uploaded or shared." />
       <Button primary label="Got it" onPress={async () => { await markProgressPhotoPrivacyNoticeSeen(localStore); setPrivacyOpen(false); }} />
     </TaskSheet>
     <TaskSheet title={viewerIndex != null && photos[viewerIndex] ? formatDate(photos[viewerIndex].date) : 'Photo'} visible={viewerIndex != null} onClose={() => setViewerIndex(null)}>
-      {viewerIndex != null && photos[viewerIndex] && <><Image source={{ uri: photos[viewerIndex].uri }} style={{ width: '100%', height: 420, borderRadius: 16 }} resizeMode="contain" /><Text style={F.body}>{photos[viewerIndex].note}</Text><View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      {viewerIndex != null && photos[viewerIndex] && <><Text style={F.eyebrow}>JOURNAL / {viewerIndex + 1} OF {photos.length}</Text><JournalImage key={photos[viewerIndex].id} photo={photos[viewerIndex]} style={{ width: '100%', height: 420, borderRadius: 16 }} contain /><Text style={F.body}>{photos[viewerIndex].note}</Text><View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <IconButton label="Previous photo" icon="arrow-back" disabled={viewerIndex <= 0} onPress={() => setViewerIndex(viewerIndex - 1)} />
         <IconButton label="Next photo" icon="arrow-forward" disabled={viewerIndex >= photos.length - 1} onPress={() => setViewerIndex(viewerIndex + 1)} />
       </View><Button danger label="Delete photo" onPress={() => removePhoto(photos[viewerIndex])} /></>}
@@ -328,3 +352,7 @@ const styles = StyleSheet.create({
   },
   fullscreenImage: { width: "100%", height: "100%" },
 });
+
+export default function ProgressPhotosScreen() {
+  return <SomataTaskAppearance><ProgressPhotosScreenContent /></SomataTaskAppearance>;
+}

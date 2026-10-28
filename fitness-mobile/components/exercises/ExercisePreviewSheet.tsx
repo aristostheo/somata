@@ -1,5 +1,6 @@
-import { Button, Empty, Heading, Item, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
+import { WorkoutIntro, WorkoutStats, WorkoutFields, MovementHeading } from "@/components/workouts/WorkoutTaskUI";
+import { Button, Empty, Heading, Item, Panel, TaskSheet } from "@/components/somata/TaskUI";
 // components/exercises/ExercisePreviewSheet.tsx
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo } from "react";
@@ -25,7 +26,11 @@ type Props = {
 const titleize = (s: string) =>
   s.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-export function ExercisePreviewSheet({
+export function ExercisePreviewSheet(props: Props) {
+  return <SomataTaskAppearance><ExercisePreviewSheetContent {...props} /></SomataTaskAppearance>;
+}
+
+function ExercisePreviewSheetContent({
   visible,
   exercise,
   isFavorite,
@@ -33,7 +38,7 @@ export function ExercisePreviewSheet({
   onToggleFavorite,
   onUse,
 }: Props) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors, isDark } = useTheme();
 
@@ -59,16 +64,18 @@ export function ExercisePreviewSheet({
 
   return (<TaskSheet title={exercise.name} visible={visible} onClose={onClose}>
 
-    <Text style={F.body}>{meta}</Text>
+    <Panel accent><Text style={F.eyebrow}>MOVEMENT GUIDE</Text><Text style={F.heading}>{meta}</Text></Panel>
     {gif ? <Image source={{ uri: gif }} style={{ width: '100%', height: 230, borderRadius: 20, backgroundColor: D.card }} resizeMode="contain" accessibilityLabel={`${exercise.name} demonstration`} /> : <Empty title="No demonstration available" />}
 
+    <Heading title="Technique" />
+    <Panel>{(exercise.instructions ?? []).map((step, i) => <MovementHeading key={i} number={i + 1} title={`Step ${i + 1}`} detail={step} />)}
+      {!exercise.instructions?.length && <Text style={F.caption}>No instructions are available for this exercise.</Text>}
+    </Panel>
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
       <Button label={isFavorite ? 'Saved to favorites' : 'Save to favorites'} icon={isFavorite ? 'heart' : 'heart-outline'} onPress={onToggleFavorite} />
       <Button primary label="Use exercise" onPress={onUse} />
     </View>
 
-    <Heading title="Technique" />
-    {(exercise.instructions ?? []).map((step, i) => <Item key={i} title={`${i + 1}`} detail={step} />)}
   </TaskSheet>
   );
 }

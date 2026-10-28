@@ -1,0 +1,12 @@
+{
+  "baselineFiles": 2850,
+  "changedExistingFiles": [
+    "fitness-mobile/components/somata/TaskUI.tsx",
+    "fitness-mobile/content/AuthContext.tsx",
+    "fitness-mobile/app/+not-found.tsx",
+    "fitness-mobile/app/_layout.tsx"
+  ],
+  "missing": [],
+  "effectCallbacksUnchanged": true,
+  "protected": "All other baseline files byte-identical: five tabs, auth forms, services, FitAdapt, rules, configuration, artwork, previous review packages and existing logs."
+}

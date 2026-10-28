@@ -1,5 +1,6 @@
+import { NutritionContext, NutritionFields } from "@/components/nutrition/NutritionTaskUI";
 import { Button, Choice, Field, Heading, Panel, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Keyboard,
@@ -69,7 +70,11 @@ function mealForTime(): MealKey {
   return "snacks";
 }
 
-export default function EditFoodSheet({
+export default function EditFoodSheet(props: Parameters<typeof EditFoodSheetContent>[0]) {
+  return <SomataTaskAppearance><EditFoodSheetContent {...props} /></SomataTaskAppearance>;
+}
+
+function EditFoodSheetContent({
   open,
   item,
   onSave,
@@ -86,7 +91,7 @@ export default function EditFoodSheet({
   saving?: boolean;
   deleting?: boolean;
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors } = useTheme() as any;
   const [values, setValues] = useState<EditValues>({
@@ -195,14 +200,15 @@ export default function EditFoodSheet({
 
   return (<TaskSheet title={item.name} visible={open} onClose={() => { Keyboard.dismiss(); onClose(); }}>
 
-    <Text style={F.caption}>{sourceLabel(item)}</Text>
+    <NutritionContext label={sourceLabel(item)} title="Edit this record" detail="Changes apply to this logged food. Your original portion remains the scaling reference." icon="create-outline" />
+    <Panel>
     <Heading title="Portion" detail="Changing quantity scales calories and macros from the original portion." />
 
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
       {[-0.1, 0.1].slice(0, 1).map(d => <Pressable key={d} accessibilityRole="button" accessibilityLabel="Decrease portion" onPress={() => nudgeQty(d)} onLongPress={() => startHold(d)} onPressOut={stopHold} style={{ padding: 16, backgroundColor: D.raised, borderRadius: 16 }}>
         <Text style={F.heading}>−</Text>
       </Pressable>)}
-      <Field label="Quantity" keyboardType="decimal-pad" value={values.qty} onChangeText={applyQty} />
+      <View style={{ flex: 1, minWidth: 0 }}><Field label="Quantity" keyboardType="decimal-pad" value={values.qty} onChangeText={applyQty} /></View>
       <Pressable accessibilityRole="button" accessibilityLabel="Increase portion" onPress={() => nudgeQty(0.1)} onLongPress={() => startHold(0.1)} onPressOut={stopHold} style={{ padding: 16, backgroundColor: D.raised, borderRadius: 16 }}>
         <Text style={F.heading}>+</Text>
       </Pressable>
@@ -213,14 +219,16 @@ export default function EditFoodSheet({
     </View>
     <Field label="Unit" value={values.unit} onChangeText={unit => setValues(v => ({ ...v, unit }))} />
 
-    <Heading title="Meal" />
+    </Panel>
+    <Panel><Heading title="Meal destination" />
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {MEAL_OPTIONS.map(meal => <Choice key={meal} label={mealLabel(meal)} selected={values.meal === meal} onPress={() => setValues(v => ({ ...v, meal }))} />)}
     </View>
 
+    </Panel>
     <Panel>
-      <Heading title="Nutrition" />
-      {(['calories', 'protein', 'carbs', 'fat'] as const).map(k => <Field key={k} label={`${k} · ${k === 'calories' ? 'kcal' : 'g'}`} keyboardType="decimal-pad" value={values[k]} onChangeText={s => setValues(v => ({ ...v, [k]: numOnly(s) }))} />)}
+      <Heading title="Nutrition for this portion" /><NutritionFields>
+      {(['calories', 'protein', 'carbs', 'fat'] as const).map(k => <Field key={k} label={`${k} · ${k === 'calories' ? 'kcal' : 'g'}`} keyboardType="decimal-pad" value={values[k]} onChangeText={s => setValues(v => ({ ...v, [k]: numOnly(s) }))} />)}</NutritionFields>
     </Panel>
     <Button primary disabled={saving || deleting} label={saving ? 'Saving…' : 'Save changes'} onPress={submit} />
     {onDelete && <Button danger disabled={saving || deleting} label={deleting ? 'Deleting…' : 'Delete food'} onPress={() => onDelete(item.id)} />}

@@ -1,17 +1,25 @@
-import { Action, Card, fmt, GlowPanel, LinkRow, Metric, Page, Section } from "@/components/designPreview/UI";
+import { FitAdaptSymbol, PoweredByFitAdapt } from "@/components/brand/Brand";
+import { fmt } from "@/components/designPreview/UI";
+import { Action, Card, Grid, Identity, LinkRow, Metric, Note, Page, Section, VisibilityButton } from "@/components/profile/PremiumProfileUI";
+import { SomataHomeAppearance as ProfileAppearance, usePresentation } from "@/components/designPreview/Appearance";
+import { useHomeVisuals } from "@/components/home/PremiumHomeUI";
 import { usePreviewAccount } from "@/components/designPreview/usePreviewAccount";
-import { useSomataTheme } from "@/components/somata/theme";
 import { useFitAdaptReviewState } from "@/hooks/useFitAdaptReviewState";
 import { measuredTrendPath } from "@/services/profile/fitadaptInsightData";
 import { kgToLb } from "@/utils/units";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 export default function DesignProfile() {
-  const { D, F } = useSomataTheme();
+  return <ProfileAppearance><ProfileContent /></ProfileAppearance>;
+}
+
+function ProfileContent() {
+  const { D } = usePresentation();
+  const { t } = useHomeVisuals();
 
   const router = useRouter();
   const account = usePreviewAccount();
@@ -34,76 +42,46 @@ export default function DesignProfile() {
 
   return <Page eyebrow="Your space / plan" title="Profile"
     subtitle="Your plan, measured progress, and account in one place."
-    headerAction={<Pressable accessibilityRole="button" accessibilityLabel={hidden ? "Show values" : "Hide values"}
-      onPress={() => setHidden((value) => !value)} style={{
-        width: 45, height: 45, borderRadius: 23,
-        backgroundColor: D.card, alignItems: "center", justifyContent: "center"
-      }}>
+    headerAction={<VisibilityButton hidden={hidden} onPress={() => setHidden((value) => !value)} />}>
 
-      <Ionicons name={hidden ? "eye-outline" : "eye-off-outline"} size={20} color={D.lime} />
+    <Identity name={name} email={account.user?.email || "Your account"} photo={photo}
+      onPress={() => router.push("/account")} />
 
-    </Pressable>}>
+    <Card kind="goals">
 
-    <Card style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-
-      {photo ? <Image source={{ uri: photo }} style={{ width: 53, height: 53, borderRadius: 17 }} /> :
-        <View style={{
-          width: 53, height: 53, borderRadius: 17, backgroundColor: D.teal,
-          alignItems: "center", justifyContent: "center"
-        }}>
-
-          <Text style={{ color: D.ink, fontSize: 21, fontWeight: "800" }}>{name.charAt(0).toUpperCase()}</Text>
-
-        </View>}
-
-      <View style={{ flex: 1, gap: 3 }}>
-
-        <Text style={{ color: D.text, fontSize: 18, fontWeight: "800" }}>{name}</Text>
-
-        <Text style={{ color: D.muted, fontSize: 12 }}>{account.user?.email || "Your account"}</Text>
-
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View style={{ flex: 1, gap: 5 }}>
+          <Text style={{ color: t.action.link, backgroundColor: t.surface.canvas, alignSelf: "flex-start", padding: 3,
+            fontSize: 11, fontWeight: "800", letterSpacing: 1.5 }}>{account.plan.title.toUpperCase()}</Text>
+          <Text accessibilityRole="header" style={{ color: D.text, fontSize: 25, fontWeight: "800", letterSpacing: -0.6 }}>Your current focus</Text>
+        </View>
+        <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: t.surface.inset, alignItems: "center", justifyContent: "center" }}>
+          <Ionicons name="locate-outline" size={29} color={t.action.link} />
+        </View>
       </View>
-
-      <Pressable accessibilityRole="button" accessibilityLabel="Open Account" onPress={() => router.push("/account")}
-        style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}>
-
-        <Ionicons name="arrow-forward" size={20} color={D.lime} />
-
-      </Pressable>
-
-    </Card>
-
-    <GlowPanel>
-
-      <Text style={{ color: D.muted, fontSize: 11, fontWeight: "800", letterSpacing: 1.5 }}>{account.plan.title.toUpperCase()}</Text>
-
-      <Text style={{ color: D.text, fontSize: 28, fontWeight: "800" }}>Your current focus</Text>
 
       <Text style={{ color: D.muted, fontSize: 12, lineHeight: 18 }}>{account.plan.detail}</Text>
 
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+      <Grid>
+        <Metric icon="flame" label="Energy" value={masked(target?.calories, " kcal")} tone="energy" />
 
-        <Metric label="Energy" value={masked(target?.calories, " kcal")} tone="lime" />
+        <Metric icon="barbell-outline" label="Protein" value={masked(target?.protein, " g")} tone="plain" />
 
-        <Metric label="Protein" value={masked(target?.protein, " g")} tone="plain" />
+        <Metric icon="leaf-outline" label="Carbs" value={masked(target?.carbs, " g")} tone="plain" />
 
-        <Metric label="Carbs" value={masked(target?.carbs, " g")} tone="plain" />
+        <Metric icon="water-outline" label="Fat" value={masked(target?.fat, " g")} tone="plain" />
 
-        <Metric label="Fat" value={masked(target?.fat, " g")} tone="plain" />
+      </Grid>
 
-      </View>
+      {account.plan.kind === "active" && <PoweredByFitAdapt />}
 
-      {account.plan.kind === "active" && <Text style={{ color: D.lime, fontSize: 11, fontWeight: "800" }}>Powered by FitAdapt</Text>}
-
-      <Text style={{ color: D.muted, fontSize: 11, lineHeight: 17 }}>
-        Editing saved goals does not replace accepted targets. A proposal changes them only after you accept it.
-      </Text>
+      <Note>Editing saved goals does not replace accepted targets. A proposal changes them only after you accept it.</Note>
 
       <Action label="Edit saved profile & goals" icon="create-outline" onPress={() => router.push("/profile/goal-setup")} />
 
-    </GlowPanel>
+    </Card>
 
-    {!!proposed && <Card accent>
+    {!!proposed && <Card accent opaque>
 
       <Section title="Pending review" caption="Your current targets remain in place" />
 
@@ -125,28 +103,28 @@ export default function DesignProfile() {
 
       </View>)}
 
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-
-        <Action label={review.busy ? "Working…" : "Accept plan"} icon="checkmark" bright
+      <Grid>
+        <Action navigation={false} label={review.busy ? "Working…" : "Accept plan"} icon="checkmark" bright
           disabled={review.busy || !account.profile}
           onPress={() => { void review.run("accept"); }} />
 
-        <Action label="Decline" icon="close" disabled={review.busy}
+        <Action navigation={false} label="Decline" icon="close" disabled={review.busy}
           onPress={() => { void review.run("decline"); }} />
 
-      </View>
+      </Grid>
 
     </Card>}
 
-    <Card>
+    <Card kind="fitadapt">
 
-      <Section title="FitAdapt review" caption="Requested by you; acceptance is always explicit" />
+      <Section title="FitAdapt review" caption="Requested by you; acceptance is always explicit"
+        action={<FitAdaptSymbol size={40} />} />
 
       <Text style={{ color: D.muted, fontSize: 12, lineHeight: 18 }}>
         A review uses required profile fields and account-scoped dated records. Your name, email, and photo are excluded.
       </Text>
 
-      {!!review.note && <Text accessibilityRole="alert" style={{ color: D.text, fontSize: 13, lineHeight: 19 }}>{review.note}</Text>}
+      {!!review.note && <Note alert>{review.note}</Note>}
 
       {review.note?.startsWith("Complete your saved") && <Action label="Complete required inputs" icon="create-outline"
         onPress={() => router.push("/fitadapt-setup")} />}
@@ -168,18 +146,19 @@ export default function DesignProfile() {
 
     </Card>
 
+    <Card kind="progress">
     <Section title="Measured progress" caption="Recorded account values, with no generated trend" />
 
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 9 }}>
+    <Grid>
 
-      <Metric label="Steps today" value={masked(account.steps)} detail="Account record" />
+      <Metric icon="footsteps-outline" tone="steps" label="Steps today" value={masked(account.steps)} detail="Account record" />
 
-      <Metric label="Latest weight" value={weight == null ? "—" : hidden ? "•••" : `${weight.toFixed(1)} ${weightUnit}`}
-        detail="Dated measurement" tone="lime" />
+      <Metric icon="scale-outline" label="Latest weight" value={weight == null ? "—" : hidden ? "•••" : `${weight.toFixed(1)} ${weightUnit}`}
+        detail="Dated measurement" tone="weight" />
 
-    </View>
+    </Grid>
 
-    <Card>
+    <Card opaque>
 
       <Section title="Weight trace" caption="Recent dated measurements" />
 
@@ -193,6 +172,7 @@ export default function DesignProfile() {
       <Action label="FitAdapt insights & history" icon="analytics-outline"
         onPress={() => router.push("/profile/fitadapt-insights")} />
 
+    </Card>
     </Card>
 
     <Card>
@@ -230,6 +210,7 @@ export default function DesignProfile() {
 
     <Card>
       <Section title="Collection & connections" />
+      <Grid>
 
       <LinkRow title="Progress photos" icon="images-outline" onPress={() => router.push("/(modals)/progress-photos")} />
 
@@ -238,6 +219,7 @@ export default function DesignProfile() {
       <LinkRow title="Friends" icon="people-outline" onPress={() => router.push("/friends")} />
 
       <LinkRow title="Apple Health & connections" icon="heart-outline" onPress={() => router.push("/profile/integrations")} />
+      </Grid>
 
     </Card>
 

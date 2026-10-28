@@ -1,3 +1,4 @@
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { useAccountStorage } from '@/services/local/accountStore';
 import { ConnectionsDesk } from "@/components/somata/ConnectionsDesk";
 import { useRouter } from "expo-router";
@@ -68,7 +69,7 @@ function ringConnPlatformLabel() {
   return Platform.OS === "ios" ? "Apple Health" : "Health Connect";
 }
 
-export default function IntegrationsScreen() {
+function IntegrationsScreen() {
   const localStore = useAccountStorage();
   const C = useC();
   const router = useRouter();
@@ -151,4 +152,8 @@ function primaryButton(C: ReturnType<typeof useC>) {
     borderWidth: 0,
     borderColor: alpha(C.purple, 0.38),
   };
+}
+
+export default function PremiumIntegrationsScreen() {
+  return <SomataTaskAppearance><IntegrationsScreen /></SomataTaskAppearance>;
 }

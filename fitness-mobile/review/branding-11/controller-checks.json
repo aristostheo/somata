@@ -1,0 +1,85 @@
+{
+  "scope": "Non-JSX function statements excluding theme-hook reads and color mapper useC; inline event attributes compared separately. Not native verification.",
+  "checks": [
+    {
+      "file": "app/(modals)/long-term-progress.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "components/profile/premium/bodyMetrics/MetricPickerSheet.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "app/profile/steps-history.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "app/fitadapt-setup.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": [
+        "onPress={() => router.replace(\"/(tabs)/profile\")}"
+      ]
+    },
+    {
+      "file": "app/(modals)/body-metrics.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "app/profile/advanced-metrics.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "components/homeFlows/FitAdaptInsightsView.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "app/(modals)/weekly-checkin.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "app/profile/goal-advanced.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "app/(modals)/progress-photos.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "app/profile/goal-setup.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "app/profile/insights-progress.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    },
+    {
+      "file": "app/profile/fitadapt-insights.tsx",
+      "controllerEqual": true,
+      "missingHandlers": [],
+      "addedHandlers": []
+    }
+  ]
+}

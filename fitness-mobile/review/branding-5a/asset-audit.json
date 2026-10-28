@@ -1,0 +1,104 @@
+{
+  "status": "Review candidates only; no app integration",
+  "assets": [
+    {
+      "file": "assets/branding/workouts/hero/gym-equipment.png",
+      "width": 900,
+      "height": 760,
+      "bytes": 378541,
+      "decodedRgbaBytes": 2736000,
+      "pngColorType": 2,
+      "transparentPixels": 0,
+      "colorMetadata": [],
+      "sha256": "9448b203f634a64514083c038f768e46207b19e76442d6a307dc4884ca2892d4"
+    },
+    {
+      "file": "assets/branding/workouts/hero/hero-dark.png",
+      "width": 960,
+      "height": 720,
+      "bytes": 413129,
+      "decodedRgbaBytes": 2764800,
+      "pngColorType": 2,
+      "transparentPixels": 0,
+      "colorMetadata": [],
+      "sha256": "e8b835400448a9383cc9c969c8acb6cb1e5d2c6bba67a7f3c6ffac1db21be888"
+    },
+    {
+      "file": "assets/branding/workouts/hero/hero-light.png",
+      "width": 960,
+      "height": 720,
+      "bytes": 478464,
+      "decodedRgbaBytes": 2764800,
+      "pngColorType": 2,
+      "transparentPixels": 0,
+      "colorMetadata": [],
+      "sha256": "66951007e2a335327eaa834f410d753cb04dacc56905b31aa24bdb6c095acaae"
+    },
+    {
+      "file": "assets/branding/workouts/templates/cardio.png",
+      "width": 640,
+      "height": 420,
+      "bytes": 203738,
+      "decodedRgbaBytes": 1075200,
+      "pngColorType": 2,
+      "transparentPixels": 0,
+      "colorMetadata": [],
+      "sha256": "8eb74cb716c8a453ff1cdfad0a6c30a3fc9e8dae3ce860a838b48e1fabc08dce"
+    },
+    {
+      "file": "assets/branding/workouts/templates/legs.png",
+      "width": 640,
+      "height": 420,
+      "bytes": 212106,
+      "decodedRgbaBytes": 1075200,
+      "pngColorType": 2,
+      "transparentPixels": 0,
+      "colorMetadata": [],
+      "sha256": "fb831c367923e46998db90d7b56b9baf10dc95982044a77d9671875d50793da3"
+    },
+    {
+      "file": "assets/branding/workouts/templates/mobility.png",
+      "width": 640,
+      "height": 420,
+      "bytes": 181422,
+      "decodedRgbaBytes": 1075200,
+      "pngColorType": 2,
+      "transparentPixels": 0,
+      "colorMetadata": [],
+      "sha256": "4d1e60bb732291bd20fb8aa8f2d1210d9a58ccb65b765e87cadb8875bb812bee"
+    },
+    {
+      "file": "assets/branding/workouts/templates/pull.png",
+      "width": 640,
+      "height": 420,
+      "bytes": 187896,
+      "decodedRgbaBytes": 1075200,
+      "pngColorType": 2,
+      "transparentPixels": 0,
+      "colorMetadata": [],
+      "sha256": "900ec6215ce09ee831f18f259a0d463d28df466072e46d5fd59697dd61f672bc"
+    },
+    {
+      "file": "assets/branding/workouts/templates/push.png",
+      "width": 640,
+      "height": 420,
+      "bytes": 161047,
+      "decodedRgbaBytes": 1075200,
+      "pngColorType": 2,
+      "transparentPixels": 0,
+      "colorMetadata": [],
+      "sha256": "b94eb725e4e59115930cb63ab52d6b5ea441df4298843ea764f7909bfa62627a"
+    },
+    {
+      "file": "assets/branding/workouts/templates/upper.png",
+      "width": 640,
+      "height": 420,
+      "bytes": 184048,
+      "decodedRgbaBytes": 1075200,
+      "pngColorType": 2,
+      "transparentPixels": 0,
+      "colorMetadata": [],
+      "sha256": "5069af99d911480a0754835648b6cbdbeb3869ad3c913f2f40ebe0fd461805b1"
+    }
+  ]
+}

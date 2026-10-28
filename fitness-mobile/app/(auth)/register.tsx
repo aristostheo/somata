@@ -5,7 +5,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { authErrorMessage } from "@/lib/authErrorMessage";
 import { AuthLink, AuthMessage, AuthPage, AuthProviders } from "@/components/somata/AuthUI";
-import { Button, Field } from "@/components/somata/TaskUI";
+import { Button, Field } from "@/components/somata/AuthControls";
 import { clearFitAdaptSetupMarker, markFitAdaptSetupForEmail, markFitAdaptSetupForSocial, markFitAdaptSetupForUid } from "@/services/fitadaptOnboarding";
 import { createRegistrationRunner } from "@/services/registerFitAdaptAccount";
 

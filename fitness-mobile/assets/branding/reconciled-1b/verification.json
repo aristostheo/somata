@@ -1,0 +1,29 @@
+{
+  "checkpoint": "1B",
+  "preservedFileCount": 71,
+  "preservation": "passed",
+  "approvedMasterHashes": "passed",
+  "nativeMasterPixelEquality": "passed for both background variants of both horizontal logos and stacked Somata",
+  "newPngCount": 24,
+  "pngHashesAndDecode": "passed",
+  "extractionPixelEquality": "passed",
+  "compactPDescenderPixelsPreserved": 2444,
+  "monochromeGeometryAndColors": "passed",
+  "lightDarkAlphaIdentity": "passed",
+  "androidMaskCounts": {
+    "circle66dp": {
+      "nonzeroPixelsOutside": 393,
+      "alpha128PixelsOutside": 231,
+      "maxAlphaOutside": 253
+    },
+    "circle72dp": {
+      "nonzeroPixelsOutside": 0,
+      "alpha128PixelsOutside": 0,
+      "maxAlphaOutside": 0
+    }
+  },
+  "reviewSheetsDecoded": 5,
+  "galleryLinksAndCoverage": "passed",
+  "nativeDeviceVerification": "not performed",
+  "integration": "not performed"
+}

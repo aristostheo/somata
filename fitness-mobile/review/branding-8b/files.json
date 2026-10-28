@@ -1,0 +1,618 @@
+{
+  "files": [
+    {
+      "path": "review/branding-8b/IMPLEMENTATION_INDEX.md",
+      "bytes": 13262,
+      "sha256": "bcac6a9f775077fd24ced817536e6915aab17d7a0a891b4a22eba11f44b188aa"
+    },
+    {
+      "path": "review/branding-8b/after-dark-calendar-empty-normal.html",
+      "bytes": 77360,
+      "sha256": "cfd5ab43a95077b582de769cb6d6de198d742f2f06261dc7f2144462b0ba2d41"
+    },
+    {
+      "path": "review/branding-8b/after-dark-calendar-month-narrow-large.html",
+      "bytes": 94096,
+      "sha256": "023e80c7ea2138f380f52b25e67ef21ce5f148f87deacd06c5802ebaefaf2ba7"
+    },
+    {
+      "path": "review/branding-8b/after-dark-calendar-month-narrow-large.png",
+      "bytes": 509728,
+      "sha256": "fd87b74469583bca319a7960578a8b0b087cbee67735bb8ec2809d9489c841cd"
+    },
+    {
+      "path": "review/branding-8b/after-dark-calendar-month-normal.html",
+      "bytes": 93102,
+      "sha256": "3a015e1aee24d414823d1f5c3a05886b77854ba0e0da3fa96c91bbb04b4d9505"
+    },
+    {
+      "path": "review/branding-8b/after-dark-calendar-month-normal.png",
+      "bytes": 335899,
+      "sha256": "50ce196f57cdd43d4c1e61c2aa12592b845326f482af22cdbdf2cda89339973f"
+    },
+    {
+      "path": "review/branding-8b/after-dark-calendar-week-narrow-large.html",
+      "bytes": 64856,
+      "sha256": "ca87958edc50cce2f682d0dd2d9b67cce3531bc15d129b697f7141611abff2dd"
+    },
+    {
+      "path": "review/branding-8b/after-dark-calendar-week-normal.html",
+      "bytes": 64594,
+      "sha256": "31eb241113dc0933ac50b0aaeb6464a36e35d95fb3652b8b090453c594a6c19c"
+    },
+    {
+      "path": "review/branding-8b/after-dark-calendar-year-normal.html",
+      "bytes": 363488,
+      "sha256": "44a22fc8622bd5bdba90d3124d961fed1569d5e8456055cb4087e883fc585840"
+    },
+    {
+      "path": "review/branding-8b/after-dark-day-empty-normal.html",
+      "bytes": 24546,
+      "sha256": "306d0d2918b1f197f7df8f989d34fa892c745d46207a74b88eec16604f823e62"
+    },
+    {
+      "path": "review/branding-8b/after-dark-day-record-narrow-large.html",
+      "bytes": 38563,
+      "sha256": "a41d5e0649deea72dc59b9f74c541616e153268d7558a85dcb99ce1d4d877ba6"
+    },
+    {
+      "path": "review/branding-8b/after-dark-day-record-narrow-large.png",
+      "bytes": 295235,
+      "sha256": "a6ee9c907d112f6e4a30aa61c4a8b129a82253abcdbcf9da0d1d337acb9861d8"
+    },
+    {
+      "path": "review/branding-8b/after-dark-day-record-normal.html",
+      "bytes": 38457,
+      "sha256": "0641511313c1f100a8c52a36045b5220f61c496f9aa1eba04f74972e67d24917"
+    },
+    {
+      "path": "review/branding-8b/after-dark-day-record-normal.png",
+      "bytes": 193015,
+      "sha256": "0da7b79aa7abdcc8bfbba260054fe7851235986f4596399866cfa6c5cc8b79a8"
+    },
+    {
+      "path": "review/branding-8b/after-dark-legacy-water-control-narrow-large.html",
+      "bytes": 28117,
+      "sha256": "7d5ab0052ab63aa0fbbd0d44cc9e004b1d2d059aff62bac7f5a5ec917ca42bfa"
+    },
+    {
+      "path": "review/branding-8b/after-dark-legacy-water-control-narrow-large.png",
+      "bytes": 83678,
+      "sha256": "05d70d027017a7ece8ebd4f142dc86aaed1212902ed4d648d592f4f7491f3823"
+    },
+    {
+      "path": "review/branding-8b/after-dark-legacy-water-control-normal.html",
+      "bytes": 27975,
+      "sha256": "c1e1f0f165a48ec2212e9e7050350e80c011ebb683c130a7396484acd50cb1a3"
+    },
+    {
+      "path": "review/branding-8b/after-dark-legacy-water-control-normal.png",
+      "bytes": 50126,
+      "sha256": "ad23b66f8fd38eac4c15e144d386dbbfa4f91d171adbe7539bc9851572b456f1"
+    },
+    {
+      "path": "review/branding-8b/after-dark-steps-add-narrow-large.html",
+      "bytes": 26711,
+      "sha256": "5fbabefd98e5d0a52820c43dbbc3999e600f7bac7513acd75c1d43a68b9eab2a"
+    },
+    {
+      "path": "review/branding-8b/after-dark-steps-add-narrow-large.png",
+      "bytes": 122619,
+      "sha256": "02430abfee3548f84b951657dc677e8b3362e8cf898d3d446833fcb12776561c"
+    },
+    {
+      "path": "review/branding-8b/after-dark-steps-add-normal.html",
+      "bytes": 26689,
+      "sha256": "85fb3285e5d2461e23d532cb44f97a4dbac5f0537639a8ef6cd5d9b368be5b1c"
+    },
+    {
+      "path": "review/branding-8b/after-dark-steps-add-normal.png",
+      "bytes": 83212,
+      "sha256": "dfdabf925903a68830af210f2154c1db38178cd68c81ffead4d6d6cbb770e07e"
+    },
+    {
+      "path": "review/branding-8b/after-dark-steps-saving-normal.html",
+      "bytes": 26715,
+      "sha256": "05f3d06613efb1bc3e305a1bf8bfe25781ae0a5eb9d94499ab316323592102a0"
+    },
+    {
+      "path": "review/branding-8b/after-dark-steps-set-narrow-large.html",
+      "bytes": 26700,
+      "sha256": "a2ab2fff8bbeba732fff31fa54446e0611032334e0243e648d5d99f1087dc672"
+    },
+    {
+      "path": "review/branding-8b/after-dark-steps-set-narrow-large.png",
+      "bytes": 118120,
+      "sha256": "256c72d8ccfe97b1a55e486fa94288e1ef3afadc5d98b7dddbbc4fa6b238bd8b"
+    },
+    {
+      "path": "review/branding-8b/after-dark-steps-set-normal.html",
+      "bytes": 26678,
+      "sha256": "cf8012d24824641f2c862c5a73d412c7e40676f54cd95a7e4ecd7ab1285bf717"
+    },
+    {
+      "path": "review/branding-8b/after-dark-steps-set-normal.png",
+      "bytes": 81315,
+      "sha256": "7908abdab9f2b31e5ae200524ae0b22a3fa1013b0c96ab75d45008c911e33e1e"
+    },
+    {
+      "path": "review/branding-8b/after-dark-sync-empty-normal.html",
+      "bytes": 18802,
+      "sha256": "5934ec07766a60c6200125b349692cdfef96742085332ebe286854fb54442d6a"
+    },
+    {
+      "path": "review/branding-8b/after-dark-sync-loading-normal.html",
+      "bytes": 17837,
+      "sha256": "40ae31997da6cba8c7b23101c13f99facd2851516ccb8023cf1a3041ba25a8be"
+    },
+    {
+      "path": "review/branding-8b/after-dark-sync-records-narrow-large.html",
+      "bytes": 29276,
+      "sha256": "3bdf6c8868c1019b7802f4bf492dfcb5ae58bd964076b22217c98fe67da68f34"
+    },
+    {
+      "path": "review/branding-8b/after-dark-sync-records-narrow-large.png",
+      "bytes": 252297,
+      "sha256": "6f62f3761641791312a1680ee55fa44839cfbc9ca12fc6672de9d44828e8ba3e"
+    },
+    {
+      "path": "review/branding-8b/after-dark-sync-records-normal.html",
+      "bytes": 29200,
+      "sha256": "9c8a41e306a69d38ebb41e8be8cc194f92b0b46338f9e0e7438680938571c4a1"
+    },
+    {
+      "path": "review/branding-8b/after-dark-sync-records-normal.png",
+      "bytes": 161914,
+      "sha256": "421229b7361f5117ff225de8c2d27352186cc7859b7f79ad55955a8f6fdeef04"
+    },
+    {
+      "path": "review/branding-8b/after-light-calendar-empty-normal.html",
+      "bytes": 78698,
+      "sha256": "c5069340654d6f88b5eef736b7b7a43ba3ed9954fdfaadced1937e9fe35370cc"
+    },
+    {
+      "path": "review/branding-8b/after-light-calendar-month-narrow-large.html",
+      "bytes": 95499,
+      "sha256": "ffebe328811c88310f7d75d03133432478e7aae48843ba47bd02d2c7fedb7c2e"
+    },
+    {
+      "path": "review/branding-8b/after-light-calendar-month-narrow-large.png",
+      "bytes": 497369,
+      "sha256": "9241becd76d1960a390555d390d07d1bc918e86c26025850e165c25c900665f6"
+    },
+    {
+      "path": "review/branding-8b/after-light-calendar-month-normal.html",
+      "bytes": 94505,
+      "sha256": "5e741b3bde49f884f7da4070967df226bab4eb2411caafd386899b513935c10a"
+    },
+    {
+      "path": "review/branding-8b/after-light-calendar-month-normal.png",
+      "bytes": 316411,
+      "sha256": "33941271e77ae1541f130c0112403ef7b657fc2733a5fe72db49130034dc3bd7"
+    },
+    {
+      "path": "review/branding-8b/after-light-calendar-week-narrow-large.html",
+      "bytes": 66290,
+      "sha256": "458ed74cda7e2b6d81101295e9ecc3c10513eb493cc7fee7481cb61a19416fda"
+    },
+    {
+      "path": "review/branding-8b/after-light-calendar-week-normal.html",
+      "bytes": 66028,
+      "sha256": "0d6efeda3a6115a6d3b04a5ec8a4b9af7dec20a24db7e10114f26f9e2a16007d"
+    },
+    {
+      "path": "review/branding-8b/after-light-calendar-year-normal.html",
+      "bytes": 363809,
+      "sha256": "17e3ce4a1f76794344e7ae4e120ffea2a22e5b996b6da04b23c72ad3a319c819"
+    },
+    {
+      "path": "review/branding-8b/after-light-day-empty-normal.html",
+      "bytes": 25820,
+      "sha256": "1540b0a1670a6edb668866119a669d54f85d7835e780a2ab323e9cee5dc503e4"
+    },
+    {
+      "path": "review/branding-8b/after-light-day-record-narrow-large.html",
+      "bytes": 39895,
+      "sha256": "1dd59ccced4aa502ffc9223c92b0f8898ed25b944ac6f05417d6a9eced7e5540"
+    },
+    {
+      "path": "review/branding-8b/after-light-day-record-narrow-large.png",
+      "bytes": 293164,
+      "sha256": "5c9fd5088246428112ea5a07522ef7a11f9c8ce6c90fd592f95ea08e1f521458"
+    },
+    {
+      "path": "review/branding-8b/after-light-day-record-normal.html",
+      "bytes": 39789,
+      "sha256": "a789cda9dd98c31b22e526165cbad5bbe77fd6e4ba316154153aebddf01155f8"
+    },
+    {
+      "path": "review/branding-8b/after-light-day-record-normal.png",
+      "bytes": 183735,
+      "sha256": "cec3656fb640080a978f0d14ef5d39cdcda59a4655bec332999022f3f3697118"
+    },
+    {
+      "path": "review/branding-8b/after-light-legacy-water-control-narrow-large.html",
+      "bytes": 28190,
+      "sha256": "a412c471a3ba4f68c04a553c45e1ec1a2e7dba8084863643d58b01bc97d7184a"
+    },
+    {
+      "path": "review/branding-8b/after-light-legacy-water-control-narrow-large.png",
+      "bytes": 83262,
+      "sha256": "276884d005010cf7b6cbd074e5212e513df1cc3d10ccd95a34fdda038a48abaa"
+    },
+    {
+      "path": "review/branding-8b/after-light-legacy-water-control-normal.html",
+      "bytes": 28048,
+      "sha256": "da0a9827d8014b12a4f1d0134d9864b0ea58a90541c16ab25f6664458756df8c"
+    },
+    {
+      "path": "review/branding-8b/after-light-legacy-water-control-normal.png",
+      "bytes": 49831,
+      "sha256": "100b5551693fd7771c8697084cd6db8fa5f56f724205ad8b1dc549d5ec45e302"
+    },
+    {
+      "path": "review/branding-8b/after-light-steps-add-narrow-large.html",
+      "bytes": 27977,
+      "sha256": "772de5570812674b78bbea77255588671cd25756b8f9867c5649bd57c0356fa7"
+    },
+    {
+      "path": "review/branding-8b/after-light-steps-add-narrow-large.png",
+      "bytes": 124275,
+      "sha256": "53ecf7499c3c778fddcb5d1c8cba8a243f36a8333dbff207b8286221809dbf59"
+    },
+    {
+      "path": "review/branding-8b/after-light-steps-add-normal.html",
+      "bytes": 27955,
+      "sha256": "c4bcf5e62af614851edff2bc7a3909e19593b2619b14998fd8b8a86ac183ee93"
+    },
+    {
+      "path": "review/branding-8b/after-light-steps-add-normal.png",
+      "bytes": 77487,
+      "sha256": "cbef8145f385a85f0b306c099c93362621676af3cb41a7acd635203296a8ba2b"
+    },
+    {
+      "path": "review/branding-8b/after-light-steps-saving-normal.html",
+      "bytes": 27970,
+      "sha256": "35e5e05a826982c40d8f4eeadb2f776d6bdb7cc3d28bd7d3451dc0b5e2814237"
+    },
+    {
+      "path": "review/branding-8b/after-light-steps-set-narrow-large.html",
+      "bytes": 27966,
+      "sha256": "4b020d7ab81ab951b471012f7da1d4285351eefacac41d79741fdfb8f93b061a"
+    },
+    {
+      "path": "review/branding-8b/after-light-steps-set-narrow-large.png",
+      "bytes": 119837,
+      "sha256": "41f5bfd8ac343c20397286fbd4de0de98bee41790c1706d8c627b0f7b3688f87"
+    },
+    {
+      "path": "review/branding-8b/after-light-steps-set-normal.html",
+      "bytes": 27944,
+      "sha256": "f3d5308c1770ee59b58f3375c24609f5298bb350f4789914ff3bb7deaf4d51cf"
+    },
+    {
+      "path": "review/branding-8b/after-light-steps-set-normal.png",
+      "bytes": 75477,
+      "sha256": "2657bc2e06f165abc24e95b8b37c9b0f55e155a28415db67a288c09dc279994b"
+    },
+    {
+      "path": "review/branding-8b/after-light-sync-empty-normal.html",
+      "bytes": 24210,
+      "sha256": "cebc6d1b5e535757dfd133135211a3aab8d3b7832285beed79f653e7148f614f"
+    },
+    {
+      "path": "review/branding-8b/after-light-sync-loading-normal.html",
+      "bytes": 23242,
+      "sha256": "cc4e2a000c8b0a157c27a0ce47a0c43ad3a01187f7c4ee2fd36d606663d7a613"
+    },
+    {
+      "path": "review/branding-8b/after-light-sync-records-narrow-large.html",
+      "bytes": 34740,
+      "sha256": "1102f6e48a50727d6a0bb8b0fda67bf3aeca1c5e0ae7ebe36df4db0d8ebbfce5"
+    },
+    {
+      "path": "review/branding-8b/after-light-sync-records-narrow-large.png",
+      "bytes": 242560,
+      "sha256": "b175df8c7ef308f09a58cf244920839ea67763bd20fe0427836e4623bb9975be"
+    },
+    {
+      "path": "review/branding-8b/after-light-sync-records-normal.html",
+      "bytes": 34664,
+      "sha256": "4293ad784347f6f5a4f14518b827edbc46a26fc4800aca57fd2edd5655754253"
+    },
+    {
+      "path": "review/branding-8b/after-light-sync-records-normal.png",
+      "bytes": 148314,
+      "sha256": "d2d9571b4d9597d61a3a1a1839846c28ba68725d51779cd03da8f77df4c234c2"
+    },
+    {
+      "path": "review/branding-8b/before-dark-calendar-empty-normal.html",
+      "bytes": 70069,
+      "sha256": "0f02914aaf2d235d8e13234f230d7cb94110f0de667e3b971640e89921f250de"
+    },
+    {
+      "path": "review/branding-8b/before-dark-calendar-month-narrow-large.html",
+      "bytes": 79157,
+      "sha256": "9e95f49856fafbe2ddb5be594d169c84aab7d5aa73dcbd5e3b6460e61e2f147f"
+    },
+    {
+      "path": "review/branding-8b/before-dark-calendar-month-normal.html",
+      "bytes": 78863,
+      "sha256": "4ec08cd7da1200d04468b9fb5f67ecab21dcc942be60ef80ca72960cc5881f2f"
+    },
+    {
+      "path": "review/branding-8b/before-dark-calendar-month-normal.png",
+      "bytes": 125722,
+      "sha256": "955d38669941f643bf464f27cc5ebad17110637ac66e47d45b500e757164eeee"
+    },
+    {
+      "path": "review/branding-8b/before-dark-calendar-week-narrow-large.html",
+      "bytes": 42042,
+      "sha256": "23b74654a576d7c6704fb4395b05ea1d7db68f690d185c267b464e988b44f879"
+    },
+    {
+      "path": "review/branding-8b/before-dark-calendar-week-normal.html",
+      "bytes": 41718,
+      "sha256": "92b5835b1f99d98fc8c0fb2b76ea553fa69f4743908e0e465688ecb3b0e67903"
+    },
+    {
+      "path": "review/branding-8b/before-dark-calendar-year-normal.html",
+      "bytes": 257649,
+      "sha256": "5188e957bcd30208f96cd0dff7a531f8eba98fab2361f43a9aa87f403cfa4fef"
+    },
+    {
+      "path": "review/branding-8b/before-dark-day-empty-normal.html",
+      "bytes": 22373,
+      "sha256": "8ed305c1630f6858ed83fd1b5165fc6e31b7170d08b7cd0808138aae088cf613"
+    },
+    {
+      "path": "review/branding-8b/before-dark-day-record-narrow-large.html",
+      "bytes": 29895,
+      "sha256": "0270553b6e5b4a6b929093ff8c94a3d135c4e13a0cead760d97fbfd518f11440"
+    },
+    {
+      "path": "review/branding-8b/before-dark-day-record-normal.html",
+      "bytes": 29747,
+      "sha256": "02cf90e60e4088bb0bb53d32ddc33047f8c4ff2d2ca0d9e26ff5d31ebb5f3631"
+    },
+    {
+      "path": "review/branding-8b/before-dark-day-record-normal.png",
+      "bytes": 70469,
+      "sha256": "9dadc3aae261c7fbd8060570524d0463e46c631ce9554b5cdd21bc28fae7738b"
+    },
+    {
+      "path": "review/branding-8b/before-dark-legacy-water-control-narrow-large.html",
+      "bytes": 28119,
+      "sha256": "32a354fd6abeccc6cc6af900262f5542263a36c6458d0a17e81155b7b907ce08"
+    },
+    {
+      "path": "review/branding-8b/before-dark-legacy-water-control-normal.html",
+      "bytes": 27977,
+      "sha256": "4ec7a95e6f3ffdd47e143d8fece8fa6bf5517d73f39dd49f778e5345911a34b2"
+    },
+    {
+      "path": "review/branding-8b/before-dark-legacy-water-control-normal.png",
+      "bytes": 50442,
+      "sha256": "7d35d45182753f79ad5184aeeed450651285732533286169e7295876239ba3de"
+    },
+    {
+      "path": "review/branding-8b/before-dark-steps-add-narrow-large.html",
+      "bytes": 23731,
+      "sha256": "bee92ceafd39636f0c8d8cf409c6588f2518610075f271ab43e22fb66be55329"
+    },
+    {
+      "path": "review/branding-8b/before-dark-steps-add-normal.html",
+      "bytes": 23679,
+      "sha256": "91c64d82a9edfe02b1e66fe859d96bfbeedc43e9006b4e437ab4722a3b26e97a"
+    },
+    {
+      "path": "review/branding-8b/before-dark-steps-add-normal.png",
+      "bytes": 38914,
+      "sha256": "37c5898dd775d9a109a80368cd71f44f0ddaa8460c9bb1e716dbe259d11a94c0"
+    },
+    {
+      "path": "review/branding-8b/before-dark-steps-saving-normal.html",
+      "bytes": 23683,
+      "sha256": "3f1480d356c80b155e767233ffc8dd9f519b121228941fc07492060b04c6a2f5"
+    },
+    {
+      "path": "review/branding-8b/before-dark-steps-set-narrow-large.html",
+      "bytes": 23725,
+      "sha256": "0e31ef96acb1613c6437745da69a82aeede28b46f0f657e460ef89cb62bbb5a2"
+    },
+    {
+      "path": "review/branding-8b/before-dark-steps-set-normal.html",
+      "bytes": 23673,
+      "sha256": "2db129840a3743ba96c2825f7e1077ec62030a9c0063813bcc683e57962dee9c"
+    },
+    {
+      "path": "review/branding-8b/before-dark-steps-set-normal.png",
+      "bytes": 37673,
+      "sha256": "0eb511196826d13e0e50f807f20bff16c3a3f68359f19cc9053a5d41280c4802"
+    },
+    {
+      "path": "review/branding-8b/before-dark-sync-empty-normal.html",
+      "bytes": 17381,
+      "sha256": "3980e5ab4c2cb074bb107aef14362ee0e2d0d9e6f9f42729182e4e289a31ce09"
+    },
+    {
+      "path": "review/branding-8b/before-dark-sync-loading-normal.html",
+      "bytes": 17213,
+      "sha256": "01530ea3ba6c6d506ceaf90e4d48708afeea1bf81067c7aa2377009320cf0f08"
+    },
+    {
+      "path": "review/branding-8b/before-dark-sync-records-narrow-large.html",
+      "bytes": 21601,
+      "sha256": "74f6809dd771c0ca8f22a02d56a0ce7484a0e75a4a4293c71a3cbfed727db4f8"
+    },
+    {
+      "path": "review/branding-8b/before-dark-sync-records-normal.html",
+      "bytes": 21535,
+      "sha256": "4f3e221e497dd00a4cfb1bb6a73c25ef14326c19dc6186a99007ad1329da4560"
+    },
+    {
+      "path": "review/branding-8b/before-dark-sync-records-normal.png",
+      "bytes": 45055,
+      "sha256": "c7c92ca9a88e9ced987ef88023cc721798de0dcc3e241ab970af574cea00293b"
+    },
+    {
+      "path": "review/branding-8b/before-light-calendar-empty-normal.html",
+      "bytes": 70935,
+      "sha256": "431fa7339fe1ca5f016b7dcda5d1f1c5cb9f6d06c07a54a4ec0dad7aa545067f"
+    },
+    {
+      "path": "review/branding-8b/before-light-calendar-month-narrow-large.html",
+      "bytes": 79966,
+      "sha256": "2a66a5cda2c42a8e2c0effc4039e7850f537a8b46a5e6f1a937e2a4329d73346"
+    },
+    {
+      "path": "review/branding-8b/before-light-calendar-month-normal.html",
+      "bytes": 79672,
+      "sha256": "0a28beba10f701ad249ceef4dd1bf2a21c838fe4e1506352aba75adffc3cec49"
+    },
+    {
+      "path": "review/branding-8b/before-light-calendar-month-normal.png",
+      "bytes": 122795,
+      "sha256": "4ca09afeef1967d384589096674cf47ee26470b8fe8336d02526fb734f069ed7"
+    },
+    {
+      "path": "review/branding-8b/before-light-calendar-week-narrow-large.html",
+      "bytes": 43172,
+      "sha256": "c0e47394419f98375cf1a737813cf6a75664aa80d768419560c3c6714d9a9dfd"
+    },
+    {
+      "path": "review/branding-8b/before-light-calendar-week-normal.html",
+      "bytes": 42848,
+      "sha256": "7a0bc480fd0a1f709e771d0d8dfe4459140818ebdda0706da8720fb11061a682"
+    },
+    {
+      "path": "review/branding-8b/before-light-calendar-year-normal.html",
+      "bytes": 257699,
+      "sha256": "e40838c9d68ef4320c6d45e0c3773d0cbcea39fd9c22f67d2d53c47a1b98be1c"
+    },
+    {
+      "path": "review/branding-8b/before-light-day-empty-normal.html",
+      "bytes": 23603,
+      "sha256": "ad1f870b1823c28a9def56ed70290a639284dd41f66e0cf015a3c8d3d312a14d"
+    },
+    {
+      "path": "review/branding-8b/before-light-day-record-narrow-large.html",
+      "bytes": 31062,
+      "sha256": "e5ef395b26dacf393edfb8614b6d51ba5613511b65240d7ca3d78385c9f5781a"
+    },
+    {
+      "path": "review/branding-8b/before-light-day-record-normal.html",
+      "bytes": 30914,
+      "sha256": "8ca55de129cb0f5debbf114528c2529e25f975feb2874c591d3e30a300e21355"
+    },
+    {
+      "path": "review/branding-8b/before-light-day-record-normal.png",
+      "bytes": 69813,
+      "sha256": "75e4e0d92787a64620b13d86352f81ef0f201f4aaa44df107196240b4b98dff6"
+    },
+    {
+      "path": "review/branding-8b/before-light-legacy-water-control-narrow-large.html",
+      "bytes": 28192,
+      "sha256": "2eb456a69f1f7051fd4ea4ddf32f2a5e5f6fdb96a915ce17bbb3318447dbdaf3"
+    },
+    {
+      "path": "review/branding-8b/before-light-legacy-water-control-normal.html",
+      "bytes": 28050,
+      "sha256": "04c88b72140327e779ec8fcbde9d465da00de9ca26f028c8cae8466a74ba7c48"
+    },
+    {
+      "path": "review/branding-8b/before-light-legacy-water-control-normal.png",
+      "bytes": 50180,
+      "sha256": "e1ba087cc4f7d5192c420d92b073a842bccdad8749a17e356db16c4c3c04e1ec"
+    },
+    {
+      "path": "review/branding-8b/before-light-steps-add-narrow-large.html",
+      "bytes": 24977,
+      "sha256": "d9350b3e4f6bf0840ab093e3769c12fc5b0d6f84b693a3b79107583f74880b1f"
+    },
+    {
+      "path": "review/branding-8b/before-light-steps-add-normal.html",
+      "bytes": 24925,
+      "sha256": "355d78924f918222a0f96fd25c0df9b6d5e242d23237eeab4c9e12e2be6c47dc"
+    },
+    {
+      "path": "review/branding-8b/before-light-steps-add-normal.png",
+      "bytes": 36506,
+      "sha256": "50b23e9575dd7f677d44684e8427115b7574a78008fc8bea5122658113dd39c9"
+    },
+    {
+      "path": "review/branding-8b/before-light-steps-saving-normal.html",
+      "bytes": 24929,
+      "sha256": "87f78c3f78fb4714447ccdfb5b11c286a6839c4df999a25a5c19bc528cd4380e"
+    },
+    {
+      "path": "review/branding-8b/before-light-steps-set-narrow-large.html",
+      "bytes": 24971,
+      "sha256": "4befb90b16f015e85878f2778eff43a7e5f2bea80f15e7f5f8c9151d8ba44357"
+    },
+    {
+      "path": "review/branding-8b/before-light-steps-set-normal.html",
+      "bytes": 24919,
+      "sha256": "e0b93bb1ecb9d5ca0a95467f6fb6d672c025623d6a1ef07c4d116b82092d933a"
+    },
+    {
+      "path": "review/branding-8b/before-light-steps-set-normal.png",
+      "bytes": 35229,
+      "sha256": "0a22e69bc8cd4a07b05f6788cb4317fb77957284aba2c2ff2ee58ddc479c1447"
+    },
+    {
+      "path": "review/branding-8b/before-light-sync-empty-normal.html",
+      "bytes": 22765,
+      "sha256": "4a1183faa47370c4d3bd0d05cd217fa6ca3edf5df494dd59b11253b9b2405dc7"
+    },
+    {
+      "path": "review/branding-8b/before-light-sync-loading-normal.html",
+      "bytes": 22600,
+      "sha256": "5c0140661ec6f6f2ecd25a4ab4eead59d4aeb24170b0f8251b9548a10acf0cee"
+    },
+    {
+      "path": "review/branding-8b/before-light-sync-records-narrow-large.html",
+      "bytes": 26976,
+      "sha256": "67f6bd26489ba5b7ee146e559aef814173f4843f63e383a30c13724a0c4a3b4d"
+    },
+    {
+      "path": "review/branding-8b/before-light-sync-records-normal.html",
+      "bytes": 26910,
+      "sha256": "50c4d292f99321e7871d9b8fec5cd36d620bfb7b41be5043e5aef5da8dd4a733"
+    },
+    {
+      "path": "review/branding-8b/before-light-sync-records-normal.png",
+      "bytes": 44663,
+      "sha256": "d86f6458ab440530e15fe8a21a467c32ba033f8f3c6c41cd69a76f8bfc83d382"
+    },
+    {
+      "path": "review/branding-8b/browser-capture-checks.json",
+      "bytes": 5000,
+      "sha256": "677950628eabeeefdb3b8c40e8d60a55a3e9a0772202d3182282c2af0a267fbd"
+    },
+    {
+      "path": "review/branding-8b/capture-manifest.json",
+      "bytes": 20989,
+      "sha256": "8cd7610e052de4e8bc079277c1a74f0171b1a287b14da9ee8f9d562749510744"
+    },
+    {
+      "path": "review/branding-8b/comparisons.html",
+      "bytes": 8183,
+      "sha256": "7f19fa4d504de23931b87b865dfea896c9b7759d874c1158fc0cc299efed708a"
+    },
+    {
+      "path": "review/branding-8b/index.html",
+      "bytes": 14175,
+      "sha256": "83ffa9434d9afdc204468b3a26dcbaf24f41fe7376c320ec840838ce9cc5ddfc"
+    },
+    {
+      "path": "review/branding-8b/preservation-checks.json",
+      "bytes": 3102,
+      "sha256": "4fd9c15af3c6e8f164a492aa6030da8a9d642f00992115c98895c4f313c65c07"
+    },
+    {
+      "path": "review/branding-8b/files.json",
+      "note": "This inventory; self hash intentionally omitted."
+    }
+  ]
+}

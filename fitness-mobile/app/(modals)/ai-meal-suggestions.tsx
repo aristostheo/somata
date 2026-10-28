@@ -1,5 +1,6 @@
+import { NutritionContext, NutritionValues } from "@/components/nutrition/NutritionTaskUI";
 import { Button, Empty, Field, Heading, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 // app/(modals)/ai-meal-suggestions.tsx
 import { useTheme } from "@/content/ThemeProvider";
 import { releaseConfig } from "@/lib/releaseConfig";
@@ -29,7 +30,11 @@ type MealIdea = {
 type MealIdeasResponse = { meals: MealIdea[]; rationale?: string; };
 
 export default function AiMealSuggestions() {
-  const { D, F } = useSomataTheme();
+  return <SomataTaskAppearance><AiMealSuggestionsContent /></SomataTaskAppearance>;
+}
+
+function AiMealSuggestionsContent() {
+  const { D, F } = useTaskPresentation();
 
   const { colors, isDark } = useTheme() as any;
   const router = useRouter();
@@ -200,18 +205,20 @@ Return:
     });
   }
 
-  return (<TaskPage title="Ideas for your next meal" section="AI meal ideas" onBack={() => router.back()}>
+  return (<TaskPage title="AI meal ideas" section="AI meal ideas" onBack={() => router.back()}>
 
-    <Field label="Preferences for this meal" multiline value={notes} onChangeText={setNotes} placeholder="Ingredients, prep time, dietary preferences…" />
+    <NutritionContext label={isPro ? "Your meal brief" : "Pro tool"} title="Start with what sounds good" detail="Describe ingredients, preparation time or preferences. Review any generated idea before adding it." icon="sparkles-outline" />
+    <Panel><Heading title="Your request" /><Field label="Preferences for this meal" multiline style={{ minHeight: 130, textAlignVertical: "top" }} value={notes} onChangeText={setNotes} placeholder="Ingredients, prep time, dietary preferences…" />
 
-    <Button primary disabled={loading} label={loading ? 'Finding ideas…' : ideas.length ? 'Generate new ideas' : 'Generate ideas'} onPress={ideas.length ? onRegenerate : onGenerate} />
+    <Button primary disabled={loading} label={loading ? 'Finding ideas…' : ideas.length ? 'Generate new ideas' : 'Generate ideas'} onPress={ideas.length ? onRegenerate : onGenerate} /></Panel>
 
     {!ideas.length && !loading && <Empty title="Start with what sounds good" detail="Add preferences above, then request meal suggestions." />}
 
+    {!!ideas.length && <Heading title="Your generated ideas" detail="Nutrition estimates · review the portion before logging" />}
     {ideas.map((idea, i) => <Panel key={i}>
       <Text style={F.eyebrow}>IDEA {String(i + 1).padStart(2, '0')} · {idea.difficulty}</Text>
       <Heading title={idea.name} detail={`${Math.round(idea.calories)} kcal estimated${idea.prep_min != null ? ` · ${idea.prep_min} min prep` : ''}`} />
-      <Text style={F.body}>P {Math.round(idea.protein)} g · C {Math.round(idea.carbs)} g · F {Math.round(idea.fat)} g</Text>
+      <NutritionValues values={[{ label: 'Protein', value: `${Math.round(idea.protein)} g` }, { label: 'Carbs', value: `${Math.round(idea.carbs)} g` }, { label: 'Fat', value: `${Math.round(idea.fat)} g` }]} />
       {idea.sugar != null && <Text style={F.caption}>Sugar {idea.sugar} g</Text>}
       {idea.fiber != null && <Text style={F.caption}>Fiber {idea.fiber} g</Text>}
       {!!idea.notes && <Text style={F.body}>{idea.notes}</Text>}

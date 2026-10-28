@@ -1,3 +1,4 @@
+import { useTaskPresentation } from "@/components/designPreview/Appearance";
 import { useSomataTheme } from "@/components/somata/theme";
 import { useTheme } from "@/content/ThemeProvider";
 
@@ -28,4 +29,17 @@ export function useProfileFlowTheme() {
       borderElevated: visual.border,
     },
   };
+}
+
+/** Explicit Profile-family opt-in; other destinations keep their current appearance. */
+export function usePremiumProfileFlowTheme() {
+  const theme = useProfileFlowTheme();
+  const { D, t } = useTaskPresentation();
+  return { ...theme, colors: { ...theme.colors,
+    background: D.bg, bg: D.bg, card: D.card, surface: D.card, surface1: D.card,
+    surface2: D.raised, surface3: D.raised, text: D.text, textPrimary: D.text,
+    textSecondary: D.muted, textTertiary: D.muted, muted: D.muted,
+    border: D.line, borderElevated: D.line, primary: t.action.link, accent: t.action.link,
+    success: t.status.success, warning: t.status.warning, danger: t.status.error,
+  } };
 }

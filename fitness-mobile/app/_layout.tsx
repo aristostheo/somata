@@ -6,17 +6,15 @@ import { useSomataTheme } from "@/components/somata/theme";
 import "react-native-gesture-handler";
 import "react-native-reanimated";
 
-import { LinearGradient } from "expo-linear-gradient";
+import { StartupSurface } from "@/components/somata/StartupSurface";
 import * as Notifications from "expo-notifications";
 import { Stack, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Animated,
   Easing,
   LogBox,
-  Text,
   View
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -25,7 +23,6 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { SomataIcon } from "@/components/brand/SomataIcon";
 import { AuthProvider, useAuth } from "@/content/AuthContext";
 import { SettingsProvider } from "@/content/SettingsContext";
 import { ThemeProvider, useTheme } from "@/content/ThemeProvider";
@@ -52,7 +49,7 @@ function Gate() {
   const { user, initializing } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const sessionCheckedRef = useRef(startupSessionChecked);
   const [sessionReady, setSessionReady] = useState(startupSessionChecked);
@@ -183,39 +180,10 @@ function Gate() {
 
   if (initializing || !sessionReady) {
     return (
-      <LinearGradient
-        colors={
-          isDark ? ["#0d111a", "#0a0d14"] : ["#f7f9ff", "#e9eefb"] // soft branded fade
-        }
-        style={{ flex: 1 }}
-      >
-
+      <>
         <StatusBar style={isDark ? "light" : "dark"} />
-
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 14,
-          }}
-        >
-
-          <SomataIcon size={120} />
-
-          <View style={{ alignItems: "center", gap: 4 }}>
-
-            <ActivityIndicator color={colors.primary} />
-
-            <Text style={{ color: colors.muted, fontSize: 14 }}>
-              Loading Somata…
-            </Text>
-
-          </View>
-
-        </View>
-
-      </LinearGradient>
+        <StartupSurface dark={isDark} />
+      </>
     );
   }
 

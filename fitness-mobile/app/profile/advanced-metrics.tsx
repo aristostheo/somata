@@ -1,7 +1,8 @@
+import { ProfileIntro, ProfileSection, ProfileFields, ProfileRecord } from "@/components/profile/ProfileTaskUI";
 import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
 import { Empty } from "@/components/somata/TaskUI";
 import { Button, Choice, Heading, Item, Panel, TaskPage } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { nutritionTargets } from "@/services/nutritionTargets";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -22,7 +23,7 @@ import Svg, {
   Text as SvgText,
 } from "react-native-svg";
 
-import { useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { usePremiumProfileFlowTheme as useProfileFlowTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import { useAuth } from "@/content/AuthContext";
 import { subscribeActivityBetween, type ActivityEntry } from "@/services/activity";
 import {
@@ -60,6 +61,7 @@ type Goals = {
 };
 
 function useC() {
+  const { t } = useTaskPresentation();
   const { colors, isDark } = useProfileFlowTheme();
   return {
     bg: colors.background as string,
@@ -69,8 +71,8 @@ function useC() {
     muted: colors.textTertiary as string,
     hairline: colors.border as string,
     purple: colors.primary as string,
-    blue: isDark ? "#B9A4FA" : "#7051B5",
-    teal: colors.accent as string,
+    blue: t.data.protein,
+    teal: t.data.carbohydrate,
     green: colors.success as string,
     amber: colors.warning as string,
     red: colors.danger as string,
@@ -162,9 +164,9 @@ function dayScore(d: DayRow, goals: Goals) {
   ]);
 }
 
-export default function AdvancedMetricsScreen() {
+function AdvancedMetricsScreenContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const C = useC();
   const router = useRouter();
@@ -301,13 +303,14 @@ export default function AdvancedMetricsScreen() {
   }, [bestDow.best, proteinDays, rows.length, waterHits]);
 
   return (<TaskPage title="Behind the numbers" section="Advanced metrics" subtitle={fmtRange(range, rows)} onBack={() => router.replace('/profile/insights-progress')}>
-    <View style={{ flexDirection: 'row', gap: 8 }}>
+    <ProfileIntro label={desk === "projection" ? "Calculator / scenarios" : "Records / analysis"} title={desk === "projection" ? "Explore an assumption" : "Choose your analytical lens"} detail={desk === "projection" ? "Illustrative scenarios are separate from measured progress and accepted FitAdapt plans." : "Existing calculations summarize your logs. Missing days may count in period averages; a summary is not a complete intake record."} />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {([7, 30, 90] as RangeKey[]).map(r => <Choice key={r} label={r + ' days'} selected={range === r} onPress={() => setRange(r)} />)}
     </View>
-    <Text style={F.caption}>Comparisons use current saved goals. Estimates are calculator outputs, not FitAdapt forecasts. Device history may contribute to these views.</Text>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+    <Text style={F.caption}>Comparisons use currently resolved targets, including accepted FitAdapt targets when available. Estimates are calculator outputs, not FitAdapt forecasts. Device history may contribute to these views.</Text>
+    <ProfileSection index="01" title="Analytics desks" detail="Choose a desk; the date range applies to all eight."><ProfileFields>
       {[{ "id": "calories", "title": "Calorie Breakdown Deep Dive" }, { "id": "protein", "title": "Protein Analytics" }, { "id": "macros", "title": "Macro Balance Analytics" }, { "id": "weight", "title": "Weight & Body Composition Trends" }, { "id": "performance", "title": "Performance Correlations" }, { "id": "hydration", "title": "Hydration Analytics" }, { "id": "activity", "title": "Workout & Activity Analytics" }, { "id": "projection", "title": "Goal Projection Engine" }].map(t => <Choice key={t.id} label={t.title} selected={desk === t.id} onPress={() => setDesk(t.id)} />)}
-    </ScrollView>
+    </ProfileFields></ProfileSection>
     {desk === "calories" && !(foodsInRange.length > 0) && <Empty title="No records in this range" detail="Record data or choose a wider period to explore this metric." />}
     {desk === "calories" && (foodsInRange.length > 0) && <View style={{ gap: 20 }}>
       <Heading title="Calorie Breakdown Deep Dive" />
@@ -596,8 +599,8 @@ function Card({ children, style }: { children: React.ReactNode; style?: any; }) 
 function ChartCard({ title, children, onExpand }: { title: string; children: React.ReactNode; onExpand: () => void; }) {
   const C = useC();
   return (<Panel>
-    <Heading title={title} />
-    {children}
+    <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}><Ionicons name="analytics-outline" size={24} color={C.purple} /><View style={{ flex: 1 }}><Heading title={title} /></View></View>
+    {React.Children.toArray(children).map((child, index) => index === 0 ? <View key={index} style={{ borderRadius: 16, padding: 12, gap: 12, backgroundColor: C.card2 }}>{child}</View> : <View key={index} style={{ borderLeftWidth: 2, borderLeftColor: C.hairline, paddingLeft: 12 }}>{child}</View>)}
   </Panel>
   );
 }
@@ -963,7 +966,7 @@ function BarLine({ label, value, max, color }: { label: string; value: number; m
 
 function ProjectionCard({ rows, profile, onAdjust }: { rows: DayRow[]; profile: Profile | null; onAdjust: () => void; }) {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const C = useC();
   const current = Math.round((avg(rows.map((r) => r.calories)) - nutritionTargets(profile).calories) / 500 * 10) / 10;
@@ -977,7 +980,7 @@ function ProjectionCard({ rows, profile, onAdjust }: { rows: DayRow[]; profile: 
   return (<Panel>
     <Heading title="Calculator scenarios" detail="Illustrative assumptions, not measured weight forecasts or FitAdapt advice." />
     <Text style={F.body}>This legacy calculator uses the selected nutrition average against your current target. The scenario offsets and 36, 24 and 16 week horizons are fixed assumptions; they do not predict when you will reach a goal.</Text>
-    {scenarios.map((s, i) => <Item key={s.name} title={s.name} value={`${s.pace} · hypothetical ${[36, 24, 16][i]}-week horizon`} detail={expanded === s.name ? `${s.detail} Illustration ends ${s.eta}.` : undefined} onPress={() => setExpanded(expanded === s.name ? null : s.name)} />)}
+    {scenarios.map((s, i) => <ProfileRecord key={s.name} label={`SCENARIO 0${i + 1} / FIXED ASSUMPTIONS`}><Item title={s.name} value={`${s.pace} · hypothetical ${[36, 24, 16][i]}-week horizon`} detail={expanded === s.name ? `${s.detail} Illustration ends ${s.eta}.` : undefined} onPress={() => setExpanded(expanded === s.name ? null : s.name)} /></ProfileRecord>)}
     <Button label="Edit saved goals" onPress={onAdjust} />
   </Panel>
   );
@@ -1054,4 +1057,8 @@ function streakImpact(rows: DayRow[], goals: Goals) {
 function hydrationPerformanceInsight(h: DayRow[], d: DayRow[], goals: Goals) {
   const diff = Math.round(avg(h.map((r) => (r.protein / goals.protein) * 100)) - avg(d.map((r) => (r.protein / goals.protein) * 100)));
   return `On well-hydrated days, protein compliance is ${Math.max(0, diff)}% higher.`;
+}
+
+export default function AdvancedMetricsScreen() {
+  return <SomataTaskAppearance><AdvancedMetricsScreenContent /></SomataTaskAppearance>;
 }

@@ -76,6 +76,10 @@ After confirmed server deletion, the app freezes the new local storage boundary 
 
 New progress photos live under `documentDirectory/somata-account-photos/<hex-encoded UID>/`. Every UTF-16 code unit is encoded, so imported UID punctuation cannot become directory traversal. Only app-created photos within that exact directory can be removed. Generated image-manipulator temporary output is removed after copying. This does not delete the user's original Photos-library image or unknown image-picker/OS caches. Other installations/devices cannot be remotely wiped.
 
+October 26 photo-path repair: new journal records store the owner-relative file path. Reads resolve both these references and older absolute paths against the current document directory, but only for the exact UID folder and a validated JPG filename. Reads never scan another account, adopt unscoped/cache records, or rewrite/delete a missing record. File existence is checked, and the journal retains captions/dates with an unavailable-image state if the file cannot be read. Explicit deletion resolves verified owned files in the current directory; ambiguous files remain untouched. This fixes a code-level failure to resolve paths after an app-container change, not proof that a particular phone's missing image still exists. Older cache-only photos can have been evicted and require reselection from the original library. This collection has no Firebase/Storage upload or cloud recovery path.
+
+Photo-path validation: `node --import tsx --test tests/accountLocalStorage.test.ts tests/progressPhotoStorage.test.ts` passed 19 tests; the photo cases in `tests/profileFamilyPresentation.test.ts` passed 2 UI/action tests. These use synthetic/in-memory file data and offline rendering, not personal-device inspection.
+
 Added `expo-file-system ~57.0.7` as an explicit mobile dependency for this owned-file lifecycle; this exact version was already present transitively. The lockfile change only adds that dependency to the mobile importer. No provider credentials or environment configuration changed.
 
 ## Verification

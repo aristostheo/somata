@@ -1,6 +1,7 @@
+import { ProfileIntro, ProfileSection } from "@/components/profile/ProfileTaskUI";
 import { accountStorage, type AccountStore, useAccountStorage } from '@/services/local/accountStore';
 import { Button, Choice, Empty, Heading, IconButton, Item, Metric, Panel, TaskPage, TaskSheet } from "@/components/somata/TaskUI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { SomataTaskAppearance, useTaskPresentation } from "@/components/designPreview/Appearance";
 import { Trend } from "@/components/somata/Trend";
 import { Alert } from "react-native";
 // app/(modals)/body-metrics.tsx — Premium health dashboard redesign
@@ -17,7 +18,7 @@ import {
 import { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useProfileFlowTheme as useTheme } from "@/components/accountSettings/useProfileFlowTheme";
+import { usePremiumProfileFlowTheme as useTheme } from "@/components/accountSettings/useProfileFlowTheme";
 import MetricPickerSheet from "@/components/profile/premium/bodyMetrics/MetricPickerSheet";
 import { useAuth } from "@/content/AuthContext";
 import {
@@ -180,9 +181,9 @@ function draftFromProfile(profile: Profile | null): Draft {
 
 // ─── main screen ─────────────────────────────────────────────────────────────
 
-export default function BodyMetricsEditorScreen() {
+function BodyMetricsEditorScreenContent() {
   const localStore = useAccountStorage();
-  const { D, F } = useSomataTheme();
+  const { D, F } = useTaskPresentation();
 
   const { colors, isDark } = useTheme();
   const router = useRouter();
@@ -536,22 +537,18 @@ export default function BodyMetricsEditorScreen() {
 
   return (<><TaskPage title="A record of you" section="Body measurements" onBack={confirmBack} footer={<><Button primary label="Save measurements" disabled={!dirty || !!bodyFatError} onPress={onSave} />{savedToast && <Text accessibilityLiveRegion="polite" style={F.body}>Saved</Text>}</>}>
 
-    <View style={{ flexDirection: 'row', gap: 8 }}>
+    <ProfileIntro label="Measurement workspace" title="Record, then reflect" detail="Review your draft before saving. Calculated estimates and dated measurements are shown separately." />
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {(['imperial', 'metric'] as UnitMode[]).map(u => <Choice key={u} label={u === 'imperial' ? 'lb / in' : 'kg / cm'} selected={unitMode === u} onPress={() => setUnit(u)} />)}
     </View>
 
     <Panel accent>
-      <Text style={F.eyebrow}>CURRENT WEIGHT</Text>
+      <Text style={F.eyebrow}>WEIGHT / EDITABLE DRAFT</Text>
       <Text style={{ ...F.value, fontSize: 48 }}>{draft.weightLb == null ? 'Not set' : fmtWeight(draft.weightLb, unitMode)}</Text>
       <Button label="Update weight" onPress={() => setSheet('weight')} />
     </Panel>
 
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-      <Metric label="BMI · calculated" value={bmi == null ? '—' : bmi.toFixed(1)} detail={bmi == null ? undefined : bmiDescriptor(bmi)} />
-      <Metric label="Lean mass · calculated" value={leanMass == null ? '—' : fmtWeight(leanMass.lb, unitMode)} />
-    </View>
-
-    <Heading title="Your measurement desk" />
+    <ProfileSection index="01" title="Your measurement desk" detail="Tap a value to edit the draft.">
     {([{ key: 'target', title: 'Goal weight', value: draft.targetWeightLb == null ? 'Not set' : fmtWeight(draft.targetWeightLb, unitMode) }, { key: 'height', title: 'Height', value: draft.heightCm == null ? 'Not set' : fmtHeight(draft.heightCm, unitMode) }, { key: 'age', title: 'Age', value: draft.age == null ? 'Not set' : String(draft.age) }, { key: 'bodyfat', title: 'Body fat', value: draft.bodyFatPct == null ? 'Not set' : `${draft.bodyFatPct}%` }, { key: 'waist', title: 'Waist', value: draft.waistCm == null ? 'Not set' : `${round1(unitMode === 'imperial' ? draft.waistCm * 0.393701 : draft.waistCm)} ${unitMode === 'imperial' ? 'in' : 'cm'}` }, { key: 'neck', title: 'Neck', value: draft.neckCm == null ? 'Not set' : `${round1(unitMode === 'imperial' ? draft.neckCm * 0.393701 : draft.neckCm)} ${unitMode === 'imperial' ? 'in' : 'cm'}` }]).map(m => <Item key={m.key} title={m.title} value={m.value} onPress={() => setSheet(m.key as SheetKey)} />)}
 
     <Heading title="Equation sex" />
@@ -559,16 +556,23 @@ export default function BodyMetricsEditorScreen() {
       {(['male', 'female', 'other'] as SexType[]).map(sex => <Choice key={sex} label={sex} selected={draft.sex === sex} onPress={() => setDraft(d => ({ ...d, sex }))} />)}
     </View>
     {(draft.sex === 'female' || draft.sex === 'other') && <Item title="Hip circumference" value={draft.hipCm == null ? 'Not set' : `${round1(unitMode === 'imperial' ? draft.hipCm * 0.393701 : draft.hipCm)} ${unitMode === 'imperial' ? 'in' : 'cm'}`} onPress={() => setSheet('hip')} />}
+    </ProfileSection>
+    <ProfileSection index="02" title="Calculated context" detail="Estimates from your inputs, not new measurements.">
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Metric label="BMI · calculated" value={bmi == null ? '—' : bmi.toFixed(1)} detail={bmi == null ? undefined : bmiDescriptor(bmi)} />
+      <Metric label="Lean mass · calculated" value={leanMass == null ? '—' : fmtWeight(leanMass.lb, unitMode)} />
+    </View>
+
     {bodyFatError && <Text style={F.caption}>{bodyFatError}</Text>}
     {navyEst != null && <Text style={F.caption}>Navy body-fat estimate · {navyEst.toFixed(1)}%</Text>}
     {weeksToGoal != null && <Text style={F.caption}>Saved-goal estimate · {weeksToGoal} weeks</Text>}
     <Text style={F.body}>{coachNote}</Text>
 
-    <Heading title="Connected vitals" />
+    </ProfileSection><ProfileSection index="03" title="Connected vitals" detail="Only available connected records are shown.">
     {profile?.restingHeartRateBpm ? <Item title="Resting heart rate" value={`${Math.round(profile.restingHeartRateBpm)} bpm`} detail={profile.healthLastUpdatedVia} /> : null}
     {profile?.hrvMs ? <Item title="HRV" value={`${Math.round(profile.hrvMs)} ms`} detail={profile.healthLastUpdatedVia} /> : null}
     {profile?.bloodOxygenPct ? <Item title="Blood oxygen" value={`${Math.round(profile.bloodOxygenPct)}%`} detail={profile.healthLastUpdatedVia} /> : null}
-    <Heading title="Measured history" detail="History stored on this device" />
+    </ProfileSection><ProfileSection index="04" title="Measured history" detail="Dated records stored on this device">
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {(['30D', '90D', 'all'] as HistoryRange[]).map(r => <Choice key={r} label={r} selected={historyRange === r} onPress={() => setHistoryRange(r)} />)}
     </View>
@@ -577,13 +581,13 @@ export default function BodyMetricsEditorScreen() {
     {visibleHistory.map((point, i) => <Item key={`${point.t}-${i}`} title={fmtDate(point.t)} value={point.weightLb == null ? 'Not recorded' : fmtWeight(point.weightLb, unitMode)} detail={[point.bodyFatPct == null ? '' : `${point.bodyFatPct}% body fat`, point.waistCm == null ? '' : `${point.waistCm} cm waist`].filter(Boolean).join(' · ')} action={<IconButton icon="trash-outline" label="Remove check-in" onPress={() => Alert.alert('Delete check-in?', 'This removes the entry from this history view.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => deleteCheckIn(filteredHistory.indexOf(point)) }])} />} />)}
     {!visibleHistory.length && <Empty title="No measurements recorded yet" />}
     <Button label={showAllHistory ? 'Show recent records' : 'Show all history'} onPress={() => setShowAllHistory(v => !v)} />
-    <Button label="Health connections" onPress={() => router.push('/profile/integrations')} />
+    </ProfileSection><Button label="Health connections" onPress={() => router.push('/profile/integrations')} />
 
   </TaskPage>
     <MetricPickerSheet
       open={sheet === "weight"}
       title="Current weight"
-      subtitle="Updates your calorie targets"
+      subtitle="Edit the measurement draft. Saving does not replace an accepted FitAdapt plan."
       unitLabel={unitMode === "imperial" ? "lb" : "kg"}
       values={weightValues}
       value={weightPickerValue}
@@ -714,11 +718,12 @@ export default function BodyMetricsEditorScreen() {
       onClose={() => setSheet(null)}
     />
     <TaskSheet title="Discard changes?" visible={discardOpen} onClose={() => setDiscardOpen(false)}>
-      <Text style={F.body}>You have unsaved measurements.</Text>
+      <ProfileIntro label="Unsaved draft" title="Keep this edit?" detail="Your saved measurements stay unchanged if you discard these edits." />
       <Button danger label="Discard" onPress={() => { setDiscardOpen(false); router.back(); }} />
       <Button label="Keep editing" onPress={() => setDiscardOpen(false)} />
     </TaskSheet>
     <TaskSheet title="Weight changed" visible={recalcOpen} onClose={handleKeepGoals}>
+      <ProfileIntro label="Saved-goal decision" title="Choose what follows" detail="Your measurement has been saved. This choice concerns the saved-goal calculation." />
       <Text style={F.body}>{pendingRecalc ? `You logged ${fmtWeight(kgToLb(pendingRecalc.newWeightKg), unitMode)}. Recalculate saved goals?` : ''}{acceptedNutritionTargets(profile) ? ' Your accepted FitAdapt targets stay active until you accept a new proposal on Profile.' : ''}</Text>
       <Button primary label="Recalculate saved goals" onPress={handleRecalculate} />
       <Button label="Keep current goals" onPress={handleKeepGoals} />
@@ -817,8 +822,8 @@ function WeightTrendChart({
   const fmtY = (w: number) => unit === "imperial" ? `${Math.round(w)}` : `${round1(w)}`;
 
   return (<Panel>
-    <Heading title="Weight / seven-day average" detail="Teal · recorded weight. Lime · rolling average." />
-    <Trend values={points.map(p => p.w)} second={rollingAvg.map(p => p.avg)} labels={points.map(p => fmtDate(p.t))} goal={goalLb == null ? undefined : unit === 'imperial' ? goalLb : lbToKg(goalLb)} unit={unit === 'imperial' ? 'lb' : 'kg'} />
+    <Heading title="Weight / seven-day average" detail="Orange · recorded weight. Blue · rolling average." />
+    <Trend premiumProfile values={points.map(p => p.w)} second={rollingAvg.map(p => p.avg)} labels={points.map(p => fmtDate(p.t))} goal={goalLb == null ? undefined : unit === 'imperial' ? goalLb : lbToKg(goalLb)} unit={unit === 'imperial' ? 'lb' : 'kg'} />
   </Panel>
   );
 }
@@ -984,3 +989,7 @@ const styles = StyleSheet.create({
   },
   toastText: { fontSize: 13, fontWeight: "500" },
 });
+
+export default function BodyMetricsEditorScreen() {
+  return <SomataTaskAppearance><BodyMetricsEditorScreenContent /></SomataTaskAppearance>;
+}

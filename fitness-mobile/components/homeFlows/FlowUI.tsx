@@ -1,5 +1,6 @@
+import { SomataSymbol } from "@/components/brand/Brand";
 import { D } from "@/components/designPreview/UI";
-import { useSomataTheme } from "@/components/somata/theme";
+import { useTaskPresentation } from "@/components/designPreview/Appearance";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -22,7 +23,7 @@ export const F = StyleSheet.create({
 export function FlowPage({ title, eyebrow, children, action, onBack }: {
   title: string; eyebrow: string; children: React.ReactNode; action?: React.ReactNode; onBack: () => void;
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F, premium, t, p } = useTaskPresentation();
 
   const insets = useSafeAreaInsets();
   return <View style={{ flex: 1, backgroundColor: D.bg }}>
@@ -39,7 +40,7 @@ export function FlowPage({ title, eyebrow, children, action, onBack }: {
 
       </Pressable>
 
-      <Text style={F.eyebrow}>SOMATA</Text>
+      <SomataSymbol size={32} />
 
       {action || <View style={{ width: 48 }} />}
 
@@ -67,23 +68,24 @@ export function FlowPage({ title, eyebrow, children, action, onBack }: {
 export function ChoiceRail<T extends string | number>({ choices, value, onChange, label }: {
   choices: Array<{ value: T; label: string; }>; value: T; onChange: (next: T) => void; label: string;
 }) {
-  const { D, F } = useSomataTheme();
+  const { D, F, premium, t, p } = useTaskPresentation();
 
   return <View accessibilityLabel={label} style={{
     ...F.wrap, padding: 5,
-    backgroundColor: D.card, borderRadius: 18, gap: 4
+    backgroundColor: premium ? t.surface.inset : D.card, borderRadius: 18, gap: 4
   }}>
 
     {choices.map((option) => <Pressable key={option.value} accessibilityRole="button"
       accessibilityState={{ selected: option.value === value }} onPress={() => onChange(option.value)}
       style={({ pressed }) => ({
         flexGrow: 1, flexBasis: 75, paddingHorizontal: 12,
-        minHeight: 47, paddingVertical: 10, borderRadius: 13, alignItems: "center", justifyContent: "center",
-        backgroundColor: value === option.value ? D.lime : "transparent", opacity: pressed ? 0.7 : 1
+        minHeight: premium ? 48 : 47, paddingVertical: 10, borderRadius: 13, alignItems: "center", justifyContent: "center",
+        borderWidth: premium ? 1 : 0, borderColor: value === option.value ? t.selection.border : "transparent",
+        backgroundColor: value === option.value ? (premium ? t.selection.background : D.lime) : "transparent", opacity: pressed ? 0.7 : 1
       })}>
 
       <Text style={{
-        color: value === option.value ? D.ink : D.muted, fontSize: 13,
+        color: value === option.value ? (premium ? t.selection.foreground : D.ink) : D.muted, fontSize: 13,
         fontWeight: "800", textAlign: "center"
       }}>{option.label}</Text>
 
@@ -93,11 +95,11 @@ export function ChoiceRail<T extends string | number>({ choices, value, onChange
 }
 
 export function FlowNotice({ title, detail, error = false }: { title: string; detail?: string; error?: boolean; }) {
-  const { D, F } = useSomataTheme();
+  const { D, F, premium, t, p } = useTaskPresentation();
 
   return <View style={{ ...F.panel, borderWidth: 1, borderColor: D.line }} accessibilityRole={error ? "alert" : undefined}>
 
-    <Ionicons name={error ? "alert-circle-outline" : "ellipse-outline"} size={24} color={error ? D.amber : D.teal} />
+    <Ionicons name={error ? "alert-circle-outline" : "ellipse-outline"} size={24} color={error ? (premium ? t.status.error : D.amber) : D.teal} />
 
     <Text style={{ ...F.heading, fontSize: 17 }}>{title}</Text>
 
@@ -107,7 +109,7 @@ export function FlowNotice({ title, detail, error = false }: { title: string; de
 }
 
 export function SmallStat({ label, value, detail }: { label: string; value: string; detail?: string; }) {
-  const { D, F } = useSomataTheme();
+  const { D, F, premium, t, p } = useTaskPresentation();
 
   return <View style={{ flex: 1, minWidth: 125, gap: 5, padding: 16, borderRadius: 17, backgroundColor: D.card }}>
 

@@ -1,0 +1,77 @@
+{
+  "checked": 299,
+  "records": [
+    {
+      "file": "app/profile/friend-visibility.tsx",
+      "unchangedFunctions": 14
+    },
+    {
+      "file": "app/friends/[id]/profile.tsx",
+      "unchangedFunctions": 1
+    },
+    {
+      "file": "components/friends/SharedSummary.tsx",
+      "unchangedFunctions": 20
+    },
+    {
+      "file": "components/friends/premium/FriendsAddSheet.tsx",
+      "unchangedFunctions": 8
+    },
+    {
+      "file": "app/friends.tsx",
+      "unchangedFunctions": 74
+    },
+    {
+      "file": "app/(modals)/settings.tsx",
+      "unchangedFunctions": 43
+    },
+    {
+      "file": "app/(modals)/badges.tsx",
+      "unchangedFunctions": 41
+    },
+    {
+      "file": "app/paywall.tsx",
+      "unchangedFunctions": 6
+    },
+    {
+      "file": "app/account/index.tsx",
+      "unchangedFunctions": 18
+    },
+    {
+      "file": "app/account/legal.tsx",
+      "unchangedFunctions": 4
+    },
+    {
+      "file": "app/profile/integrations.tsx",
+      "unchangedFunctions": 11
+    },
+    {
+      "file": "app/friends/[id]/progress.tsx",
+      "unchangedFunctions": 1
+    },
+    {
+      "file": "app/friends/[id].tsx",
+      "unchangedFunctions": 1
+    },
+    {
+      "file": "components/somata/ConnectionsDesk.tsx",
+      "unchangedFunctions": 27
+    },
+    {
+      "file": "app/(modals)/theme-editor.tsx",
+      "unchangedFunctions": 15
+    },
+    {
+      "file": "app/friends/[id]/workouts.tsx",
+      "unchangedFunctions": 1
+    },
+    {
+      "file": "app/account/delete.tsx",
+      "unchangedFunctions": 13
+    },
+    {
+      "file": "app/friends/preview.tsx",
+      "unchangedFunctions": 1
+    }
+  ]
+}
